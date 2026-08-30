@@ -1,0 +1,91 @@
+import { Either, left, right } from '@core/either';
+import { Cnpj } from '@domain/empresa/entities/cnpj';
+import { Empresa } from '@domain/empresa/entities/empresa';
+import { Injectable } from '@nestjs/common';
+import { CnpjInvalidoError } from '../errors/cnpj-invalido-error';
+import { EmpresaAlreadyExistsError } from '../errors/empresa-already-exists.error';
+import { Hasher } from '../ports/hasher';
+import { EmpresaRepository } from '../ports/repository';
+
+interface CriarEmpresaUseCaseRequest {
+  razaoSocial: string;
+  nomeFantasia: string;
+  cnpj: string;
+  email: string;
+  senha: string;
+  telefone: string;
+  cep: string;
+  logradouro: string;
+  numero: number;
+  complemento?: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+}
+
+export type CriarEmpresaUseCaseResponse = Either<
+  EmpresaAlreadyExistsError | CnpjInvalidoError,
+  {
+    empresa: Empresa;
+  }
+>;
+
+@Injectable()
+export class CriarEmpresaUseCase {
+  constructor(
+    private readonly empresaRepository: EmpresaRepository,
+    private readonly hasher: Hasher,
+  ) {}
+
+  async execute({
+    razaoSocial,
+    nomeFantasia,
+    cnpj,
+    email,
+    senha,
+    telefone,
+    cep,
+    logradouro,
+    numero,
+    complemento,
+    bairro,
+    cidade,
+    uf,
+  }: CriarEmpresaUseCaseRequest): Promise<CriarEmpresaUseCaseResponse> {
+    const empresaAlreadyExists =
+      (await this.empresaRepository.findByCnpj(cnpj)) ||
+      (await this.empresaRepository.findByEmail(email));
+
+    if (empresaAlreadyExists) {
+      return left(new EmpresaAlreadyExistsError(cnpj));
+    }
+
+    const cnpjOrError = Cnpj.create(cnpj);
+
+    if (cnpjOrError.isLeft()) {
+      return left(cnpjOrError.value);
+    }
+
+    const hashedPassword = await this.hasher.hash(senha);
+
+    const empresa = Empresa.create({
+      razaoSocial,
+      nomeFantasia,
+      cnpj: cnpjOrError.value,
+      email,
+      senha: hashedPassword,
+      telefone,
+      cep,
+      logradouro,
+      numero,
+      complemento,
+      bairro,
+      cidade,
+      uf,
+    });
+
+    await this.empresaRepository.create(empresa);
+
+    return right({ empresa });
+  }
+}
