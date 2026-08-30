@@ -1,12 +1,12 @@
 # compiled output
 api/dist/
 api/build/
-mobile/dist/
-mobile/build/
+web/dist/
+web/build/
 
 # Monorepo — node_modules por subprojeto
 api/node_modules/
-mobile/node_modules/
+web/node_modules/
 node_modules/
 
 # Logs
