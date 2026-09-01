@@ -1,27 +1,21 @@
 import { InMemoryEmpresaRepository } from '@test/repositories/in-memory-empresa-repository';
-import { Hasher } from '../ports/hasher';
-import { EmpresaRepository } from '../ports/repository';
+import { EmpresaRepository } from '../ports/database/empresa-repository';
 import { CriarEmpresaUseCase } from './criar-empresa';
-import { FakeHasher } from '@test/cryptography/fake-hasher';
 
 describe('CriarEmpresaUseCase', () => {
   let criarEmpresaUseCase: CriarEmpresaUseCase;
   let empresaRepository: EmpresaRepository;
-  let hasher: Hasher;
 
   beforeEach(() => {
     empresaRepository = new InMemoryEmpresaRepository();
-    hasher = new FakeHasher();
-    criarEmpresaUseCase = new CriarEmpresaUseCase(empresaRepository, hasher);
+    criarEmpresaUseCase = new CriarEmpresaUseCase(empresaRepository);
   });
 
-  it('should create a new empresa with hashed password', async () => {
+  it('should create a new empresa', async () => {
     const request = {
       razaoSocial: 'Empresa Teste LTDA',
       nomeFantasia: 'Empresa Teste',
       cnpj: '12345678000195',
-      email: 'empresa@teste.com',
-      senha: 'senha123',
       telefone: '11999999999',
       cep: '12345678',
       logradouro: 'Rua Teste',
@@ -47,7 +41,6 @@ describe('CriarEmpresaUseCase', () => {
 
       expect(empresaInRepository).not.toBeNull();
       expect(empresaInRepository?.equals(empresa)).toBe(true);
-      expect(empresa.senha).toEqual(await hasher.hash(request.senha));
     }
   });
 });

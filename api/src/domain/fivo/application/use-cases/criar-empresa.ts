@@ -1,18 +1,15 @@
 import { Either, left, right } from '@core/either';
-import { Cnpj } from '@domain/empresa/entities/cnpj';
-import { Empresa } from '@domain/empresa/entities/empresa';
+import { Cnpj } from '@domain/fivo/entities/cnpj';
+import { Empresa } from '@domain/fivo/entities/empresa';
 import { Injectable } from '@nestjs/common';
 import { CnpjInvalidoError } from '../errors/cnpj-invalido-error';
 import { EmpresaAlreadyExistsError } from '../errors/empresa-already-exists.error';
-import { Hasher } from '../ports/hasher';
-import { EmpresaRepository } from '../ports/repository';
+import { EmpresaRepository } from '../ports/database/empresa-repository';
 
 interface CriarEmpresaUseCaseRequest {
   razaoSocial: string;
   nomeFantasia: string;
   cnpj: string;
-  email: string;
-  senha: string;
   telefone: string;
   cep: string;
   logradouro: string;
@@ -32,17 +29,12 @@ export type CriarEmpresaUseCaseResponse = Either<
 
 @Injectable()
 export class CriarEmpresaUseCase {
-  constructor(
-    private readonly empresaRepository: EmpresaRepository,
-    private readonly hasher: Hasher,
-  ) {}
+  constructor(private readonly empresaRepository: EmpresaRepository) {}
 
   async execute({
     razaoSocial,
     nomeFantasia,
     cnpj,
-    email,
-    senha,
     telefone,
     cep,
     logradouro,
@@ -52,9 +44,7 @@ export class CriarEmpresaUseCase {
     cidade,
     uf,
   }: CriarEmpresaUseCaseRequest): Promise<CriarEmpresaUseCaseResponse> {
-    const empresaAlreadyExists =
-      (await this.empresaRepository.findByCnpj(cnpj)) ||
-      (await this.empresaRepository.findByEmail(email));
+    const empresaAlreadyExists = await this.empresaRepository.findByCnpj(cnpj);
 
     if (empresaAlreadyExists) {
       return left(new EmpresaAlreadyExistsError(cnpj));
@@ -66,14 +56,10 @@ export class CriarEmpresaUseCase {
       return left(cnpjOrError.value);
     }
 
-    const hashedPassword = await this.hasher.hash(senha);
-
     const empresa = Empresa.create({
       razaoSocial,
       nomeFantasia,
       cnpj: cnpjOrError.value,
-      email,
-      senha: hashedPassword,
       telefone,
       cep,
       logradouro,

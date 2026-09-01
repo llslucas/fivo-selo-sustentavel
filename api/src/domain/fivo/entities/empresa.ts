@@ -14,8 +14,6 @@ export interface EmpresaProps {
   razaoSocial: string;
   nomeFantasia: string;
   cnpj: Cnpj;
-  email: string;
-  senha: string;
   telefone: string;
   cep: string;
   logradouro: string;
@@ -55,14 +53,6 @@ export class Empresa extends Entity<EmpresaProps> {
 
   get cnpj(): Cnpj {
     return this._props.cnpj;
-  }
-
-  get email(): string {
-    return this._props.email;
-  }
-
-  get senha(): string {
-    return this._props.senha;
   }
 
   get telefone(): string {

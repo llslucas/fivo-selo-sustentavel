@@ -1,5 +1,5 @@
-import { EmpresaRepository } from '@domain/empresa/application/ports/repository';
-import { Empresa } from '@domain/empresa/entities/empresa';
+import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
+import { Empresa } from '@domain/fivo/entities/empresa';
 
 export class InMemoryEmpresaRepository implements EmpresaRepository {
   public items: Empresa[] = [];
@@ -11,11 +11,6 @@ export class InMemoryEmpresaRepository implements EmpresaRepository {
 
   findByCnpj(cnpj: string): Promise<Empresa | null> {
     const empresa = this.items.find((item) => item.cnpj.valor === cnpj);
-    return Promise.resolve(empresa ?? null);
-  }
-
-  findByEmail(email: string): Promise<Empresa | null> {
-    const empresa = this.items.find((item) => item.email === email);
     return Promise.resolve(empresa ?? null);
   }
 
