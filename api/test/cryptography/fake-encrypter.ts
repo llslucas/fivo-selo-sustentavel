@@ -1,4 +1,4 @@
-import { Encrypter } from '@domain/empresa/application/ports/encrypter';
+import { Encrypter } from '@domain/fivo/application/ports/cryptography/encrypter';
 
 export class FakeEncrypter implements Encrypter {
   async encrypt(payload: Record<string, unknown>) {

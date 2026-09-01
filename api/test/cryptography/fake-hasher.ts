@@ -1,4 +1,4 @@
-import { Hasher } from '@domain/empresa/application/ports/hasher';
+import { Hasher } from '@domain/fivo/application/ports/cryptography/hasher';
 
 export class FakeHasher implements Hasher {
   async hash(plain: string) {
