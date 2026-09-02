@@ -21,6 +21,9 @@ export class EmpresaFactory {
       bairro: 'Bairro Teste',
       cidade: 'Cidade Teste',
       uf: 'SP',
+      site: 'https://www.empresateste.com.br',
+      email: 'contato@empresateste.com.br',
+      contato: 'João da Silva',
       ...props,
     });
 

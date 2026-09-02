@@ -23,16 +23,23 @@ export interface EmpresaProps {
   bairro: string;
   cidade: string;
   uf: string;
+  site: string;
+  email: string;
+  contato: string;
   status: EmpresaStatus;
-  decidido_por: User;
-  decidido_em: Date;
+  decidido_por?: User | null;
+  decidido_em?: Date | null;
+  motivo_decisao?: string | null;
   createdAt: Date;
   updatedAt?: Date | null;
 }
 
 export class Empresa extends Entity<EmpresaProps> {
   static create(
-    props: Optional<EmpresaProps, 'createdAt' | 'status'>,
+    props: Optional<
+      EmpresaProps,
+      'createdAt' | 'status' | 'decidido_por' | 'decidido_em' | 'motivo_decisao'
+    >,
     id?: UniqueEntityId,
   ): Empresa {
     const empresa = new Empresa(
@@ -90,6 +97,18 @@ export class Empresa extends Entity<EmpresaProps> {
     return this._props.uf;
   }
 
+  get site(): string {
+    return this._props.site;
+  }
+
+  get email(): string {
+    return this._props.email;
+  }
+
+  get contato(): string {
+    return this._props.contato;
+  }
+
   get status(): EmpresaStatus {
     return this._props.status;
   }
@@ -97,18 +116,25 @@ export class Empresa extends Entity<EmpresaProps> {
     this._props.status = status;
   }
 
-  get decidido_por(): User {
+  get decidido_por(): User | null | undefined {
     return this._props.decidido_por;
   }
   set decidido_por(user: User) {
     this._props.decidido_por = user;
   }
 
-  get decidido_em(): Date {
+  get decidido_em(): Date | null | undefined {
     return this._props.decidido_em;
   }
   set decidido_em(date: Date) {
     this._props.decidido_em = date;
+  }
+
+  get motivo_decisao(): string | null | undefined {
+    return this._props.motivo_decisao;
+  }
+  set motivo_decisao(motivo: string) {
+    this._props.motivo_decisao = motivo;
   }
 
   get createdAt(): Date {

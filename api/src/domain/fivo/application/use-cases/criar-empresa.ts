@@ -18,6 +18,9 @@ interface CriarEmpresaUseCaseRequest {
   bairro: string;
   cidade: string;
   uf: string;
+  site: string;
+  email: string;
+  contato: string;
 }
 
 export type CriarEmpresaUseCaseResponse = Either<
@@ -43,6 +46,9 @@ export class CriarEmpresaUseCase {
     bairro,
     cidade,
     uf,
+    site,
+    email,
+    contato,
   }: CriarEmpresaUseCaseRequest): Promise<CriarEmpresaUseCaseResponse> {
     const empresaAlreadyExists = await this.empresaRepository.findByCnpj(cnpj);
 
@@ -68,6 +74,9 @@ export class CriarEmpresaUseCase {
       bairro,
       cidade,
       uf,
+      site,
+      email,
+      contato,
     });
 
     await this.empresaRepository.create(empresa);
