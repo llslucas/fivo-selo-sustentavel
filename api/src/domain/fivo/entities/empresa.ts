@@ -90,6 +90,9 @@ export class Empresa extends Entity<EmpresaProps> {
   get status(): EmpresaStatus {
     return this._props.status;
   }
+  set status(status: EmpresaStatus) {
+    this._props.status = status;
+  }
 
   get createdAt(): Date {
     return this._props.createdAt;
