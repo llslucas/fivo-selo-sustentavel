@@ -19,6 +19,8 @@ export class AprovarEmpresaUseCase {
     }
 
     empresa.status = EmpresaStatus.APROVADA;
+    empresa.decidido_por = user;
+    empresa.decidido_em = new Date();
 
     await this.empresaRepository.save(empresa);
   }

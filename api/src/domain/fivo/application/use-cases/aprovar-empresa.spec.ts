@@ -6,6 +6,7 @@ import { UserFactory } from '@test/factories/user-factory';
 import { InMemoryEmpresaRepository } from '@test/repositories/in-memory-empresa-repository';
 import { EmpresaRepository } from '../ports/database/empresa-repository';
 import { AprovarEmpresaUseCase } from './aprovar-empresa';
+import { EmpresaStatus } from '@domain/fivo/entities/empresa';
 
 describe('AprovarEmpresaUseCase', () => {
   let aprovarEmpresaUseCase: AprovarEmpresaUseCase;
@@ -27,7 +28,9 @@ describe('AprovarEmpresaUseCase', () => {
     const updatedEmpresa = await empresaRepository.findById(
       mockEmpresa.id.toString(),
     );
-    expect(updatedEmpresa?.status).toBe('APROVADA');
+
+    expect(updatedEmpresa?.status).toBe(EmpresaStatus.APROVADA);
+    expect(updatedEmpresa?.decidido_por).toEqual(mockUser);
   });
 
   it('should throw a NotAllowedError if the user is not an admin', async () => {
