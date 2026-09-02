@@ -2,6 +2,7 @@ import { Entity } from '@core/types/entities/entity';
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { Optional } from '@core/types/optional';
 import { Cnpj } from './cnpj';
+import { User } from './user';
 
 export enum EmpresaStatus {
   PENDENTE_APROVACAO = 'PENDENTE_APROVACAO',
@@ -23,6 +24,8 @@ export interface EmpresaProps {
   cidade: string;
   uf: string;
   status: EmpresaStatus;
+  decidido_por: User;
+  decidido_em: Date;
   createdAt: Date;
   updatedAt?: Date | null;
 }
@@ -92,6 +95,20 @@ export class Empresa extends Entity<EmpresaProps> {
   }
   set status(status: EmpresaStatus) {
     this._props.status = status;
+  }
+
+  get decidido_por(): User {
+    return this._props.decidido_por;
+  }
+  set decidido_por(user: User) {
+    this._props.decidido_por = user;
+  }
+
+  get decidido_em(): Date {
+    return this._props.decidido_em;
+  }
+  set decidido_em(date: Date) {
+    this._props.decidido_em = date;
   }
 
   get createdAt(): Date {
