@@ -1,4 +1,4 @@
-import { User, UserProps, UserType } from '@domain/fivo/entities/user';
+import { User, UserProps, UserRole } from '@domain/fivo/entities/user';
 
 export class UserFactory {
   static create(props: Partial<UserProps> = {}): User {
@@ -6,7 +6,7 @@ export class UserFactory {
       nome: 'Admin User',
       email: 'admin@example.com',
       senha: 'password',
-      type: UserType.ADMIN,
+      role: UserRole.ADMIN,
       ...props,
     });
 

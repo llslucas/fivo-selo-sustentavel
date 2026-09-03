@@ -1,6 +1,6 @@
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
-import { UserType } from '@domain/fivo/entities/user';
+import { UserRole } from '@domain/fivo/entities/user';
 import { InstituicaoFactory } from '@test/factories/instituicao-factory';
 import { UserFactory } from '@test/factories/user-factory';
 import { InMemoryInstituicaoRepository } from '@test/repositories/in-memory-instituicao-repository';
@@ -20,7 +20,7 @@ describe('SuspenderInstituicaoUseCase', () => {
   });
 
   it('should suspend an existing instituicao if the user is an admin', async () => {
-    const mockUser = UserFactory.create({ type: UserType.ADMIN });
+    const mockUser = UserFactory.create({ role: UserRole.ADMIN });
 
     const mockInstituicao = InstituicaoFactory.create();
     await instituicaoRepository.create(mockInstituicao);
@@ -39,7 +39,7 @@ describe('SuspenderInstituicaoUseCase', () => {
   });
 
   it('should throw a NotAllowedError if the user is not an admin', async () => {
-    const mockUser = UserFactory.create({ type: UserType.INSTITUICAO });
+    const mockUser = UserFactory.create({ role: UserRole.INSTITUICAO });
 
     const mockInstituicao = InstituicaoFactory.create();
     await instituicaoRepository.create(mockInstituicao);
@@ -53,7 +53,7 @@ describe('SuspenderInstituicaoUseCase', () => {
   });
 
   it('should throw a ResourceNotFound Error if the instituicao not exists.', async () => {
-    const mockUser = UserFactory.create({ type: UserType.ADMIN });
+    const mockUser = UserFactory.create({ role: UserRole.ADMIN });
 
     await expect(
       suspenderInstituicaoUseCase.execute('non-existent-id', mockUser),

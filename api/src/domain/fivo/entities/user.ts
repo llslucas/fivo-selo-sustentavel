@@ -3,7 +3,7 @@ import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { Optional } from '@core/types/optional';
 import { Empresa } from './empresa';
 
-export enum UserType {
+export enum UserRole {
   ADMIN = 'ADMIN',
   EMPRESA = 'EMPRESA',
   INSTITUICAO = 'INSTITUICAO',
@@ -13,7 +13,7 @@ export interface UserProps {
   nome: string;
   email: string;
   senha: string;
-  type: UserType;
+  role: UserRole;
   empresa?: Empresa | null;
   createdAt: Date;
   updatedAt?: Date | null;
@@ -46,8 +46,8 @@ export class User extends Entity<UserProps> {
     return this._props.senha;
   }
 
-  get type(): UserType {
-    return this._props.type;
+  get role(): UserRole {
+    return this._props.role;
   }
 
   get createdAt(): Date {

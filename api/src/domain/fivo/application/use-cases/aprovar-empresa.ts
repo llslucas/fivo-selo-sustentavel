@@ -1,4 +1,4 @@
-import { User, UserType } from '@domain/fivo/entities/user';
+import { User, UserRole } from '@domain/fivo/entities/user';
 import { EmpresaRepository } from '../ports/database/empresa-repository';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
@@ -8,7 +8,7 @@ export class AprovarEmpresaUseCase {
   constructor(private readonly empresaRepository: EmpresaRepository) {}
 
   async execute(empresaId: string, user: User): Promise<void> {
-    if (user.type !== UserType.ADMIN) {
+    if (user.role !== UserRole.ADMIN) {
       throw new NotAllowedError();
     }
 

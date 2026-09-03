@@ -1,6 +1,6 @@
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
-import { UserType } from '@domain/fivo/entities/user';
+import { UserRole } from '@domain/fivo/entities/user';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { UserFactory } from '@test/factories/user-factory';
 import { InMemoryEmpresaRepository } from '@test/repositories/in-memory-empresa-repository';
@@ -18,7 +18,7 @@ describe('AprovarEmpresaUseCase', () => {
   });
 
   it('should approve an existing empresa if the user is an admin', async () => {
-    const mockUser = UserFactory.create({ type: UserType.ADMIN });
+    const mockUser = UserFactory.create({ role: UserRole.ADMIN });
 
     const mockEmpresa = EmpresaFactory.create();
     await empresaRepository.create(mockEmpresa);
@@ -34,7 +34,7 @@ describe('AprovarEmpresaUseCase', () => {
   });
 
   it('should throw a NotAllowedError if the user is not an admin', async () => {
-    const mockUser = UserFactory.create({ type: UserType.EMPRESA });
+    const mockUser = UserFactory.create({ role: UserRole.EMPRESA });
 
     const mockEmpresa = EmpresaFactory.create();
     await empresaRepository.create(mockEmpresa);
@@ -45,7 +45,7 @@ describe('AprovarEmpresaUseCase', () => {
   });
 
   it('should throw a ResourceNotFound Error if the empresa not exists.', async () => {
-    const mockUser = UserFactory.create({ type: UserType.ADMIN });
+    const mockUser = UserFactory.create({ role: UserRole.ADMIN });
 
     await expect(
       aprovarEmpresaUseCase.execute('non-existent-id', mockUser),

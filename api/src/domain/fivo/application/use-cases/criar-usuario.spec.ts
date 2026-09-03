@@ -3,7 +3,7 @@ import { Hasher } from '../ports/cryptography/hasher';
 import { UserRepository } from '../ports/database/user-repository';
 import { CriarUsuarioUseCase } from './criar-usuario';
 import { InMemoryUserRepository } from '@test/repositories/in-memory-user-repository';
-import { UserType } from '@domain/fivo/entities/user';
+import { UserRole } from '@domain/fivo/entities/user';
 
 describe('CriarUsuarioUseCase', () => {
   let criarUsuarioUseCase: CriarUsuarioUseCase;
@@ -21,7 +21,7 @@ describe('CriarUsuarioUseCase', () => {
       nome: 'Usuario Teste',
       email: 'usuario@teste.com',
       senha: 'senha123',
-      type: UserType.ADMIN,
+      role: UserRole.ADMIN,
     };
 
     const response = await criarUsuarioUseCase.execute(request);
