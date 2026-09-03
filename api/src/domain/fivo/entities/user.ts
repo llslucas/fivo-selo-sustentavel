@@ -6,7 +6,7 @@ import { Empresa } from './empresa';
 export enum UserType {
   ADMIN = 'ADMIN',
   EMPRESA = 'EMPRESA',
-  INSTITUIÇÃO = 'INSTITUIÇÃO',
+  INSTITUICAO = 'INSTITUICAO',
 }
 
 export interface UserProps {
