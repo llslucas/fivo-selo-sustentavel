@@ -2,7 +2,7 @@ import { Either, left, right } from '@core/either';
 import { Cnpj } from '@domain/fivo/entities/cnpj';
 import { Empresa } from '@domain/fivo/entities/empresa';
 import { Injectable } from '@nestjs/common';
-import { CnpjInvalidoError } from '../errors/cnpj-invalido-error';
+import { InvalidCnpjError } from '../errors/invalid-cnpj.error';
 import { EmpresaAlreadyExistsError } from '../errors/empresa-already-exists.error';
 import { EmpresaRepository } from '../ports/database/empresa-repository';
 
@@ -24,7 +24,7 @@ interface CriarEmpresaUseCaseRequest {
 }
 
 export type CriarEmpresaUseCaseResponse = Either<
-  EmpresaAlreadyExistsError | CnpjInvalidoError,
+  EmpresaAlreadyExistsError | InvalidCnpjError,
   {
     empresa: Empresa;
   }

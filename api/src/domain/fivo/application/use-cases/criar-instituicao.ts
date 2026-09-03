@@ -2,7 +2,7 @@ import { Either, left, right } from '@core/either';
 import { Cnpj } from '@domain/fivo/entities/cnpj';
 import { Instituicao } from '@domain/fivo/entities/instituicao';
 import { Injectable } from '@nestjs/common';
-import { CnpjInvalidoError } from '../errors/cnpj-invalido-error';
+import { InvalidCnpjError } from '../errors/invalid-cnpj.error';
 import { InstituicaoRepository } from '../ports/database/instituicao-repository';
 import { InstituicaoAlreadyExistsError } from '../errors/instituicao-already-exists.error';
 
@@ -24,7 +24,7 @@ interface CriarInstituicaoUseCaseRequest {
 }
 
 export type CriarInstituicaoUseCaseResponse = Either<
-  InstituicaoAlreadyExistsError | CnpjInvalidoError,
+  InstituicaoAlreadyExistsError | InvalidCnpjError,
   {
     instituicao: Instituicao;
   }

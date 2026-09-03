@@ -1,6 +1,6 @@
 import { Either, left, right } from '@core/either';
 import { ValueObject } from '@core/types/entities/value-object';
-import { CnpjInvalidoError } from '../application/errors/cnpj-invalido-error';
+import { InvalidCnpjError } from '../application/errors/invalid-cnpj.error';
 
 const PESOS_PRIMEIRO_DIGITO = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
 const PESOS_SEGUNDO_DIGITO = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
@@ -16,11 +16,11 @@ function digitoVerificador(base: string, pesos: number[]): number {
 }
 
 export class Cnpj extends ValueObject<{ valor: string }> {
-  static create(bruto: string): Either<CnpjInvalidoError, Cnpj> {
+  static create(bruto: string): Either<InvalidCnpjError, Cnpj> {
     const digitos = bruto.replace(/\D/g, '');
 
     if (digitos.length !== 14) {
-      return left(new CnpjInvalidoError());
+      return left(new InvalidCnpjError());
     }
 
     const base = digitos.slice(0, 12);
@@ -31,7 +31,7 @@ export class Cnpj extends ValueObject<{ valor: string }> {
     );
 
     if (digitos.slice(12) !== `${primeiro}${segundo}`) {
-      return left(new CnpjInvalidoError());
+      return left(new InvalidCnpjError());
     }
 
     return right(new Cnpj({ valor: digitos }));
