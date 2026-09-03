@@ -19,6 +19,11 @@ export interface UserProps {
   updatedAt?: Date | null;
 }
 
+export interface AccessTokenPayload {
+  sub: string;
+  role: UserRole;
+}
+
 export class User extends Entity<UserProps> {
   static create(
     props: Optional<UserProps, 'createdAt'>,
