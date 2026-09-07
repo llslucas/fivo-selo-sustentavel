@@ -1,5 +1,5 @@
-'use client'; // Obrigatório colocar na linha 1 do arquivo se usar useRouter
-import { useRouter } from 'next/navigation'; 
+'use client'; 
+import { APP_ROUTES } from '@/lib/routes';
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -10,12 +10,7 @@ import { useState } from "react";
 export default function CompLogin() {
 const [email, setEmail] = useState('');
 const [senha, setSenha] = useState('');
-const router = useRouter();
-const handleLogin = () => {
-  //router.push('/Erro'); 
-  router.push('/dashboard'); 
-  console.log(email, senha);
-}
+
   return (
     <Box
       sx={{
@@ -86,7 +81,8 @@ const handleLogin = () => {
           <Button 
             variant="contained" 
             fullWidth 
-            onClick={handleLogin}
+            LinkComponent={Link}
+            href={APP_ROUTES.private.dashboard}
             sx={{ 
               bgcolor: "#116A4D", 
               '&:hover': { bgcolor: "#0D533D" },

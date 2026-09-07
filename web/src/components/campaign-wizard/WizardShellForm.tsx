@@ -33,7 +33,6 @@ export default function WizardShellForm({
   return (
     <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        {/* Header do wizard */}
         <Box>
           <Chip
             label={`Etapa ${step} de ${totalSteps}`}
@@ -63,10 +62,8 @@ export default function WizardShellForm({
           />
         </Box>
 
-        {/* Conteúdo do step */}
         <Box>{children}</Box>
 
-        {/* Ações */}
         <Box
           sx={{
             display: "flex",
