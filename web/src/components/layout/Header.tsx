@@ -19,7 +19,7 @@ export default function Header() {
       sx={{
         position: "sticky",
         top: 0,
-        zIndex: 1100, // theme.zIndex.appBar — valor fixo p/ evitar função em sx (Server Component)
+        zIndex: 1100, // = theme.zIndex.appBar (valor fixo pois este é um Server Component)
         borderBottom: 1,
         borderColor: "divider",
         bgcolor: "background.default",

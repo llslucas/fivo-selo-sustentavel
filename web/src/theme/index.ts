@@ -1,9 +1,6 @@
 import { createTheme } from "@mui/material/styles";
 import palette from "./palette";
 
-// Tema base do projeto Selo Sustentável.
-// As cores vêm de `./palette.ts` (fonte única) — mudar o tema visual do
-// projeto começa por lá, não aqui.
 const theme = createTheme({
   palette: {
     mode: "light",
