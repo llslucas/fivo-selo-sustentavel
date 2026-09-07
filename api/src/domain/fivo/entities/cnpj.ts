@@ -19,8 +19,16 @@ export class Cnpj extends ValueObject<{ valor: string }> {
   static create(bruto: string): Either<InvalidCnpjError, Cnpj> {
     const digitos = bruto.replace(/\D/g, '');
 
-    if (digitos.length !== 14) {
+    if (!Cnpj.isValid(digitos)) {
       return left(new InvalidCnpjError());
+    }
+
+    return right(new Cnpj({ valor: digitos }));
+  }
+
+  static isValid(digitos: string): boolean {
+    if (digitos.length !== 14) {
+      return false;
     }
 
     const base = digitos.slice(0, 12);
@@ -31,10 +39,10 @@ export class Cnpj extends ValueObject<{ valor: string }> {
     );
 
     if (digitos.slice(12) !== `${primeiro}${segundo}`) {
-      return left(new InvalidCnpjError());
+      return false;
     }
 
-    return right(new Cnpj({ valor: digitos }));
+    return true;
   }
 
   get valor(): string {
