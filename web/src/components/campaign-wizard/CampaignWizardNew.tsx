@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import WizardShellForm from "./WizardShellForm";
 import SuccessScreen from "./SuccessScreen";
+import SealPreviewPanel from "./SealPreviewPanel";
 import StepSobreCampanha from "./steps/StepSobreCampanha";
 import StepModeloSelo from "./steps/StepModeloSelo";
-import StepDadosEmpresa from "./steps/StepDadosEmpresa";
-import { initialWizardData, type CampaignWizardData } from "@/lib/campaign-wizard/types";
+import StepSelo from "./steps/StepSelo";
+import { initialWizardData, mockEmpresaAtual, type CampaignWizardData } from "@/lib/campaign-wizard/types";
 import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
 
 const TOTAL_STEPS = 3;
 
@@ -85,13 +87,25 @@ export default function CampaignWizardNew() {
         <WizardShellForm
           step={3}
           totalSteps={TOTAL_STEPS}
-          title="Dados da empresa"
-          subtitle="Essas informações aparecem na página pública das suas campanhas."
+          title="Personalize seu selo"
+          subtitle="Insira sua logo. O QR Code é gerado automaticamente ao final."
           onBack={handleBack}
           onNext={handleNext}
           nextLabel="Continuar"
         >
-          <StepDadosEmpresa data={data} onChange={patch} />
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 12, md: 5 }}>
+              <SealPreviewPanel
+                campaignName={data.nome}
+                initials={mockEmpresaAtual.iniciais}
+                avatarColor={mockEmpresaAtual.avatarColor}
+                logoPreviewUrl={data.logoPreviewUrl}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 7 }}>
+              <StepSelo data={data} onChange={patch} />
+            </Grid>
+          </Grid>
         </WizardShellForm>
       )}
     </>

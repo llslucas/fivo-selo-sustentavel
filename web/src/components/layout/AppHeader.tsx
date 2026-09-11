@@ -5,6 +5,7 @@ import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
+import Chip from "@mui/material/Chip";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
@@ -35,7 +36,7 @@ export default function AppHeader() {
       <Container maxWidth="lg">
         <Stack
           direction="row"
-          sx={{ py: 1.5, alignItems: "center", gap: 4 }}
+          sx={{ py: 2, alignItems: "center", justifyContent: "space-between" }}
         >
           {/* Logo */}
           <Link href="/" style={{ color: "inherit", textDecoration: "none", flexShrink: 0 }}>
@@ -63,8 +64,8 @@ export default function AppHeader() {
           {/* Nav links */}
           <Stack
             direction="row"
-            spacing={1}
-            sx={{ flex: 1, display: { xs: "none", md: "flex" } }}
+            spacing={4}
+            sx={{ display: { xs: "none", md: "flex" } }}
           >
             {navLinks.map((link) => {
               const active = pathname === link.href || pathname.startsWith(link.href + "/");
@@ -77,15 +78,23 @@ export default function AppHeader() {
                   <Typography
                     variant="body2"
                     sx={{
-                      px: 1.5,
-                      py: 0.75,
-                      borderRadius: 1,
+                      position: "relative",
+                      py: 0.5,
                       fontWeight: active ? 700 : 400,
                       color: active ? "text.primary" : "text.secondary",
-                      borderBottom: active ? "2px solid" : "2px solid transparent",
-                      borderColor: active ? "primary.main" : "transparent",
                       transition: "color 0.15s ease",
                       "&:hover": { color: "text.primary" },
+                      "&::after": {
+                        content: '""',
+                        position: "absolute",
+                        left: 0,
+                        right: active ? 0 : "100%",
+                        bottom: 0,
+                        height: "2px",
+                        bgcolor: "primary.main",
+                        transition: "right 0.2s ease",
+                      },
+                      "&:hover::after": { right: 0 },
                     }}
                   >
                     {link.label}
@@ -96,7 +105,7 @@ export default function AppHeader() {
           </Stack>
 
           {/* Company avatar */}
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", ml: "auto", flexShrink: 0 }}>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", flexShrink: 0 }}>
             <Avatar
               sx={{
                 width: 36,
@@ -113,9 +122,19 @@ export default function AppHeader() {
               <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
                 {mockEmpresaAtual.nome}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Conta empresa
-              </Typography>
+              <Chip
+                label="Conta empresa"
+                size="small"
+                sx={{
+                  height: 18,
+                  fontSize: "0.625rem",
+                  fontWeight: 600,
+                  bgcolor: "primary.light",
+                  color: "primary.main",
+                  mt: 0.25,
+                  "& .MuiChip-label": { px: 0.75 },
+                }}
+              />
             </Box>
           </Stack>
         </Stack>
