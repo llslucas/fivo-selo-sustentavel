@@ -137,3 +137,11 @@
 - **Scope**: `api` — todas as features; fases Design e Execute. **Supersede AD-011 e AD-015.** Emenda AD-001 e AD-010 (a decomposição por feature permanece no nível de spec/design/tasks; o código do `api` fica num só contexto `src/domain/fivo/`) e AD-006 (modelo canônico agora code-first). AD-014 e AD-016 permanecem válidas em intenção, com implementação adiada.
 - **Date**: 2026-09-07
 - **Status**: active — nota (2026-09-07): **rich domain model**. As regras de negócio vivem nas entidades (métodos: `Empresa.aprovar/rejeitar/suspender/reativar/estaAprovada`, `User.registrarFalhaDeLogin/estaBloqueado/registrarLoginOk`) e em value objects que validam na construção (`Cnpj.create`, `Senha.criar`) ou factories (`Arquivo.criar` — validação por `tipo`). Nenhuma regra pura solta em `application/`; o caso de uso só carrega → chama método/factory → persiste. Regra que cruza registros (unicidade de CNPJ/e-mail) fica no caso de uso. Entidades sem setter público para campo governado por invariante. `design.md` §Components e `tasks.md` T1–T13 refletem isso.
+
+### AD-018
+- **Decision**: A restrição "código só por mãos humanas" registrada em `tasks.md` de `cadastro-empresa` (2026-09-07) é suspensa. O assistente passa a implementar as tasks abertas (T4 em diante) da feature — código, testes, gate e commit atômico por task — seguindo o Execution Protocol normal da skill.
+- **Reason**: A equipe não se disponibilizou para executar as tasks abertas; o autor optou por retomar a implementação com o assistente em vez de travar a feature.
+- **Trade-off**: Nenhuma linha de código humano nova a partir daqui nesta feature até decisão em contrário; se a disciplina exigir autoria humana do código entregue, isso precisa ser reavaliado antes da entrega.
+- **Scope**: `cadastro-empresa`, tasks T4 em diante.
+- **Date**: 2026-09-14
+- **Status**: active

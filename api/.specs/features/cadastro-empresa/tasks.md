@@ -6,7 +6,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 **If the skill cannot be activated, STOP and tell the user - do not proceed without it.**
 
-> **Restrição desta feature (2026-09-07):** trabalho escolar — **o código é escrito por mãos humanas**. O assistente produz specs/design/tasks/revisões; nenhuma linha de TypeScript em `src/` ou `test/` sai do assistente. A execução destas tasks é feita pelo usuário; o assistente pode revisar diffs e apontar gaps contra os ACs.
+> **Restrição de autoria (2026-09-07 → suspensa em 2026-09-14, ver AD-018):** a exigência de "código só por mãos humanas" desta feature foi suspensa. O assistente passa a implementar as tasks abertas (T4 em diante) normalmente — código + testes + gate + commit atômico por task, seguindo o Execution Protocol acima.
 
 ---
 
@@ -182,11 +182,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `create` aceita CNPJ válido com máscara (`12.345.678/0001-95`) e sem máscara e normaliza para 14 dígitos
-- [ ] Rejeita com `InvalidCnpjError` (`status` 422, mensagem "CNPJ inválido"): < 14 dígitos, > 14 dígitos, DV incorreto, string vazia, string não-numérica
-- [ ] Um caso confirma que `Left` não expõe um `Cnpj`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 7 testes passam
+- [x] `create` aceita CNPJ válido com máscara (`12.345.678/0001-95`) e sem máscara e normaliza para 14 dígitos
+- [x] Rejeita com `InvalidCnpjError` (`status` 422, mensagem "CNPJ inválido"): < 14 dígitos, > 14 dígitos, DV incorreto, string vazia, string não-numérica
+- [x] Um caso confirma que `Left` não expõe um `Cnpj`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 7 testes passam
 
 **Tests**: unit
 **Gate**: quick
@@ -208,11 +208,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `< 10` caracteres → `Left(SenhaFracaError)`; `>= 10` → `Right(Senha)`
-- [ ] `SenhaFracaError` em `application/errors/senha-fraca.error.ts`
-- [ ] Testes unit co-locados: 9, 10, 11 caracteres e string vazia
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 4 testes passam
+- [x] `< 10` caracteres → `Left(SenhaFracaError)`; `>= 10` → `Right(Senha)`
+- [x] `SenhaFracaError` em `application/errors/senha-fraca.error.ts`
+- [x] Testes unit co-locados: 9, 10, 11 caracteres e string vazia
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 4 testes passam
 
 **Tests**: unit
 **Gate**: quick
@@ -234,15 +234,15 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `EmpresaProps` reflete a lista acima; `numero: string`; sem `email`; sem setter público de campo governado por transição
-- [ ] `aprovar` só de `PENDENTE_APROVACAO`; `rejeitar` só de `PENDENTE_APROVACAO` e com `motivo >= 20` (senão 422); `suspender` só de `APROVADA`; `reativar` só de `SUSPENSA`
-- [ ] Toda transição fora do conjunto (incl. auto-transição, `REJEITADA`→qualquer) → `Left(TransicaoInvalidaError)` 409
-- [ ] Transição válida seta `status` + `decididoPor` + `decididoEm` (+ `motivoDecisao`)
-- [ ] `estaAprovada()` → `true` só em `APROVADA`
-- [ ] `empresa.spec.ts` cobre 1:1 EMP-05 AC5 (todas as transições) + o caso do motivo curto
-- [ ] `EmpresaFactory` atualizada (inclui `usuarioId`; permite `status` inicial)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 12 testes passam
+- [x] `EmpresaProps` reflete a lista acima; `numero: string`; sem `email`; sem setter público de campo governado por transição
+- [x] `aprovar` só de `PENDENTE_APROVACAO`; `rejeitar` só de `PENDENTE_APROVACAO` e com `motivo >= 20` (senão 422); `suspender` só de `APROVADA`; `reativar` só de `SUSPENSA`
+- [x] Toda transição fora do conjunto (incl. auto-transição, `REJEITADA`→qualquer) → `Left(TransicaoInvalidaError)` 409
+- [x] Transição válida seta `status` + `decididoPor` + `decididoEm` (+ `motivoDecisao`)
+- [x] `estaAprovada()` → `true` só em `APROVADA`
+- [x] `empresa.spec.ts` cobre 1:1 EMP-05 AC5 (todas as transições) + o caso do motivo curto
+- [x] `EmpresaFactory` atualizada (inclui `usuarioId`; permite `status` inicial)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 12 testes passam
 
 **Tests**: unit
 **Gate**: quick
