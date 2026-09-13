@@ -13,13 +13,12 @@ interface CriarEmpresaUseCaseRequest {
   telefone: string;
   cep: string;
   logradouro: string;
-  numero: number;
+  numero: string;
   complemento?: string;
   bairro: string;
   cidade: string;
   uf: string;
   site: string;
-  email: string;
   contato: string;
 }
 
@@ -47,7 +46,6 @@ export class CriarEmpresaUseCase {
     cidade,
     uf,
     site,
-    email,
     contato,
   }: CriarEmpresaUseCaseRequest): Promise<CriarEmpresaUseCaseResponse> {
     const empresaAlreadyExists = await this.empresaRepository.findByCnpj(cnpj);
@@ -75,7 +73,6 @@ export class CriarEmpresaUseCase {
       cidade,
       uf,
       site,
-      email,
       contato,
     });
 

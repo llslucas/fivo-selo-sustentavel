@@ -1,8 +1,7 @@
-import { User, UserRole } from '@domain/fivo/entities/user';
-import { EmpresaRepository } from '../ports/database/empresa-repository';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
-import { EmpresaStatus } from '@domain/fivo/entities/empresa';
+import { User, UserRole } from '@domain/fivo/entities/user';
+import { EmpresaRepository } from '../ports/database/empresa-repository';
 
 export class SuspenderEmpresaUseCase {
   constructor(private readonly empresaRepository: EmpresaRepository) {}
@@ -18,9 +17,11 @@ export class SuspenderEmpresaUseCase {
       throw new ResourceNotFoundError('Empresa não encontrada');
     }
 
-    empresa.status = EmpresaStatus.SUSPENSA;
-    empresa.decidido_por = user;
-    empresa.decidido_em = new Date();
+    const result = empresa.suspender(user);
+
+    if (result.isLeft()) {
+      throw result.value;
+    }
 
     await this.empresaRepository.save(empresa);
   }

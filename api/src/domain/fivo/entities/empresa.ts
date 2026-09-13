@@ -3,6 +3,9 @@ import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { Optional } from '@core/types/optional';
 import { Cnpj } from './cnpj';
 import { User } from './user';
+import { TransicaoInvalidaError } from '../application/errors/transicao-invalida.error';
+import { Either, left, right } from '@core/either';
+import { MotivoInsuficienteError } from '../application/errors/motivo-insuficiente.error';
 
 export enum EmpresaStatus {
   PENDENTE_APROVACAO = 'PENDENTE_APROVACAO',
@@ -18,13 +21,12 @@ export interface EmpresaProps {
   telefone: string;
   cep: string;
   logradouro: string;
-  numero: number;
+  numero: string;
   complemento?: string;
   bairro: string;
   cidade: string;
   uf: string;
   site: string;
-  email: string;
   contato: string;
   status: EmpresaStatus;
   decidido_por?: User | null;
@@ -32,6 +34,10 @@ export interface EmpresaProps {
   motivo_decisao?: string | null;
   createdAt: Date;
   updatedAt?: Date | null;
+  usuarioId?: UniqueEntityId | null;
+  logoArquivoId?: UniqueEntityId | null;
+  emailPendente?: string | null;
+  tokenTrocaEmailHash?: string | null;
 }
 
 export class Empresa extends Entity<EmpresaProps> {
@@ -77,7 +83,7 @@ export class Empresa extends Entity<EmpresaProps> {
     return this._props.logradouro;
   }
 
-  get numero(): number {
+  get numero(): string {
     return this._props.numero;
   }
 
@@ -101,33 +107,36 @@ export class Empresa extends Entity<EmpresaProps> {
     return this._props.site;
   }
 
-  get email(): string {
-    return this._props.email;
-  }
-
   get contato(): string {
     return this._props.contato;
+  }
+
+  get usuarioId(): UniqueEntityId | null | undefined {
+    return this._props.usuarioId;
+  }
+
+  get emailPendente(): string | null | undefined {
+    return this._props.emailPendente;
+  }
+
+  get tokenTrocaEmailHash(): string | null | undefined {
+    return this._props.tokenTrocaEmailHash;
+  }
+
+  get logoArquivoId(): UniqueEntityId | null | undefined {
+    return this._props.logoArquivoId;
   }
 
   get status(): EmpresaStatus {
     return this._props.status;
   }
-  set status(status: EmpresaStatus) {
-    this._props.status = status;
-  }
 
   get decidido_por(): User | null | undefined {
     return this._props.decidido_por;
   }
-  set decidido_por(user: User) {
-    this._props.decidido_por = user;
-  }
 
   get decidido_em(): Date | null | undefined {
     return this._props.decidido_em;
-  }
-  set decidido_em(date: Date) {
-    this._props.decidido_em = date;
   }
 
   get motivo_decisao(): string | null | undefined {
@@ -143,5 +152,65 @@ export class Empresa extends Entity<EmpresaProps> {
 
   get updatedAt(): Date | null | undefined {
     return this._props.updatedAt;
+  }
+
+  aprovar(admin: User): Either<TransicaoInvalidaError, void> {
+    if (this._props.status !== EmpresaStatus.PENDENTE_APROVACAO) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    this._props.status = EmpresaStatus.APROVADA;
+    this._props.decidido_por = admin;
+    this._props.decidido_em = new Date();
+
+    return right(void 0);
+  }
+
+  rejeitar(
+    admin: User,
+    motivo: string,
+  ): Either<TransicaoInvalidaError | MotivoInsuficienteError, void> {
+    if (this._props.status !== EmpresaStatus.PENDENTE_APROVACAO) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    if (!motivo || motivo.trim() === '') {
+      return left(new MotivoInsuficienteError());
+    }
+
+    this._props.status = EmpresaStatus.REJEITADA;
+    this._props.decidido_por = admin;
+    this._props.decidido_em = new Date();
+    this._props.motivo_decisao = motivo;
+
+    return right(void 0);
+  }
+
+  suspender(admin: User): Either<TransicaoInvalidaError, void> {
+    if (this._props.status !== EmpresaStatus.APROVADA) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    this._props.status = EmpresaStatus.SUSPENSA;
+    this._props.decidido_por = admin;
+    this._props.decidido_em = new Date();
+
+    return right(void 0);
+  }
+
+  reativar(admin: User): Either<TransicaoInvalidaError, void> {
+    if (this._props.status !== EmpresaStatus.SUSPENSA) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    this._props.status = EmpresaStatus.APROVADA;
+    this._props.decidido_por = admin;
+    this._props.decidido_em = new Date();
+
+    return right(void 0);
+  }
+
+  estaAprovada(): boolean {
+    return this._props.status === EmpresaStatus.APROVADA;
   }
 }

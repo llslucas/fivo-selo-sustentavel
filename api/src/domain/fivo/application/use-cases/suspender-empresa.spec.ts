@@ -20,7 +20,10 @@ describe('SuspenderEmpresaUseCase', () => {
   it('should suspend an existing empresa if the user is an admin', async () => {
     const mockUser = UserFactory.create({ role: UserRole.ADMIN });
 
-    const mockEmpresa = EmpresaFactory.create();
+    const mockEmpresa = EmpresaFactory.create({
+      status: EmpresaStatus.APROVADA,
+    });
+
     await empresaRepository.create(mockEmpresa);
 
     await suspenderEmpresaUseCase.execute(mockEmpresa.id.toString(), mockUser);
@@ -36,7 +39,10 @@ describe('SuspenderEmpresaUseCase', () => {
   it('should throw a NotAllowedError if the user is not an admin', async () => {
     const mockUser = UserFactory.create({ role: UserRole.EMPRESA });
 
-    const mockEmpresa = EmpresaFactory.create();
+    const mockEmpresa = EmpresaFactory.create({
+      status: EmpresaStatus.APROVADA,
+    });
+
     await empresaRepository.create(mockEmpresa);
 
     await expect(
