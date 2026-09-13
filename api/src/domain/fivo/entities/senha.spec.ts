@@ -8,7 +8,7 @@ describe('Senha Value Object', () => {
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.props.senha).toBe(senha);
+      expect(result.value.valor).toBe(senha);
     }
   });
 
@@ -19,7 +19,7 @@ describe('Senha Value Object', () => {
     expect(result.isRight()).toBe(true);
 
     if (result.isRight()) {
-      expect(result.value.props.senha).toBe(senha);
+      expect(result.value.valor).toBe(senha);
     }
   });
 

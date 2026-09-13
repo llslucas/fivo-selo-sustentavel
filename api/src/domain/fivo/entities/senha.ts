@@ -20,4 +20,8 @@ export class Senha extends ValueObject<SenhaProps> {
 
     return right(new Senha({ senha }));
   }
+
+  get valor(): string {
+    return this._props.senha;
+  }
 }
