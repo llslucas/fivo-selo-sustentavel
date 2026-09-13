@@ -17,7 +17,7 @@ export class RejeitarEmpresaUseCase {
       throw new ResourceNotFoundError('Empresa não encontrada');
     }
 
-    const result = empresa.rejeitar(user, 'Motivo teste');
+    const result = empresa.rejeitar(user.id, 'Motivo de teste para rejeição');
 
     if (result.isLeft()) {
       throw result.value;

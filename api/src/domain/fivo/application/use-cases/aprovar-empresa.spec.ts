@@ -30,7 +30,7 @@ describe('AprovarEmpresaUseCase', () => {
     );
 
     expect(updatedEmpresa?.status).toBe(EmpresaStatus.APROVADA);
-    expect(updatedEmpresa?.decidido_por).toEqual(mockUser);
+    expect(updatedEmpresa?.decididoPor).toEqual(mockUser.id);
   });
 
   it('should throw a NotAllowedError if the user is not an admin', async () => {

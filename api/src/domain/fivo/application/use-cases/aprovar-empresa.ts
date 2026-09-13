@@ -17,7 +17,7 @@ export class AprovarEmpresaUseCase {
       throw new ResourceNotFoundError('Empresa não encontrada');
     }
 
-    const result = empresa.aprovar(user);
+    const result = empresa.aprovar(user.id);
 
     if (result.isLeft()) {
       throw result.value;

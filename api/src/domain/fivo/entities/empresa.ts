@@ -2,7 +2,6 @@ import { Entity } from '@core/types/entities/entity';
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { Optional } from '@core/types/optional';
 import { Cnpj } from './cnpj';
-import { User } from './user';
 import { TransicaoInvalidaError } from '../application/errors/transicao-invalida.error';
 import { Either, left, right } from '@core/either';
 import { MotivoInsuficienteError } from '../application/errors/motivo-insuficiente.error';
@@ -29,9 +28,9 @@ export interface EmpresaProps {
   site: string;
   contato: string;
   status: EmpresaStatus;
-  decidido_por?: User | null;
-  decidido_em?: Date | null;
-  motivo_decisao?: string | null;
+  decididoPor?: UniqueEntityId | null;
+  decididoEm?: Date | null;
+  motivoDecisao?: string | null;
   createdAt: Date;
   updatedAt?: Date | null;
   usuarioId?: UniqueEntityId | null;
@@ -44,7 +43,7 @@ export class Empresa extends Entity<EmpresaProps> {
   static create(
     props: Optional<
       EmpresaProps,
-      'createdAt' | 'status' | 'decidido_por' | 'decidido_em' | 'motivo_decisao'
+      'createdAt' | 'status' | 'decididoPor' | 'decididoEm' | 'motivoDecisao'
     >,
     id?: UniqueEntityId,
   ): Empresa {
@@ -131,19 +130,16 @@ export class Empresa extends Entity<EmpresaProps> {
     return this._props.status;
   }
 
-  get decidido_por(): User | null | undefined {
-    return this._props.decidido_por;
+  get decididoPor(): UniqueEntityId | null | undefined {
+    return this._props.decididoPor;
   }
 
-  get decidido_em(): Date | null | undefined {
-    return this._props.decidido_em;
+  get decididoEm(): Date | null | undefined {
+    return this._props.decididoEm;
   }
 
-  get motivo_decisao(): string | null | undefined {
-    return this._props.motivo_decisao;
-  }
-  set motivo_decisao(motivo: string) {
-    this._props.motivo_decisao = motivo;
+  get motivoDecisao(): string | null | undefined {
+    return this._props.motivoDecisao;
   }
 
   get createdAt(): Date {
@@ -154,58 +150,58 @@ export class Empresa extends Entity<EmpresaProps> {
     return this._props.updatedAt;
   }
 
-  aprovar(admin: User): Either<TransicaoInvalidaError, void> {
+  aprovar(adminId: UniqueEntityId): Either<TransicaoInvalidaError, void> {
     if (this._props.status !== EmpresaStatus.PENDENTE_APROVACAO) {
       return left(new TransicaoInvalidaError());
     }
 
     this._props.status = EmpresaStatus.APROVADA;
-    this._props.decidido_por = admin;
-    this._props.decidido_em = new Date();
+    this._props.decididoPor = adminId;
+    this._props.decididoEm = new Date();
 
     return right(void 0);
   }
 
   rejeitar(
-    admin: User,
+    adminId: UniqueEntityId,
     motivo: string,
   ): Either<TransicaoInvalidaError | MotivoInsuficienteError, void> {
     if (this._props.status !== EmpresaStatus.PENDENTE_APROVACAO) {
       return left(new TransicaoInvalidaError());
     }
 
-    if (!motivo || motivo.trim() === '') {
+    if (!motivo || motivo.trim().length < 20) {
       return left(new MotivoInsuficienteError());
     }
 
     this._props.status = EmpresaStatus.REJEITADA;
-    this._props.decidido_por = admin;
-    this._props.decidido_em = new Date();
-    this._props.motivo_decisao = motivo;
+    this._props.decididoPor = adminId;
+    this._props.decididoEm = new Date();
+    this._props.motivoDecisao = motivo;
 
     return right(void 0);
   }
 
-  suspender(admin: User): Either<TransicaoInvalidaError, void> {
+  suspender(adminId: UniqueEntityId): Either<TransicaoInvalidaError, void> {
     if (this._props.status !== EmpresaStatus.APROVADA) {
       return left(new TransicaoInvalidaError());
     }
 
     this._props.status = EmpresaStatus.SUSPENSA;
-    this._props.decidido_por = admin;
-    this._props.decidido_em = new Date();
+    this._props.decididoPor = adminId;
+    this._props.decididoEm = new Date();
 
     return right(void 0);
   }
 
-  reativar(admin: User): Either<TransicaoInvalidaError, void> {
+  reativar(adminId: UniqueEntityId): Either<TransicaoInvalidaError, void> {
     if (this._props.status !== EmpresaStatus.SUSPENSA) {
       return left(new TransicaoInvalidaError());
     }
 
     this._props.status = EmpresaStatus.APROVADA;
-    this._props.decidido_por = admin;
-    this._props.decidido_em = new Date();
+    this._props.decididoPor = adminId;
+    this._props.decididoEm = new Date();
 
     return right(void 0);
   }

@@ -17,7 +17,7 @@ export class SuspenderEmpresaUseCase {
       throw new ResourceNotFoundError('Empresa não encontrada');
     }
 
-    const result = empresa.suspender(user);
+    const result = empresa.suspender(user.id);
 
     if (result.isLeft()) {
       throw result.value;

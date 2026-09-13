@@ -13,7 +13,7 @@ describe('Company Aproval', () => {
       status: EmpresaStatus.PENDENTE_APROVACAO,
     });
 
-    const result = empresa.aprovar(admin);
+    const result = empresa.aprovar(admin.id);
 
     expect(result.isRight()).toBe(true);
   });
@@ -25,7 +25,7 @@ describe('Company Aproval', () => {
       status: EmpresaStatus.APROVADA,
     });
 
-    const result = empresa.aprovar(admin);
+    const result = empresa.aprovar(admin.id);
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
@@ -38,7 +38,7 @@ describe('Company Aproval', () => {
       status: EmpresaStatus.REJEITADA,
     });
 
-    const result = empresa.aprovar(admin);
+    const result = empresa.aprovar(admin.id);
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
@@ -51,7 +51,7 @@ describe('Company Aproval', () => {
       status: EmpresaStatus.SUSPENSA,
     });
 
-    const result = empresa.aprovar(admin);
+    const result = empresa.aprovar(admin.id);
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
@@ -66,7 +66,10 @@ describe('Company Rejection', () => {
       status: EmpresaStatus.PENDENTE_APROVACAO,
     });
 
-    const result = empresa.rejeitar(admin, 'Motivo de rejeição');
+    const result = empresa.rejeitar(
+      admin.id,
+      'Motivo de rejeição suficientemente detalhado',
+    );
 
     expect(result.isRight()).toBe(true);
   });
@@ -78,7 +81,10 @@ describe('Company Rejection', () => {
       status: EmpresaStatus.APROVADA,
     });
 
-    const result = empresa.rejeitar(admin, 'Motivo de rejeição');
+    const result = empresa.rejeitar(
+      admin.id,
+      'Motivo de rejeição suficientemente detalhado',
+    );
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
@@ -91,7 +97,10 @@ describe('Company Rejection', () => {
       status: EmpresaStatus.REJEITADA,
     });
 
-    const result = empresa.rejeitar(admin, 'Motivo de rejeição');
+    const result = empresa.rejeitar(
+      admin.id,
+      'Motivo de rejeição suficientemente detalhado',
+    );
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
@@ -104,7 +113,10 @@ describe('Company Rejection', () => {
       status: EmpresaStatus.SUSPENSA,
     });
 
-    const result = empresa.rejeitar(admin, 'Motivo de rejeição');
+    const result = empresa.rejeitar(
+      admin.id,
+      'Motivo de rejeição suficientemente detalhado',
+    );
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
@@ -117,7 +129,20 @@ describe('Company Rejection', () => {
       status: EmpresaStatus.PENDENTE_APROVACAO,
     });
 
-    const result = empresa.rejeitar(admin, '');
+    const result = empresa.rejeitar(admin.id, '');
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(MotivoInsuficienteError);
+  });
+
+  it('Should return a MotivoInsuficienteError if the reason has less than 20 characters.', () => {
+    const admin = UserFactory.create({ role: UserRole.ADMIN });
+
+    const empresa = EmpresaFactory.create({
+      status: EmpresaStatus.PENDENTE_APROVACAO,
+    });
+
+    const result = empresa.rejeitar(admin.id, 'Motivo curto');
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(MotivoInsuficienteError);
@@ -132,7 +157,7 @@ describe('Company Suspension', () => {
       status: EmpresaStatus.APROVADA,
     });
 
-    const result = empresa.suspender(admin);
+    const result = empresa.suspender(admin.id);
 
     expect(result.isRight()).toBe(true);
   });
@@ -144,7 +169,7 @@ describe('Company Suspension', () => {
       status: EmpresaStatus.SUSPENSA,
     });
 
-    const result = empresa.suspender(admin);
+    const result = empresa.suspender(admin.id);
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
@@ -157,7 +182,7 @@ describe('Company Suspension', () => {
       status: EmpresaStatus.REJEITADA,
     });
 
-    const result = empresa.suspender(admin);
+    const result = empresa.suspender(admin.id);
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
@@ -170,7 +195,7 @@ describe('Company Suspension', () => {
       status: EmpresaStatus.PENDENTE_APROVACAO,
     });
 
-    const result = empresa.suspender(admin);
+    const result = empresa.suspender(admin.id);
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
@@ -185,7 +210,7 @@ describe('Company Reactivation', () => {
       status: EmpresaStatus.SUSPENSA,
     });
 
-    const result = empresa.reativar(admin);
+    const result = empresa.reativar(admin.id);
 
     expect(result.isRight()).toBe(true);
   });
@@ -197,7 +222,7 @@ describe('Company Reactivation', () => {
       status: EmpresaStatus.APROVADA,
     });
 
-    const result = empresa.reativar(admin);
+    const result = empresa.reativar(admin.id);
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
@@ -210,7 +235,7 @@ describe('Company Reactivation', () => {
       status: EmpresaStatus.REJEITADA,
     });
 
-    const result = empresa.reativar(admin);
+    const result = empresa.reativar(admin.id);
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
@@ -223,7 +248,7 @@ describe('Company Reactivation', () => {
       status: EmpresaStatus.PENDENTE_APROVACAO,
     });
 
-    const result = empresa.reativar(admin);
+    const result = empresa.reativar(admin.id);
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
