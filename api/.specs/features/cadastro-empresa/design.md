@@ -198,8 +198,9 @@ graph TD
 ##### `Senha` (value object) — novo
 
 - **Location**: `entities/senha.ts`
-- **Interfaces**: `static criar(raw: string): Either<SenhaFracaError, Senha>` (mínimo 10 caracteres — EMP-02 AC4; a spec não pede mais); `get valor(): string`
-- **Reuses**: `ValueObject`, `Either`. Mesmo padrão do `Cnpj`. O texto claro só circula do VO até o `Hasher`.
+- **Interfaces**: `static create(raw: string): Either<SenhaFracaError, Senha>` (mínimo 10 caracteres — EMP-02 AC4; a spec não pede mais); `get valor(): string`; `hash(hasher: Hasher): Promise<Senha>` — **drift, ver nota abaixo**.
+- **Reuses**: `ValueObject`, `Either`, `Hasher` (porta). Mesmo padrão do `Cnpj`.
+- **Nota (drift, 2026-09-14)**: o design original previa hash só na infra ("o VO carrega o texto validado só até o caso de uso passar ao `Hasher`", T2). A implementação move o hash para dentro do VO: `hash()` chama `hasher.hash(this.valor)` e devolve uma **nova** instância `Senha` construída pelo construtor privado — não por `create()` — para não reavaliar `MIN_LENGTH` contra o hash (que teria ~60 chars e sempre passaria, esvaziando a validação). Aceito: mantém o texto claro 100% dentro do domínio (nunca cruza para o mapper de infra) e o VO continua imutável (`hash()` não muta `this`). `CriarEmpresaUseCase` (design abaixo) e `RedefinirSenhaUseCase` (EMP-09) chamam `senhaValidada.hash(hasher)` antes de persistir, em vez de "hash no mapper/infra".
 
 ##### `User` (entity) — existe, estender + regra
 
@@ -253,7 +254,7 @@ graph TD
   2. `Cnpj.create(cnpj)` → `Left` 422 "CNPJ inválido" (**antes** de qualquer consulta — hoje consulta `findByCnpj` primeiro)
   3. Se veio logo, o `ArquivoService` (infra) já entregou um `Arquivo` válido → o caso de uso recebe só o `logoArquivoId?`
   4. Unicidade: `UserRepository.findByEmail(email)` → `Left` 409 "CNPJ ou e-mail já cadastrado"; `EmpresaRepository.findByCnpj` — se o único registro é `REJEITADA`, **reaproveita** voltando a `PENDENTE_APROVACAO` (edge case); senão → 409
-  5. Cria `User` (papel `EMPRESA`, `senha` = `Senha` VO, hash via `Hasher` no mapper/infra) **e** `Empresa` (`PENDENTE_APROVACAO`, `usuarioId`, `logoArquivoId?`) na mesma operação — vínculo 1‑1 (AD-013)
+  5. Cria `User` (papel `EMPRESA`, `senha` = `senhaValidada.hash(hasher)`) **e** `Empresa` (`PENDENTE_APROVACAO`, `usuarioId`, `logoArquivoId?`) na mesma operação — vínculo 1‑1 (AD-013); ver nota de drift em `Senha` (§Entities)
   6. `Mailer.enviar(CADASTRO_RECEBIDO)` em `try/catch` — falha vira log, resposta segue (EMP-01 AC9)
   7. `right({ empresaId })`
 - **Ports**: `UserRepository`, `EmpresaRepository`, `Hasher`, `Mailer`

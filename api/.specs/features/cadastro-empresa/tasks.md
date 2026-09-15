@@ -197,7 +197,9 @@ T28 → T32
 
 ### T2: Value object `Senha`
 
-**What**: `Senha.criar(raw: string): Either<SenhaFracaError, Senha>` — regra: mínimo 10 caracteres (a spec não pede mais). `get valor(): string`. `SenhaFracaError` (`status` 422, mensagem "A senha deve ter no mínimo 10 caracteres"). Mesmo padrão do `Cnpj`. **A senha em texto claro nunca sai do VO** — o hash é responsabilidade do `Hasher` na fase de infra; o VO carrega o texto validado só até o caso de uso passar ao `Hasher`.
+**What**: `Senha.create(raw: string): Either<SenhaFracaError, Senha>` — regra: mínimo 10 caracteres (a spec não pede mais). `get valor(): string`. `SenhaFracaError` (`status` 422, mensagem "A senha deve ter no mínimo 10 caracteres"). Mesmo padrão do `Cnpj`. **A senha em texto claro nunca sai do VO** — o hash é responsabilidade do `Hasher` na fase de infra; o VO carrega o texto validado só até o caso de uso passar ao `Hasher`.
+
+> **Drift (2026-09-14, pós-commit):** o plano acima ("hash na fase de infra") foi superado — `Senha` ganhou `hash(hasher: Hasher): Promise<Senha>`, imutável, construído via o construtor privado (não `create()`, para não reavaliar `MIN_LENGTH` contra o hash). Ver nota completa em `design.md` §Entities → `Senha`.
 **Where**: `api/src/domain/fivo/entities/senha.ts`
 **Depends on**: None
 **Reuses**: `ValueObject`, `Either`, contrato de erro

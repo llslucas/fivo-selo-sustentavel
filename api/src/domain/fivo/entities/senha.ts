@@ -1,6 +1,7 @@
 import { ValueObject } from '@core/types/entities/value-object';
 import { Either, left, right } from '@core/either';
 import { SenhaFracaError } from '../application/errors/senha-fraca.error';
+import { Hasher } from '../application/ports/cryptography/hasher';
 
 export interface SenhaProps {
   senha: string;
@@ -23,5 +24,10 @@ export class Senha extends ValueObject<SenhaProps> {
 
   get valor(): string {
     return this._props.senha;
+  }
+
+  async hash(hasher: Hasher): Promise<Senha> {
+    const hashedValue = await hasher.hash(this._props.senha);
+    return new Senha({ senha: hashedValue });
   }
 }

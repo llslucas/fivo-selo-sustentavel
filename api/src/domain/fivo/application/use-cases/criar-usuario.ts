@@ -3,6 +3,8 @@ import { UserRepository } from '../ports/database/user-repository';
 import { Either, left, right } from '@core/either';
 import { UserAlreadyExistsError } from '../errors/users-already-exists.error';
 import { Hasher } from '../ports/cryptography/hasher';
+import { Senha } from '@domain/fivo/entities/senha';
+import { SenhaFracaError } from '../errors/senha-fraca.error';
 
 export interface CriarUsuarioRequest {
   nome: string;
@@ -12,7 +14,7 @@ export interface CriarUsuarioRequest {
 }
 
 export type CriarUsuarioResponse = Either<
-  UserAlreadyExistsError,
+  UserAlreadyExistsError | SenhaFracaError,
   {
     user: User;
   }
@@ -33,7 +35,13 @@ export class CriarUsuarioUseCase {
       return left(new UserAlreadyExistsError(email));
     }
 
-    const hashedPassword = await this.hasher.hash(senha);
+    const plainSenha = Senha.create(senha);
+
+    if (plainSenha.isLeft()) {
+      return left(plainSenha.value);
+    }
+
+    const hashedPassword = await plainSenha.value.hash(this.hasher);
 
     const user = User.create({
       nome,

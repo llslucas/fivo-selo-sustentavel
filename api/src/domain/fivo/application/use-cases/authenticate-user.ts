@@ -33,7 +33,10 @@ export class AuthenticateUserUseCase {
       return left(new WrongCredentialsError());
     }
 
-    const isPasswordValid = await this.hasher.compare(password, user.senha);
+    const isPasswordValid = await this.hasher.compare(
+      password,
+      user.senha.valor,
+    );
 
     if (!isPasswordValid) {
       return left(new WrongCredentialsError());

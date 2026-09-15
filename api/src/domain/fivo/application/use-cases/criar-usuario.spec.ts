@@ -20,7 +20,7 @@ describe('CriarUsuarioUseCase', () => {
     const request = {
       nome: 'Usuario Teste',
       email: 'usuario@teste.com',
-      senha: 'senha123',
+      senha: 'senha123456',
       role: UserRole.ADMIN,
     };
 
@@ -39,7 +39,26 @@ describe('CriarUsuarioUseCase', () => {
 
       expect(UserInRepository).not.toBeNull();
       expect(UserInRepository?.equals(user)).toBe(true);
-      expect(user.senha).toEqual(await hasher.hash(request.senha));
+      expect(user.senha.valor).toEqual(await hasher.hash(request.senha));
+    }
+  });
+
+  it('should return an SenhaFracaError if the password is weak', async () => {
+    const request = {
+      nome: 'Usuario Teste',
+      email: 'usuario@teste.com',
+      senha: 'senha',
+      role: UserRole.ADMIN,
+    };
+
+    const response = await criarUsuarioUseCase.execute(request);
+
+    const failure = response.isLeft();
+
+    expect(failure).toBe(true);
+
+    if (failure) {
+      expect(response.value).toBeInstanceOf(Error);
     }
   });
 });

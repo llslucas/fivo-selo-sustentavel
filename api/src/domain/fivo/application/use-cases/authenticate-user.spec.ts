@@ -7,6 +7,7 @@ import { FakeHasher } from '@test/cryptography/fake-hasher';
 import { FakeEncrypter } from '@test/cryptography/fake-encrypter';
 import { UserFactory } from '@test/factories/user-factory';
 import { AccessTokenPayload } from '@domain/fivo/entities/user';
+import { Senha } from '@domain/fivo/entities/senha';
 
 describe('AuthenticateUserUseCase', () => {
   let userRepository: UserRepository;
@@ -26,9 +27,23 @@ describe('AuthenticateUserUseCase', () => {
   });
 
   it('should return an access token for valid credentials', async () => {
+    const senhaOrError = Senha.create('hashed-password');
+
+    if (senhaOrError.isLeft()) {
+      return;
+    }
+
+    const hashedPassword = Senha.create(
+      await hasher.hash(senhaOrError.value.valor),
+    );
+
+    if (hashedPassword.isLeft()) {
+      return;
+    }
+
     const user = UserFactory.create({
       email: 'john@example.com',
-      senha: await hasher.hash('hashed-password'),
+      senha: hashedPassword.value,
     });
 
     await userRepository.create(user);
