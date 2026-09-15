@@ -4,6 +4,6 @@ export class InvalidCnpjError extends Error implements UseCaseError {
   readonly status = 422;
 
   constructor() {
-    super('CNPJ inválido');
+    super('CNPJ inválido.');
   }
 }

@@ -1,5 +1,7 @@
-export class MotivoInsuficienteError extends Error {
-  status = 422;
+import { UseCaseError } from '@core/types/use-case-error';
+
+export class MotivoInsuficienteError extends Error implements UseCaseError {
+  readonly status = 422;
 
   constructor() {
     super('Motivo insuficiente para rejeição.');

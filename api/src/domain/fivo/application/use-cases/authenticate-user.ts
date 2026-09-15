@@ -1,5 +1,5 @@
 import { Either, right, left } from '@core/either';
-import { WrongCredentialsError } from '../errors/wrong-credentials.error';
+import { CredenciaisInvalidasError } from '../errors/wrong-credentials.error';
 import { UserRepository } from '../ports/database/user-repository';
 import { Hasher } from '../ports/cryptography/hasher';
 import { Encrypter } from '../ports/cryptography/encrypter';
@@ -10,7 +10,7 @@ export interface AuthenticateUserUseCaseRequest {
 }
 
 export type AuthenticateUserUseCaseResponse = Either<
-  WrongCredentialsError,
+  CredenciaisInvalidasError,
   {
     accessToken: string;
   }
@@ -30,7 +30,7 @@ export class AuthenticateUserUseCase {
     const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
-      return left(new WrongCredentialsError());
+      return left(new CredenciaisInvalidasError());
     }
 
     const isPasswordValid = await this.hasher.compare(
@@ -39,7 +39,7 @@ export class AuthenticateUserUseCase {
     );
 
     if (!isPasswordValid) {
-      return left(new WrongCredentialsError());
+      return left(new CredenciaisInvalidasError());
     }
 
     const accessToken = await this.encrypter.encrypt({

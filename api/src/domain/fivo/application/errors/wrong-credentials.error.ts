@@ -1,7 +1,9 @@
-export class WrongCredentialsError extends Error {
-  static readonly status = 401;
+import { UseCaseError } from '@core/types/use-case-error';
+
+export class CredenciaisInvalidasError extends Error implements UseCaseError {
+  readonly status = 401;
 
   constructor() {
-    super('Wrong credentials provided');
+    super('Credenciais inválidas.');
   }
 }

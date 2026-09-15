@@ -19,7 +19,7 @@ describe('CNPJ Value Object', () => {
     expect(cnpj.isLeft()).toBe(true);
     if (cnpj.isLeft()) {
       expect(cnpj.value.status).toBe(422);
-      expect(cnpj.value.message).toBe('CNPJ inválido');
+      expect(cnpj.value.message).toBe('CNPJ inválido.');
     }
   });
 

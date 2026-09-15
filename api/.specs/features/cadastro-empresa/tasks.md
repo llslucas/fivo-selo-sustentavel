@@ -312,7 +312,7 @@ T28 → T32
 
 ### T6: Contrato uniforme de erro de aplicação
 
-**What**: Padronizar todas as classes em `application/errors/` para carregar `readonly status: number` **de instância** e mensagem em pt-BR. Corrigir `WrongCredentialsError` (hoje `static readonly status`) → renomear para `CredenciaisInvalidasError`, `status` 401, mensagem "Credenciais inválidas". Manter `core/errors/NotAllowedError` e `ResourceNotFoundError` genéricos (a mensagem pt-BR final é montada no caso de uso ou no filtro). Documentar o contrato num comentário no barrel de erros.
+**What**: Padronizar todas as classes em `application/errors/` para carregar `readonly status: number` **de instância** e mensagem em pt-BR. Corrigir `CredenciaisInvalidasError` (hoje `static readonly status`) → renomear para `CredenciaisInvalidasError`, `status` 401, mensagem "Credenciais inválidas". Manter `core/errors/NotAllowedError` e `ResourceNotFoundError` genéricos (a mensagem pt-BR final é montada no caso de uso ou no filtro). Documentar o contrato num comentário no barrel de erros.
 **Where**: `api/src/domain/fivo/application/errors/`
 **Depends on**: None
 **Reuses**: `UseCaseError` (`core/types/use-case-error.ts`)
@@ -324,7 +324,7 @@ T28 → T32
 
 **Done when**:
 - [ ] Toda classe de erro de `application/errors/` tem `readonly status: number` de instância (nenhuma `static`)
-- [ ] `CredenciaisInvalidasError` substitui `WrongCredentialsError`; nenhum import órfão
+- [ ] `CredenciaisInvalidasError` substitui `CredenciaisInvalidasError`; nenhum import órfão
 - [ ] `InvalidCnpjError`, `EmpresaAlreadyExistsError`, `UserAlreadyExistsError` com mensagens pt-BR revisadas
 - [ ] `npx tsc -p tsconfig.json --noEmit` e `npx eslint` limpos; nenhum `*.spec.ts` existente quebra
 - [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`

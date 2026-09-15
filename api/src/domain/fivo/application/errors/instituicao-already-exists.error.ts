@@ -7,6 +7,6 @@ export class InstituicaoAlreadyExistsError
   readonly status = 422;
 
   constructor(instituicao: string) {
-    super(`A instituicao ${instituicao} já existe.`);
+    super(`A instituição ${instituicao} já existe.`);
   }
 }
