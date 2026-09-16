@@ -19,6 +19,13 @@ export type CampaignWizardData = {
   logoPreviewUrl: string | null;
   mostrarValorNoSelo: boolean;
   vincularCampanha: boolean;
+  // Dados da empresa (Step 3)
+  razaoSocial?: string;
+  cnpj?: string;
+  emailEmpresa?: string;
+  telefoneEmpresa?: string;
+  // Modelo do selo (Step 2)
+  modeloSelo?: string;
 };
 
 export const initialWizardData: CampaignWizardData = {

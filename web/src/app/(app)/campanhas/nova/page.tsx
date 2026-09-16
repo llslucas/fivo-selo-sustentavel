@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import CampaignWizard from "@/components/campaign-wizard/CampaignWizard";
+import CampaignWizardNew from "@/components/campaign-wizard/CampaignWizardNew";
 
 export const metadata: Metadata = {
   title: "Nova campanha · Fivo",
 };
 
 export default function NovaCampanhaPage() {
-  return <CampaignWizard />;
+  return <CampaignWizardNew />;
 }

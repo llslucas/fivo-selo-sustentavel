@@ -1,10 +1,12 @@
+"use client";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
-
+import Link from 'next/link';
+import { APP_ROUTES } from '@/lib/routes';
 export default function Hero() {
   return (
     <Box
@@ -45,13 +47,14 @@ export default function Hero() {
           </Typography>
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ pt: 1 }}>
-            <Button variant="contained" size="large">
+            <Button variant="contained" size="large" LinkComponent={Link} href={APP_ROUTES.public.cadastro}>
               Cadastrar minha empresa
             </Button>
             <Button
               variant="outlined"
               size="large"
               color="inherit"
+              LinkComponent={Link} href={APP_ROUTES.public.login}
               sx={{
                 borderColor: "divider",
                 "&:hover": {
