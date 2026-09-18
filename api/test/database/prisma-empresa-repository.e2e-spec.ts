@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { EmpresaAlreadyExistsError } from '@domain/fivo/application/errors/empresa-already-exists.error';
 import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
@@ -70,6 +72,63 @@ describe('PrismaEmpresaRepository (e2e)', () => {
     expect(encontrada!.contato).toBe(empresa.contato);
     expect(encontrada!.status).toBe(EmpresaStatus.PENDENTE_APROVACAO);
     expect(encontrada!.createdAt.getTime()).toBe(empresa.createdAt.getTime());
+    // Endereço e contato completos: nenhuma coluna pode se perder ou trocar de
+    // lugar no mapper (EMP-08 AC1 depende de todos eles persistirem).
+    expect(encontrada!.telefone).toBe(empresa.telefone);
+    expect(encontrada!.cep).toBe(empresa.cep);
+    expect(encontrada!.logradouro).toBe(empresa.logradouro);
+    expect(encontrada!.bairro).toBe(empresa.bairro);
+    expect(encontrada!.cidade).toBe(empresa.cidade);
+  });
+
+  it('roundtrip preserva os campos opcionais, de decisão e de troca de e-mail', async () => {
+    const arquivoId = randomUUID();
+
+    await contexto.prisma.arquivo.create({
+      data: {
+        id: arquivoId,
+        tipo: 'LOGO_EMPRESA',
+        nomeOriginal: 'logo.png',
+        mime: 'image/png',
+        bytes: 1024,
+        largura: 400,
+        altura: 400,
+        chaveStorage: `logos/${arquivoId}.png`,
+      },
+    });
+
+    const empresa = EmpresaFactory.create({
+      cnpj: cnpj(CNPJ_A),
+      complemento: 'Sala 42',
+      logoArquivoId: new UniqueEntityId(arquivoId),
+      status: EmpresaStatus.REJEITADA,
+      decididoPor: new UniqueEntityId(),
+      decididoEm: new Date('2026-04-05T11:00:00.000Z'),
+      motivoDecisao: 'Documentação fiscal ilegível no comprovante enviado.',
+      emailPendente: 'novo-email@empresa.test',
+      tokenTrocaEmailHash: 'sha256-do-token-de-troca',
+      updatedAt: new Date('2026-04-05T11:00:00.000Z'),
+    });
+
+    await repository.create(empresa);
+
+    const encontrada = await repository.findById(empresa.id.toString());
+
+    expect(encontrada!.complemento).toBe('Sala 42');
+    expect(encontrada!.logoArquivoId?.toString()).toBe(arquivoId);
+    expect(encontrada!.status).toBe(EmpresaStatus.REJEITADA);
+    expect(encontrada!.decididoPor?.toString()).toBe(
+      empresa.decididoPor!.toString(),
+    );
+    expect(encontrada!.decididoEm?.getTime()).toBe(
+      empresa.decididoEm!.getTime(),
+    );
+    expect(encontrada!.motivoDecisao).toBe(
+      'Documentação fiscal ilegível no comprovante enviado.',
+    );
+    expect(encontrada!.emailPendente).toBe('novo-email@empresa.test');
+    expect(encontrada!.tokenTrocaEmailHash).toBe('sha256-do-token-de-troca');
+    expect(encontrada!.updatedAt?.getTime()).toBe(empresa.updatedAt!.getTime());
   });
 
   it('create seguido de findByCnpj devolve a mesma entidade', async () => {

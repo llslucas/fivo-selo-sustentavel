@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 3,
+  "next_id": 5,
   "lessons": [
     {
       "id": "L-001",
@@ -40,6 +40,42 @@
       ],
       "created": "2026-09-18T02:53:50Z",
       "last_seen": "2026-09-18T02:53:50Z"
+    },
+    {
+      "id": "L-003",
+      "key": "surviving_mutant::entity equals compares only the id so a repository roundtrip test that leans on equals proves no field fidelity assert every mapped column explicitly including the optional ones",
+      "text": "Entity.equals compares only the id, so a repository roundtrip test that leans on equals() proves no field fidelity — assert every mapped column explicitly, including the optional ones.",
+      "signal": "surviving_mutant",
+      "scope": "infra/database/prisma/mappers",
+      "status": "candidate",
+      "features": [
+        "cadastro-empresa"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M5-M14 / src/core/types/entities/entity.ts:16-26 (infra/database/prisma/mappers)"
+      ],
+      "created": "2026-09-18T15:12:11Z",
+      "last_seen": "2026-09-18T15:12:11Z"
+    },
+    {
+      "id": "L-004",
+      "key": "ac_gap::a use case writing two aggregates through separate repository ports is atomic only with in memory doubles decide the transaction boundary when the real persistence adapter lands not after",
+      "text": "A use case writing two aggregates through separate repository ports is atomic only with in-memory doubles — decide the transaction boundary when the real persistence adapter lands, not after.",
+      "signal": "ac_gap",
+      "scope": "domain/fivo/application/use-cases",
+      "status": "candidate",
+      "features": [
+        "cadastro-empresa"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EMP-01 AC1 / src/domain/fivo/application/use-cases/criar-empresa.ts:150-151 (domain/fivo/application/use-cases)"
+      ],
+      "created": "2026-09-18T15:12:11Z",
+      "last_seen": "2026-09-18T15:12:11Z"
     }
   ]
 }

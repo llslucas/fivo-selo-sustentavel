@@ -87,6 +87,7 @@ describe('PrismaUserRepository (e2e)', () => {
     const user = UserFactory.create({
       email: 'bloqueio@empresa.test',
       senha: senhaJaHasheada(),
+      updatedAt: new Date('2026-01-01T09:00:00.000Z'),
     });
 
     await repository.create(user);
@@ -102,6 +103,7 @@ describe('PrismaUserRepository (e2e)', () => {
     const encontrado = await repository.findById(user.id.toString());
 
     expect(encontrado!.falhasLogin).toBe(5);
+    expect(encontrado!.updatedAt?.getTime()).toBe(user.updatedAt?.getTime());
     expect(encontrado!.primeiraFalhaEm?.getTime()).toBe(agora.getTime());
     expect(encontrado!.bloqueadoAte?.getTime()).toBe(
       new Date('2026-01-01T10:15:00.000Z').getTime(),

@@ -26,6 +26,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: EMP-01 AC2, EMP-01 AC4, EMP-06 AC2 (domain/fivo/application/errors)
 - last seen: 2026-09-18T02:53:50Z
 
+### L-003 - Entity.equals compares only the id, so a repository roundtrip test that leans on equals() proves no field fidelity — assert every mapped column explicitly, including the optional ones.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `infra/database/prisma/mappers` · harmful: 0
+- features: cadastro-empresa
+- evidence: M5-M14 / src/core/types/entities/entity.ts:16-26 (infra/database/prisma/mappers)
+- last seen: 2026-09-18T15:12:11Z
+
+### L-004 - A use case writing two aggregates through separate repository ports is atomic only with in-memory doubles — decide the transaction boundary when the real persistence adapter lands, not after.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `domain/fivo/application/use-cases` · harmful: 0
+- features: cadastro-empresa
+- evidence: EMP-01 AC1 / src/domain/fivo/application/use-cases/criar-empresa.ts:150-151 (domain/fivo/application/use-cases)
+- last seen: 2026-09-18T15:12:11Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
