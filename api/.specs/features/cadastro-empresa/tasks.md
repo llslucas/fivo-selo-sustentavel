@@ -329,7 +329,7 @@ T28 → T32
 - [x] `npx tsc -p tsconfig.json --noEmit` e `npx eslint` limpos; nenhum `*.spec.ts` existente quebra — confirmado (78/78 passam)
 - [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado
 
-> **⚠️ Gap não coberto pelos bullets acima (ver validation report):** `EmpresaAlreadyExistsError` e `UserAlreadyExistsError` continuam com `status = 422` (`empresa-already-exists.error.ts:4`, `users-already-exists.error.ts:4`) e nunca foram tocados pelo commit deste T6 (`git log` só mostra `b7801a1`, anterior). O spec (EMP-01 AC3) exige HTTP 409 para CNPJ/e-mail duplicado. `TransicaoInvalidaError` (`transicao-invalida.error.ts:4`, de T3) também está com `status = 422`, mas o spec (EMP-05 AC5) e o próprio T3 exigem 409. Isso vai quebrar os ACs de T8/T10 na Fase 2 se não for corrigido antes.
+> **Gap corrigido (validation-fase1.md Fix 2):** `EmpresaAlreadyExistsError` e `UserAlreadyExistsError` estavam com `status = 422`; corrigido para `409` (EMP-01 AC3), com teste dedicado em `already-exists.errors.spec.ts`. `TransicaoInvalidaError` (de T3) também estava com `status = 422`; corrigido para `409` (EMP-05 AC5), com teste dedicado em `empresa.spec.ts`.
 
 **Tests**: none
 **Gate**: quick

@@ -5,6 +5,12 @@ import { UserRole } from './user';
 import { TransicaoInvalidaError } from '../application/errors/transicao-invalida.error';
 import { MotivoInsuficienteError } from '../application/errors/motivo-insuficiente.error';
 
+describe('TransicaoInvalidaError', () => {
+  it('carries HTTP status 409', () => {
+    expect(new TransicaoInvalidaError().status).toBe(409);
+  });
+});
+
 describe('Company Aproval', () => {
   it("Should approve a company if it's pending approval", () => {
     const admin = UserFactory.create({ role: UserRole.ADMIN });
