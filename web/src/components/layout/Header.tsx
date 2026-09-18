@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
@@ -12,20 +15,55 @@ const navLinks = [
   { label: "Instituições", href: "#" },
 ];
 
+// Distância de scroll (em px) a partir da qual o header deixa de ser transparente.
+const SCROLL_THRESHOLD = 24;
+
 export default function Header() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    function handleScroll() {
+      setScrolled(window.scrollY > SCROLL_THRESHOLD);
+    }
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <Box
       component="header"
       sx={{
-        position: "sticky",
+        position: "fixed",
         top: 0,
-        zIndex: 1100, // = theme.zIndex.appBar (valor fixo pois este é um Server Component)
-        borderBottom: 1,
+        left: 0,
+        width: "100%",
+        zIndex: 1100, // = theme.zIndex.appBar
+        bgcolor: scrolled ? "background.default" : "transparent",
+        borderBottom: scrolled ? 1 : 0,
         borderColor: "divider",
-        bgcolor: "background.default",
+        transition: "background-color 0.25s ease",
       }}
     >
-      <Container maxWidth="lg">
+      {/* Gradiente decorativo p/ dar contraste ao texto enquanto transparente.
+          É mais alto que o próprio header de propósito, pra esmaecer bem devagar
+          e não criar uma linha dura na borda de baixo. */}
+      <Box
+        aria-hidden
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: 160,
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0))",
+          opacity: scrolled ? 0 : 1,
+          transition: "opacity 0.25s ease",
+          pointerEvents: "none",
+          zIndex: -1,
+        }}
+      />
+      <Container maxWidth="lg" sx={{ position: "relative" }}>
         <Stack
           direction="row"
           sx={{ py: 2, alignItems: "center", justifyContent: "space-between" }}
@@ -57,7 +95,15 @@ export default function Header() {
               >
                 <GrassRoundedIcon sx={{ fontSize: 20 }} />
               </Box>
-              <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
+              <Typography
+                variant="h6"
+                component="span"
+                sx={{
+                  fontWeight: 700,
+                  color: scrolled ? "text.primary" : "common.white",
+                  transition: "color 0.25s ease",
+                }}
+              >
                 Fivo
               </Typography>
             </Stack>
@@ -76,12 +122,12 @@ export default function Header() {
               >
                 <Typography
                   variant="body2"
-                  color="text.secondary"
                   sx={{
                     position: "relative",
                     py: 0.5,
-                    transition: "color 0.15s ease",
-                    "&:hover": { color: "text.primary" },
+                    color: scrolled ? "text.secondary" : "rgba(255,255,255,0.85)",
+                    transition: "color 0.25s ease",
+                    "&:hover": { color: scrolled ? "text.primary" : "common.white" },
                     "&::after": {
                       content: '""',
                       position: "absolute",
@@ -89,8 +135,8 @@ export default function Header() {
                       right: "100%",
                       bottom: 0,
                       height: "2px",
-                      bgcolor: "primary.main",
-                      transition: "right 0.2s ease",
+                      bgcolor: scrolled ? "primary.main" : "common.white",
+                      transition: "right 0.2s ease, background-color 0.25s ease",
                     },
                     "&:hover::after": { right: 0 },
                   }}
@@ -102,15 +148,20 @@ export default function Header() {
           </Stack>
 
           <Button
-            variant="outlined"
-            color="inherit"
+            variant={scrolled ? "outlined" : "contained"}
+            color={scrolled ? "inherit" : "primary"}
             sx={{
-              borderColor: "divider",
-              transition: "border-color 0.15s ease, background-color 0.15s ease",
-              "&:hover": {
-                borderColor: "text.secondary",
-                bgcolor: "action.hover",
-              },
+              transition: "background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease",
+              ...(scrolled
+                ? {
+                    color: "text.primary",
+                    borderColor: "divider",
+                    "&:hover": { borderColor: "text.secondary", bgcolor: "action.hover" },
+                  }
+                : {
+                    boxShadow: "none",
+                    "&:hover": { boxShadow: "none" },
+                  }),
             }}
           >
             Entrar
