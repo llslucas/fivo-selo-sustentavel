@@ -266,14 +266,14 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `User.create` aceita `Senha` e assume `falhasLogin: 0`, timestamps `null`
-- [ ] 4 falhas não bloqueiam; a 5ª dentro de 15 min bloqueia; `estaBloqueado` → `true` enquanto `agora < bloqueadoAte`, `false` depois
-- [ ] `registrarFalhaDeLogin` reinicia a janela quando a 1ª falha tem > 15 min
-- [ ] `registrarLoginOk` zera os três campos
-- [ ] `user.spec.ts` cobre 1:1 EMP-07 AC3
-- [ ] `UserFactory` atualizada (aceita `Senha` ou string convertida)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 6 testes passam
+- [x] `User.create` aceita `Senha` e assume `falhasLogin: 0`, timestamps `null` — `src/domain/fivo/entities/user.ts:32-50`
+- [ ] 4 falhas não bloqueiam; a 5ª dentro de 15 min bloqueia; `estaBloqueado` → `true` enquanto `agora < bloqueadoAte`, `false` depois — **GAP**: `estaBloqueado` (`user.ts:115-126`) compara `agora - bloqueadoAte <= 15min` em vez de `agora < bloqueadoAte`; fica `true` por até 15 min extras depois que `bloqueadoAte` já passou (bloqueio de facto ~30 min, não 15). Sem teste cobrindo `agora` logo após `bloqueadoAte` (só testa 10 min antes e 16 min depois). Ver validation report.
+- [x] `registrarFalhaDeLogin` reinicia a janela quando a 1ª falha tem > 15 min — `src/domain/fivo/entities/user.ts:98-106`, testado em `user.spec.ts:52-64`
+- [ ] `registrarLoginOk` zera os três campos — implementado como `registrarLoginSucesso()` (`user.ts:128-132`), não `registrarLoginOk`. Comportamento correto (zera os 3 campos, testado em `user.spec.ts:101-115`), mas o nome diverge do especificado aqui **e** do usado em `design.md:269` e no futuro T9 (`user.registrarLoginOk()`). Precisa renomear ou ajustar T9/design.md.
+- [x] `user.spec.ts` cobre 1:1 EMP-07 AC3 — `src/domain/fivo/entities/user.spec.ts`
+- [ ] `UserFactory` atualizada (aceita `Senha` ou string convertida) — **GAP**: `test/factories/user-factory.ts:5` só aceita `Partial<UserProps>` (exige `Senha` já construída); não há atalho por string.
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (78/78 testes, tsc e eslint limpos)
+- [x] Test count: ≥ 6 testes passam — 8 testes em `user.spec.ts`
 
 **Tests**: unit
 **Gate**: quick
@@ -295,13 +295,13 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `LOGO_EMPRESA` com PNG/JPG/SVG válido, ≤ 5 MB, raster ≥ 512×512 → `Right(Arquivo)`
-- [ ] MIME fora da lista do `tipo` → `Left` citando "formato"; `> 5 MB` → `Left` citando "tamanho"; raster `< 512` → `Left` citando "dimensão"
-- [ ] SVG sem `svgConteudo` → `Left`; SVG com `<script>`/`<foreignObject>`/`onload=` → `Left`; SVG limpo → `Right`
-- [ ] `ArquivoInvalidoError` (`status` 422) em `application/errors/`
-- [ ] `arquivo.spec.ts` cobre 1:1 EMP-03 AC5/AC6 + os vetores de SVG
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 10 testes passam
+- [x] `LOGO_EMPRESA` com PNG/JPG/SVG válido, ≤ 5 MB, raster ≥ 512×512 → `Right(Arquivo)` — `src/domain/fivo/entities/arquivo.ts:35-104`, `arquivo.spec.ts:4-54`
+- [x] MIME fora da lista do `tipo` → `Left` citando "formato"; `> 5 MB` → `Left` citando "tamanho"; raster `< 512` → `Left` citando "dimensão" — `arquivo.spec.ts:56-108` (`toContain('formato'|'tamanho'|'dimensão')`)
+- [x] SVG sem `svgConteudo` → `Left`; SVG com `<script>`/`<foreignObject>`/`onload=` → `Left`; SVG limpo → `Right` — `arquivo.spec.ts:110-190`
+- [x] `ArquivoInvalidoError` (`status` 422) em `application/errors/` — `application/errors/arquivo-invalido-error.ts:3-4`
+- [x] `arquivo.spec.ts` cobre 1:1 EMP-03 AC5/AC6 + os vetores de SVG — 11 casos cobrindo formato/tamanho/dimensão/svg
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado
+- [x] Test count: ≥ 10 testes passam — 11 testes em `arquivo.spec.ts`
 
 **Tests**: unit
 **Gate**: quick
@@ -323,11 +323,13 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Toda classe de erro de `application/errors/` tem `readonly status: number` de instância (nenhuma `static`)
-- [ ] `CredenciaisInvalidasError` substitui `CredenciaisInvalidasError`; nenhum import órfão
-- [ ] `InvalidCnpjError`, `EmpresaAlreadyExistsError`, `UserAlreadyExistsError` com mensagens pt-BR revisadas
-- [ ] `npx tsc -p tsconfig.json --noEmit` e `npx eslint` limpos; nenhum `*.spec.ts` existente quebra
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Toda classe de erro de `application/errors/` tem `readonly status: number` de instância (nenhuma `static`) — confirmado nas 11 classes de `application/errors/*.ts`
+- [x] `CredenciaisInvalidasError` substitui `CredenciaisInvalidasError`; nenhum import órfão — `application/errors/wrong-credentials.error.ts:3` (status 401, instância); `grep` não encontra nome antigo órfão. Nota de qualidade: o arquivo continua se chamando `wrong-credentials.error.ts` (não renomeado para bater com a classe)
+- [x] `InvalidCnpjError`, `EmpresaAlreadyExistsError`, `UserAlreadyExistsError` com mensagens pt-BR revisadas — mensagens em pt-BR confirmadas
+- [x] `npx tsc -p tsconfig.json --noEmit` e `npx eslint` limpos; nenhum `*.spec.ts` existente quebra — confirmado (78/78 passam)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado
+
+> **⚠️ Gap não coberto pelos bullets acima (ver validation report):** `EmpresaAlreadyExistsError` e `UserAlreadyExistsError` continuam com `status = 422` (`empresa-already-exists.error.ts:4`, `users-already-exists.error.ts:4`) e nunca foram tocados pelo commit deste T6 (`git log` só mostra `b7801a1`, anterior). O spec (EMP-01 AC3) exige HTTP 409 para CNPJ/e-mail duplicado. `TransicaoInvalidaError` (`transicao-invalida.error.ts:4`, de T3) também está com `status = 422`, mas o spec (EMP-05 AC5) e o próprio T3 exigem 409. Isso vai quebrar os ACs de T8/T10 na Fase 2 se não for corrigido antes.
 
 **Tests**: none
 **Gate**: quick
@@ -349,11 +351,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] As 5 portas novas existem como `abstract class` sem dependência de infra (ESLint de `src/domain/**` passa)
-- [ ] `EmpresaRepository.listarPorEstado` declarada
-- [ ] Cada porta tem um test double em `api/test/` seguindo o padrão dos existentes
-- [ ] `FakeStorage` permite forçar `StorageIndisponivelError`; `FakeMailer` permite inspecionar e forçar falha
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [ ] As 5 portas novas existem como `abstract class` sem dependência de infra (ESLint de `src/domain/**` passa) — **existem e o lint passa** (`sessao-repository.ts`, `registro-auditoria-repository.ts`, `token-senha-repository.ts`, `mailer.ts`, `storage.ts`), mas os métodos **não batem com o contrato documentado em `design.md:239-243`** (fonte de verdade citada por este `tasks.md`): `SessaoRepository` tem `findByToken/create/save/deleteByUsuarioId` em vez de `criar/buscarPorTokenHash/deslizar/revogar/revogarTodasDoUsuario`; `TokenSenhaRepository` tem os mesmos 4 métodos genéricos em vez de `criar/buscarPorHash/marcarUsado`; `Mailer.send(...)` em vez de `Mailer.enviar(...)`; `TemplateEmail` tem `RECUPERACAO_SENHA/BOAS_VINDAS/AVISO_SISTEMA` em vez de `CADASTRO_RECEBIDO/CADASTRO_APROVADO/CADASTRO_REJEITADO/EMAIL_CONFIRMACAO/SENHA_REDEFINICAO` (usados por T8/T10/T12/T13/T20); **`Storage` não tem nenhum método de leitura** (`upload`/`delete` apenas — falta `ler`, que T22 (`lerBytes`) precisa). Deixado sem marcar — ver validation report para o gap completo.
+- [x] `EmpresaRepository.listarPorEstado` declarada — `application/ports/database/empresa-repository.ts:8-11`
+- [x] Cada porta tem um test double em `api/test/` seguindo o padrão dos existentes — `InMemorySessaoRepository`, `InMemoryRegistroAuditoriaRepository`, `InMemoryTokenSenhaRepository`, `FakeMailer`, `FakeStorage` (todos espelham a forma atual — porém errada — das portas)
+- [x] `FakeStorage` permite forçar `StorageIndisponivelError`; `FakeMailer` permite inspecionar e forçar falha — `test/cryptography/fake-storage.ts`, `test/cryptography/fake-mailer.ts`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado
 
 **Tests**: none
 **Gate**: quick
