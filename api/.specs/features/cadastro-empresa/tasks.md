@@ -586,15 +586,19 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `PrismaService` conecta no boot e desconecta no shutdown
-- [ ] `DatabaseModule` é `@Global()`, provê e exporta `PrismaService`
-- [ ] `AppModule` continua subindo (`npm run start` → 404 em `/`)
-- [ ] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] `PrismaService` conecta no boot e desconecta no shutdown — `src/infra/database/prisma/prisma.service.ts:15-21` (`onModuleInit` → `$connect()`, `onModuleDestroy` → `$disconnect()`)
+- [x] `DatabaseModule` é `@Global()`, provê e exporta `PrismaService` — `src/infra/database/database.module.ts:5-11`
+- [x] `AppModule` continua subindo (`npm run start` → 404 em `/`) — `node dist/infra/main.js` com `DATABASE_URL` do compose: log "DatabaseModule dependencies initialized" + "Nest application successfully started"; `curl -o /dev/null -w "%{http_code}" /` → `404`
+- [x] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — exit 0, 128/128 testes
+
+**Nota de qualidade**: `PrismaService` usa `log: ['warn', 'error']` (sem `query`) para não poluir a saída dos e2e. O shutdown é feito por `onModuleDestroy` em vez de `$on('beforeExit')` — o hook `beforeExit` foi removido da API de eventos do Prisma Client 5+/6 e o ciclo de vida do Nest já cobre o encerramento (`app.close()` nos testes e2e).
 
 **Tests**: none
 **Gate**: build
 
-**Commit**: `feat(api): PrismaService e DatabaseModule global`
+**Commit**: `feat(api): adiciona PrismaService e DatabaseModule global`
+
+> **Nota de qualidade (desvio da mensagem de commit)**: a mensagem planejada era `feat(api): PrismaService e DatabaseModule global`, mas `scripts/check_commit.py` a rejeita ("description should start lowercase"). Prefixada com o verbo imperativo `adiciona` para passar o gate determinístico sem perder o conteúdo.
 
 ---
 
