@@ -89,16 +89,32 @@ describe('User Login -> estaBloqueado', () => {
     expect(user.estaBloqueado(agora)).toBe(false);
   });
 
-  it('should return false if bloqueadoAte is more than 16 minutes in the past', () => {
+  it('should return false if bloqueadoAte is in the past', () => {
     const bloqueadoAte = new Date(new Date().getTime() - 16 * 60 * 1000); // 16 minutos no passado
     const user = UserFactory.create({ bloqueadoAte });
 
     const agora = new Date();
     expect(user.estaBloqueado(agora)).toBe(false);
   });
+
+  it('should return false the instant bloqueadoAte has just passed', () => {
+    const bloqueadoAte = new Date();
+    const user = UserFactory.create({ bloqueadoAte });
+
+    const agora = new Date(bloqueadoAte.getTime() + 1000); // 1 segundo depois
+    expect(user.estaBloqueado(agora)).toBe(false);
+  });
+
+  it('should return true the instant before bloqueadoAte', () => {
+    const bloqueadoAte = new Date(new Date().getTime() + 1000);
+    const user = UserFactory.create({ bloqueadoAte });
+
+    const agora = new Date(bloqueadoAte.getTime() - 1);
+    expect(user.estaBloqueado(agora)).toBe(true);
+  });
 });
 
-describe('User Login -> registrarLoginSucesso', () => {
+describe('User Login -> registrarLoginOk', () => {
   it('should reset falhasLogin, primeiraFalhaEm, and bloqueadoAte on successful login', () => {
     const user = UserFactory.create({
       falhasLogin: 3,
@@ -106,7 +122,7 @@ describe('User Login -> registrarLoginSucesso', () => {
       bloqueadoAte: new Date(new Date().getTime() + 10 * 60 * 1000), // 10 minutos no futuro
     });
 
-    user.registrarLoginSucesso();
+    user.registrarLoginOk();
 
     expect(user.falhasLogin).toBe(0);
     expect(user.primeiraFalhaEm).toBeNull();

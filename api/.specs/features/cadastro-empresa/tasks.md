@@ -267,13 +267,13 @@ T28 → T32
 
 **Done when**:
 - [x] `User.create` aceita `Senha` e assume `falhasLogin: 0`, timestamps `null` — `src/domain/fivo/entities/user.ts:32-50`
-- [ ] 4 falhas não bloqueiam; a 5ª dentro de 15 min bloqueia; `estaBloqueado` → `true` enquanto `agora < bloqueadoAte`, `false` depois — **GAP**: `estaBloqueado` (`user.ts:115-126`) compara `agora - bloqueadoAte <= 15min` em vez de `agora < bloqueadoAte`; fica `true` por até 15 min extras depois que `bloqueadoAte` já passou (bloqueio de facto ~30 min, não 15). Sem teste cobrindo `agora` logo após `bloqueadoAte` (só testa 10 min antes e 16 min depois). Ver validation report.
+- [x] 4 falhas não bloqueiam; a 5ª dentro de 15 min bloqueia; `estaBloqueado` → `true` enquanto `agora < bloqueadoAte`, `false` depois — fixado (validation-fase1.md Fix 3): `estaBloqueado` (`user.ts:115-121`) agora compara `agora.getTime() < bloqueadoAte.getTime()`; teste de fronteira em `user.spec.ts` ("should return false the instant bloqueadoAte has just passed" / "should return true the instant before bloqueadoAte")
 - [x] `registrarFalhaDeLogin` reinicia a janela quando a 1ª falha tem > 15 min — `src/domain/fivo/entities/user.ts:98-106`, testado em `user.spec.ts:52-64`
-- [ ] `registrarLoginOk` zera os três campos — implementado como `registrarLoginSucesso()` (`user.ts:128-132`), não `registrarLoginOk`. Comportamento correto (zera os 3 campos, testado em `user.spec.ts:101-115`), mas o nome diverge do especificado aqui **e** do usado em `design.md:269` e no futuro T9 (`user.registrarLoginOk()`). Precisa renomear ou ajustar T9/design.md.
+- [x] `registrarLoginOk` zera os três campos — fixado (validation-fase1.md Fix 5): renomeado `registrarLoginSucesso` → `registrarLoginOk` (`user.ts:123-127`), alinhado a `design.md:269` e ao futuro T9; testado em `user.spec.ts`
 - [x] `user.spec.ts` cobre 1:1 EMP-07 AC3 — `src/domain/fivo/entities/user.spec.ts`
-- [ ] `UserFactory` atualizada (aceita `Senha` ou string convertida) — **GAP**: `test/factories/user-factory.ts:5` só aceita `Partial<UserProps>` (exige `Senha` já construída); não há atalho por string.
-- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (78/78 testes, tsc e eslint limpos)
-- [x] Test count: ≥ 6 testes passam — 8 testes em `user.spec.ts`
+- [x] `UserFactory` atualizada (aceita `Senha` ou string convertida) — fixado (validation-fase1.md Fix 4): `test/factories/user-factory.ts` aceita `senha?: Senha | string`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (80/80 testes, tsc e eslint limpos)
+- [x] Test count: ≥ 6 testes passam — 10 testes em `user.spec.ts`
 
 **Tests**: unit
 **Gate**: quick

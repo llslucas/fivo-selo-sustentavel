@@ -113,19 +113,14 @@ export class User extends Entity<UserProps> {
   }
 
   estaBloqueado(agora: Date): boolean {
-    const MINUTE_IN_MILLISECONDS = 60000;
-
     if (!this._props.bloqueadoAte) {
       return false;
     }
 
-    const diffInMilliseconds =
-      agora.getTime() - this._props.bloqueadoAte.getTime();
-
-    return diffInMilliseconds <= 15 * MINUTE_IN_MILLISECONDS;
+    return agora.getTime() < this._props.bloqueadoAte.getTime();
   }
 
-  registrarLoginSucesso(): void {
+  registrarLoginOk(): void {
     this._props.bloqueadoAte = null;
     this._props.primeiraFalhaEm = null;
     this._props.falhasLogin = 0;
