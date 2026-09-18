@@ -646,12 +646,17 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `create` → `findById`/`findByCnpj`/`findByEmail` devolve entidade equivalente (`equals` + campos de valor)
-- [ ] `listarPorEstado` respeita filtro e ordem
-- [ ] Violação de unicidade (e-mail/cnpj) propaga um erro identificável (para o caso de uso mapear em 409)
-- [ ] Mapper roundtrip coberto por e2e-spec dedicado contra o Postgres de teste
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 6 testes e2e passam
+- [x] `create` → `findById`/`findByCnpj`/`findByEmail` devolve entidade equivalente (`equals` + campos de valor) — `test/database/prisma-empresa-repository.e2e-spec.ts:49-73` (`expect(encontrada!.equals(empresa)).toBe(true)` + razão social, `cnpj.valor`, `numero: 's/n'`, `uf`, `status`, `createdAt`), `:75-85` (`findByCnpj`), `test/database/prisma-user-repository.e2e-spec.ts:41-62` (`equals` + `senha.valor` = hash persistido, `role`, `falhasLogin`), `:64-78` (`findByEmail`)
+- [x] `listarPorEstado` respeita filtro e ordem — `prisma-empresa-repository.e2e-spec.ts:113-144` (asc: só as `PENDENTE_APROVACAO`, a `APROVADA` fica de fora, ordem por `criado_em`) e `:146-170` (desc inverte)
+- [x] Violação de unicidade (e-mail/cnpj) propaga um erro identificável (para o caso de uso mapear em 409) — `prisma-user-repository.e2e-spec.ts:112-133` e `prisma-empresa-repository.e2e-spec.ts:192-206`: `rejects.toBeInstanceOf(UserAlreadyExistsError|EmpresaAlreadyExistsError)` + `rejects.toMatchObject({ status: 409, message: 'CNPJ ou e-mail já cadastrado' })`
+- [x] Mapper roundtrip coberto por e2e-spec dedicado contra o Postgres de teste — `src/infra/database/prisma/mappers/prisma-{user,empresa}-mapper.ts`, exercitados nos dois specs acima (inclui `Senha` VO ↔ `senha_hash`, `Cnpj` ↔ `cnpj`, `UniqueEntityId` ↔ FKs e a transição de estado em `:172-190`)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 128 unit + 16 e2e
+- [x] Test count: ≥ 6 testes e2e passam — 13 novos (8 de Empresa + 5 de User), 16 e2e no total com o smoke
+
+**Nota de qualidade**:
+- **Reidratação dos VOs**: `Senha.create(hash)` e `Cnpj.create(digitos)` são usados na volta do banco. Nenhum dos dois re-hasheia (o hash em `Senha` é explícito via `senha.hash(hasher)`), então a reidratação é fiel; a validação que roda de novo é só de formato, sobre um valor que já passou por ela na ida. O mapper lança um `Error` explícito se o banco devolver um valor inválido — isso é corrupção de dado, não erro de usuário. Optou-se por **não** adicionar um `Senha.reidratar()` ao domínio para não alterar arquivos fora do escopo da task.
+- **Erro de unicidade**: o adaptador traduz o `P2002` do Prisma para os erros de domínio que já existem (`UserAlreadyExistsError` / `EmpresaAlreadyExistsError`, ambos `status = 409`), em vez de vazar `PrismaClientKnownRequestError` para a aplicação. Helper isolado em `src/infra/database/prisma/erros-prisma.ts`. Isso cobre a corrida entre o `findByEmail`/`findByCnpj` do caso de uso e o `INSERT`.
+- **`statusParaPrisma`** converte o `estado: string` da porta (a porta usa `string`, não o enum) para o enum do Prisma e falha alto em valor desconhecido.
 
 **Tests**: e2e
 **Gate**: full
