@@ -167,3 +167,18 @@ None of these are scope creep or dead code — the domain files are lean and sin
 5. `registrarLoginSucesso` vs. the `registrarLoginOk` name used elsewhere.
 
 **Next steps**: Route Fix 1–5 above as fix tasks before starting Phase 2 (T8+), since T9/T10/T13/T18/T20–T22/T24 all reference the currently-wrong port shapes and error statuses in their own task text. `tasks.md` has been updated in place with per-bullet evidence and gap notes for T4, T6, T7 (T5 fully checked; T1–T3 left untouched per scope).
+
+---
+
+## Resolution (2026-09-17, post-report)
+
+All 5 fixes applied and gated, one atomic commit each; `tasks.md` T4/T6/T7 checkboxes updated to reflect the fixes:
+
+| Fix | Commit | Result |
+| --- | ------ | ------ |
+| Fix 3 + Fix 5 (`estaBloqueado` boundary + `registrarLoginOk` rename) | `fix(domain): corrige fronteira de estaBloqueado e alinha User a T4/T9` | `estaBloqueado` now compares `agora.getTime() < bloqueadoAte.getTime()`; boundary tests added |
+| Fix 4 (`UserFactory` string password) | same commit | `UserFactory.create` accepts `senha?: Senha \| string` |
+| Fix 2 (HTTP 422 → 409) | `fix(domain): corrige status HTTP de erros de duplicidade e transição` | `EmpresaAlreadyExistsError`, `UserAlreadyExistsError`, `TransicaoInvalidaError` now `status = 409`; dedicated status tests added |
+| Fix 1 (ports vs. `design.md`) | `fix(domain): alinha portas SessaoRepository/TokenSenhaRepository/Mailer/Storage a design.md` | `SessaoRepository`, `TokenSenhaRepository`, `Mailer` (+ `TemplateEmail`), `Storage` renamed to match `design.md:239-243/365-367`; the 4 corresponding test doubles updated |
+
+Gate after all fixes: `tsc` clean, `eslint` clean, `jest` — **18 suites / 83 tests, 0 failed**. Phase 1 (T1–T7) is now fully evidenced with no open gaps; Phase 2 (T8+) can proceed against the corrected port contract and error statuses.
