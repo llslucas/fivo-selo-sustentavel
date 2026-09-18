@@ -1,0 +1,75 @@
+import { Injectable } from '@nestjs/common';
+
+import { EmpresaAlreadyExistsError } from '@domain/fivo/application/errors/empresa-already-exists.error';
+import {
+  EmpresaRepository,
+  OrdenacaoListaEmpresa,
+} from '@domain/fivo/application/ports/database/empresa-repository';
+import { Empresa } from '@domain/fivo/entities/empresa';
+
+import { ehViolacaoDeUnicidade } from './erros-prisma';
+import {
+  PrismaEmpresaMapper,
+  statusParaPrisma,
+} from './mappers/prisma-empresa-mapper';
+import { PrismaService } from './prisma.service';
+
+@Injectable()
+export class PrismaEmpresaRepository implements EmpresaRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findById(id: string): Promise<Empresa | null> {
+    const empresa = await this.prisma.empresa.findUnique({ where: { id } });
+
+    return empresa ? PrismaEmpresaMapper.toDomain(empresa) : null;
+  }
+
+  async findByCnpj(cnpj: string): Promise<Empresa | null> {
+    const empresa = await this.prisma.empresa.findUnique({ where: { cnpj } });
+
+    return empresa ? PrismaEmpresaMapper.toDomain(empresa) : null;
+  }
+
+  async listarPorEstado(
+    estado: string,
+    ordem: OrdenacaoListaEmpresa,
+  ): Promise<Empresa[]> {
+    const empresas = await this.prisma.empresa.findMany({
+      where: { status: statusParaPrisma(estado) },
+      orderBy: { criadoEm: ordem },
+    });
+
+    return empresas.map((empresa) => PrismaEmpresaMapper.toDomain(empresa));
+  }
+
+  async create(empresa: Empresa): Promise<void> {
+    try {
+      await this.prisma.empresa.create({
+        data: PrismaEmpresaMapper.toPrisma(empresa),
+      });
+    } catch (erro) {
+      // Corrida entre a checagem de unicidade do caso de uso e o INSERT:
+      // o erro do banco vira o mesmo erro de domínio (409).
+      if (ehViolacaoDeUnicidade(erro)) {
+        throw new EmpresaAlreadyExistsError();
+      }
+
+      throw erro;
+    }
+  }
+
+  async save(empresa: Empresa): Promise<void> {
+    try {
+      await this.prisma.empresa.update({
+        where: { id: empresa.id.toString() },
+        data: PrismaEmpresaMapper.toPrisma(empresa),
+      });
+    } catch (erro) {
+      if (ehViolacaoDeUnicidade(erro)) {
+        throw new EmpresaAlreadyExistsError();
+      }
+
+      throw erro;
+    }
+  }
+}

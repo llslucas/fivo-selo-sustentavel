@@ -1,0 +1,19 @@
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: fivo-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fivo
+      POSTGRES_PASSWORD: fivo
+      POSTGRES_DB: fivo_test
+    ports:
+      - '5433:5432'
+    # Banco descartável: os dados vivem em tmpfs e somem junto com o container.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U fivo -d fivo_test']
+      interval: 2s
+      timeout: 3s
+      retries: 30

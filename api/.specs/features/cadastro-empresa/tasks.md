@@ -95,7 +95,7 @@ T9 → T13
 
 ### Phase 3: Persistência (Prisma / PostgreSQL)
 
-Ordem: T14 … T18.
+Ordem: T14 … T18, T33.
 
 ```
 T3 → T14
@@ -110,6 +110,8 @@ T9 → T17
 T15 → T18
 T16 → T18
 T7 → T18
+T8 → T33
+T17 → T33
 ```
 
 ### Phase 4: Adaptadores de criptografia, e-mail e storage
@@ -139,6 +141,7 @@ T8 → T25
 T20 → T25
 T22 → T25
 T24 → T25
+T33 → T25
 T9 → T26
 T24 → T26
 T10 → T27
@@ -552,10 +555,19 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `npx prisma migrate dev --name init` gera `api/prisma/migrations/**` e aplica sem erro contra o Postgres do compose
-- [ ] `schema.prisma` cobre as 6 tabelas com os mapeamentos e índices acima
-- [ ] `.gitignore` cobre `.env` mas versiona `prisma/migrations`
-- [ ] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] `npx prisma migrate dev --name init` gera `api/prisma/migrations/**` e aplica sem erro contra o Postgres do compose — `prisma/migrations/20260918144713_init/migration.sql`
+- [x] `schema.prisma` cobre as 6 tabelas com os mapeamentos e índices acima — `prisma/schema.prisma`: `usuario`, `empresa`, `sessao`, `registro_auditoria`, `token_senha`, `arquivo` (todas com `@@map` snake_case); `usuario.email` `@unique`, `empresa.cnpj` `@unique`, `@@index([status, criadoEm])` para a fila, enums `TipoArquivo`/`UserRole`/`EmpresaStatus`
+- [x] `.gitignore` cobre `.env` mas versiona `prisma/migrations` — `git check-ignore .env` → `.gitignore:45`; `prisma/migrations` não é ignorado
+- [x] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — exit 0, 128/128 testes
+
+**Nota de qualidade (decisões não especificadas)**:
+- **Versão do Prisma**: pinada em `6.19.3` (exata). O dist-tag `latest` do npm hoje aponta para `8.0.0-rc.15` (release candidate) e o `7.x` muda os defaults do generator; a 6.x é a linha estável compatível com o setup atual (CommonJS + `module: nodenext` + Nest 11).
+- **Postgres de teste**: `postgres:16-alpine` exposto em **5433** (evita colidir com um Postgres local em 5432), com `tmpfs` em `/var/lib/postgresql/data` — o banco é descartável de fato (some no `down`/restart do container). Consequência: após cada restart do container é preciso `npx prisma migrate deploy` antes dos e2e, como já previsto no cabeçalho de Gate Check Commands.
+- **Colunas**: nomes em snake_case pt-BR via `@map` (`criado_em`, `atualizado_em`, `razao_social`, `senha_hash`, …). `id` é `String @id` **sem `@default`** — quem gera o identificador é o domínio (`UniqueEntityId`), não o banco, para o mapper poder persistir a identidade já criada na entidade.
+- **Value objects**: `Cnpj` → `empresa.cnpj String @unique` (14 dígitos normalizados); `Senha` → `usuario.senha_hash String` (guarda o hash, nunca o texto claro).
+- **Tipos**: `numero` do endereço é `String` (representa "s/n", "123-A", zeros à esquerda); `falhas_login` é `Int @default(0)`; `uf` é `Char(2)`; `registro_auditoria.dados` é `Json?`; `atualizado_em` é nullable e **sem `@updatedAt`** — o valor é o da entidade, o banco não inventa timestamp.
+- **Relacionamentos**: `empresa.usuario_id` é nullable + `@unique` (1–1, espelha `usuarioId?` em `EmpresaProps`); `sessao`/`token_senha` têm FK para `usuario` com `onDelete: Cascade`; `registro_auditoria` fica **sem FK** (log desacoplado, design.md §Relationships); `empresa.logo_arquivo_id` → `arquivo` (0..1–1).
+- **`prisma generate`** entrou no `postinstall` **e** no início do `build`, para o `nest build` nunca rodar contra um client desatualizado.
 
 **Tests**: none
 **Gate**: build
@@ -577,15 +589,19 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `PrismaService` conecta no boot e desconecta no shutdown
-- [ ] `DatabaseModule` é `@Global()`, provê e exporta `PrismaService`
-- [ ] `AppModule` continua subindo (`npm run start` → 404 em `/`)
-- [ ] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] `PrismaService` conecta no boot e desconecta no shutdown — `src/infra/database/prisma/prisma.service.ts:15-21` (`onModuleInit` → `$connect()`, `onModuleDestroy` → `$disconnect()`)
+- [x] `DatabaseModule` é `@Global()`, provê e exporta `PrismaService` — `src/infra/database/database.module.ts:5-11`
+- [x] `AppModule` continua subindo (`npm run start` → 404 em `/`) — `node dist/infra/main.js` com `DATABASE_URL` do compose: log "DatabaseModule dependencies initialized" + "Nest application successfully started"; `curl -o /dev/null -w "%{http_code}" /` → `404`
+- [x] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — exit 0, 128/128 testes
+
+**Nota de qualidade**: `PrismaService` usa `log: ['warn', 'error']` (sem `query`) para não poluir a saída dos e2e. O shutdown é feito por `onModuleDestroy` em vez de `$on('beforeExit')` — o hook `beforeExit` foi removido da API de eventos do Prisma Client 5+/6 e o ciclo de vida do Nest já cobre o encerramento (`app.close()` nos testes e2e).
 
 **Tests**: none
 **Gate**: build
 
-**Commit**: `feat(api): PrismaService e DatabaseModule global`
+**Commit**: `feat(api): adiciona PrismaService e DatabaseModule global`
+
+> **Nota de qualidade (desvio da mensagem de commit)**: a mensagem planejada era `feat(api): PrismaService e DatabaseModule global`, mas `scripts/check_commit.py` a rejeita ("description should start lowercase"). Prefixada com o verbo imperativo `adiciona` para passar o gate determinístico sem perder o conteúdo.
 
 ---
 
@@ -602,10 +618,16 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `criarAppDeTeste()` retorna app inicializada; `limparBanco()` trunca sem erro de FK
-- [ ] `smoke.e2e-spec.ts` passa
-- [ ] `jest-e2e.json` roda com `maxWorkers: 1` (suites compartilham um Postgres)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] `criarAppDeTeste()` retorna app inicializada; `limparBanco()` trunca sem erro de FK — `test/helpers/e2e-app.ts:21-38` (`criarAppDeTeste`) e `:52-60` (`limparBanco`, `TRUNCATE ... RESTART IDENTITY CASCADE` na ordem `sessao → token_senha → registro_auditoria → empresa → usuario → arquivo`); provado em `test/smoke.e2e-spec.ts:34-70` (insere `usuario` + `sessao` com FK, trunca, `count()` → `0` nas duas)
+- [x] `smoke.e2e-spec.ts` passa — 3/3: conexão (`SELECT 1`), `GET /` → 404, truncamento com FK
+- [x] `jest-e2e.json` roda com `maxWorkers: 1` (suites compartilham um Postgres) — `test/jest-e2e.json:6`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 128 unit + 3 e2e
+
+**Nota de qualidade**:
+- `test/jest-e2e.json` passou a usar `rootDir: ".."` + `moduleNameMapper` (os aliases `@core/@infra/@domain/@test` não resolviam na config e2e original) e `setupFiles: ["<rootDir>/test/helpers/load-env.ts"]`.
+- `test/helpers/load-env.ts` (novo, fora do "Where" literal da task): o Prisma Client — diferente do CLI — não lê `.env` sozinho, e o `PrismaService` é instanciado no boot da app de teste. O loader lê o `.env` do `api/` sem dependência nova (nada de `dotenv`) e cai no padrão `postgresql://fivo:fivo@localhost:5433/fivo_test` do compose quando o arquivo não existe.
+- `package.json` ganhou `testPathIgnorePatterns: ["/node_modules/", "\\.e2e-spec\\.ts$"]`: o `testRegex` do jest unit (`.*\.spec\.ts$`) também casava com `*.e2e-spec.ts`, o que faria `npx jest` rodar os e2e sem Postgres garantido.
+- Helper de sessão mínimo (`comCookieDeSessao` + `NOME_COOKIE_SESSAO`), como previsto: a camada HTTP de sessão só chega em T24.
 
 **Tests**: e2e
 **Gate**: full
@@ -627,12 +649,17 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `create` → `findById`/`findByCnpj`/`findByEmail` devolve entidade equivalente (`equals` + campos de valor)
-- [ ] `listarPorEstado` respeita filtro e ordem
-- [ ] Violação de unicidade (e-mail/cnpj) propaga um erro identificável (para o caso de uso mapear em 409)
-- [ ] Mapper roundtrip coberto por e2e-spec dedicado contra o Postgres de teste
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 6 testes e2e passam
+- [x] `create` → `findById`/`findByCnpj`/`findByEmail` devolve entidade equivalente (`equals` + campos de valor) — `test/database/prisma-empresa-repository.e2e-spec.ts:49-73` (`expect(encontrada!.equals(empresa)).toBe(true)` + razão social, `cnpj.valor`, `numero: 's/n'`, `uf`, `status`, `createdAt`), `:75-85` (`findByCnpj`), `test/database/prisma-user-repository.e2e-spec.ts:41-62` (`equals` + `senha.valor` = hash persistido, `role`, `falhasLogin`), `:64-78` (`findByEmail`)
+- [x] `listarPorEstado` respeita filtro e ordem — `prisma-empresa-repository.e2e-spec.ts:113-144` (asc: só as `PENDENTE_APROVACAO`, a `APROVADA` fica de fora, ordem por `criado_em`) e `:146-170` (desc inverte)
+- [x] Violação de unicidade (e-mail/cnpj) propaga um erro identificável (para o caso de uso mapear em 409) — `prisma-user-repository.e2e-spec.ts:112-133` e `prisma-empresa-repository.e2e-spec.ts:192-206`: `rejects.toBeInstanceOf(UserAlreadyExistsError|EmpresaAlreadyExistsError)` + `rejects.toMatchObject({ status: 409, message: 'CNPJ ou e-mail já cadastrado' })`
+- [x] Mapper roundtrip coberto por e2e-spec dedicado contra o Postgres de teste — `src/infra/database/prisma/mappers/prisma-{user,empresa}-mapper.ts`, exercitados nos dois specs acima (inclui `Senha` VO ↔ `senha_hash`, `Cnpj` ↔ `cnpj`, `UniqueEntityId` ↔ FKs e a transição de estado em `:172-190`)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 128 unit + 16 e2e
+- [x] Test count: ≥ 6 testes e2e passam — 13 novos (8 de Empresa + 5 de User), 16 e2e no total com o smoke
+
+**Nota de qualidade**:
+- **Reidratação dos VOs**: `Senha.create(hash)` e `Cnpj.create(digitos)` são usados na volta do banco. Nenhum dos dois re-hasheia (o hash em `Senha` é explícito via `senha.hash(hasher)`), então a reidratação é fiel; a validação que roda de novo é só de formato, sobre um valor que já passou por ela na ida. O mapper lança um `Error` explícito se o banco devolver um valor inválido — isso é corrupção de dado, não erro de usuário. Optou-se por **não** adicionar um `Senha.reidratar()` ao domínio para não alterar arquivos fora do escopo da task.
+- **Erro de unicidade**: o adaptador traduz o `P2002` do Prisma para os erros de domínio que já existem (`UserAlreadyExistsError` / `EmpresaAlreadyExistsError`, ambos `status = 409`), em vez de vazar `PrismaClientKnownRequestError` para a aplicação. Helper isolado em `src/infra/database/prisma/erros-prisma.ts`. Isso cobre a corrida entre o `findByEmail`/`findByCnpj` do caso de uso e o `INSERT`.
+- **`statusParaPrisma`** converte o `estado: string` da porta (a porta usa `string`, não o enum) para o enum do Prisma e falha alto em valor desconhecido.
 
 **Tests**: e2e
 **Gate**: full
@@ -654,16 +681,50 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Roundtrip de cada repositório contra o Postgres de teste
-- [ ] `SessaoRepository.deslizar` atualiza `ultimoAcessoEm`; `revogarTodasDoUsuario` marca todas as linhas do usuário
-- [ ] `RegistroAuditoriaRepository` não expõe `update`/`delete`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 6 testes e2e passam
+- [x] Roundtrip de cada repositório contra o Postgres de teste — `test/database/prisma-sessao-repository.e2e-spec.ts:52-70` (todos os campos, incl. `ip`/`userAgent`/`revogadaEm: null`), `test/database/prisma-token-senha-repository.e2e-spec.ts:53-66` (`criar` → `buscarPorHash`, `expiraEm`, `usadoEm: null`), `test/database/prisma-registro-auditoria-repository.e2e-spec.ts:28-54` (`registrar` → linha com `tipo`, `descricao`, `usuarioId`, `entidadeId`, `dados` Json e `criadoEm`) e `:56-73` (opcionais ausentes → `null`)
+- [x] `SessaoRepository.deslizar` atualiza `ultimoAcessoEm`; `revogarTodasDoUsuario` marca todas as linhas do usuário — `prisma-sessao-repository.e2e-spec.ts:78-89` (`ultimoAcessoEm` = `agora`, `criadaEm` intacta), `:102-131` (duas sessões do usuário ficam com `revogadaEm` preenchido e a de **outro** usuário permanece `null`), `:91-100` (`revogar` de uma única sessão); `marcarUsado` em `prisma-token-senha-repository.e2e-spec.ts:74-83`
+- [x] `RegistroAuditoriaRepository` não expõe `update`/`delete` — `src/infra/database/prisma/prisma-registro-auditoria-repository.ts` implementa só `registrar`; checagem estrutural em `prisma-registro-auditoria-repository.e2e-spec.ts:75-82` (`Object.getOwnPropertyNames(prototype)` sem `constructor` → `['registrar']`)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 128 unit + 27 e2e
+- [x] Test count: ≥ 6 testes e2e passam — 11 novos (5 Sessao + 3 RegistroAuditoria + 3 TokenSenha); 27 e2e no total
+
+**Nota de qualidade**:
+- As três portas trabalham com **interfaces de dado** (`Sessao`, `RegistroAuditoria`, `TokenSenha`), não com entidades ricas — os mappers são row↔interface, sem `UniqueEntityId` nem VOs.
+- `revogar(id)` e `marcarUsado(id)` não recebem o "agora" na assinatura da porta, então o adaptador usa `new Date()` (relógio do processo). Quando a Fase 5 introduzir o clock injetável do `SessionService`, vale reavaliar a assinatura da porta.
+- `revogarTodasDoUsuario` filtra `revogadaEm: null` para não reescrever a data de sessões já revogadas antes.
+- `registro_auditoria.dados` usa `Prisma.DbNull` (SQL NULL) quando ausente — distinto de um `JsonNull` literal armazenado.
 
 **Tests**: e2e
 **Gate**: full
 
 **Commit**: `feat(api): adaptadores Prisma de sessão, auditoria e token de senha`
+
+---
+
+### T33: Transação atômica em `CriarEmpresaUseCase` — `User` + `Empresa`
+
+**What**: `criar-empresa.ts` grava `User` e `Empresa` em duas chamadas Prisma separadas e não-transacionais (`UserRepository.create` seguido de `EmpresaRepository.create`). O Verifier independente da Fase 3 (`validation-fase3.md`, GAP 2) confirmou que, contra Postgres real, uma corrida de CNPJ pode deixar um `usuario` órfão com e-mail permanentemente ocupado — o branch de reaproveitamento em `criar-empresa.ts` exige uma `Empresa` `REJEITADA` existente para recuperar, o que não existe nesse cenário. Introduzir um boundary de transação cobrindo as duas escritas como unidade atômica: se a escrita de `Empresa` falhar, a de `User` reverte junto. Mecanismo: porta `UnitOfWork` (`abstract class UnitOfWork { executar<T>(job: () => Promise<T>): Promise<T> }`) em `application/ports/`, implementada via `PrismaService.$transaction`; os adaptadores `PrismaUserRepository`/`PrismaEmpresaRepository` (T17) passam a participar da transação corrente ao gravar dentro de um `executar(...)` (mecanismo de propagação — `AsyncLocalStorage` ou parâmetro explícito de cliente — é decisão de implementação); `InMemoryUnitOfWork` roda o `job` direto (os repositórios em memória já são atômicos por processo, então `criar-empresa.spec.ts` não muda de comportamento). `CriarEmpresaUseCase` passa a envolver as duas escritas num único `unitOfWork.executar(...)`.
+**Where**: `api/src/domain/fivo/application/ports/unit-of-work.ts` (porta nova), `api/src/infra/database/prisma/prisma-unit-of-work.ts` (adaptador), `api/test/repositories/in-memory-unit-of-work.ts` (double), `api/src/domain/fivo/application/use-cases/criar-empresa.ts` (orquestração)
+**Depends on**: T8, T17
+**Reuses**: `PrismaService` (T15), `PrismaUserRepository`/`PrismaEmpresaRepository` (T17), `CriarEmpresaUseCase` (T8)
+**Requirement**: EMP-01, EMP-02 (edge case de concorrência de CNPJ/e-mail)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `UnitOfWork` declarada como `abstract class` sem dependência de infra (ESLint de `src/domain/**` passa)
+- [ ] `PrismaUnitOfWork` usa `PrismaService.$transaction`; a transação só comita se as duas escritas (`User` + `Empresa`) tiverem sucesso
+- [ ] `CriarEmpresaUseCase` usa `unitOfWork.executar` para as duas escritas; `criar-empresa.spec.ts` (unit, com `InMemoryUnitOfWork`) continua verde, sem enfraquecer nenhuma asserção existente
+- [ ] e2e novo contra Postgres real força a escrita de `Empresa` a falhar depois da de `User` (ex. CNPJ duplicado injetado entre as duas chamadas) → nenhuma linha `usuario` sobrevive; o e-mail volta a ficar disponível para novo cadastro
+- [ ] e2e de corrida: duas chamadas ao caso de uso com o mesmo CNPJ em paralelo (`Promise.all`) → exatamente um sucesso, nenhum `usuario` órfão no banco ao final
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 3 testes novos (unit de `criar-empresa.spec.ts` confirmado inalterado + 2 e2e) passam
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `fix(api): transação atômica para criação de usuário e empresa`
 
 ---
 
@@ -831,8 +892,8 @@ T28 → T32
 
 **What**: `POST /empresas` (multipart: dados + `logo`, `@Public`) → o controller chama `ArquivoService.uploadImagem` para o logo (se veio) e depois `CriarEmpresaUseCase` com o `arquivoId`; 201 `{ id }`. `GET /empresas/me` (`@Roles(EMPRESA)`) → dados da própria empresa, 403 para recurso de outra. DTOs `zod`. Registrar controller + fiação de DI dos casos de uso → adaptadores no `HttpModule`/`AppModule`.
 **Where**: `api/src/infra/http/`
-**Depends on**: T8, T20, T22, T24
-**Reuses**: `CriarEmpresaUseCase` (T8), `Mailer` (T20), `ArquivoService` (T22), guards (T24)
+**Depends on**: T8, T20, T22, T24, T33
+**Reuses**: `CriarEmpresaUseCase` (T8), `Mailer` (T20), `ArquivoService` (T22), guards (T24), `UnitOfWork` (T33)
 **Requirement**: EMP-01, EMP-02, EMP-03, EMP-06
 
 **Tools**:
@@ -1085,6 +1146,8 @@ T9 → T17
 T15 → T18
 T16 → T18
 T7 → T18
+T8 → T33
+T17 → T33
 T15 → T19
 T15 → T20
 T15 → T21
@@ -1100,6 +1163,7 @@ T8 → T25
 T20 → T25
 T22 → T25
 T24 → T25
+T33 → T25
 T9 → T26
 T24 → T26
 T10 → T27
@@ -1119,11 +1183,13 @@ T27 → T31
 T28 → T32
 ```
 
-Ordem de execução (prosa): Fase 1 `T1 … T7` (T2 antes de T4; o resto sem ordem forçada) · Fase 2 `T8 → T9 → T10 → T11 → T12 → T13` · Fase 3 `T14 → T15 → T16 → T17 → T18` · Fase 4 `T19 → T20 → T21 → T22` · Fase 5 `T23 → T24 → T25 → T26 → T27 → T28 → T29` · Fase 6 `T30 → T31 → T32`.
+Ordem de execução (prosa): Fase 1 `T1 … T7` (T2 antes de T4; o resto sem ordem forçada) · Fase 2 `T8 → T9 → T10 → T11 → T12 → T13` · Fase 3 `T14 → T15 → T16 → T17 → T18 → T33` · Fase 4 `T19 → T20 → T21 → T22` · Fase 5 `T23 → T24 → T25 → T26 → T27 → T28 → T29` · Fase 6 `T30 → T31 → T32`.
 
 Execução estritamente sequencial — sem paralelismo intra-fase.
 
-**Batches previstos para o Execute** (~7 tasks/worker, fases inteiras): Fase 1 (7) → batch 1; Fase 2 (6) → batch 2; Fases 3+4 (9) → batch 3; Fase 5 (7) → batch 4; Fase 6 (3) → batch 5. Verifier ao final. As Fases 1–2 fecham a regra de negócio e podem ser executadas e verificadas isoladamente antes de qualquer trabalho de infra.
+**Batches previstos para o Execute** (~7 tasks/worker, fases inteiras): Fase 1 (7) → batch 1; Fase 2 (6) → batch 2; Fases 3+4 (10, incl. T33) → batch 3; Fase 5 (7) → batch 4; Fase 6 (3) → batch 5. Verifier ao final. As Fases 1–2 fecham a regra de negócio e podem ser executadas e verificadas isoladamente antes de qualquer trabalho de infra.
+
+> **T33 adicionada em 2026-09-18** após a validação da Fase 3 (`validation-fase3.md`, GAP 2 escalado) — ver AD-019 em `STATE.md`. Bloqueia T25; T14–T18 e o restante das Fases 4–6 não foram renumeradas.
 
 ---
 
@@ -1149,6 +1215,7 @@ Execução estritamente sequencial — sem paralelismo intra-fase.
 | T16 | helpers de teste + 1 smoke | ⚠️ OK (coeso) |
 | T17 | 2 adaptadores + mappers — mesma fatia (repos de identidade) | ⚠️ OK (coeso) |
 | T18 | 3 adaptadores pequenos e quase idênticos | ⚠️ OK (coeso) |
+| T33 | 1 porta nova + 1 adaptador + 1 double + orquestração no caller — uma preocupação (boundary de transação) | ⚠️ OK (coeso) |
 | T19 | 1 módulo, 2 providers coesos | ⚠️ OK (coeso) |
 | T20 | 1 módulo, 1 adaptador | ✅ Granular |
 | T21 | 1 módulo, 1 adaptador | ✅ Granular |
@@ -1185,13 +1252,14 @@ Nenhuma task cria múltiplos componentes não relacionados. T3, T4 e T7 concentr
 | T16 | T15 | T15→T16 | ✅ |
 | T17 | T15, T16, T8, T9 | T15→T17, T16→T17, T8→T17, T9→T17 | ✅ |
 | T18 | T15, T16, T7 | T15→T18, T16→T18, T7→T18 | ✅ |
+| T33 | T8, T17 | T8→T33, T17→T33 | ✅ |
 | T19 | T15 | T15→T19 | ✅ |
 | T20 | T15 | T15→T20 | ✅ |
 | T21 | T15 | T15→T21 | ✅ |
 | T22 | T5, T21, T17 | T5→T22, T21→T22, T17→T22 | ✅ |
 | T23 | T6, T16 | T6→T23, T16→T23 | ✅ |
 | T24 | T18, T19, T23 | T18→T24, T19→T24, T23→T24 | ✅ |
-| T25 | T8, T20, T22, T24 | T8→T25, T20→T25, T22→T25, T24→T25 | ✅ |
+| T25 | T8, T20, T22, T24, T33 | T8→T25, T20→T25, T22→T25, T24→T25, T33→T25 | ✅ |
 | T26 | T9, T24 | T9→T26, T24→T26 | ✅ |
 | T27 | T10, T11, T24 | T10→T27, T11→T27, T24→T27 | ✅ |
 | T28 | T22, T24 | T22→T28, T24→T28 | ✅ |
@@ -1221,6 +1289,7 @@ Toda dependência aponta para trás (fase anterior) ou para uma task anterior na
 | T16 | harness e2e + smoke | e2e | e2e | ✅ |
 | T17 | adaptador Prisma + mapper | e2e | e2e | ✅ |
 | T18 | adaptador Prisma + mapper | e2e | e2e | ✅ |
+| T33 | boundary de transação c/ Prisma (`UnitOfWork`) | e2e | e2e | ✅ |
 | T19 | adaptador sem I/O de rede/DB (hash/token) | unit | unit | ✅ |
 | T20 | adaptador de mail (log) | unit | unit | ✅ |
 | T21 | adaptador de disco (I/O local) | unit | unit | ✅ |
@@ -1239,8 +1308,8 @@ Nenhuma violação. `Tests: none` só nas layers que a matrix marca como `none` 
 
 | Requirement ID | Tasks |
 | -------------- | ----- |
-| EMP-01 | T3, T5, T7, T8, T14, T16, T20, T25, T31 |
-| EMP-02 | T1, T2, T6, T8, T23, T25 |
+| EMP-01 | T3, T5, T7, T8, T14, T16, T20, T25, T31, T33 |
+| EMP-02 | T1, T2, T6, T8, T23, T25, T33 |
 | EMP-03 | T5, T7, T21, T22, T25, T28 |
 | EMP-04 | T10, T20, T27, T31 |
 | EMP-05 | T3, T10, T11, T23, T27 |

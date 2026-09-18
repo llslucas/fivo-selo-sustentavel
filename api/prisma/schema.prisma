@@ -1,0 +1,150 @@
+// Schema derivado das entidades de domínio (AD-017): a fonte da verdade é
+// `src/domain/fivo/entities/`. Value objects (Cnpj, Senha) viram colunas de
+// texto — a validação acontece no domínio antes de chegar aqui.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EMPRESA
+  INSTITUICAO
+
+  @@map("user_role")
+}
+
+enum EmpresaStatus {
+  PENDENTE_APROVACAO
+  APROVADA
+  REJEITADA
+  SUSPENSA
+
+  @@map("empresa_status")
+}
+
+enum TipoArquivo {
+  LOGO_EMPRESA
+
+  @@map("tipo_arquivo")
+}
+
+model Usuario {
+  id              String    @id
+  nome            String
+  email           String    @unique
+  senhaHash       String    @map("senha_hash")
+  role            UserRole
+  falhasLogin     Int       @default(0) @map("falhas_login")
+  primeiraFalhaEm DateTime? @map("primeira_falha_em")
+  bloqueadoAte    DateTime? @map("bloqueado_ate")
+  criadoEm        DateTime  @map("criado_em")
+  atualizadoEm    DateTime? @map("atualizado_em")
+
+  empresa     Empresa?
+  sessoes     Sessao[]
+  tokensSenha TokenSenha[]
+
+  @@map("usuario")
+}
+
+model Empresa {
+  id                  String        @id
+  usuarioId           String?       @unique @map("usuario_id")
+  razaoSocial         String        @map("razao_social")
+  nomeFantasia        String        @map("nome_fantasia")
+  cnpj                String        @unique
+  telefone            String
+  cep                 String
+  logradouro          String
+  numero              String
+  complemento         String?
+  bairro              String
+  cidade              String
+  uf                  String        @db.Char(2)
+  site                String
+  contato             String
+  logoArquivoId       String?       @map("logo_arquivo_id")
+  status              EmpresaStatus
+  decididoPor         String?       @map("decidido_por")
+  decididoEm          DateTime?     @map("decidido_em")
+  motivoDecisao       String?       @map("motivo_decisao")
+  emailPendente       String?       @map("email_pendente")
+  tokenTrocaEmailHash String?       @map("token_troca_email_hash")
+  criadoEm            DateTime      @map("criado_em")
+  atualizadoEm        DateTime?     @map("atualizado_em")
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  logo    Arquivo? @relation(fields: [logoArquivoId], references: [id])
+
+  // Fila de aprovação: filtra por status e ordena por data de cadastro (EMP-04 AC1).
+  @@index([status, criadoEm], map: "empresa_status_criado_em_idx")
+  @@map("empresa")
+}
+
+model Sessao {
+  id             String    @id
+  usuarioId      String    @map("usuario_id")
+  tokenHash      String    @unique @map("token_hash")
+  criadaEm       DateTime  @map("criada_em")
+  ultimoAcessoEm DateTime  @map("ultimo_acesso_em")
+  revogadaEm     DateTime? @map("revogada_em")
+  ip             String?
+  userAgent      String?   @map("user_agent")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId], map: "sessao_usuario_id_idx")
+  @@map("sessao")
+}
+
+// Log append-only: sem FK forte (design.md — log desacoplado) e sem update/delete
+// exposto no repositório.
+model RegistroAuditoria {
+  id         String   @id
+  tipo       String
+  descricao  String
+  usuarioId  String?  @map("usuario_id")
+  entidadeId String?  @map("entidade_id")
+  dados      Json?
+  criadoEm   DateTime @map("criado_em")
+
+  @@index([entidadeId], map: "registro_auditoria_entidade_id_idx")
+  @@map("registro_auditoria")
+}
+
+model TokenSenha {
+  id        String    @id
+  usuarioId String    @map("usuario_id")
+  tokenHash String    @unique @map("token_hash")
+  criadoEm  DateTime  @map("criado_em")
+  expiraEm  DateTime  @map("expira_em")
+  usadoEm   DateTime? @map("usado_em")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId], map: "token_senha_usuario_id_idx")
+  @@map("token_senha")
+}
+
+model Arquivo {
+  id           String      @id
+  tipo         TipoArquivo
+  nomeOriginal String      @map("nome_original")
+  mime         String
+  bytes        Int
+  largura      Int?
+  altura       Int?
+  chaveStorage String      @map("chave_storage")
+  svgConteudo  String?     @map("svg_conteudo")
+  criadoEm     DateTime    @default(now()) @map("criado_em")
+
+  empresas Empresa[]
+
+  @@map("arquivo")
+}
