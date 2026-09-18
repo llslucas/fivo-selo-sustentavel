@@ -1,16 +1,8 @@
-import {
-  Storage,
-  UploadFileInput,
-} from '@domain/fivo/application/ports/storage';
+import { Storage } from '@domain/fivo/application/ports/storage';
 import { StorageIndisponivelError } from '@domain/fivo/application/errors/storage-indisponivel-error';
 
 export class FakeStorage implements Storage {
-  public uploaded: Array<{
-    chave: string;
-    conteudo: string;
-    mimeType?: string;
-  }> = [];
-  public deleted: string[] = [];
+  public arquivos = new Map<string, { buffer: Buffer; mime: string }>();
   public shouldFail = false;
   public failOnChaves: string[] = [];
 
@@ -23,31 +15,35 @@ export class FakeStorage implements Storage {
     this.failOnChaves = [];
   }
 
-  upload(input: UploadFileInput): Promise<string> {
-    if (this.shouldFail || this.failOnChaves.includes(input.chave)) {
+  salvar(chave: string, buffer: Buffer, mime: string): Promise<void> {
+    if (this.shouldFail || this.failOnChaves.includes(chave)) {
       throw new StorageIndisponivelError();
     }
 
-    const conteudo =
-      typeof input.conteudo === 'string'
-        ? input.conteudo
-        : input.conteudo.toString('utf-8');
-
-    this.uploaded.push({
-      chave: input.chave,
-      conteudo,
-      mimeType: input.mimeType,
-    });
-
-    return Promise.resolve(input.chave);
+    this.arquivos.set(chave, { buffer, mime });
+    return Promise.resolve();
   }
 
-  delete(chave: string): Promise<void> {
-    if (this.shouldFail) {
+  ler(chave: string): Promise<Buffer> {
+    if (this.shouldFail || this.failOnChaves.includes(chave)) {
       throw new StorageIndisponivelError();
     }
 
-    this.deleted.push(chave);
+    const arquivo = this.arquivos.get(chave);
+
+    if (!arquivo) {
+      throw new Error(`Arquivo não encontrado: ${chave}`);
+    }
+
+    return Promise.resolve(arquivo.buffer);
+  }
+
+  remover(chave: string): Promise<void> {
+    if (this.shouldFail || this.failOnChaves.includes(chave)) {
+      throw new StorageIndisponivelError();
+    }
+
+    this.arquivos.delete(chave);
     return Promise.resolve();
   }
 }

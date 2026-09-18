@@ -6,28 +6,24 @@ import {
 export class InMemoryTokenSenhaRepository implements TokenSenhaRepository {
   public items: TokenSenha[] = [];
 
-  findByToken(token: string): Promise<TokenSenha | null> {
-    const tokenSenha = this.items.find((item) => item.token === token) ?? null;
-    return Promise.resolve(tokenSenha);
-  }
-
-  create(tokenSenha: TokenSenha): Promise<void> {
+  criar(tokenSenha: TokenSenha): Promise<void> {
     this.items.push(tokenSenha);
     return Promise.resolve();
   }
 
-  save(tokenSenha: TokenSenha): Promise<void> {
-    const index = this.items.findIndex((item) => item.id === tokenSenha.id);
-
-    if (index !== -1) {
-      this.items[index] = tokenSenha;
-    }
-
-    return Promise.resolve();
+  buscarPorHash(hash: string): Promise<TokenSenha | null> {
+    const tokenSenha =
+      this.items.find((item) => item.tokenHash === hash) ?? null;
+    return Promise.resolve(tokenSenha);
   }
 
-  deleteByUsuarioId(usuarioId: string): Promise<void> {
-    this.items = this.items.filter((item) => item.usuarioId !== usuarioId);
+  marcarUsado(id: string): Promise<void> {
+    const tokenSenha = this.items.find((item) => item.id === id);
+
+    if (tokenSenha) {
+      tokenSenha.usadoEm = new Date();
+    }
+
     return Promise.resolve();
   }
 }

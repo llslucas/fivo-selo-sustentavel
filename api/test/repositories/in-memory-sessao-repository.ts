@@ -6,28 +6,45 @@ import {
 export class InMemorySessaoRepository implements SessaoRepository {
   public items: Sessao[] = [];
 
-  findByToken(token: string): Promise<Sessao | null> {
-    const sessao = this.items.find((item) => item.token === token) ?? null;
-    return Promise.resolve(sessao);
-  }
-
-  create(sessao: Sessao): Promise<void> {
+  criar(sessao: Sessao): Promise<void> {
     this.items.push(sessao);
     return Promise.resolve();
   }
 
-  save(sessao: Sessao): Promise<void> {
-    const index = this.items.findIndex((item) => item.id === sessao.id);
+  buscarPorTokenHash(hash: string): Promise<Sessao | null> {
+    const sessao = this.items.find((item) => item.tokenHash === hash) ?? null;
+    return Promise.resolve(sessao);
+  }
 
-    if (index !== -1) {
-      this.items[index] = sessao;
+  deslizar(id: string, agora: Date): Promise<void> {
+    const sessao = this.items.find((item) => item.id === id);
+
+    if (sessao) {
+      sessao.ultimoAcessoEm = agora;
     }
 
     return Promise.resolve();
   }
 
-  deleteByUsuarioId(usuarioId: string): Promise<void> {
-    this.items = this.items.filter((item) => item.usuarioId !== usuarioId);
+  revogar(id: string): Promise<void> {
+    const sessao = this.items.find((item) => item.id === id);
+
+    if (sessao) {
+      sessao.revogadaEm = new Date();
+    }
+
+    return Promise.resolve();
+  }
+
+  revogarTodasDoUsuario(usuarioId: string): Promise<void> {
+    const agora = new Date();
+
+    this.items
+      .filter((item) => item.usuarioId === usuarioId)
+      .forEach((item) => {
+        item.revogadaEm = agora;
+      });
+
     return Promise.resolve();
   }
 }

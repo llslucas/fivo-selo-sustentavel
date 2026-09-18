@@ -1,10 +1,5 @@
-export interface UploadFileInput {
-  chave: string;
-  conteudo: Buffer | string;
-  mimeType?: string;
-}
-
 export abstract class Storage {
-  abstract upload(input: UploadFileInput): Promise<string>;
-  abstract delete(chave: string): Promise<void>;
+  abstract salvar(chave: string, buffer: Buffer, mime: string): Promise<void>;
+  abstract ler(chave: string): Promise<Buffer>;
+  abstract remover(chave: string): Promise<void>;
 }

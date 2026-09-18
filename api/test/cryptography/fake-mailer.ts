@@ -14,7 +14,7 @@ export class FakeMailer implements Mailer {
     this.failOnEmails = [];
   }
 
-  send(mensagem: MensagemEmail): Promise<void> {
+  enviar(mensagem: MensagemEmail): Promise<void> {
     if (this.shouldFail || this.failOnEmails.includes(mensagem.para)) {
       throw new Error('Mailer indisponível no momento.');
     }
