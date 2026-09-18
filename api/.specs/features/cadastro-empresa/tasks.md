@@ -678,11 +678,17 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Roundtrip de cada repositório contra o Postgres de teste
-- [ ] `SessaoRepository.deslizar` atualiza `ultimoAcessoEm`; `revogarTodasDoUsuario` marca todas as linhas do usuário
-- [ ] `RegistroAuditoriaRepository` não expõe `update`/`delete`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 6 testes e2e passam
+- [x] Roundtrip de cada repositório contra o Postgres de teste — `test/database/prisma-sessao-repository.e2e-spec.ts:52-70` (todos os campos, incl. `ip`/`userAgent`/`revogadaEm: null`), `test/database/prisma-token-senha-repository.e2e-spec.ts:53-66` (`criar` → `buscarPorHash`, `expiraEm`, `usadoEm: null`), `test/database/prisma-registro-auditoria-repository.e2e-spec.ts:28-54` (`registrar` → linha com `tipo`, `descricao`, `usuarioId`, `entidadeId`, `dados` Json e `criadoEm`) e `:56-73` (opcionais ausentes → `null`)
+- [x] `SessaoRepository.deslizar` atualiza `ultimoAcessoEm`; `revogarTodasDoUsuario` marca todas as linhas do usuário — `prisma-sessao-repository.e2e-spec.ts:78-89` (`ultimoAcessoEm` = `agora`, `criadaEm` intacta), `:102-131` (duas sessões do usuário ficam com `revogadaEm` preenchido e a de **outro** usuário permanece `null`), `:91-100` (`revogar` de uma única sessão); `marcarUsado` em `prisma-token-senha-repository.e2e-spec.ts:74-83`
+- [x] `RegistroAuditoriaRepository` não expõe `update`/`delete` — `src/infra/database/prisma/prisma-registro-auditoria-repository.ts` implementa só `registrar`; checagem estrutural em `prisma-registro-auditoria-repository.e2e-spec.ts:75-82` (`Object.getOwnPropertyNames(prototype)` sem `constructor` → `['registrar']`)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 128 unit + 27 e2e
+- [x] Test count: ≥ 6 testes e2e passam — 11 novos (5 Sessao + 3 RegistroAuditoria + 3 TokenSenha); 27 e2e no total
+
+**Nota de qualidade**:
+- As três portas trabalham com **interfaces de dado** (`Sessao`, `RegistroAuditoria`, `TokenSenha`), não com entidades ricas — os mappers são row↔interface, sem `UniqueEntityId` nem VOs.
+- `revogar(id)` e `marcarUsado(id)` não recebem o "agora" na assinatura da porta, então o adaptador usa `new Date()` (relógio do processo). Quando a Fase 5 introduzir o clock injetável do `SessionService`, vale reavaliar a assinatura da porta.
+- `revogarTodasDoUsuario` filtra `revogadaEm: null` para não reescrever a data de sessões já revogadas antes.
+- `registro_auditoria.dados` usa `Prisma.DbNull` (SQL NULL) quando ausente — distinto de um `JsonNull` literal armazenado.
 
 **Tests**: e2e
 **Gate**: full
