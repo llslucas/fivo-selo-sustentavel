@@ -1,37 +1,38 @@
 import { Either, left, right } from '@core/either';
 import { Cnpj } from '@domain/fivo/entities/cnpj';
-import { Empresa } from '@domain/fivo/entities/empresa';
+import { Instituicao } from '@domain/fivo/entities/instituicao';
 import { Injectable } from '@nestjs/common';
 import { InvalidCnpjError } from '../errors/invalid-cnpj.error';
-import { EmpresaAlreadyExistsError } from '../errors/empresa-already-exists.error';
-import { EmpresaRepository } from '../ports/database/empresa-repository';
+import { InstituicaoRepository } from '../ports/database/instituicao-repository';
+import { InstituicaoAlreadyExistsError } from '../errors/instituicao-already-exists.error';
 
-interface CriarEmpresaUseCaseRequest {
+interface CriarInstituicaoUseCaseRequest {
   razaoSocial: string;
   nomeFantasia: string;
   cnpj: string;
   telefone: string;
   cep: string;
   logradouro: string;
-  numero: string;
+  numero: number;
   complemento?: string;
   bairro: string;
   cidade: string;
   uf: string;
   site: string;
+  email: string;
   contato: string;
 }
 
-export type CriarEmpresaUseCaseResponse = Either<
-  EmpresaAlreadyExistsError | InvalidCnpjError,
+export type CriarInstituicaoUseCaseResponse = Either<
+  InstituicaoAlreadyExistsError | InvalidCnpjError,
   {
-    empresa: Empresa;
+    instituicao: Instituicao;
   }
 >;
 
 @Injectable()
-export class CriarEmpresaUseCase {
-  constructor(private readonly empresaRepository: EmpresaRepository) {}
+export class CriarInstituicaoUseCase {
+  constructor(private readonly instituicaoRepository: InstituicaoRepository) {}
 
   async execute({
     razaoSocial,
@@ -46,12 +47,14 @@ export class CriarEmpresaUseCase {
     cidade,
     uf,
     site,
+    email,
     contato,
-  }: CriarEmpresaUseCaseRequest): Promise<CriarEmpresaUseCaseResponse> {
-    const empresaAlreadyExists = await this.empresaRepository.findByCnpj(cnpj);
+  }: CriarInstituicaoUseCaseRequest): Promise<CriarInstituicaoUseCaseResponse> {
+    const instituicaoAlreadyExists =
+      await this.instituicaoRepository.findByCnpj(cnpj);
 
-    if (empresaAlreadyExists) {
-      return left(new EmpresaAlreadyExistsError(cnpj));
+    if (instituicaoAlreadyExists) {
+      return left(new InstituicaoAlreadyExistsError(cnpj));
     }
 
     const cnpjOrError = Cnpj.create(cnpj);
@@ -60,7 +63,7 @@ export class CriarEmpresaUseCase {
       return left(cnpjOrError.value);
     }
 
-    const empresa = Empresa.create({
+    const instituicao = Instituicao.create({
       razaoSocial,
       nomeFantasia,
       cnpj: cnpjOrError.value,
@@ -73,11 +76,12 @@ export class CriarEmpresaUseCase {
       cidade,
       uf,
       site,
+      email,
       contato,
     });
 
-    await this.empresaRepository.create(empresa);
+    await this.instituicaoRepository.create(instituicao);
 
-    return right({ empresa });
+    return right({ instituicao });
   }
 }

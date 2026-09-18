@@ -1,4 +1,7 @@
-import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
+import {
+  EmpresaRepository,
+  OrdenacaoListaEmpresa,
+} from '@domain/fivo/application/ports/database/empresa-repository';
 import { Empresa } from '@domain/fivo/entities/empresa';
 
 export class InMemoryEmpresaRepository implements EmpresaRepository {
@@ -12,6 +15,23 @@ export class InMemoryEmpresaRepository implements EmpresaRepository {
   findByCnpj(cnpj: string): Promise<Empresa | null> {
     const empresa = this.items.find((item) => item.cnpj.valor === cnpj);
     return Promise.resolve(empresa ?? null);
+  }
+
+  listarPorEstado(
+    estado: string,
+    ordem: OrdenacaoListaEmpresa,
+  ): Promise<Empresa[]> {
+    const empresas = this.items.filter((item) => item.uf === estado);
+
+    const sorted = [...empresas].sort((a, b) => {
+      const left = a.nomeFantasia.toLowerCase();
+      const right = b.nomeFantasia.toLowerCase();
+      return ordem === 'asc'
+        ? left.localeCompare(right)
+        : right.localeCompare(left);
+    });
+
+    return Promise.resolve(sorted);
   }
 
   create(empresa: Empresa): Promise<void> {

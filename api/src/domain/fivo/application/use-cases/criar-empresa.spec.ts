@@ -19,11 +19,13 @@ describe('CriarEmpresaUseCase', () => {
       telefone: '11999999999',
       cep: '12345678',
       logradouro: 'Rua Teste',
-      numero: 123,
+      numero: '123',
       complemento: 'Apto 101',
       bairro: 'Bairro Teste',
       cidade: 'Cidade Teste',
       uf: 'SP',
+      site: 'https://www.empresateste.com.br',
+      contato: 'João da Silva',
     };
 
     const response = await criarEmpresaUseCase.execute(request);

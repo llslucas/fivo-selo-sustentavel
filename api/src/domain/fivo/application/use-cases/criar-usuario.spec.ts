@@ -3,7 +3,7 @@ import { Hasher } from '../ports/cryptography/hasher';
 import { UserRepository } from '../ports/database/user-repository';
 import { CriarUsuarioUseCase } from './criar-usuario';
 import { InMemoryUserRepository } from '@test/repositories/in-memory-user-repository';
-import { UserType } from '@domain/fivo/entities/user';
+import { UserRole } from '@domain/fivo/entities/user';
 
 describe('CriarUsuarioUseCase', () => {
   let criarUsuarioUseCase: CriarUsuarioUseCase;
@@ -20,8 +20,8 @@ describe('CriarUsuarioUseCase', () => {
     const request = {
       nome: 'Usuario Teste',
       email: 'usuario@teste.com',
-      senha: 'senha123',
-      type: UserType.ADMIN,
+      senha: 'senha123456',
+      role: UserRole.ADMIN,
     };
 
     const response = await criarUsuarioUseCase.execute(request);
@@ -39,7 +39,26 @@ describe('CriarUsuarioUseCase', () => {
 
       expect(UserInRepository).not.toBeNull();
       expect(UserInRepository?.equals(user)).toBe(true);
-      expect(user.senha).toEqual(await hasher.hash(request.senha));
+      expect(user.senha.valor).toEqual(await hasher.hash(request.senha));
+    }
+  });
+
+  it('should return an SenhaFracaError if the password is weak', async () => {
+    const request = {
+      nome: 'Usuario Teste',
+      email: 'usuario@teste.com',
+      senha: 'senha',
+      role: UserRole.ADMIN,
+    };
+
+    const response = await criarUsuarioUseCase.execute(request);
+
+    const failure = response.isLeft();
+
+    expect(failure).toBe(true);
+
+    if (failure) {
+      expect(response.value).toBeInstanceOf(Error);
     }
   });
 });
