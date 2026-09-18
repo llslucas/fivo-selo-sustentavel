@@ -615,10 +615,16 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `criarAppDeTeste()` retorna app inicializada; `limparBanco()` trunca sem erro de FK
-- [ ] `smoke.e2e-spec.ts` passa
-- [ ] `jest-e2e.json` roda com `maxWorkers: 1` (suites compartilham um Postgres)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] `criarAppDeTeste()` retorna app inicializada; `limparBanco()` trunca sem erro de FK — `test/helpers/e2e-app.ts:21-38` (`criarAppDeTeste`) e `:52-60` (`limparBanco`, `TRUNCATE ... RESTART IDENTITY CASCADE` na ordem `sessao → token_senha → registro_auditoria → empresa → usuario → arquivo`); provado em `test/smoke.e2e-spec.ts:34-70` (insere `usuario` + `sessao` com FK, trunca, `count()` → `0` nas duas)
+- [x] `smoke.e2e-spec.ts` passa — 3/3: conexão (`SELECT 1`), `GET /` → 404, truncamento com FK
+- [x] `jest-e2e.json` roda com `maxWorkers: 1` (suites compartilham um Postgres) — `test/jest-e2e.json:6`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 128 unit + 3 e2e
+
+**Nota de qualidade**:
+- `test/jest-e2e.json` passou a usar `rootDir: ".."` + `moduleNameMapper` (os aliases `@core/@infra/@domain/@test` não resolviam na config e2e original) e `setupFiles: ["<rootDir>/test/helpers/load-env.ts"]`.
+- `test/helpers/load-env.ts` (novo, fora do "Where" literal da task): o Prisma Client — diferente do CLI — não lê `.env` sozinho, e o `PrismaService` é instanciado no boot da app de teste. O loader lê o `.env` do `api/` sem dependência nova (nada de `dotenv`) e cai no padrão `postgresql://fivo:fivo@localhost:5433/fivo_test` do compose quando o arquivo não existe.
+- `package.json` ganhou `testPathIgnorePatterns: ["/node_modules/", "\\.e2e-spec\\.ts$"]`: o `testRegex` do jest unit (`.*\.spec\.ts$`) também casava com `*.e2e-spec.ts`, o que faria `npx jest` rodar os e2e sem Postgres garantido.
+- Helper de sessão mínimo (`comCookieDeSessao` + `NOME_COOKIE_SESSAO`), como previsto: a camada HTTP de sessão só chega em T24.
 
 **Tests**: e2e
 **Gate**: full
