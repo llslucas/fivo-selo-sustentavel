@@ -11,7 +11,6 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { CampaignCard, NewCampaignCard } from "@/components/dashboard/CampaignCard";
 import { mockEmpresaAtual } from "@/lib/campaign-wizard/types";
 
-// Dados mock — serão substituídos por dados reais quando houver backend
 const stats = [
   { value: "2", label: "Campanhas ativas" },
   { value: "R$ 6.800", label: "Doados divulgado" },
@@ -43,7 +42,7 @@ export default function DashboardView() {
     <Box sx={{ bgcolor: "background.paper", minHeight: "100vh" }}>
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
         <Stack spacing={4}>
-          {/* Cabeçalho */}
+         
           <Stack
             direction="row"
             sx={{ justifyContent: "space-between", alignItems: "flex-start" }}
@@ -63,11 +62,11 @@ export default function DashboardView() {
               startIcon={<AddRoundedIcon />}
               sx={{ flexShrink: 0 }}
             >
-              + Nova campanha
+              Nova campanha
             </Button>
           </Stack>
 
-          {/* Cards de métricas */}
+         
           <Stack
             direction={{ xs: "column", sm: "row" }}
             spacing={2}
@@ -78,7 +77,7 @@ export default function DashboardView() {
             ))}
           </Stack>
 
-          {/* Alerta de comprovante pendente */}
+        
           <Box
             sx={{
               border: 1,
@@ -113,11 +112,11 @@ export default function DashboardView() {
               startIcon={<AddRoundedIcon />}
               sx={{ flexShrink: 0 }}
             >
-              + Nova campanha
+               Nova campanha
             </Button>
           </Box>
 
-          {/* Campanhas recentes */}
+         
           <Box>
             <Stack
               direction="row"

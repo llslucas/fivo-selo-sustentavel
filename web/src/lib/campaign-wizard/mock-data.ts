@@ -1,6 +1,5 @@
 import type { Instituicao } from "./types";
 
-// Lista mockada — na v1 real (RF03) isso vem de uma lista cadastrada pela Fivo Lab.
 export const instituicoesMock: Instituicao[] = [
   {
     id: "casa-do-bem",

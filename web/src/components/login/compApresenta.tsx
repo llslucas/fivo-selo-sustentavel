@@ -14,10 +14,8 @@ export default function CompApresenta() {
         height: "100%",
         width: "50%"
       }}
-    >
-    
+    > 
       <Box>
-     
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 6 }}>
           <Box
             sx={{

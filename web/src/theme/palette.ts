@@ -1,5 +1,3 @@
-// Fonte única das cores do projeto. Alimenta o tema MUI (src/theme/index.ts)
-// e tem espelho em CSS custom properties em src/app/globals.css.
 export const palette = {
   brand: {
     primary: "#0F6E56",

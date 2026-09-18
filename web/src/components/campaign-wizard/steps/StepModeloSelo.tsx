@@ -1,51 +1,92 @@
 "use client";
 
 import Box from "@mui/material/Box";
-import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import PanoramaFishEyeRoundedIcon from "@mui/icons-material/PanoramaFishEyeRounded";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import HexagonOutlinedIcon from "@mui/icons-material/HexagonOutlined";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import BookmarkBorderRoundedIcon from "@mui/icons-material/BookmarkBorderRounded";
-import RadioButtonUncheckedRoundedIcon from "@mui/icons-material/RadioButtonUncheckedRounded";
 import type { CampaignWizardData } from "@/lib/campaign-wizard/types";
 
 type ModeloSelo = {
   id: string;
   nome: string;
-  icon: React.ReactNode;
+  icon: (isSelected: boolean) => React.ReactNode;
 };
 
 const modelos: ModeloSelo[] = [
   {
     id: "classico",
     nome: "Modelo 1 · Clássico",
-    icon: <PanoramaFishEyeRoundedIcon sx={{ fontSize: 48, color: "text.secondary" }} />,
+    icon: () => (
+      <Box
+        sx={{
+          width: 44,
+          height: 44,
+          borderRadius: "50%",
+          bgcolor: "#D8E8DD",
+          border: "2px solid #0F4C3A",
+        }}
+      />
+    ),
   },
   {
     id: "escudo",
     nome: "Modelo 3 · Escudo",
-    icon: <ShieldOutlinedIcon sx={{ fontSize: 48, color: "text.secondary" }} />,
+    icon: (isSelected) => (
+      <ShieldOutlinedIcon sx={{ fontSize: 44, color: isSelected ? "primary.main" : "text.secondary" }} />
+    ),
   },
   {
     id: "fita",
     nome: "Modelo 5 · Fita",
-    icon: <BookmarkBorderRoundedIcon sx={{ fontSize: 48, color: "text.secondary" }} />,
+    icon: (isSelected) => (
+      <BookmarkBorderRoundedIcon sx={{ fontSize: 44, color: isSelected ? "primary.main" : "text.secondary" }} />
+    ),
   },
   {
     id: "hexagono",
     nome: "Modelo 2 · Hexágono",
-    icon: <HexagonOutlinedIcon sx={{ fontSize: 48, color: "text.secondary" }} />,
+    icon: (isSelected) => (
+      <Box sx={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+        <HexagonOutlinedIcon sx={{ fontSize: 48, color: isSelected ? "primary.main" : "text.secondary" }} />
+        <Box
+          sx={{
+            position: "absolute",
+            width: 14,
+            height: 14,
+            borderRadius: "50%",
+            bgcolor: "#D8E8DD",
+          }}
+        />
+      </Box>
+    ),
   },
   {
     id: "selo",
     nome: "Modelo 4 · Selo",
-    icon: (
-      <RadioButtonUncheckedRoundedIcon
-        sx={{ fontSize: 48, color: "text.secondary", borderRadius: "50%", border: "2px dashed", borderColor: "divider" }}
-      />
+    icon: () => (
+      <Box
+        sx={{
+          width: 44,
+          height: 44,
+          borderRadius: "50%",
+          border: "2px dashed #999",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Box
+          sx={{
+            width: 22,
+            height: 22,
+            borderRadius: "50%",
+            bgcolor: "#E6E2D8",
+          }}
+        />
+      </Box>
     ),
   },
 ];
@@ -59,7 +100,7 @@ export default function StepModeloSelo({ data, onChange }: Props) {
   const selected = data.modeloSelo ?? "classico";
 
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={3}>
       {modelos.map((modelo) => {
         const isSelected = selected === modelo.id;
         return (
@@ -67,30 +108,51 @@ export default function StepModeloSelo({ data, onChange }: Props) {
             <Box
               onClick={() => onChange({ modeloSelo: modelo.id })}
               sx={{
-                border: 1,
+                border: "1.5px solid",
                 borderColor: isSelected ? "primary.main" : "divider",
-                bgcolor: isSelected ? "primary.light" : "background.default",
-                borderRadius: 2,
+                bgcolor: isSelected ? "action.hover" : "background.paper",
+                borderRadius: 3,
                 p: 3,
                 cursor: "pointer",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "flex-start",
-                gap: 2,
+                justifyContent: "space-between",
+                minHeight: 155,
                 position: "relative",
-                minHeight: 140,
                 transition: "border-color 0.15s ease, background-color 0.15s ease",
                 "&:hover": { borderColor: "primary.main" },
               }}
             >
               {isSelected && (
-                <CheckCircleRoundedIcon
-                  color="primary"
-                  sx={{ position: "absolute", top: 10, right: 10, fontSize: 20 }}
-                />
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 12,
+                    right: 12,
+                    width: 24,
+                    height: 24,
+                    borderRadius: "50%",
+                    bgcolor: "primary.main",
+                    color: "#FFFFFF",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <CheckRoundedIcon sx={{ fontSize: 16 }} />
+                </Box>
               )}
-              {modelo.icon}
-              <Typography variant="body2" sx={{ fontWeight: isSelected ? 700 : 400 }}>
+
+              <Box sx={{ mb: 2 }}>{modelo.icon(isSelected)}</Box>
+
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: isSelected ? 700 : 600,
+                  color: isSelected ? "primary.main" : "text.secondary",
+                }}
+              >
                 {modelo.nome}
               </Typography>
             </Box>
