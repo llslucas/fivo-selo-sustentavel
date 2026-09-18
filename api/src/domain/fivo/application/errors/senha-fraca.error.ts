@@ -4,6 +4,6 @@ export class SenhaFracaError extends Error implements UseCaseError {
   readonly status = 422;
 
   constructor() {
-    super('A senha deve ter no mínimo 10 caracteres.');
+    super('A senha deve ter no mínimo 10 caracteres');
   }
 }

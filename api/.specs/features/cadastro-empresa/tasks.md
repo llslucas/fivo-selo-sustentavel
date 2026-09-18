@@ -377,13 +377,15 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Dados válidos → `right({ empresaId })`, `User` (EMPRESA) + `Empresa` (`PENDENTE_APROVACAO`) no repositório, senha só como hash do `FakeHasher`
-- [ ] Senha < 10 → `Left` 422; CNPJ inválido → `Left` 422 e **nada** persistido nem consultado antes
-- [ ] E-mail ou CNPJ já usados → `Left` 409; CNPJ cujo único registro é `REJEITADA` → reaproveita → `PENDENTE_APROVACAO`
-- [ ] `FakeMailer` em falha → ainda `right` + mensagem registrada como pendente/log (EMP-01 AC9)
-- [ ] `criar-empresa.spec.ts` cobre cada linha acima 1:1 com os ACs
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 9 testes passam
+- [x] Dados válidos → `right({ empresaId })`, `User` (EMPRESA) + `Empresa` (`PENDENTE_APROVACAO`) no repositório, senha só como hash do `FakeHasher` — `criar-empresa.ts:73-152`, `criar-empresa.spec.ts:60-81`
+- [x] Senha < 10 → `Left` 422; CNPJ inválido → `Left` 422 e **nada** persistido nem consultado antes — `criar-empresa.ts:73-83`, `criar-empresa.spec.ts:83-117`
+- [x] E-mail ou CNPJ já usados → `Left` 409; CNPJ cujo único registro é `REJEITADA` → reaproveita → `PENDENTE_APROVACAO` — `criar-empresa.ts:85-121`, `criar-empresa.spec.ts:119-187`
+- [x] `FakeMailer` em falha → ainda `right` + mensagem registrada como pendente/log (EMP-01 AC9) — `criar-empresa.ts:154-164`, `criar-empresa.spec.ts:191-213`
+- [x] `criar-empresa.spec.ts` cobre cada linha acima 1:1 com os ACs — 9 testes, ver Test Adequacy Review do chat
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (91/91)
+- [x] Test count: ≥ 9 testes passam — 9 testes em `criar-empresa.spec.ts`
+
+**Nota de qualidade — resolvida (2026-09-18, pós-validação da Fase 2)**: a divergência de mensagem apontada acima foi corrigida. `UserAlreadyExistsError`/`EmpresaAlreadyExistsError` agora usam o texto exato "CNPJ ou e-mail já cadastrado" (perderam o parâmetro de construtor, que só servia para interpolar a mensagem antiga); `criar-empresa.spec.ts` passou a asserir `.message` nos dois testes 409. Ver `validation-fase2.md` (Fix 1).
 
 **Tests**: unit
 **Gate**: quick
@@ -405,13 +407,13 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] E-mail inexistente e senha errada → ambos `Left` 401 "Credenciais inválidas" (indistinguíveis)
-- [ ] 5 falhas na mesma conta → `Left` 429 nas seguintes; sucesso zera os contadores
-- [ ] Sucesso → `right({ token, papel })`, uma linha em `InMemorySessaoRepository` com o `sha256` do token (nunca o token cru)
-- [ ] `Encrypter` não é mais importado por este arquivo
-- [ ] `autenticar-usuario.spec.ts` cobre EMP-06 AC1/AC2 e EMP-07 AC3
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 6 testes passam
+- [x] E-mail inexistente e senha errada → ambos `Left` 401 "Credenciais inválidas" (indistinguíveis) — `autenticar-usuario.ts:36-53`, `autenticar-usuario.spec.ts:46-76`
+- [x] 5 falhas na mesma conta → `Left` 429 nas seguintes; sucesso zera os contadores — `autenticar-usuario.ts:44-58`, `autenticar-usuario.spec.ts:78-132`
+- [x] Sucesso → `right({ token, papel })`, uma linha em `InMemorySessaoRepository` com o `sha256` do token (nunca o token cru) — `autenticar-usuario.ts:57-68`, `autenticar-usuario.spec.ts:134-171`
+- [x] `Encrypter` não é mais importado por este arquivo — confirmado via grep, sem ocorrências
+- [x] `autenticar-usuario.spec.ts` cobre EMP-06 AC1/AC2 e EMP-07 AC3 — ver Test Adequacy Review do chat
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (96/96)
+- [x] Test count: ≥ 6 testes passam — 6 testes em `autenticar-usuario.spec.ts`
 
 **Tests**: unit
 **Gate**: quick
@@ -433,15 +435,17 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Não-admin → `Left` 403, nenhum estado alterado, nenhuma linha de auditoria
-- [ ] Aprovar `PENDENTE_APROVACAO` → `APROVADA` + `decididoPor`/`decididoEm` + 1 linha de auditoria + `Mailer(CADASTRO_APROVADO)`
-- [ ] Rejeitar com motivo < 20 → `Left` 422; com motivo ok → `REJEITADA` + `motivoDecisao` + auditoria + `Mailer(CADASTRO_REJEITADO)` com o motivo
-- [ ] Transição fora do conjunto (ex.: aprovar uma já `APROVADA`) → `Left` 409
-- [ ] `Mailer` em falha → operação ainda conclui (`right`)
-- [ ] `ListarFilaAprovacaoUseCase` devolve só `PENDENTE_APROVACAO` ordenadas asc com a projeção
-- [ ] Specs co-locadas cobrem EMP-04 AC1/AC2/AC3, EMP-05 AC6/AC7 e o Independent Test da história
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 11 testes passam
+- [x] Não-admin → `Left` 403, nenhum estado alterado, nenhuma linha de auditoria — `aprovar-empresa.ts:30-32`, `rejeitar-empresa.ts:36-38`; `aprovar-empresa.spec.ts:47-64`, `rejeitar-empresa.spec.ts:54-74`
+- [x] Aprovar `PENDENTE_APROVACAO` → `APROVADA` + `decididoPor`/`decididoEm` + 1 linha de auditoria + `Mailer(CADASTRO_APROVADO)` — `aprovar-empresa.ts:40-73`, `aprovar-empresa.spec.ts:83-118`
+- [x] Rejeitar com motivo < 20 → `Left` 422; com motivo ok → `REJEITADA` + `motivoDecisao` + auditoria + `Mailer(CADASTRO_REJEITADO)` com o motivo — `rejeitar-empresa.ts:46-83`, `rejeitar-empresa.spec.ts:87-147`
+- [x] Transição fora do conjunto (ex.: aprovar uma já `APROVADA`) → `Left` 409 — `aprovar-empresa.spec.ts:120-135`, `rejeitar-empresa.spec.ts:149-170`
+- [x] `Mailer` em falha → operação ainda conclui (`right`) — `aprovar-empresa.spec.ts:137-151`, `rejeitar-empresa.spec.ts` ("should still return right and reject the empresa when the Mailer fails", adicionado na validação da Fase 2)
+- [x] `ListarFilaAprovacaoUseCase` devolve só `PENDENTE_APROVACAO` ordenadas asc com a projeção — `listar-fila-aprovacao.ts`, `listar-fila-aprovacao.spec.ts:66-83`
+- [x] Specs co-locadas cobrem EMP-04 AC1/AC2/AC3, EMP-05 AC6/AC7 e o Independent Test da história — ver Test Adequacy Review do chat
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (101/101; 128/128 após os fixes pós-validação da Fase 2)
+- [x] Test count: ≥ 11 testes passam — 11 testes (5 `aprovar-empresa.spec.ts` + 5 `rejeitar-empresa.spec.ts` + 1 `listar-fila-aprovacao.spec.ts`); 12 após o fix pós-validação (`rejeitar-empresa.spec.ts` ganhou 1 teste)
+
+**Nota de qualidade**: `InMemoryEmpresaRepository.listarPorEstado` (T7) tinha um bug pré-existente — filtrava por `item.uf` em vez de `item.status`, e ordenava por `nomeFantasia` em vez de `createdAt` (confusão entre os dois sentidos de "estado" em português: UF vs. status da máquina de estados; confirmado contra `paginas-publicas/spec.md` PUB-03 AC1, que também usa `listarPorEstado` com o sentido de status). Corrigido em `test/repositories/in-memory-empresa-repository.ts:20-33` como parte deste task, pois bloqueava `ListarFilaAprovacaoUseCase`; fora do "Where" literal do task mas necessário para a funcionalidade.
 
 **Tests**: unit
 **Gate**: quick
@@ -463,13 +467,15 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Suspender `APROVADA` → `SUSPENSA` + auditoria; reativar `SUSPENSA` → `APROVADA` + auditoria
-- [ ] Suspender uma `PENDENTE_APROVACAO`/`REJEITADA` → `Left` 409; reativar uma não-`SUSPENSA` → `Left` 409
-- [ ] Não-admin → `Left` 403
-- [ ] `AssegurarEmpresaAprovada` → `Right` só para `APROVADA`; `Left` 403 "Cadastro ainda não aprovado" para `PENDENTE_APROVACAO`, `REJEITADA` e `SUSPENSA`
-- [ ] Specs co-locadas cobrem EMP-10 AC1–AC3 (parte de dados), EMP-05 AC4 e o Independent Test
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 8 testes passam
+- [x] Suspender `APROVADA` → `SUSPENSA` + auditoria; reativar `SUSPENSA` → `APROVADA` + auditoria — `suspender-empresa.ts`, `reativar-empresa.ts`; specs `:15-36`
+- [x] Suspender uma `PENDENTE_APROVACAO`/`REJEITADA` → `Left` 409; reativar uma não-`SUSPENSA` → `Left` 409 — `suspender-empresa.spec.ts:38-53`, `reativar-empresa.spec.ts:38-53`
+- [x] Não-admin → `Left` 403 — `suspender-empresa.spec.ts:55-64`, `reativar-empresa.spec.ts:55-64`
+- [x] `AssegurarEmpresaAprovada` → `Right` só para `APROVADA`; `Left` 403 "Cadastro ainda não aprovado" para `PENDENTE_APROVACAO`, `REJEITADA` e `SUSPENSA` — `assegurar-empresa-aprovada.ts`, `assegurar-empresa-aprovada.spec.ts:15-40` (`it.each`)
+- [x] Specs co-locadas cobrem EMP-10 AC1–AC3 (parte de dados), EMP-05 AC4 e o Independent Test — ver Test Adequacy Review do chat
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (111/111)
+- [x] Test count: ≥ 8 testes passam — 13 testes (4 `suspender-empresa.spec.ts` + 4 `reativar-empresa.spec.ts` + 5 `assegurar-empresa-aprovada.spec.ts`)
+
+**Nota de qualidade**: `NotAllowedError` (core, `src/core/errors/not-allowed-error.ts`) ganhou um parâmetro `message` opcional (default `'Not allowed'`), para permitir a mensagem exata "Cadastro ainda não aprovado" sem criar uma classe nova — mudança aditiva, retrocompatível com todos os chamadores existentes (confirmado: nenhum teste depende do texto fixo anterior). Nenhum template de e-mail existe para suspensão/reativação (`TemplateEmail` não tem esse valor); `Mailer` não foi acionado nesses dois casos de uso, conforme "e-mail opcional" do enunciado.
 
 **Tests**: unit
 **Gate**: quick
@@ -491,12 +497,12 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Alterar nome fantasia/telefone/endereço/`logoArquivoId` → persistido no repositório
-- [ ] Tentar alterar `cnpj` → `Left` 422 com a mensagem exata
-- [ ] Trocar e-mail → `emailPendente` setado, e-mail de login inalterado, `Mailer(EMAIL_CONFIRMACAO)` chamado
-- [ ] `editar-dados-empresa.spec.ts` cobre EMP-08 AC1–AC5 e o Independent Test
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 6 testes passam
+- [x] Alterar nome fantasia/telefone/endereço/`logoArquivoId` → persistido no repositório — `editar-dados-empresa.ts:82-114`, `editar-dados-empresa.spec.ts:21-51`
+- [x] Tentar alterar `cnpj` → `Left` 422 com a mensagem exata — `editar-dados-empresa.ts:65-71`, `editar-dados-empresa.spec.ts:74-96`
+- [x] Trocar e-mail → `emailPendente` setado, e-mail de login inalterado, `Mailer(EMAIL_CONFIRMACAO)` chamado — `editar-dados-empresa.ts:73-81,118-131`, `editar-dados-empresa.spec.ts:112-135` (e-mail de login inalterado é estrutural: este caso de uso não depende de `UserRepository`)
+- [x] `editar-dados-empresa.spec.ts` cobre EMP-08 AC1–AC5 e o Independent Test — ver Test Adequacy Review do chat
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (118/118)
+- [x] Test count: ≥ 6 testes passam — 7 testes em `editar-dados-empresa.spec.ts`
 
 **Tests**: unit
 **Gate**: quick
@@ -518,13 +524,13 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `Solicitar` responde `Right` neutro exista ou não a conta; conta existente → 1 `TokenSenha` + `Mailer(SENHA_REDEFINICAO)`
-- [ ] `Redefinir` com token válido → hash novo, token marcado usado, todas as sessões da conta revogadas
-- [ ] Token expirado / já usado / inexistente → `Left` 400 com a mensagem exata
-- [ ] Nova senha < 10 → `Left` 422
-- [ ] Specs co-locadas cobrem EMP-09 AC1–AC4 e o Independent Test (senha antiga para de funcionar; sessões anteriores caem)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 7 testes passam
+- [x] `Solicitar` responde `Right` neutro exista ou não a conta; conta existente → 1 `TokenSenha` + `Mailer(SENHA_REDEFINICAO)` — `solicitar-recuperacao-senha.ts`, `solicitar-recuperacao-senha.spec.ts:26-61`
+- [x] `Redefinir` com token válido → hash novo, token marcado usado, todas as sessões da conta revogadas — `redefinir-senha.ts:38-83`, `redefinir-senha.spec.ts:57-102`
+- [x] Token expirado / já usado / inexistente → `Left` 400 com a mensagem exata — `redefinir-senha.ts:43-50,60-62`, `redefinir-senha.spec.ts:104-156`
+- [x] Nova senha < 10 → `Left` 422 — `redefinir-senha.ts:52-56`, `redefinir-senha.spec.ts:158-171`
+- [x] Specs co-locadas cobrem EMP-09 AC1–AC4 e o Independent Test (senha antiga para de funcionar; sessões anteriores caem) — ver Test Adequacy Review do chat
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (127/127)
+- [x] Test count: ≥ 7 testes passam — 9 testes (2 `solicitar-recuperacao-senha.spec.ts` + 7 `redefinir-senha.spec.ts`)
 
 **Tests**: unit
 **Gate**: quick

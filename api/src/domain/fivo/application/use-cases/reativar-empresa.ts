@@ -8,13 +8,13 @@ import { Injectable } from '@nestjs/common';
 import { EmpresaRepository } from '../ports/database/empresa-repository';
 import { RegistroAuditoriaRepository } from '../ports/registro-auditoria-repository';
 
-export type SuspenderEmpresaUseCaseResponse = Either<
+export type ReativarEmpresaUseCaseResponse = Either<
   NotAllowedError | ResourceNotFoundError | TransicaoInvalidaError,
   void
 >;
 
 @Injectable()
-export class SuspenderEmpresaUseCase {
+export class ReativarEmpresaUseCase {
   constructor(
     private readonly empresaRepository: EmpresaRepository,
     private readonly registroAuditoriaRepository: RegistroAuditoriaRepository,
@@ -23,7 +23,7 @@ export class SuspenderEmpresaUseCase {
   async execute(
     empresaId: string,
     user: User,
-  ): Promise<SuspenderEmpresaUseCaseResponse> {
+  ): Promise<ReativarEmpresaUseCaseResponse> {
     if (user.role !== UserRole.ADMIN) {
       return left(new NotAllowedError());
     }
@@ -35,7 +35,7 @@ export class SuspenderEmpresaUseCase {
     }
 
     const statusAnterior = empresa.status;
-    const result = empresa.suspender(user.id);
+    const result = empresa.reativar(user.id);
 
     if (result.isLeft()) {
       return left(result.value);
@@ -45,8 +45,8 @@ export class SuspenderEmpresaUseCase {
 
     await this.registroAuditoriaRepository.registrar({
       id: randomUUID(),
-      tipo: 'EMPRESA_SUSPENSA',
-      descricao: `Empresa ${empresa.razaoSocial} suspensa`,
+      tipo: 'EMPRESA_REATIVADA',
+      descricao: `Empresa ${empresa.razaoSocial} reativada`,
       usuarioId: user.id.toString(),
       entidadeId: empresa.id.toString(),
       dados: { estadoAnterior: statusAnterior, estadoNovo: empresa.status },
