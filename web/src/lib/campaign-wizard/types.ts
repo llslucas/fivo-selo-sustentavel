@@ -14,17 +14,15 @@ export type CampaignWizardData = {
   descricao: string;
   instituicaoId: string | null;
   regraTipo: RegraTipo;
-  regraValor: string; // mantido como string p/ o TextField controlado
+  regraValor: string; 
   logoFile: File | null;
   logoPreviewUrl: string | null;
   mostrarValorNoSelo: boolean;
   vincularCampanha: boolean;
-  // Dados da empresa (Step 3)
   razaoSocial?: string;
   cnpj?: string;
   emailEmpresa?: string;
   telefoneEmpresa?: string;
-  // Modelo do selo (Step 2)
   modeloSelo?: string;
 };
 
@@ -40,7 +38,6 @@ export const initialWizardData: CampaignWizardData = {
   vincularCampanha: true,
 };
 
-// Empresa "logada" — mockada por enquanto, até existir autenticação real.
 export const mockEmpresaAtual = {
   nome: "Café Serra Verde",
   iniciais: "SV",

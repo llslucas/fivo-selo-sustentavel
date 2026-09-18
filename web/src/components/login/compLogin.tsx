@@ -10,7 +10,11 @@ import { useState } from "react";
 export default function CompLogin() {
 const [email, setEmail] = useState('');
 const [senha, setSenha] = useState('');
-
+const handleLogin = () => {
+  // Aqui você pode adicionar a lógica de autenticação, como enviar os dados para o backend
+  console.log('Email:', email);
+  console.log('Senha:', senha);
+}
   return (
     <Box
       sx={{
@@ -83,6 +87,7 @@ const [senha, setSenha] = useState('');
             fullWidth 
             LinkComponent={Link}
             href={APP_ROUTES.private.dashboard}
+            onClick={handleLogin}
             sx={{ 
               bgcolor: "#116A4D", 
               '&:hover': { bgcolor: "#0D533D" },

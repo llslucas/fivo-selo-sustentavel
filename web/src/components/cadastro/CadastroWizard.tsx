@@ -21,7 +21,6 @@ export default function CadastroWizard() {
   const [step, setStep] = useState(1);
   const totalSteps = 3;
 
-  // Form state
   const [razaoSocial, setRazaoSocial] = useState("Café Serra Verde Ltda");
   const [cnpj, setCnpj] = useState("12.345.678/0001-90");
   const [email, setEmail] = useState("contato@serraverde.com.br");
@@ -76,7 +75,7 @@ export default function CadastroWizard() {
             boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
           }}
         >
-          {/* Header do Step */}
+        
           <Box sx={{ mb: 4 }}>
             <Chip
               label={`Etapa ${step} de ${totalSteps}`}
@@ -111,7 +110,7 @@ export default function CadastroWizard() {
             />
           </Box>
 
-          {/* Conteúdo da Etapa 1 */}
+     
           {step === 1 && (
             <Stack spacing={3}>
               <Grid container spacing={2}>
@@ -200,7 +199,7 @@ export default function CadastroWizard() {
                     onChange={(e) => handleFile(e.target.files?.[0])}
                   />
                   {logoPreviewUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
+                   
                     <img
                       src={logoPreviewUrl}
                       alt="Logo da empresa"

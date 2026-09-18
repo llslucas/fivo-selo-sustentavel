@@ -31,7 +31,7 @@ export default function WizardShellForm({
   nextDisabled = false,
 }: WizardShellFormProps) {
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <Box>
           <Chip
