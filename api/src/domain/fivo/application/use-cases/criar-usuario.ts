@@ -32,7 +32,7 @@ export class CriarUsuarioUseCase {
     const existingUser = await this.userRepository.findByEmail(email);
 
     if (existingUser) {
-      return left(new UserAlreadyExistsError(email));
+      return left(new UserAlreadyExistsError());
     }
 
     const plainSenha = Senha.create(senha);

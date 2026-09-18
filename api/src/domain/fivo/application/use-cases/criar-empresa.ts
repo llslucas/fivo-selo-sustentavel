@@ -97,11 +97,11 @@ export class CriarEmpresaUseCase {
 
     if (!empresaReaproveitavel) {
       if (existingUser) {
-        return left(new UserAlreadyExistsError(email));
+        return left(new UserAlreadyExistsError());
       }
 
       if (existingEmpresa) {
-        return left(new EmpresaAlreadyExistsError(cnpj));
+        return left(new EmpresaAlreadyExistsError());
       }
     }
 

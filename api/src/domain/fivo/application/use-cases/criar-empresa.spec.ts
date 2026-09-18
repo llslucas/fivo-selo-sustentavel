@@ -130,6 +130,7 @@ describe('CriarEmpresaUseCase', () => {
     if (response.isLeft()) {
       expect(response.value).toBeInstanceOf(UserAlreadyExistsError);
       expect(response.value.status).toBe(409);
+      expect(response.value.message).toBe('CNPJ ou e-mail já cadastrado');
     }
     expect(empresaRepository.items).toHaveLength(0);
   });
@@ -150,6 +151,7 @@ describe('CriarEmpresaUseCase', () => {
     if (response.isLeft()) {
       expect(response.value).toBeInstanceOf(EmpresaAlreadyExistsError);
       expect(response.value.status).toBe(409);
+      expect(response.value.message).toBe('CNPJ ou e-mail já cadastrado');
     }
     expect(userRepository.items).toHaveLength(0);
   });

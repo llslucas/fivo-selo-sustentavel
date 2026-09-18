@@ -54,7 +54,7 @@ describe('AutenticarUsuarioUseCase', () => {
     if (response.isLeft()) {
       expect(response.value).toBeInstanceOf(CredenciaisInvalidasError);
       expect(response.value.status).toBe(401);
-      expect(response.value.message).toBe('Credenciais inválidas.');
+      expect(response.value.message).toBe('Credenciais inválidas');
     }
   });
 
@@ -71,7 +71,7 @@ describe('AutenticarUsuarioUseCase', () => {
     if (response.isLeft()) {
       expect(response.value).toBeInstanceOf(CredenciaisInvalidasError);
       expect(response.value.status).toBe(401);
-      expect(response.value.message).toBe('Credenciais inválidas.');
+      expect(response.value.message).toBe('Credenciais inválidas');
     }
   });
 

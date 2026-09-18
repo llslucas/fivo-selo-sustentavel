@@ -4,6 +4,6 @@ export class CredenciaisInvalidasError extends Error implements UseCaseError {
   readonly status = 401;
 
   constructor() {
-    super('Credenciais inválidas.');
+    super('Credenciais inválidas');
   }
 }

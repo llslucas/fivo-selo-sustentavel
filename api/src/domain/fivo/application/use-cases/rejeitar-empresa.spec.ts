@@ -168,4 +168,23 @@ describe('RejeitarEmpresaUseCase', () => {
       expect(segunda.value).toBeInstanceOf(TransicaoInvalidaError);
     }
   });
+
+  it('should still return right and reject the empresa when the Mailer fails', async () => {
+    mailer.forceFailure();
+    const empresa = await criarEmpresaPendente();
+    const admin = UserFactory.create({ role: UserRole.ADMIN });
+
+    const response = await sut.execute(
+      empresa.id.toString(),
+      admin,
+      MOTIVO_VALIDO,
+    );
+
+    expect(response.isRight()).toBe(true);
+
+    const empresaRejeitada = await empresaRepository.findById(
+      empresa.id.toString(),
+    );
+    expect(empresaRejeitada?.status).toBe(EmpresaStatus.REJEITADA);
+  });
 });

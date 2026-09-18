@@ -385,7 +385,7 @@ T28 → T32
 - [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (91/91)
 - [x] Test count: ≥ 9 testes passam — 9 testes em `criar-empresa.spec.ts`
 
-**Nota de qualidade**: a mensagem exata "CNPJ ou e-mail já cadastrado" (spec.md AC EMP-01/EMP-02, design.md:256) não é a mensagem literal de `UserAlreadyExistsError`/`EmpresaAlreadyExistsError` — divergência pré-existente do T6, não alterada aqui (spec-precision gap, status 409 confirmado, texto diverge).
+**Nota de qualidade — resolvida (2026-09-18, pós-validação da Fase 2)**: a divergência de mensagem apontada acima foi corrigida. `UserAlreadyExistsError`/`EmpresaAlreadyExistsError` agora usam o texto exato "CNPJ ou e-mail já cadastrado" (perderam o parâmetro de construtor, que só servia para interpolar a mensagem antiga); `criar-empresa.spec.ts` passou a asserir `.message` nos dois testes 409. Ver `validation-fase2.md` (Fix 1).
 
 **Tests**: unit
 **Gate**: quick
@@ -439,11 +439,11 @@ T28 → T32
 - [x] Aprovar `PENDENTE_APROVACAO` → `APROVADA` + `decididoPor`/`decididoEm` + 1 linha de auditoria + `Mailer(CADASTRO_APROVADO)` — `aprovar-empresa.ts:40-73`, `aprovar-empresa.spec.ts:83-118`
 - [x] Rejeitar com motivo < 20 → `Left` 422; com motivo ok → `REJEITADA` + `motivoDecisao` + auditoria + `Mailer(CADASTRO_REJEITADO)` com o motivo — `rejeitar-empresa.ts:46-83`, `rejeitar-empresa.spec.ts:87-147`
 - [x] Transição fora do conjunto (ex.: aprovar uma já `APROVADA`) → `Left` 409 — `aprovar-empresa.spec.ts:120-135`, `rejeitar-empresa.spec.ts:149-170`
-- [x] `Mailer` em falha → operação ainda conclui (`right`) — `aprovar-empresa.spec.ts:137-151`
+- [x] `Mailer` em falha → operação ainda conclui (`right`) — `aprovar-empresa.spec.ts:137-151`, `rejeitar-empresa.spec.ts` ("should still return right and reject the empresa when the Mailer fails", adicionado na validação da Fase 2)
 - [x] `ListarFilaAprovacaoUseCase` devolve só `PENDENTE_APROVACAO` ordenadas asc com a projeção — `listar-fila-aprovacao.ts`, `listar-fila-aprovacao.spec.ts:66-83`
 - [x] Specs co-locadas cobrem EMP-04 AC1/AC2/AC3, EMP-05 AC6/AC7 e o Independent Test da história — ver Test Adequacy Review do chat
-- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (101/101)
-- [x] Test count: ≥ 11 testes passam — 11 testes (5 `aprovar-empresa.spec.ts` + 5 `rejeitar-empresa.spec.ts` + 1 `listar-fila-aprovacao.spec.ts`)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (101/101; 128/128 após os fixes pós-validação da Fase 2)
+- [x] Test count: ≥ 11 testes passam — 11 testes (5 `aprovar-empresa.spec.ts` + 5 `rejeitar-empresa.spec.ts` + 1 `listar-fila-aprovacao.spec.ts`); 12 após o fix pós-validação (`rejeitar-empresa.spec.ts` ganhou 1 teste)
 
 **Nota de qualidade**: `InMemoryEmpresaRepository.listarPorEstado` (T7) tinha um bug pré-existente — filtrava por `item.uf` em vez de `item.status`, e ordenava por `nomeFantasia` em vez de `createdAt` (confusão entre os dois sentidos de "estado" em português: UF vs. status da máquina de estados; confirmado contra `paginas-publicas/spec.md` PUB-03 AC1, que também usa `listarPorEstado` com o sentido de status). Corrigido em `test/repositories/in-memory-empresa-repository.ts:20-33` como parte deste task, pois bloqueava `ListarFilaAprovacaoUseCase`; fora do "Where" literal do task mas necessário para a funcionalidade.
 

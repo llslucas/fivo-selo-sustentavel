@@ -174,3 +174,17 @@ Worktree removed with `git worktree remove --force`; real tree `git status --por
 3. `RejeitarEmpresaUseCase`'s "Mailer fails but still completes" path has no dedicated test (structurally identical code to the tested `AprovarEmpresaUseCase` path) — Minor test-coverage thinness, not a functional gap.
 
 **Next steps**: Route Fix 1 and Fix 2 as low-priority cleanup tasks (or accept as documented house style and update `spec.md` to match) before/independently of starting Phase 3; neither blocks Phase 3 (Prisma/persistence), since Phase 3 depends on the domain contracts' shapes and status codes, not on literal message text. Optionally add the missing `RejeitarEmpresaUseCase` mailer-failure test for symmetry with `AprovarEmpresaUseCase`.
+
+---
+
+## Post-validation fixes (2026-09-18, same session)
+
+The user chose to fix all three findings immediately rather than defer:
+
+- **Fix 1 applied**: `EmpresaAlreadyExistsError` and `UserAlreadyExistsError` now both carry the exact spec string `"CNPJ ou e-mail já cadastrado"` (EMP-01 AC3). Their constructors dropped the now-unused interpolation parameter; call sites (`criar-empresa.ts`, `criar-usuario.ts`) and the dedicated `already-exists.errors.spec.ts` were updated accordingly, and `already-exists.errors.spec.ts` now asserts `.message` as well as `.status`. `criar-empresa.spec.ts`'s two 409 tests now assert the exact message too.
+- **Fix 2 applied**: `InvalidCnpjError`, `SenhaFracaError`, and `CredenciaisInvalidasError` (`wrong-credentials.error.ts`) all had their trailing period removed to match spec.md's literal quoted strings exactly. Two pre-existing tests that asserted the old trailing-period text (`cnpj.spec.ts:22`, `autenticar-usuario.spec.ts:57,74`) were updated to the corrected text — not weakened, corrected to match spec.
+- **Finding 3 addressed**: added `"should still return right and reject the empresa when the Mailer fails"` to `rejeitar-empresa.spec.ts`, mirroring the existing `AprovarEmpresaUseCase` coverage.
+
+**Re-verification (self-executed, proportional to risk — not a fresh Verifier re-dispatch)**: this was a pure message-text/coverage fix with no behavior change to any state machine, guard, or side effect, so a full second Verifier sub-agent dispatch was judged disproportionate. Gate re-run clean: `tsc` 0 errors, `eslint` 0 errors, `npm run build` clean, `jest` **128/128 passed** (+1 vs. the 127 recorded above — the new `rejeitar-empresa.spec.ts` test; 0 removed). Grepped the full `src`/`test` tree to confirm no other reference to the four old message strings survives outside `catalogo-instituicoes`' unrelated `instituicao-already-exists.error.ts` (different feature, correctly left untouched).
+
+**Verdict after fixes**: ✅ PASS, no open findings for T8–T13.
