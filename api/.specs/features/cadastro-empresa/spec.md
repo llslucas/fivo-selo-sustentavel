@@ -181,9 +181,9 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| EMP-01 | P1: Autocadastro da empresa | Design | In Design (caso de uso `CriarEmpresaUseCase` existe em `feat/new-arch`, incompleto) |
-| EMP-02 | P1: Autocadastro — validação de CNPJ, e-mail e senha | Design | In Design (`Cnpj` VO existe; política de senha e unicidade de e-mail a fazer) |
-| EMP-03 | P1: Autocadastro — upload e validação de logo | Design | In Design (não iniciado — depende da fase de infra) |
+| EMP-01 | P1: Autocadastro da empresa | Execute | Implementing (T8: `CriarEmpresaUseCase` reescrito e testado — domínio completo; falta a rota HTTP, T25) |
+| EMP-02 | P1: Autocadastro — validação de CNPJ, e-mail e senha | Execute | Implementing (T8: `Cnpj`/`Senha`/unicidade de e-mail e CNPJ cobertos no caso de uso) |
+| EMP-03 | P1: Autocadastro — upload e validação de logo | Execute | Implementing (T8: caso de uso recebe/vincula `logoArquivoId`; upload e validação do arquivo em si seguem na Fase 4, T22/T28) |
 | EMP-04 | P1: Aprovação do cadastro pelo administrador | Design | In Design (`AprovarEmpresaUseCase` existe; fila e e-mail a fazer) |
 | EMP-05 | P1: Aprovação — máquina de estados e auditoria | Design | In Design (transições e auditoria a fazer) |
 | EMP-06 | P1: Autenticação e sessão — credenciais e papéis `EMPRESA`, `INSTITUICAO` e `ADMIN` | Design | In Design (`AuthenticateUserUseCase` existe; realinhar para sessão opaca) |

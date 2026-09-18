@@ -377,13 +377,15 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Dados válidos → `right({ empresaId })`, `User` (EMPRESA) + `Empresa` (`PENDENTE_APROVACAO`) no repositório, senha só como hash do `FakeHasher`
-- [ ] Senha < 10 → `Left` 422; CNPJ inválido → `Left` 422 e **nada** persistido nem consultado antes
-- [ ] E-mail ou CNPJ já usados → `Left` 409; CNPJ cujo único registro é `REJEITADA` → reaproveita → `PENDENTE_APROVACAO`
-- [ ] `FakeMailer` em falha → ainda `right` + mensagem registrada como pendente/log (EMP-01 AC9)
-- [ ] `criar-empresa.spec.ts` cobre cada linha acima 1:1 com os ACs
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 9 testes passam
+- [x] Dados válidos → `right({ empresaId })`, `User` (EMPRESA) + `Empresa` (`PENDENTE_APROVACAO`) no repositório, senha só como hash do `FakeHasher` — `criar-empresa.ts:73-152`, `criar-empresa.spec.ts:60-81`
+- [x] Senha < 10 → `Left` 422; CNPJ inválido → `Left` 422 e **nada** persistido nem consultado antes — `criar-empresa.ts:73-83`, `criar-empresa.spec.ts:83-117`
+- [x] E-mail ou CNPJ já usados → `Left` 409; CNPJ cujo único registro é `REJEITADA` → reaproveita → `PENDENTE_APROVACAO` — `criar-empresa.ts:85-121`, `criar-empresa.spec.ts:119-187`
+- [x] `FakeMailer` em falha → ainda `right` + mensagem registrada como pendente/log (EMP-01 AC9) — `criar-empresa.ts:154-164`, `criar-empresa.spec.ts:191-213`
+- [x] `criar-empresa.spec.ts` cobre cada linha acima 1:1 com os ACs — 9 testes, ver Test Adequacy Review do chat
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (91/91)
+- [x] Test count: ≥ 9 testes passam — 9 testes em `criar-empresa.spec.ts`
+
+**Nota de qualidade**: a mensagem exata "CNPJ ou e-mail já cadastrado" (spec.md AC EMP-01/EMP-02, design.md:256) não é a mensagem literal de `UserAlreadyExistsError`/`EmpresaAlreadyExistsError` — divergência pré-existente do T6, não alterada aqui (spec-precision gap, status 409 confirmado, texto diverge).
 
 **Tests**: unit
 **Gate**: quick
