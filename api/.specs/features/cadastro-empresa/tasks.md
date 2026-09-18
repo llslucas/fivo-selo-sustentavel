@@ -552,10 +552,19 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `npx prisma migrate dev --name init` gera `api/prisma/migrations/**` e aplica sem erro contra o Postgres do compose
-- [ ] `schema.prisma` cobre as 6 tabelas com os mapeamentos e índices acima
-- [ ] `.gitignore` cobre `.env` mas versiona `prisma/migrations`
-- [ ] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] `npx prisma migrate dev --name init` gera `api/prisma/migrations/**` e aplica sem erro contra o Postgres do compose — `prisma/migrations/20260918144713_init/migration.sql`
+- [x] `schema.prisma` cobre as 6 tabelas com os mapeamentos e índices acima — `prisma/schema.prisma`: `usuario`, `empresa`, `sessao`, `registro_auditoria`, `token_senha`, `arquivo` (todas com `@@map` snake_case); `usuario.email` `@unique`, `empresa.cnpj` `@unique`, `@@index([status, criadoEm])` para a fila, enums `TipoArquivo`/`UserRole`/`EmpresaStatus`
+- [x] `.gitignore` cobre `.env` mas versiona `prisma/migrations` — `git check-ignore .env` → `.gitignore:45`; `prisma/migrations` não é ignorado
+- [x] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — exit 0, 128/128 testes
+
+**Nota de qualidade (decisões não especificadas)**:
+- **Versão do Prisma**: pinada em `6.19.3` (exata). O dist-tag `latest` do npm hoje aponta para `8.0.0-rc.15` (release candidate) e o `7.x` muda os defaults do generator; a 6.x é a linha estável compatível com o setup atual (CommonJS + `module: nodenext` + Nest 11).
+- **Postgres de teste**: `postgres:16-alpine` exposto em **5433** (evita colidir com um Postgres local em 5432), com `tmpfs` em `/var/lib/postgresql/data` — o banco é descartável de fato (some no `down`/restart do container). Consequência: após cada restart do container é preciso `npx prisma migrate deploy` antes dos e2e, como já previsto no cabeçalho de Gate Check Commands.
+- **Colunas**: nomes em snake_case pt-BR via `@map` (`criado_em`, `atualizado_em`, `razao_social`, `senha_hash`, …). `id` é `String @id` **sem `@default`** — quem gera o identificador é o domínio (`UniqueEntityId`), não o banco, para o mapper poder persistir a identidade já criada na entidade.
+- **Value objects**: `Cnpj` → `empresa.cnpj String @unique` (14 dígitos normalizados); `Senha` → `usuario.senha_hash String` (guarda o hash, nunca o texto claro).
+- **Tipos**: `numero` do endereço é `String` (representa "s/n", "123-A", zeros à esquerda); `falhas_login` é `Int @default(0)`; `uf` é `Char(2)`; `registro_auditoria.dados` é `Json?`; `atualizado_em` é nullable e **sem `@updatedAt`** — o valor é o da entidade, o banco não inventa timestamp.
+- **Relacionamentos**: `empresa.usuario_id` é nullable + `@unique` (1–1, espelha `usuarioId?` em `EmpresaProps`); `sessao`/`token_senha` têm FK para `usuario` com `onDelete: Cascade`; `registro_auditoria` fica **sem FK** (log desacoplado, design.md §Relationships); `empresa.logo_arquivo_id` → `arquivo` (0..1–1).
+- **`prisma generate`** entrou no `postinstall` **e** no início do `build`, para o `nest build` nunca rodar contra um client desatualizado.
 
 **Tests**: none
 **Gate**: build
