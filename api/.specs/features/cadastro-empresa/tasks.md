@@ -407,13 +407,13 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] E-mail inexistente e senha errada → ambos `Left` 401 "Credenciais inválidas" (indistinguíveis)
-- [ ] 5 falhas na mesma conta → `Left` 429 nas seguintes; sucesso zera os contadores
-- [ ] Sucesso → `right({ token, papel })`, uma linha em `InMemorySessaoRepository` com o `sha256` do token (nunca o token cru)
-- [ ] `Encrypter` não é mais importado por este arquivo
-- [ ] `autenticar-usuario.spec.ts` cobre EMP-06 AC1/AC2 e EMP-07 AC3
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 6 testes passam
+- [x] E-mail inexistente e senha errada → ambos `Left` 401 "Credenciais inválidas" (indistinguíveis) — `autenticar-usuario.ts:36-53`, `autenticar-usuario.spec.ts:46-76`
+- [x] 5 falhas na mesma conta → `Left` 429 nas seguintes; sucesso zera os contadores — `autenticar-usuario.ts:44-58`, `autenticar-usuario.spec.ts:78-132`
+- [x] Sucesso → `right({ token, papel })`, uma linha em `InMemorySessaoRepository` com o `sha256` do token (nunca o token cru) — `autenticar-usuario.ts:57-68`, `autenticar-usuario.spec.ts:134-171`
+- [x] `Encrypter` não é mais importado por este arquivo — confirmado via grep, sem ocorrências
+- [x] `autenticar-usuario.spec.ts` cobre EMP-06 AC1/AC2 e EMP-07 AC3 — ver Test Adequacy Review do chat
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (96/96)
+- [x] Test count: ≥ 6 testes passam — 6 testes em `autenticar-usuario.spec.ts`
 
 **Tests**: unit
 **Gate**: quick
