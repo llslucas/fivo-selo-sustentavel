@@ -497,12 +497,12 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Alterar nome fantasia/telefone/endereço/`logoArquivoId` → persistido no repositório
-- [ ] Tentar alterar `cnpj` → `Left` 422 com a mensagem exata
-- [ ] Trocar e-mail → `emailPendente` setado, e-mail de login inalterado, `Mailer(EMAIL_CONFIRMACAO)` chamado
-- [ ] `editar-dados-empresa.spec.ts` cobre EMP-08 AC1–AC5 e o Independent Test
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 6 testes passam
+- [x] Alterar nome fantasia/telefone/endereço/`logoArquivoId` → persistido no repositório — `editar-dados-empresa.ts:82-114`, `editar-dados-empresa.spec.ts:21-51`
+- [x] Tentar alterar `cnpj` → `Left` 422 com a mensagem exata — `editar-dados-empresa.ts:65-71`, `editar-dados-empresa.spec.ts:74-96`
+- [x] Trocar e-mail → `emailPendente` setado, e-mail de login inalterado, `Mailer(EMAIL_CONFIRMACAO)` chamado — `editar-dados-empresa.ts:73-81,118-131`, `editar-dados-empresa.spec.ts:112-135` (e-mail de login inalterado é estrutural: este caso de uso não depende de `UserRepository`)
+- [x] `editar-dados-empresa.spec.ts` cobre EMP-08 AC1–AC5 e o Independent Test — ver Test Adequacy Review do chat
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (118/118)
+- [x] Test count: ≥ 6 testes passam — 7 testes em `editar-dados-empresa.spec.ts`
 
 **Tests**: unit
 **Gate**: quick
