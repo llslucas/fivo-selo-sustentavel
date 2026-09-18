@@ -189,7 +189,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | EMP-06 | P1: Autenticação e sessão — credenciais e papéis `EMPRESA`, `INSTITUICAO` e `ADMIN` | Execute | Implementing (T9: `AutenticarUsuarioUseCase` reescrito com sessão opaca; falta cookie/guard HTTP, T24) |
 | EMP-07 | P1: Autenticação — rate limit e expiração de sessão | Execute | Implementing (T9: bloqueio de 5 tentativas cobre AC3; expiração por inatividade de 8h é validação de sessão, T24) |
 | EMP-08 | P2: Manutenção dos dados cadastrais | Execute | Implementing (T12: `EditarDadosEmpresaUseCase` — CNPJ imutável, troca de e-mail via `emailPendente`; falta a rota HTTP, T29, e a reflexão em ≤60s nas páginas públicas, `paginas-publicas`) |
-| EMP-09 | P2: Recuperação de senha | Design | In Design (não iniciado) |
+| EMP-09 | P2: Recuperação de senha | Execute | Implementing (T13: `SolicitarRecuperacaoSenha`/`RedefinirSenhaUseCase` — token opaco, expiração de 60 min, revogação de sessões; falta a rota HTTP, T29) |
 | EMP-10 | P3: Suspensão e reativação de empresa | Execute | Implementing (T11: `Suspender`/`ReativarEmpresaUseCase` em `Either` com auditoria; propagação HTTP 404 das páginas públicas é infra/`paginas-publicas`) |
 
 **ID format:** `[CATEGORY]-[NUMBER]`

@@ -524,13 +524,13 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `Solicitar` responde `Right` neutro exista ou não a conta; conta existente → 1 `TokenSenha` + `Mailer(SENHA_REDEFINICAO)`
-- [ ] `Redefinir` com token válido → hash novo, token marcado usado, todas as sessões da conta revogadas
-- [ ] Token expirado / já usado / inexistente → `Left` 400 com a mensagem exata
-- [ ] Nova senha < 10 → `Left` 422
-- [ ] Specs co-locadas cobrem EMP-09 AC1–AC4 e o Independent Test (senha antiga para de funcionar; sessões anteriores caem)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 7 testes passam
+- [x] `Solicitar` responde `Right` neutro exista ou não a conta; conta existente → 1 `TokenSenha` + `Mailer(SENHA_REDEFINICAO)` — `solicitar-recuperacao-senha.ts`, `solicitar-recuperacao-senha.spec.ts:26-61`
+- [x] `Redefinir` com token válido → hash novo, token marcado usado, todas as sessões da conta revogadas — `redefinir-senha.ts:38-83`, `redefinir-senha.spec.ts:57-102`
+- [x] Token expirado / já usado / inexistente → `Left` 400 com a mensagem exata — `redefinir-senha.ts:43-50,60-62`, `redefinir-senha.spec.ts:104-156`
+- [x] Nova senha < 10 → `Left` 422 — `redefinir-senha.ts:52-56`, `redefinir-senha.spec.ts:158-171`
+- [x] Specs co-locadas cobrem EMP-09 AC1–AC4 e o Independent Test (senha antiga para de funcionar; sessões anteriores caem) — ver Test Adequacy Review do chat
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (127/127)
+- [x] Test count: ≥ 7 testes passam — 9 testes (2 `solicitar-recuperacao-senha.spec.ts` + 7 `redefinir-senha.spec.ts`)
 
 **Tests**: unit
 **Gate**: quick
