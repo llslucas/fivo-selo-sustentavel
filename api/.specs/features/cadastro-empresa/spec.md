@@ -184,8 +184,8 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | EMP-01 | P1: Autocadastro da empresa | Execute | Implementing (T8: `CriarEmpresaUseCase` reescrito e testado — domínio completo; falta a rota HTTP, T25) |
 | EMP-02 | P1: Autocadastro — validação de CNPJ, e-mail e senha | Execute | Implementing (T8: `Cnpj`/`Senha`/unicidade de e-mail e CNPJ cobertos no caso de uso) |
 | EMP-03 | P1: Autocadastro — upload e validação de logo | Execute | Implementing (T8: caso de uso recebe/vincula `logoArquivoId`; upload e validação do arquivo em si seguem na Fase 4, T22/T28) |
-| EMP-04 | P1: Aprovação do cadastro pelo administrador | Design | In Design (`AprovarEmpresaUseCase` existe; fila e e-mail a fazer) |
-| EMP-05 | P1: Aprovação — máquina de estados e auditoria | Design | In Design (transições e auditoria a fazer) |
+| EMP-04 | P1: Aprovação do cadastro pelo administrador | Execute | Implementing (T10: `Aprovar`/`RejeitarEmpresaUseCase` em `Either` + `ListarFilaAprovacaoUseCase`; falta a rota HTTP, T27) |
+| EMP-05 | P1: Aprovação — máquina de estados e auditoria | Execute | Implementing (T10: transições delegadas à entidade, auditoria via `RegistroAuditoriaRepository`; CAS de decisão concorrente é infra, T17) |
 | EMP-06 | P1: Autenticação e sessão — credenciais e papéis `EMPRESA`, `INSTITUICAO` e `ADMIN` | Execute | Implementing (T9: `AutenticarUsuarioUseCase` reescrito com sessão opaca; falta cookie/guard HTTP, T24) |
 | EMP-07 | P1: Autenticação — rate limit e expiração de sessão | Execute | Implementing (T9: bloqueio de 5 tentativas cobre AC3; expiração por inatividade de 8h é validação de sessão, T24) |
 | EMP-08 | P2: Manutenção dos dados cadastrais | Design | In Design (não iniciado) |

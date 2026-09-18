@@ -21,14 +21,14 @@ export class InMemoryEmpresaRepository implements EmpresaRepository {
     estado: string,
     ordem: OrdenacaoListaEmpresa,
   ): Promise<Empresa[]> {
-    const empresas = this.items.filter((item) => item.uf === estado);
+    const empresas = this.items.filter(
+      (item) => (item.status as string) === estado,
+    );
 
     const sorted = [...empresas].sort((a, b) => {
-      const left = a.nomeFantasia.toLowerCase();
-      const right = b.nomeFantasia.toLowerCase();
-      return ordem === 'asc'
-        ? left.localeCompare(right)
-        : right.localeCompare(left);
+      const left = a.createdAt.getTime();
+      const right = b.createdAt.getTime();
+      return ordem === 'asc' ? left - right : right - left;
     });
 
     return Promise.resolve(sorted);
