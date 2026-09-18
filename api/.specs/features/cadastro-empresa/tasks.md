@@ -467,13 +467,15 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Suspender `APROVADA` → `SUSPENSA` + auditoria; reativar `SUSPENSA` → `APROVADA` + auditoria
-- [ ] Suspender uma `PENDENTE_APROVACAO`/`REJEITADA` → `Left` 409; reativar uma não-`SUSPENSA` → `Left` 409
-- [ ] Não-admin → `Left` 403
-- [ ] `AssegurarEmpresaAprovada` → `Right` só para `APROVADA`; `Left` 403 "Cadastro ainda não aprovado" para `PENDENTE_APROVACAO`, `REJEITADA` e `SUSPENSA`
-- [ ] Specs co-locadas cobrem EMP-10 AC1–AC3 (parte de dados), EMP-05 AC4 e o Independent Test
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 8 testes passam
+- [x] Suspender `APROVADA` → `SUSPENSA` + auditoria; reativar `SUSPENSA` → `APROVADA` + auditoria — `suspender-empresa.ts`, `reativar-empresa.ts`; specs `:15-36`
+- [x] Suspender uma `PENDENTE_APROVACAO`/`REJEITADA` → `Left` 409; reativar uma não-`SUSPENSA` → `Left` 409 — `suspender-empresa.spec.ts:38-53`, `reativar-empresa.spec.ts:38-53`
+- [x] Não-admin → `Left` 403 — `suspender-empresa.spec.ts:55-64`, `reativar-empresa.spec.ts:55-64`
+- [x] `AssegurarEmpresaAprovada` → `Right` só para `APROVADA`; `Left` 403 "Cadastro ainda não aprovado" para `PENDENTE_APROVACAO`, `REJEITADA` e `SUSPENSA` — `assegurar-empresa-aprovada.ts`, `assegurar-empresa-aprovada.spec.ts:15-40` (`it.each`)
+- [x] Specs co-locadas cobrem EMP-10 AC1–AC3 (parte de dados), EMP-05 AC4 e o Independent Test — ver Test Adequacy Review do chat
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — confirmado (111/111)
+- [x] Test count: ≥ 8 testes passam — 13 testes (4 `suspender-empresa.spec.ts` + 4 `reativar-empresa.spec.ts` + 5 `assegurar-empresa-aprovada.spec.ts`)
+
+**Nota de qualidade**: `NotAllowedError` (core, `src/core/errors/not-allowed-error.ts`) ganhou um parâmetro `message` opcional (default `'Not allowed'`), para permitir a mensagem exata "Cadastro ainda não aprovado" sem criar uma classe nova — mudança aditiva, retrocompatível com todos os chamadores existentes (confirmado: nenhum teste depende do texto fixo anterior). Nenhum template de e-mail existe para suspensão/reativação (`TemplateEmail` não tem esse valor); `Mailer` não foi acionado nesses dois casos de uso, conforme "e-mail opcional" do enunciado.
 
 **Tests**: unit
 **Gate**: quick
