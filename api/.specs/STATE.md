@@ -145,3 +145,11 @@
 - **Scope**: `cadastro-empresa`, tasks T4 em diante.
 - **Date**: 2026-09-14
 - **Status**: active
+
+### AD-019
+- **Decision**: A criação de `User` + `Empresa` em `CriarEmpresaUseCase` passa a rodar dentro de um boundary de transação (porta `UnitOfWork`, implementada com `PrismaService.$transaction`), fechando antes de T25 a corrida identificada na verificação da Fase 3. Nova task **T33** (depende de T8, T17; bloqueia T25) registrada em `tasks.md`.
+- **Reason**: O Verifier independente da Fase 3 (`cadastro-empresa/validation-fase3.md`, GAP 2) mostrou que as duas escritas hoje são chamadas Prisma separadas e não-transacionais; sob concorrência real de Postgres, uma corrida de CNPJ pode deixar um `usuario` órfão com e-mail permanentemente ocupado, sem que o branch de reaproveitamento (que exige uma `Empresa` `REJEITADA` existente) consiga recuperar. Correção de arquitetura, fora do mandato do próprio Verifier — por isso virou decisão + task, não um fix inline.
+- **Trade-off**: Introduz uma porta nova (`UnitOfWork`) e acopla os adaptadores Prisma de `User`/`Empresa` a um mecanismo de transação compartilhada; o double em memória é trivial (repositórios em memória já são atômicos por processo, então nenhum teste unit muda de comportamento).
+- **Scope**: `cadastro-empresa` — task T33 (nova, Fase 3), bloqueia T25 (Fase 5).
+- **Date**: 2026-09-18
+- **Status**: active

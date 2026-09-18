@@ -95,7 +95,7 @@ T9 → T13
 
 ### Phase 3: Persistência (Prisma / PostgreSQL)
 
-Ordem: T14 … T18.
+Ordem: T14 … T18, T33.
 
 ```
 T3 → T14
@@ -110,6 +110,8 @@ T9 → T17
 T15 → T18
 T16 → T18
 T7 → T18
+T8 → T33
+T17 → T33
 ```
 
 ### Phase 4: Adaptadores de criptografia, e-mail e storage
@@ -139,6 +141,7 @@ T8 → T25
 T20 → T25
 T22 → T25
 T24 → T25
+T33 → T25
 T9 → T26
 T24 → T26
 T10 → T27
@@ -697,6 +700,34 @@ T28 → T32
 
 ---
 
+### T33: Transação atômica em `CriarEmpresaUseCase` — `User` + `Empresa`
+
+**What**: `criar-empresa.ts` grava `User` e `Empresa` em duas chamadas Prisma separadas e não-transacionais (`UserRepository.create` seguido de `EmpresaRepository.create`). O Verifier independente da Fase 3 (`validation-fase3.md`, GAP 2) confirmou que, contra Postgres real, uma corrida de CNPJ pode deixar um `usuario` órfão com e-mail permanentemente ocupado — o branch de reaproveitamento em `criar-empresa.ts` exige uma `Empresa` `REJEITADA` existente para recuperar, o que não existe nesse cenário. Introduzir um boundary de transação cobrindo as duas escritas como unidade atômica: se a escrita de `Empresa` falhar, a de `User` reverte junto. Mecanismo: porta `UnitOfWork` (`abstract class UnitOfWork { executar<T>(job: () => Promise<T>): Promise<T> }`) em `application/ports/`, implementada via `PrismaService.$transaction`; os adaptadores `PrismaUserRepository`/`PrismaEmpresaRepository` (T17) passam a participar da transação corrente ao gravar dentro de um `executar(...)` (mecanismo de propagação — `AsyncLocalStorage` ou parâmetro explícito de cliente — é decisão de implementação); `InMemoryUnitOfWork` roda o `job` direto (os repositórios em memória já são atômicos por processo, então `criar-empresa.spec.ts` não muda de comportamento). `CriarEmpresaUseCase` passa a envolver as duas escritas num único `unitOfWork.executar(...)`.
+**Where**: `api/src/domain/fivo/application/ports/unit-of-work.ts` (porta nova), `api/src/infra/database/prisma/prisma-unit-of-work.ts` (adaptador), `api/test/repositories/in-memory-unit-of-work.ts` (double), `api/src/domain/fivo/application/use-cases/criar-empresa.ts` (orquestração)
+**Depends on**: T8, T17
+**Reuses**: `PrismaService` (T15), `PrismaUserRepository`/`PrismaEmpresaRepository` (T17), `CriarEmpresaUseCase` (T8)
+**Requirement**: EMP-01, EMP-02 (edge case de concorrência de CNPJ/e-mail)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `UnitOfWork` declarada como `abstract class` sem dependência de infra (ESLint de `src/domain/**` passa)
+- [ ] `PrismaUnitOfWork` usa `PrismaService.$transaction`; a transação só comita se as duas escritas (`User` + `Empresa`) tiverem sucesso
+- [ ] `CriarEmpresaUseCase` usa `unitOfWork.executar` para as duas escritas; `criar-empresa.spec.ts` (unit, com `InMemoryUnitOfWork`) continua verde, sem enfraquecer nenhuma asserção existente
+- [ ] e2e novo contra Postgres real força a escrita de `Empresa` a falhar depois da de `User` (ex. CNPJ duplicado injetado entre as duas chamadas) → nenhuma linha `usuario` sobrevive; o e-mail volta a ficar disponível para novo cadastro
+- [ ] e2e de corrida: duas chamadas ao caso de uso com o mesmo CNPJ em paralelo (`Promise.all`) → exatamente um sucesso, nenhum `usuario` órfão no banco ao final
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 3 testes novos (unit de `criar-empresa.spec.ts` confirmado inalterado + 2 e2e) passam
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `fix(api): transação atômica para criação de usuário e empresa`
+
+---
+
 ### T19: `CryptographyModule` — hash e gerador de token opaco
 
 **What**: `Argon2Hasher implements Hasher` (`hash`/`compare`, argon2id; fallback `bcrypt` é aceito por EMP-01 AC7) e `GeradorTokenOpaco` (`gerar(): string` base64url ≥ 256 bits, `sha256(token): string`). `CryptographyModule` provê `Hasher` e `GeradorTokenOpaco`.
@@ -861,8 +892,8 @@ T28 → T32
 
 **What**: `POST /empresas` (multipart: dados + `logo`, `@Public`) → o controller chama `ArquivoService.uploadImagem` para o logo (se veio) e depois `CriarEmpresaUseCase` com o `arquivoId`; 201 `{ id }`. `GET /empresas/me` (`@Roles(EMPRESA)`) → dados da própria empresa, 403 para recurso de outra. DTOs `zod`. Registrar controller + fiação de DI dos casos de uso → adaptadores no `HttpModule`/`AppModule`.
 **Where**: `api/src/infra/http/`
-**Depends on**: T8, T20, T22, T24
-**Reuses**: `CriarEmpresaUseCase` (T8), `Mailer` (T20), `ArquivoService` (T22), guards (T24)
+**Depends on**: T8, T20, T22, T24, T33
+**Reuses**: `CriarEmpresaUseCase` (T8), `Mailer` (T20), `ArquivoService` (T22), guards (T24), `UnitOfWork` (T33)
 **Requirement**: EMP-01, EMP-02, EMP-03, EMP-06
 
 **Tools**:
@@ -1115,6 +1146,8 @@ T9 → T17
 T15 → T18
 T16 → T18
 T7 → T18
+T8 → T33
+T17 → T33
 T15 → T19
 T15 → T20
 T15 → T21
@@ -1130,6 +1163,7 @@ T8 → T25
 T20 → T25
 T22 → T25
 T24 → T25
+T33 → T25
 T9 → T26
 T24 → T26
 T10 → T27
@@ -1149,11 +1183,13 @@ T27 → T31
 T28 → T32
 ```
 
-Ordem de execução (prosa): Fase 1 `T1 … T7` (T2 antes de T4; o resto sem ordem forçada) · Fase 2 `T8 → T9 → T10 → T11 → T12 → T13` · Fase 3 `T14 → T15 → T16 → T17 → T18` · Fase 4 `T19 → T20 → T21 → T22` · Fase 5 `T23 → T24 → T25 → T26 → T27 → T28 → T29` · Fase 6 `T30 → T31 → T32`.
+Ordem de execução (prosa): Fase 1 `T1 … T7` (T2 antes de T4; o resto sem ordem forçada) · Fase 2 `T8 → T9 → T10 → T11 → T12 → T13` · Fase 3 `T14 → T15 → T16 → T17 → T18 → T33` · Fase 4 `T19 → T20 → T21 → T22` · Fase 5 `T23 → T24 → T25 → T26 → T27 → T28 → T29` · Fase 6 `T30 → T31 → T32`.
 
 Execução estritamente sequencial — sem paralelismo intra-fase.
 
-**Batches previstos para o Execute** (~7 tasks/worker, fases inteiras): Fase 1 (7) → batch 1; Fase 2 (6) → batch 2; Fases 3+4 (9) → batch 3; Fase 5 (7) → batch 4; Fase 6 (3) → batch 5. Verifier ao final. As Fases 1–2 fecham a regra de negócio e podem ser executadas e verificadas isoladamente antes de qualquer trabalho de infra.
+**Batches previstos para o Execute** (~7 tasks/worker, fases inteiras): Fase 1 (7) → batch 1; Fase 2 (6) → batch 2; Fases 3+4 (10, incl. T33) → batch 3; Fase 5 (7) → batch 4; Fase 6 (3) → batch 5. Verifier ao final. As Fases 1–2 fecham a regra de negócio e podem ser executadas e verificadas isoladamente antes de qualquer trabalho de infra.
+
+> **T33 adicionada em 2026-09-18** após a validação da Fase 3 (`validation-fase3.md`, GAP 2 escalado) — ver AD-019 em `STATE.md`. Bloqueia T25; T14–T18 e o restante das Fases 4–6 não foram renumeradas.
 
 ---
 
@@ -1179,6 +1215,7 @@ Execução estritamente sequencial — sem paralelismo intra-fase.
 | T16 | helpers de teste + 1 smoke | ⚠️ OK (coeso) |
 | T17 | 2 adaptadores + mappers — mesma fatia (repos de identidade) | ⚠️ OK (coeso) |
 | T18 | 3 adaptadores pequenos e quase idênticos | ⚠️ OK (coeso) |
+| T33 | 1 porta nova + 1 adaptador + 1 double + orquestração no caller — uma preocupação (boundary de transação) | ⚠️ OK (coeso) |
 | T19 | 1 módulo, 2 providers coesos | ⚠️ OK (coeso) |
 | T20 | 1 módulo, 1 adaptador | ✅ Granular |
 | T21 | 1 módulo, 1 adaptador | ✅ Granular |
@@ -1215,13 +1252,14 @@ Nenhuma task cria múltiplos componentes não relacionados. T3, T4 e T7 concentr
 | T16 | T15 | T15→T16 | ✅ |
 | T17 | T15, T16, T8, T9 | T15→T17, T16→T17, T8→T17, T9→T17 | ✅ |
 | T18 | T15, T16, T7 | T15→T18, T16→T18, T7→T18 | ✅ |
+| T33 | T8, T17 | T8→T33, T17→T33 | ✅ |
 | T19 | T15 | T15→T19 | ✅ |
 | T20 | T15 | T15→T20 | ✅ |
 | T21 | T15 | T15→T21 | ✅ |
 | T22 | T5, T21, T17 | T5→T22, T21→T22, T17→T22 | ✅ |
 | T23 | T6, T16 | T6→T23, T16→T23 | ✅ |
 | T24 | T18, T19, T23 | T18→T24, T19→T24, T23→T24 | ✅ |
-| T25 | T8, T20, T22, T24 | T8→T25, T20→T25, T22→T25, T24→T25 | ✅ |
+| T25 | T8, T20, T22, T24, T33 | T8→T25, T20→T25, T22→T25, T24→T25, T33→T25 | ✅ |
 | T26 | T9, T24 | T9→T26, T24→T26 | ✅ |
 | T27 | T10, T11, T24 | T10→T27, T11→T27, T24→T27 | ✅ |
 | T28 | T22, T24 | T22→T28, T24→T28 | ✅ |
@@ -1251,6 +1289,7 @@ Toda dependência aponta para trás (fase anterior) ou para uma task anterior na
 | T16 | harness e2e + smoke | e2e | e2e | ✅ |
 | T17 | adaptador Prisma + mapper | e2e | e2e | ✅ |
 | T18 | adaptador Prisma + mapper | e2e | e2e | ✅ |
+| T33 | boundary de transação c/ Prisma (`UnitOfWork`) | e2e | e2e | ✅ |
 | T19 | adaptador sem I/O de rede/DB (hash/token) | unit | unit | ✅ |
 | T20 | adaptador de mail (log) | unit | unit | ✅ |
 | T21 | adaptador de disco (I/O local) | unit | unit | ✅ |
@@ -1269,8 +1308,8 @@ Nenhuma violação. `Tests: none` só nas layers que a matrix marca como `none` 
 
 | Requirement ID | Tasks |
 | -------------- | ----- |
-| EMP-01 | T3, T5, T7, T8, T14, T16, T20, T25, T31 |
-| EMP-02 | T1, T2, T6, T8, T23, T25 |
+| EMP-01 | T3, T5, T7, T8, T14, T16, T20, T25, T31, T33 |
+| EMP-02 | T1, T2, T6, T8, T23, T25, T33 |
 | EMP-03 | T5, T7, T21, T22, T25, T28 |
 | EMP-04 | T10, T20, T27, T31 |
 | EMP-05 | T3, T10, T11, T23, T27 |
