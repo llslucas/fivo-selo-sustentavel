@@ -206,6 +206,12 @@ export class Empresa extends Entity<EmpresaProps> {
     return right(void 0);
   }
 
+  limparTrocaDeEmail(): void {
+    this._props.emailPendente = null;
+    this._props.tokenTrocaEmailHash = null;
+    this._props.updatedAt = new Date();
+  }
+
   estaAprovada(): boolean {
     return this._props.status === EmpresaStatus.APROVADA;
   }

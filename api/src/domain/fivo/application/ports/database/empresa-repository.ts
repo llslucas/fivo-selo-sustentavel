@@ -6,6 +6,7 @@ export abstract class EmpresaRepository {
   abstract findById(id: string): Promise<Empresa | null>;
   abstract findByCnpj(cnpj: string): Promise<Empresa | null>;
   abstract findByUsuarioId(usuarioId: string): Promise<Empresa | null>;
+  abstract findByTokenTrocaEmailHash(hash: string): Promise<Empresa | null>;
   abstract listarPorEstado(
     estado: string,
     ordem: OrdenacaoListaEmpresa,

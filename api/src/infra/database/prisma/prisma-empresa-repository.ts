@@ -47,6 +47,14 @@ export class PrismaEmpresaRepository implements EmpresaRepository {
     return empresa ? PrismaEmpresaMapper.toDomain(empresa) : null;
   }
 
+  async findByTokenTrocaEmailHash(hash: string): Promise<Empresa | null> {
+    const empresa = await this.prisma.empresa.findFirst({
+      where: { tokenTrocaEmailHash: hash },
+    });
+
+    return empresa ? PrismaEmpresaMapper.toDomain(empresa) : null;
+  }
+
   async listarPorEstado(
     estado: string,
     ordem: OrdenacaoListaEmpresa,

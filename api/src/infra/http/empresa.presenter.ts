@@ -7,6 +7,7 @@ export function empresaParaResposta(empresa: Empresa, email: string) {
     nomeFantasia: empresa.nomeFantasia,
     cnpj: empresa.cnpj.valor,
     email,
+    emailPendente: empresa.emailPendente ?? null,
     telefone: empresa.telefone,
     cep: empresa.cep,
     logradouro: empresa.logradouro,

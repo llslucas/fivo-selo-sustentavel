@@ -2,8 +2,10 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Logger,
   NotFoundException,
+  Patch,
   Post,
   ServiceUnavailableException,
   UploadedFile,
@@ -14,7 +16,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { StorageIndisponivelError } from '@domain/fivo/application/errors/storage-indisponivel-error';
 import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
 import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
+import { ConfirmarTrocaEmailUseCase } from '@domain/fivo/application/use-cases/confirmar-troca-email';
 import { CriarEmpresaUseCase } from '@domain/fivo/application/use-cases/criar-empresa';
+import { EditarDadosEmpresaUseCase } from '@domain/fivo/application/use-cases/editar-dados-empresa';
 import { TipoArquivo } from '@domain/fivo/entities/arquivo';
 import { UserRole } from '@domain/fivo/entities/user';
 import { ArquivoService } from '@infra/arquivo/arquivo.service';
@@ -25,6 +29,16 @@ import type { UsuarioAutenticado } from '@infra/auth/usuario-autenticado';
 
 import { criarEmpresaSchema } from './cadastro-empresa.dto';
 import type { CriarEmpresaDto } from './cadastro-empresa.dto';
+import {
+  confirmarEmailSchema,
+  editarEmpresaSchema,
+  trocarEmailSchema,
+} from './edicao-empresa.dto';
+import type {
+  ConfirmarEmailDto,
+  EditarEmpresaDto,
+  TrocarEmailDto,
+} from './edicao-empresa.dto';
 import { desembrulhar } from './desembrulhar';
 import { empresaParaResposta } from './empresa.presenter';
 import { ZodValidationPipe } from './zod-validation.pipe';
@@ -44,6 +58,8 @@ export class CadastroEmpresaController {
 
   constructor(
     private readonly criarEmpresa: CriarEmpresaUseCase,
+    private readonly editarDados: EditarDadosEmpresaUseCase,
+    private readonly confirmarTrocaEmail: ConfirmarTrocaEmailUseCase,
     private readonly arquivoService: ArquivoService,
     private readonly empresaRepository: EmpresaRepository,
     private readonly userRepository: UserRepository,
@@ -88,6 +104,67 @@ export class CadastroEmpresaController {
     }
 
     return empresaParaResposta(empresa, user.email);
+  }
+
+  @Roles(UserRole.EMPRESA)
+  @Patch('me')
+  @UseInterceptors(
+    FileInterceptor('logo', { limits: { fileSize: TETO_UPLOAD_BYTES } }),
+  )
+  async editar(
+    @Body(new ZodValidationPipe(editarEmpresaSchema)) dados: EditarEmpresaDto,
+    @CurrentUser() usuario: UsuarioAutenticado,
+    @UploadedFile() logo?: LogoEnviado,
+  ) {
+    const empresaId = await this.idDaEmpresaDe(usuario);
+    const logoArquivoId = logo ? await this.enviarLogo(logo) : undefined;
+
+    try {
+      desembrulhar(
+        await this.editarDados.execute({ empresaId, ...dados, logoArquivoId }),
+      );
+    } catch (erro) {
+      if (logoArquivoId) {
+        await this.descartarLogo(logoArquivoId);
+      }
+
+      throw erro;
+    }
+
+    return this.obterMinha(usuario);
+  }
+
+  @Roles(UserRole.EMPRESA)
+  @Patch('me/email')
+  @HttpCode(202)
+  async trocarEmail(
+    @Body(new ZodValidationPipe(trocarEmailSchema))
+    { novoEmail }: TrocarEmailDto,
+    @CurrentUser() usuario: UsuarioAutenticado,
+  ): Promise<void> {
+    const empresaId = await this.idDaEmpresaDe(usuario);
+
+    desembrulhar(await this.editarDados.execute({ empresaId, novoEmail }));
+  }
+
+  @Public()
+  @Post('me/email/confirmacao')
+  @HttpCode(204)
+  async confirmarEmail(
+    @Body(new ZodValidationPipe(confirmarEmailSchema))
+    { token }: ConfirmarEmailDto,
+  ): Promise<void> {
+    desembrulhar(await this.confirmarTrocaEmail.execute({ token }));
+  }
+
+  private async idDaEmpresaDe(usuario: UsuarioAutenticado): Promise<string> {
+    const empresa = await this.empresaRepository.findByUsuarioId(usuario.id);
+
+    if (!empresa) {
+      throw new NotFoundException('Empresa não encontrada');
+    }
+
+    return empresa.id.toString();
   }
 
   private async enviarLogo(logo: LogoEnviado): Promise<string> {

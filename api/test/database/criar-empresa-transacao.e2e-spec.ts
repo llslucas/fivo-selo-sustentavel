@@ -76,6 +76,8 @@ describe('CriarEmpresaUseCase — transação atômica User + Empresa (e2e)', ()
       findByCnpj: (cnpj) => empresaRepository.findByCnpj(cnpj),
       findByUsuarioId: (usuarioId) =>
         empresaRepository.findByUsuarioId(usuarioId),
+      findByTokenTrocaEmailHash: (hash) =>
+        empresaRepository.findByTokenTrocaEmailHash(hash),
       listarPorEstado: (estado, ordem) =>
         empresaRepository.listarPorEstado(estado, ordem),
       save: (empresa) => empresaRepository.save(empresa),

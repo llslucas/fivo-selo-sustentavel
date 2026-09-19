@@ -120,6 +120,11 @@ export class User extends Entity<UserProps> {
     return agora.getTime() < this._props.bloqueadoAte.getTime();
   }
 
+  alterarEmail(email: string): void {
+    this._props.email = email;
+    this._props.updatedAt = new Date();
+  }
+
   registrarLoginOk(): void {
     this._props.bloqueadoAte = null;
     this._props.primeiraFalhaEm = null;

@@ -22,6 +22,7 @@ import { InvalidRuleValueError } from '@domain/fivo/application/errors/invalid-r
 import { MotivoInsuficienteError } from '@domain/fivo/application/errors/motivo-insuficiente.error';
 import { SenhaFracaError } from '@domain/fivo/application/errors/senha-fraca.error';
 import { StorageIndisponivelError } from '@domain/fivo/application/errors/storage-indisponivel-error';
+import { TokenConfirmacaoEmailInvalidoError } from '@domain/fivo/application/errors/token-confirmacao-email-invalido.error';
 import { TokenInvalidoError } from '@domain/fivo/application/errors/token-invalido.error';
 import { TransicaoInvalidaError } from '@domain/fivo/application/errors/transicao-invalida.error';
 import { UserAlreadyExistsError } from '@domain/fivo/application/errors/users-already-exists.error';
@@ -46,6 +47,8 @@ const ERROS_DE_DOMINIO: Record<string, () => Error> = {
   'senha-fraca': () => new SenhaFracaError(),
   'storage-indisponivel': () => new StorageIndisponivelError(),
   'token-invalido': () => new TokenInvalidoError(),
+  'token-confirmacao-email-invalido': () =>
+    new TokenConfirmacaoEmailInvalidoError(),
   'transicao-invalida': () => new TransicaoInvalidaError(),
   'usuario-ja-existe': () => new UserAlreadyExistsError(),
   'credenciais-invalidas': () => new CredenciaisInvalidasError(),
@@ -66,6 +69,7 @@ const STATUS_ESPERADO: Record<string, number> = {
   'senha-fraca': 422,
   'storage-indisponivel': 503,
   'token-invalido': 400,
+  'token-confirmacao-email-invalido': 400,
   'transicao-invalida': 409,
   'usuario-ja-existe': 409,
   'credenciais-invalidas': 401,

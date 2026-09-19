@@ -1003,7 +1003,7 @@ T28 → T32
 ### T29: Rotas P2 — edição cadastral e recuperação de senha
 
 **What**: `PATCH /empresas/me` e `PATCH /empresas/me/email` + `POST /empresas/me/email/confirmacao` (`@Public`, identificada pelo token) → `EditarDadosEmpresaUseCase`; `POST /senha/recuperacao` (202 neutro) e `POST /senha/redefinicao` → os casos de uso de T13. DTOs `zod`.
-**Where**: `api/src/infra/http/`
+**Where**: `api/src/infra/http/` (rotas em `CadastroEmpresaController`, novo `SenhaController`, DTOs zod); domínio necessário para a confirmação de e-mail: `use-cases/confirmar-troca-email.ts`, `errors/token-confirmacao-email-invalido.error.ts`, `Empresa.limparTrocaDeEmail`, `User.alterarEmail`, `EmpresaRepository.findByTokenTrocaEmailHash`
 **Depends on**: T12, T13, T25, T26
 **Reuses**: `EditarDadosEmpresaUseCase` (T12), casos de uso de senha (T13), controllers existentes (T25/T26)
 **Requirement**: EMP-08, EMP-09
@@ -1013,13 +1013,13 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `PATCH /empresas/me` altera nome fantasia/telefone/endereço/logo; `cnpj` → 422
-- [ ] Troca de e-mail mantém o antigo ativo até `POST .../email/confirmacao` com token válido
-- [ ] `POST /senha/recuperacao` → 202 neutro exista ou não a conta
-- [ ] `POST /senha/redefinicao` com token válido → nova senha vale, antiga não, sessões anteriores caem; token inválido/expirado/usado → 400
-- [ ] e2e cobre EMP-08 e EMP-09 e os Independent Tests
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 10 testes e2e passam
+- [x] `PATCH /empresas/me` altera nome fantasia/telefone/endereço/logo; `cnpj` → 422 — `edicao-e-senha.e2e-spec.ts:134` (200 + valores novos, razão social e CNPJ intactos), `:175` (logo novo válido; arquivo anterior permanece: `arquivo.count()` → 2), `:195` (logo < 512×512 → 422, sem trocar nem gravar), `:216` (`cnpj` → 422 "CNPJ não pode ser alterado; solicite ao suporte", nada muda); 401/403 (`:238-239`)
+- [x] Troca de e-mail mantém o antigo ativo até `POST .../email/confirmacao` com token válido — `:257-263` (202; `emailPendente` no perfil; login antigo 200, novo 401; `EMAIL_CONFIRMACAO` ao novo endereço), `:289-291` (confirmação 204; login novo 200, antigo 401), `:320` (token inexistente/já usado → 400), `:341` (e-mail tomado nesse meio-tempo → 409). Não havia caso de uso de confirmação: criados `ConfirmarTrocaEmailUseCase` (+ `confirmar-troca-email.spec.ts`, 5 testes), `TokenConfirmacaoEmailInvalidoError` (400), `Empresa.limparTrocaDeEmail`, `User.alterarEmail` e `EmpresaRepository.findByTokenTrocaEmailHash`
+- [x] `POST /senha/recuperacao` → 202 neutro exista ou não a conta — `:357-359` (`toBe(202)` nos dois; `inexistente.body` `toEqual(existente.body)`; e-mail só para a conta existente)
+- [x] `POST /senha/redefinicao` com token válido → nova senha vale, antiga não, sessões anteriores caem — `:389-393` (204; login novo 200, antigo 401; sessão anterior 401, nova 200); token inválido/expirado/usado → 400 "Link de redefinição inválido ou expirado" (`:430`); senha curta → 422 e o token segue utilizável (`:452-456`)
+- [x] e2e cobre EMP-08 e EMP-09 e os Independent Tests (alterar telefone/logo e recusar CNPJ; recuperar → redefinir → senha antiga morta e sessões encerradas)
+- [x] Gate check passa (nível Build, última task da fase): `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 149 unit + 145 e2e; sensor: 3 mutantes (token de e-mail não limpo, sem checar e-mail ocupado, recuperação não-neutra) mortos
+- [x] Test count: ≥ 10 testes e2e passam — 14 novos e2e (+5 unit do caso de uso de confirmação, +1 caso no teste do filtro)
 
 **Tests**: e2e
 **Gate**: full
