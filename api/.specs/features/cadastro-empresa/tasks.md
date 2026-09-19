@@ -713,13 +713,13 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `UnitOfWork` declarada como `abstract class` sem dependência de infra (ESLint de `src/domain/**` passa)
-- [ ] `PrismaUnitOfWork` usa `PrismaService.$transaction`; a transação só comita se as duas escritas (`User` + `Empresa`) tiverem sucesso
-- [ ] `CriarEmpresaUseCase` usa `unitOfWork.executar` para as duas escritas; `criar-empresa.spec.ts` (unit, com `InMemoryUnitOfWork`) continua verde, sem enfraquecer nenhuma asserção existente
-- [ ] e2e novo contra Postgres real força a escrita de `Empresa` a falhar depois da de `User` (ex. CNPJ duplicado injetado entre as duas chamadas) → nenhuma linha `usuario` sobrevive; o e-mail volta a ficar disponível para novo cadastro
-- [ ] e2e de corrida: duas chamadas ao caso de uso com o mesmo CNPJ em paralelo (`Promise.all`) → exatamente um sucesso, nenhum `usuario` órfão no banco ao final
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 3 testes novos (unit de `criar-empresa.spec.ts` confirmado inalterado + 2 e2e) passam
+- [x] `UnitOfWork` declarada como `abstract class` sem dependência de infra (ESLint de `src/domain/**` passa) — `ports/unit-of-work.ts`
+- [x] `PrismaUnitOfWork` usa `PrismaService.$transaction`; a transação só comita se as duas escritas (`User` + `Empresa`) tiverem sucesso — propagação via `AsyncLocalStorage` (`PrismaTransactionContext`); sensor: com o boundary desligado os 2 e2e falham
+- [x] `CriarEmpresaUseCase` usa `unitOfWork.executar` para as duas escritas; `criar-empresa.spec.ts` continua verde (só a construção do SUT ganhou o `InMemoryUnitOfWork`; nenhuma asserção alterada)
+- [x] e2e novo contra Postgres real força a escrita de `Empresa` a falhar depois da de `User` → nenhuma linha `usuario` sobrevive; o e-mail volta a ficar disponível — `criar-empresa-transacao.e2e-spec.ts` (1º teste: `expect(await contexto.prisma.usuario.count()).toBe(0)`, novo cadastro `isRight()`)
+- [x] e2e de corrida: duas chamadas com o mesmo CNPJ em paralelo → exatamente um sucesso, nenhum `usuario` órfão — 2º teste: `expect([...classificados].sort()).toEqual(['conflito','sucesso'])`, `usuario.count()` → `1`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 39 e2e
+- [x] Test count: ≥ 3 testes novos (unit de `criar-empresa.spec.ts` confirmado inalterado + 2 e2e) passam — 144 unit inalterados + 2 e2e novos
 
 **Tests**: e2e
 **Gate**: full

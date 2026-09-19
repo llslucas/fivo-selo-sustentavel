@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 import { EmpresaAlreadyExistsError } from '@domain/fivo/application/errors/empresa-already-exists.error';
 import {
@@ -12,11 +13,19 @@ import {
   PrismaEmpresaMapper,
   statusParaPrisma,
 } from './mappers/prisma-empresa-mapper';
+import { PrismaTransactionContext } from './prisma-transaction-context';
 import { PrismaService } from './prisma.service';
 
 @Injectable()
 export class PrismaEmpresaRepository implements EmpresaRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly contexto: PrismaTransactionContext,
+  ) {}
+
+  private get db(): Prisma.TransactionClient {
+    return this.contexto.atual() ?? this.prisma;
+  }
 
   async findById(id: string): Promise<Empresa | null> {
     const empresa = await this.prisma.empresa.findUnique({ where: { id } });
@@ -44,7 +53,7 @@ export class PrismaEmpresaRepository implements EmpresaRepository {
 
   async create(empresa: Empresa): Promise<void> {
     try {
-      await this.prisma.empresa.create({
+      await this.db.empresa.create({
         data: PrismaEmpresaMapper.toPrisma(empresa),
       });
     } catch (erro) {
@@ -60,7 +69,7 @@ export class PrismaEmpresaRepository implements EmpresaRepository {
 
   async save(empresa: Empresa): Promise<void> {
     try {
-      await this.prisma.empresa.update({
+      await this.db.empresa.update({
         where: { id: empresa.id.toString() },
         data: PrismaEmpresaMapper.toPrisma(empresa),
       });

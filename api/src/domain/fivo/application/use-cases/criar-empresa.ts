@@ -13,6 +13,7 @@ import { Hasher } from '../ports/cryptography/hasher';
 import { EmpresaRepository } from '../ports/database/empresa-repository';
 import { UserRepository } from '../ports/database/user-repository';
 import { Mailer, TemplateEmail } from '../ports/mailer';
+import { UnitOfWork } from '../ports/unit-of-work';
 
 interface CriarEmpresaUseCaseRequest {
   razaoSocial: string;
@@ -50,6 +51,7 @@ export class CriarEmpresaUseCase {
     private readonly empresaRepository: EmpresaRepository,
     private readonly hasher: Hasher,
     private readonly mailer: Mailer,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   async execute({
@@ -143,13 +145,15 @@ export class CriarEmpresaUseCase {
       empresaReaproveitavel?.id,
     );
 
-    if (empresaReaproveitavel) {
-      await this.userRepository.save(user);
-      await this.empresaRepository.save(empresa);
-    } else {
-      await this.userRepository.create(user);
-      await this.empresaRepository.create(empresa);
-    }
+    await this.unitOfWork.executar(async () => {
+      if (empresaReaproveitavel) {
+        await this.userRepository.save(user);
+        await this.empresaRepository.save(empresa);
+      } else {
+        await this.userRepository.create(user);
+        await this.empresaRepository.create(empresa);
+      }
+    });
 
     try {
       await this.mailer.enviar({
