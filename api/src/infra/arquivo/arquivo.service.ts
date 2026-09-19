@@ -92,6 +92,17 @@ export class ArquivoService {
     };
   }
 
+  async remover(id: string): Promise<void> {
+    const registro = await this.prisma.arquivo.findUnique({ where: { id } });
+
+    if (!registro) {
+      return;
+    }
+
+    await this.prisma.arquivo.delete({ where: { id } });
+    await this.storage.remover(registro.chaveStorage);
+  }
+
   private sniffarMime(buffer: Buffer): string {
     if (buffer.subarray(0, PNG_MAGIC.length).equals(PNG_MAGIC)) {
       return 'image/png';

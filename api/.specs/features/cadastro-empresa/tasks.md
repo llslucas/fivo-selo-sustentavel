@@ -891,7 +891,7 @@ T28 → T32
 ### T25: `CadastroEmpresaController` — autocadastro e dados próprios
 
 **What**: `POST /empresas` (multipart: dados + `logo`, `@Public`) → o controller chama `ArquivoService.uploadImagem` para o logo (se veio) e depois `CriarEmpresaUseCase` com o `arquivoId`; 201 `{ id }`. `GET /empresas/me` (`@Roles(EMPRESA)`) → dados da própria empresa, 403 para recurso de outra. DTOs `zod`. Registrar controller + fiação de DI dos casos de uso → adaptadores no `HttpModule`/`AppModule`.
-**Where**: `api/src/infra/http/`
+**Where**: `api/src/infra/http/` (controller, DTO zod, presenter, `desembrulhar`); extras necessários: `EmpresaRepository.findByUsuarioId` (porta + Prisma + in-memory, para `GET /empresas/me`), `ArquivoService.remover` (descarta o logo órfão quando o cadastro falha depois do upload) e `ArquivoModule`
 **Depends on**: T8, T20, T22, T24, T33
 **Reuses**: `CriarEmpresaUseCase` (T8), `Mailer` (T20), `ArquivoService` (T22), guards (T24), `UnitOfWork` (T33)
 **Requirement**: EMP-01, EMP-02, EMP-03, EMP-06
@@ -901,13 +901,13 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `POST /empresas` com dados válidos → 201 `{ id }`, empresa `PENDENTE_APROVACAO`, senha só como hash
-- [ ] CNPJ inválido → 422 "CNPJ inválido" sem persistir; duplicado → 409; senha < 10 → 422; logo inválido → 422 com o limite; storage fora → 503
-- [ ] Falha de e-mail → 201 mesmo assim
-- [ ] `GET /empresas/me` → dados próprios; recurso de outra empresa → 403
-- [ ] e2e cobre todos os ACs de EMP-01/02/03 e o Independent Test
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 12 testes e2e passam
+- [x] `POST /empresas` com dados válidos → 201 `{ id }`, empresa `PENDENTE_APROVACAO`, senha só como hash — `cadastro-empresa.e2e-spec.ts:122` (`toBe(201)`), `:129` (`PENDENTE_APROVACAO`), `:133` (`senhaHash` `toMatch(/^\$argon2id\$/)`); logo válido vinculado (`:144`); e-mail `CADASTRO_RECEBIDO` enviado (`:159`)
+- [x] CNPJ inválido → 422 "CNPJ inválido" sem persistir (nem o logo enviado: `:191`); CNPJ/e-mail duplicado → 409 (`:203`, `:215`); senha < 10 → 422 (`:225`); logo inválido → 422 com o limite (formato `:261`, dimensão `:278`, tamanho 5 MB); storage fora → 503 "Não foi possível enviar o logo, tente novamente" (`:294`)
+- [x] Falha de e-mail → 201 mesmo assim — `:172` (`toBe(201)` com `FakeMailer.forceFailure()`; empresa persistida)
+- [x] `GET /empresas/me` → dados próprios; papel de outra área (ADMIN/INSTITUICAO) → 403 (`:378`); sem sessão → 401 (`:365`); cada empresa vê só a própria. A rota não recebe id, então "recurso de outra empresa" se resolve por construção (identidade vem da sessão)
+- [x] e2e cobre todos os ACs de EMP-01/02/03; o Independent Test (empresa pendente na fila do admin) fecha em T27 — aqui a empresa consta `PENDENTE_APROVACAO` no banco e em `GET /empresas/me`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 88 e2e; sensor: 3 mutantes (sem descartar logo órfão, sem `toLowerCase` do e-mail, `/me` aberto a ADMIN) mortos
+- [x] Test count: ≥ 12 testes e2e passam — 19 novos
 
 **Tests**: e2e
 **Gate**: full

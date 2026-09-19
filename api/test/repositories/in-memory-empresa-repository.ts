@@ -17,6 +17,13 @@ export class InMemoryEmpresaRepository implements EmpresaRepository {
     return Promise.resolve(empresa ?? null);
   }
 
+  findByUsuarioId(usuarioId: string): Promise<Empresa | null> {
+    const empresa = this.items.find(
+      (item) => item.usuarioId?.toString() === usuarioId,
+    );
+    return Promise.resolve(empresa ?? null);
+  }
+
   listarPorEstado(
     estado: string,
     ordem: OrdenacaoListaEmpresa,

@@ -1,7 +1,7 @@
 import type { Server } from 'node:http';
 
 import { INestApplication, ModuleMetadata, Type } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import type { Test as RequisicaoSupertest } from 'supertest';
 
 import { AppModule } from '@infra/app.module';
@@ -23,12 +23,16 @@ export async function criarAppDeTeste(
   opcoes: {
     controllers?: Type<unknown>[];
     imports?: ModuleMetadata['imports'];
+    configurar?: (construtor: TestingModuleBuilder) => TestingModuleBuilder;
   } = {},
 ): Promise<AppDeTeste> {
-  const moduleRef = await Test.createTestingModule({
+  const construtor = Test.createTestingModule({
     imports: [AppModule, ...(opcoes.imports ?? [])],
     controllers: opcoes.controllers ?? [],
-  }).compile();
+  });
+  const moduleRef = await (
+    opcoes.configurar?.(construtor) ?? construtor
+  ).compile();
 
   const app = moduleRef.createNestApplication();
   configurarApp(app);

@@ -39,6 +39,14 @@ export class PrismaEmpresaRepository implements EmpresaRepository {
     return empresa ? PrismaEmpresaMapper.toDomain(empresa) : null;
   }
 
+  async findByUsuarioId(usuarioId: string): Promise<Empresa | null> {
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { usuarioId },
+    });
+
+    return empresa ? PrismaEmpresaMapper.toDomain(empresa) : null;
+  }
+
   async listarPorEstado(
     estado: string,
     ordem: OrdenacaoListaEmpresa,

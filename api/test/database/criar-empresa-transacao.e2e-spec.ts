@@ -74,6 +74,8 @@ describe('CriarEmpresaUseCase — transação atômica User + Empresa (e2e)', ()
     const repositorioComConflito: EmpresaRepository = {
       findById: (id) => empresaRepository.findById(id),
       findByCnpj: (cnpj) => empresaRepository.findByCnpj(cnpj),
+      findByUsuarioId: (usuarioId) =>
+        empresaRepository.findByUsuarioId(usuarioId),
       listarPorEstado: (estado, ordem) =>
         empresaRepository.listarPorEstado(estado, ordem),
       save: (empresa) => empresaRepository.save(empresa),
