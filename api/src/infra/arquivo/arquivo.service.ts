@@ -92,6 +92,21 @@ export class ArquivoService {
     };
   }
 
+  async buscarAcesso(
+    id: string,
+  ): Promise<{ donoUsuarioId: string | null } | null> {
+    const registro = await this.prisma.arquivo.findUnique({
+      where: { id },
+      select: { empresas: { select: { usuarioId: true } } },
+    });
+
+    if (!registro) {
+      return null;
+    }
+
+    return { donoUsuarioId: registro.empresas[0]?.usuarioId ?? null };
+  }
+
   async remover(id: string): Promise<void> {
     const registro = await this.prisma.arquivo.findUnique({ where: { id } });
 

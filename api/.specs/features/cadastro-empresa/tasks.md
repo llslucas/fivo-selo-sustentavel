@@ -987,11 +987,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Dono/admin → 200 com o `Content-Type` do registro e `nosniff`
-- [ ] Não-dono → 403; id inexistente → 404
-- [ ] Um SVG com script foi rejeitado no upload (T22), então nunca chega aqui — teste confirma o 422 no upload
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 5 testes e2e passam
+- [x] Dono/admin → 200 com o `Content-Type` do registro e `nosniff` — `arquivo.e2e-spec.ts:113-115` (`toBe(200)`, `'image/png'`, `x-content-type-options` `'nosniff'`, bytes idênticos), `:130` (ADMIN em arquivo de outra empresa), `:144-145` (SVG → `image/svg+xml` + `nosniff`)
+- [x] Não-dono → 403 (`:158`; arquivo sem empresa vinculada só ao ADMIN: `:179-180`); id inexistente → 404 (`:191`); sem sessão → 401 (`:197`). A dona do arquivo é resolvida por `empresa.logoArquivoId` (`ArquivoService.buscarAcesso`)
+- [x] Um SVG com script foi rejeitado no upload (T22), então nunca chega aqui — teste confirma o 422 no upload (`:221`, `POST /empresas` com SVG com `<script>`; `arquivo.count()` → 0)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 130 e2e; sensor: mutantes "sem nosniff", "sem checar dono" e "ADMIN sem bypass" mortos (2 falhas cada)
+- [x] Test count: ≥ 5 testes e2e passam — 8 novos
 
 **Tests**: e2e
 **Gate**: full

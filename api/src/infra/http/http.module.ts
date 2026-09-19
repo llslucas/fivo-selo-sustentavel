@@ -14,6 +14,7 @@ import { CryptographyModule } from '@infra/cryptography/cryptography.module';
 import { MailModule } from '@infra/mail/mail.module';
 
 import { AdminEmpresasController } from './admin-empresas.controller';
+import { ArquivoController } from './arquivo.controller';
 import { AutenticacaoController } from './autenticacao.controller';
 import { CadastroEmpresaController } from './cadastro-empresa.controller';
 import { DomainExceptionFilter } from './domain-exception.filter';
@@ -24,6 +25,7 @@ import { DomainExceptionFilter } from './domain-exception.filter';
     CadastroEmpresaController,
     AutenticacaoController,
     AdminEmpresasController,
+    ArquivoController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
