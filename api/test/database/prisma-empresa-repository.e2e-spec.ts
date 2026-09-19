@@ -257,8 +257,9 @@ describe('PrismaEmpresaRepository (e2e)', () => {
     await repository.create(empresa);
     const obsoleta = (await repository.findById(empresa.id.toString()))!;
     const adminId = new UniqueEntityId();
+    const motivo = 'Documentação do CNPJ não confere com a razão social.';
     const decidida = (await repository.findById(empresa.id.toString()))!;
-    decidida.aprovar(adminId);
+    decidida.rejeitar(adminId, motivo);
     await repository.salvarTransicao(
       decidida,
       EmpresaStatus.PENDENTE_APROVACAO,
@@ -267,8 +268,10 @@ describe('PrismaEmpresaRepository (e2e)', () => {
     await repository.save(obsoleta);
 
     const final = await repository.findById(empresa.id.toString());
-    expect(final!.status).toBe(EmpresaStatus.APROVADA);
+    expect(final!.status).toBe(EmpresaStatus.REJEITADA);
     expect(final!.decididoPor?.toString()).toBe(adminId.toString());
+    expect(final!.decididoEm?.getTime()).toBe(decidida.decididoEm!.getTime());
+    expect(final!.motivoDecisao).toBe(motivo);
   });
 
   it('create com CNPJ já cadastrado falha com EmpresaAlreadyExistsError (409)', async () => {

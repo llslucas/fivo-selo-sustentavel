@@ -369,3 +369,164 @@ GAP 1 (MA ✅), GAP 2 (MC/MC2 ✅), GAP 3 (MD ✅), GAP 4 (ME/MF ✅), GAP 6 (MB
 ## Correções pós-re-verificação 1 (iteração 2)
 
 GAP A: `PrismaEmpresaRepository.save` grava só as colunas cadastrais; `status`, `decididoPor`, `decididoEm` e `motivoDecisao` mudam apenas por `salvarTransicao` (CAS). e2e `PATCH /empresas/me` × suspensão (24 rodadas) e teste de repositório de que `save` com leitura obsoleta não desfaz a decisão; o sensor com o `save` antigo derruba 2 testes. O teste "save persiste a transição" foi migrado para `salvarTransicao` mantendo as asserções (o contrato antigo era o defeito). GAP B: `EmailPendenteWorker.executar` coberto por e2e. GAP C segue como precisão de spec. Gate: 150 unit, 175 e2e. Veredito segue **FAIL** até a re-verificação 2.
+
+---
+
+# Re-verificação 2
+
+**Date**: 2026-09-19
+**Diff range**: `d5c328b..HEAD` (`6ef2e5a`) — 5 commits (`f247cda`, `89ee2d8`, `770ff6a`, `c79994a`, `6ef2e5a`)
+**Verifier**: sub-agente independente (author ≠ verifier); nenhuma linha de código/teste do tree real foi alterada
+**Escopo**: (a) confirmar sob mutação o fechamento do GAP A; (b) varredura adversarial por qualquer outro caminho que regrave estado a partir de leitura obsoleta; (c) conferir que a migração `save → salvarTransicao` no teste de repositório não enfraqueceu asserções; (d) gate completo
+
+## Veredito
+
+# ❌ FAIL
+
+**O blocker (GAP A) está fechado, com evidência forte.** `PrismaEmpresaRepository.save` não escreve mais `status`/`decididoPor`/`decididoEm`/`motivoDecisao`; a corrida que antes desfazia 8 de 30 suspensões agora termina **sempre** `SUSPENSA` (24 rodadas por execução, 5 execuções) e o mutante de reversão morre **5/5, de forma determinística**, tanto no e2e de corrida quanto num teste de repositório sem corrida. Nenhum outro caminho de regrava de estado sobrou. O gate passa inteiro (325 testes).
+
+O FAIL restante é de **discriminação, não de defeito**: das 4 colunas que o `save` passou a proteger, só 2 (`status` e `decididoPor`) têm asserção. Mutantes que reintroduzem a regravação de `decididoEm` ou de `motivoDecisao` **sobrevivem à suíte e2e inteira** — a mesma classe de buraco (“proteção sem rede”) que produziu o GAP A na iteração anterior. Nenhum blocker; a correção é acrescentar 2 `expect` ao teste de repositório já existente.
+
+## Isolamento
+
+- Worktree: `git worktree add /tmp/sensor-f6-rv2 HEAD --detach`; `node_modules` por symlink, `.env` copiado; **nunca `git stash`**
+- Postgres de teste `localhost:5433` compartilhado; `maxWorkers: 1` (default de `test/jest-e2e.json`); **nenhuma suíte em paralelo**
+- Descarte: `git worktree remove --force /tmp/sensor-f6-rv2` + `git worktree prune`; `/tmp` sem resíduo
+- `git status --porcelain` do tree real: **vazio antes e depois**; `HEAD` segue `6ef2e5a` → isolamento confirmado
+
+## (d) Gate Check
+
+| Comando | Resultado |
+| --- | --- |
+| `npx tsc -p tsconfig.json --noEmit` | ✅ exit 0 |
+| `npx eslint "{src,test}/**/*.ts"` | ✅ exit 0, 0 problemas |
+| `npx jest` (unit) | ✅ 29 suítes, **150 passed**, 0 failed, 0 skipped, 4,0 s |
+| `npx jest --config ./test/jest-e2e.json` | ✅ 18 suítes, **175 passed**, 0 failed, 0 skipped, 63,3 s |
+
+**Total**: 325 testes (era 322) — **+3 e2e**, 0 unit: `concorrencia.e2e-spec.ts:208` (edição × suspensão), `prisma-empresa-repository.e2e-spec.ts:255` (`save` com leitura obsoleta), `email-pendente.e2e-spec.ts:266` (`EmailPendenteWorker.executar`). Nenhum teste removido.
+
+## (a) Sensor — o mutante “`save` volta a gravar a linha inteira”
+
+Correção sob verificação: `src/infra/database/prisma/prisma-empresa-repository.ts:86-105` — `save` destrutura `PrismaEmpresaMapper.toPrisma(empresa)` e descarta `status`, `decididoPor`, `decididoEm`, `motivoDecisao` (`:90-92`), gravando só `...cadastrais` (`:96`). `salvarTransicao` (`:107-120`) segue gravando a linha inteira sob CAS (`where: { id, status: estadoEsperado }`, `count === 1`).
+
+| # | Mutação (no worktree) | Suítes / execuções | Killed? |
+| - | --------------------- | ------------------ | ------- |
+| **MG** | `save` → `data: PrismaEmpresaMapper.toPrisma(empresa)` (reversão integral, o defeito do GAP A) | `concorrencia.e2e` + `prisma-empresa-repository.e2e` **×5** | ✅ **Killed 5/5** — 2 testes falham em **todas** as execuções |
+| **MH** | mantém a exclusão só de `status`; volta a gravar `decididoPor`/`decididoEm`/`motivoDecisao` | idem **×3** | ✅ **Killed 3/3** — `decididoPor` discrimina sozinho |
+| **MI** | volta a gravar **só** `motivoDecisao` | **suíte e2e inteira** (18 suítes, 175 testes) | ❌ **SURVIVED** |
+| **MI2** | volta a gravar **só** `decididoEm` | `concorrencia` + `prisma-empresa-repository` + `admin-empresas` (37 testes) | ❌ **SURVIVED** |
+| **MK** | `EmailPendenteWorker.executar` não chama `fila.drenar()` | `email-pendente.e2e` | ✅ **Killed** (`email-pendente.e2e-spec.ts:266-278`) |
+| **MJ** | remove o guard de reentrância `if (this.emExecucao) return` (`email-pendente.worker.ts:33-35`) | `email-pendente.e2e` | ❌ **SURVIVED** |
+
+**Resultado**: 6 mutantes — **3 killed (2 determinísticos, 5/5 e 3/3), 3 survived**.
+
+Falhas exatas do MG (idênticas nas 5 execuções):
+
+```
+● Concorrência … › edição cadastral concorrente com suspensão → a suspensão nunca é desfeita
+  Expected: "SUSPENSA"   Received: "APROVADA"      test/http/concorrencia.e2e-spec.ts:240
+● PrismaEmpresaRepository (e2e) › save não sobrescreve estado nem decisão gravados por outra transição
+  Expected: "APROVADA"   Received: "PENDENTE_APROVACAO"   test/database/prisma-empresa-repository.e2e-spec.ts:270
+```
+
+**Estabilidade**: o kill **não depende de timing**. `prisma-empresa-repository.e2e-spec.ts:255-272` é sequencial (`create` → `findById` obsoleta → `salvarTransicao` → `save(obsoleta)` → `findById`), sem `Promise.all`; ele mata MG e MH sozinho, 100% das vezes. O e2e de corrida (`concorrencia.e2e-spec.ts:208-244`, `RODADAS_DE_CORRIDA * 3` = **24 rodadas**) é a rede redundante e também falhou em 5/5 — nenhuma flakiness observada em nenhuma das 8 execuções da suíte.
+
+### Evidência `file:line` da correção
+
+| Item | `file:line` | Conteúdo |
+| --- | --- | --- |
+| Colunas de decisão fora do `save` | `src/infra/database/prisma/prisma-empresa-repository.ts:90-92` | `const { status, decididoPor, decididoEm, motivoDecisao, ...cadastrais } = PrismaEmpresaMapper.toPrisma(empresa)` |
+| Update restrito | `prisma-empresa-repository.ts:94-97` | `db.empresa.update({ where: { id }, data: cadastrais })` |
+| CAS intacto | `prisma-empresa-repository.ts:111-119` | `updateMany({ where: { id, status: statusParaPrisma(estadoEsperado) }, … })` → `count === 1` |
+| e2e da corrida | `test/http/concorrencia.e2e-spec.ts:235-242` | `edicao=200`, `suspensao=204`, `final.status === SUSPENSA`, `final.decididoPor).not.toBeNull()`, `registroAuditoria.count() === 1`, 24 rodadas |
+| Teste determinístico | `test/database/prisma-empresa-repository.e2e-spec.ts:267-271` | `save(obsoleta)` → `status === APROVADA` e `decididoPor === adminId` |
+
+## (b) Varredura adversarial — outros caminhos de regrava de estado
+
+`grep -rn "empresa\.(update|updateMany|upsert|create|deleteMany)|\$executeRaw" src/` → **todas** as escritas na tabela `empresa` saem de `PrismaEmpresaRepository` (`:72` `create`, `:94` `update`, `:111` `updateMany`). Não há SQL cru nem outro caminho.
+
+`grep -rn "empresaRepository\.(save|salvarTransicao|create)" src/` → 8 chamadas:
+
+| Caminho | `file:line` | Método | Estado regravado a partir de leitura obsoleta? |
+| --- | --- | --- | --- |
+| aprovar | `aprovar-empresa.ts:48` | `salvarTransicao` | Não — CAS |
+| rejeitar | `rejeitar-empresa.ts:53` | `salvarTransicao` | Não — CAS |
+| suspender | `suspender-empresa.ts:44` | `salvarTransicao` | Não — CAS |
+| reativar | `reativar-empresa.ts:44` | `salvarTransicao` | Não — CAS |
+| re-cadastro | `criar-empresa.ts:151-159` | `salvarTransicao(empresa, REJEITADA)` dentro do `unitOfWork`, com `throw EmpresaAlreadyExistsError` se `!aplicada` | Não — CAS; perdedor desfaz a escrita do usuário |
+| cadastro novo | `criar-empresa.ts:162` | `create` | Não — INSERT; unicidade no banco vira 409 |
+| edição de dados | `editar-dados-empresa.ts:117` | `save` | **Não mais** — `empresaAtualizada` ainda *carrega* `status`/`decididoPor`/`decididoEm`/`motivoDecisao` (`:101-104`), mas o repositório os descarta |
+| confirmar troca de e-mail | `confirmar-troca-email.ts:60` | `save` | **Não mais** — mesma proteção; a leitura fora do `unitOfWork` deixou de ser perigosa para estado |
+
+**Upload de logo**: não há caminho próprio de escrita em `empresa`; o logo entra por `logoArquivoId`, coluna cadastral, via `criar-empresa` (`create`) ou `editar-dados-empresa` (`save`) — sem relação com estado. **UnitOfWork** (`prisma-unit-of-work.ts`): só injeta o `TransactionClient` em `PrismaTransactionContext`; não escreve nada nem altera as colunas de decisão. **Conclusão: não há gap real de regrava de estado remanescente.**
+
+Observações residuais (nenhuma é regrava de estado):
+
+- `save` continua sendo um *blind write* de **todas** as colunas cadastrais. Uma `PATCH /empresas/me` concorrente com uma `POST /empresas/troca-email/confirmacao` ainda pode sobrescrever `emailPendente`/`tokenTrocaEmailHash`/`nomeFantasia` a partir de leitura obsoleta. É lost update de dados do próprio dono, entre dois caminhos do mesmo ator — não viola nenhum AC da spec e não desfaz decisão de admin. Fica como dívida, não como gap.
+- `InMemoryEmpresaRepository.save` (`test/repositories/in-memory-empresa-repository.ts`) troca o item inteiro, **incluindo `status`** — o double diverge do contrato novo do `save`, e `salvarTransicao` nele ignora `estadoEsperado` e devolve `true` sempre. Nenhum use case depende disso hoje (todas as transições usam `salvarTransicao`), mas a camada unit não consegue detectar uma regressão de contrato. A porta `EmpresaRepository` (`src/domain/fivo/application/ports/database/empresa-repository.ts:15`) também não documenta que `save` não grava estado — só `salvarTransicao` tem docstring.
+- `void [status, decididoPor, decididoEm, motivoDecisao];` (`prisma-empresa-repository.ts:92`) é um contorno de lint para variáveis não usadas. Funciona e é honesto (o comentário acima explica o porquê), mas `ignoreRestSiblings` no ESLint ou um `data` explícito seria mais idiomático. Cosmético.
+- `criar-empresa.ts` no re-cadastro constrói `Empresa.create` sem `createdAt`, então `salvarTransicao` **reseta `criadoEm`**. Parece intencional (a fila de aprovação ordena por `criadoEm`), mas não há teste nem nota; vale confirmar com o autor da spec. Fora do escopo deste blocker.
+
+## (c) Migração do teste de repositório — asserções preservadas
+
+Comparação com `git show d5c328b:api/test/database/prisma-empresa-repository.e2e-spec.ts`:
+
+| Versão | Título | Asserções |
+| --- | --- | --- |
+| `d5c328b` | `save persiste a transição de estado com autor e data da decisão` | `resultado.isRight() === true`; `encontrada!.status === APROVADA`; `encontrada!.decididoPor?.toString() === adminId`; `encontrada!.decididoEm?.getTime() === empresa.decididoEm!.getTime()` |
+| `HEAD` (`:231-253`) | `salvarTransicao persiste a transição de estado com autor e data da decisão` | **as mesmas 4**, nas mesmas formas (`:238`, `:248`, `:249`, `:250-252`) **+ `expect(aplicada).toBe(true)` (`:245`)** |
+
+O corpo mudou só na linha de persistência (`repository.save(empresa)` → `repository.salvarTransicao(empresa, EmpresaStatus.PENDENTE_APROVACAO)`), exatamente como nos 4 use cases. **Nada foi enfraquecido — a migração é estritamente mais forte (+1 asserção)**, e o teste novo de `:255-272` cobre o contrato que o antigo exercitava por acidente. ✅
+
+## Gaps restantes ranqueados
+
+### GAP A — **FECHADO** ✅
+
+`save` não regrava estado; MG morto 5/5 e MH morto 3/3, com um teste determinístico (sem corrida) entre os matadores. A corrida de 8/30 da re-verificação 1 não reproduz mais: `concorrencia.e2e-spec.ts:208-244` passou em 24 rodadas × 8 execuções da suíte.
+
+### GAP D (Minor, novo) — `decididoEm` e `motivoDecisao` protegidos sem rede
+
+- **Evidência**: MI (regrava só `motivoDecisao`) sobreviveu à **suíte e2e inteira, 175 testes**; MI2 (regrava só `decididoEm`) sobreviveu a `concorrencia` + `prisma-empresa-repository` + `admin-empresas` (37 testes). Nenhuma asserção do projeto olha essas duas colunas depois de um `save`.
+- **Impacto**: no mesmo instante de corrida do GAP A (rejeição + `PATCH /empresas/me`), a empresa terminaria `REJEITADA` com `motivoDecisao = null` — a auditoria registra a rejeição e o motivo some, exatamente a divergência auditoria↔estado que o GAP A levantou em EMP-05 AC7 / EMP-04. É o mesmo padrão que gerou o GAP A: proteção correta, zero discriminação.
+- **Fix task**: acrescentar 2 asserções ao teste que já existe — em `test/database/prisma-empresa-repository.e2e-spec.ts:269-271`, usar uma empresa **rejeitada com motivo** e asserir `final!.decididoEm?.getTime()` e `final!.motivoDecisao` depois do `save(obsoleta)`.
+- **Done when**: MI e MI2 passam a ser mortos (3/3 execuções).
+
+### GAP B (Minor, parcialmente fechado) — `EmailPendenteWorker`
+
+- **Fechado**: `executar() → drenar()` agora é coberto (`test/http/email-pendente.e2e-spec.ts:266-278`); MK morre.
+- **Aberto**: o guard de reentrância e o `catch` continuam sem cobertura — MJ (remoção de `if (this.emExecucao) return`, `email-pendente.worker.ts:33-35`) **sobreviveu**. Severidade baixa: a reserva por CAS no contador (`email-pendente.service.ts:62-76`) já impede envio duplicado mesmo sem o guard.
+- **Fix task**: unit com `EmailPendenteService` falso — (a) duas chamadas sobrepostas → um só `drenar`; (b) `drenar` rejeitando → `executar()` não propaga e `emExecucao` volta a `false`.
+
+### GAP E (Minor, novo) — double em memória diverge do contrato de `save`
+
+- **Evidência**: `test/repositories/in-memory-empresa-repository.ts` — `save` substitui a entidade inteira (grava `status`) e `salvarTransicao(empresa)` ignora `estadoEsperado` e devolve `true` sempre; a porta (`empresa-repository.ts:15`) não documenta a restrição do `save`.
+- **Impacto**: a camada unit não consegue detectar nem um use case que volte a depender do `save` para mudar estado, nem um CAS que perca. Hoje inofensivo (nenhum use case depende), mas é a via de reentrada do GAP A.
+- **Fix task**: documentar na porta que `save` não altera estado/decisão e alinhar o double (`save` preserva as 4 colunas; `salvarTransicao` compara `estadoEsperado` com o item guardado).
+
+### GAP C (Spec-precision, não bloqueia) — intacto
+
+Inalterado desde a re-verificação 1: escape “na renderização das páginas públicas” é obrigação do `web` (a API só prova round-trip JSON em `conteudo-hostil.e2e-spec.ts:67-93`); a mensagem do 422 de EMP-01 AC6 não é asserida no caminho de cadastro; o Success Criterion de “e-mail em menos de 1 minuto” é incompatível com o primeiro backoff de 60 s + worker de 30 s quando o provedor falha. Todos são edição de spec, não de código.
+
+## Summary
+
+**Overall**: ❌ Not Ready — **iteração 2 de no máximo 3; 0 blockers, 3 minors** (o próximo FAIL deve escalar ao usuário)
+
+**Spec-anchored check**: EMP-05 AC5/AC7 e EMP-04 voltam a ser verdadeiros no caminho de edição concorrente, com citação `file:line` (`concorrencia.e2e-spec.ts:235-242`, `prisma-empresa-repository.e2e-spec.ts:267-271`)
+**Sensor**: 6 mutantes — **3 killed (MG 5/5, MH 3/3, MK), 3 survived (MI, MI2, MJ)**; 8 execuções de suíte e2e, zero flakiness
+**Gate**: 325 passed (150 unit + 175 e2e), 0 failed, 0 skipped
+**Isolamento**: worktree `/tmp/sensor-f6-rv2` descartado; `git status --porcelain` do tree real vazio antes e depois
+
+**O que funciona**: a correção do GAP A é a certa e a mais barata — em vez de espalhar CAS, ela **remove o escritor oculto**: `save` deixou de ser um escritor das colunas de estado, então o CAS de `salvarTransicao` passa a ser a **única** porta de entrada e a garantia vira estrutural, não circunstancial. E a cobertura foi feita nos dois níveis certos: um teste de repositório **sem corrida** (que mata o mutante 100% das vezes, sem depender de timing) e um e2e de corrida de 24 rodadas como rede. A migração `save → salvarTransicao` no teste antigo preservou todas as asserções e acrescentou uma.
+
+**O que falta**: só discriminação. Duas das quatro colunas protegidas (`decididoEm`, `motivoDecisao`) não têm nenhuma asserção que as defenda — a lição da iteração anterior (“proteção sem teste é comentário”) vale igual aqui, e o conserto cabe em 2 `expect` no teste que já existe. GAP B (reentrância do worker) e GAP E (double desalinhado) são baratos e podem ir no mesmo lote; GAP C é edição de spec.
+
+**Next steps**: rotear GAP D (obrigatório), GAP B e GAP E (oportunos) como um único lote de fortalecimento de teste; re-verificar. Se o orquestrador preferir, GAP D sozinho basta para transformar este FAIL em PASS.
+
+### Notas de processo
+
+- `python3 .claude/skills/tlc-spec-driven/scripts/validate_state.py cadastro-empresa` segue reportando `ERROR ... no validation.md` — esperado enquanto a convenção por fase estiver em uso.
+- Lições sugeridas ao orquestrador (escopo deste Verifier limita a escrita a este arquivo): (1) *quando uma correção protege N colunas, o sensor tem de mutar **cada** coluna isoladamente — matar o mutante “reverte tudo” não prova nada sobre as demais*; (2) *o melhor matador de um bug de corrida costuma ser um teste **sequencial** no nível do repositório: determinístico, rápido e imune a flakiness — o e2e de corrida é a rede, não a prova*; (3) *test double que não reproduz a restrição nova da porta é a via de reentrada do bug corrigido*.
+
+## Correção pós-re-verificação 2 (iteração 3)
+
+GAP D: o teste de repositório "save não sobrescreve estado nem decisão" passou a decidir por rejeição e assere `status`, `decididoPor`, `decididoEm` e `motivoDecisao`; o mutante que regrava `decididoEm`/`motivoDecisao` agora derruba o teste. Gates: 150 unit, 175 e2e. Os gaps B (reentrância do worker) e E (double em memória diverge do CAS real) seguem como minor sem correção. O relatório da re-verificação 2 deu 0 blockers e apontava só o GAP D para virar PASS; falta a confirmação independente (iteração 3 de 3).
