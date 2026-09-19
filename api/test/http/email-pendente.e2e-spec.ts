@@ -2,7 +2,7 @@ import request from 'supertest';
 
 import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
 import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
-import { TemplateEmail } from '@domain/fivo/application/ports/mailer';
+import { Mailer, TemplateEmail } from '@domain/fivo/application/ports/mailer';
 import { EmpresaStatus } from '@domain/fivo/entities/empresa';
 import { UserRole } from '@domain/fivo/entities/user';
 import { SessionService } from '@infra/auth/session.service';
@@ -166,15 +166,24 @@ describe('Fila de reenvio de e-mail (e2e)', () => {
     const [apos] = await pendencias();
     expect(apos.tentativas).toBe(1);
     expect(apos.enviadoEm).toBeNull();
-    expect(apos.proximaTentativaEm).toEqual(
-      new Date(agora.getTime() + atrasoDoBackoff(1)),
+    expect(apos.proximaTentativaEm).toEqual(new Date(agora.getTime() + 60_000));
+
+    const segunda = new Date(apos.proximaTentativaEm.getTime() + 1_000);
+    await fila.drenar(segunda);
+    const [aposSegunda] = await pendencias();
+    expect(aposSegunda.tentativas).toBe(2);
+    expect(aposSegunda.proximaTentativaEm).toEqual(
+      new Date(segunda.getTime() + 120_000),
+    );
+    expect(pendente.proximaTentativaEm).toEqual(
+      new Date(pendente.criadoEm.getTime() + 60_000),
     );
 
     transporte.resetFailure();
     await fila.drenar(agora);
 
     expect(transporte.mensagens).toHaveLength(0);
-    expect((await pendencias())[0].tentativas).toBe(1);
+    expect((await pendencias())[0].tentativas).toBe(2);
   });
 
   it('para de tentar depois do teto de tentativas', async () => {
@@ -198,4 +207,58 @@ describe('Fila de reenvio de e-mail (e2e)', () => {
     expect(transporte.mensagens).toHaveLength(0);
     expect((await pendencias())[0].tentativas).toBe(MAX_TENTATIVAS);
   });
+
+  it('e-mail de rejeição falha → 204 e o e-mail de rejeição fica pendente', async () => {
+    const dono = UserFactory.create({
+      role: UserRole.EMPRESA,
+      email: EMAIL_DONA,
+    });
+    await contexto.app.get(UserRepository).create(dono);
+    const empresa = EmpresaFactory.create({
+      usuarioId: dono.id,
+      status: EmpresaStatus.PENDENTE_APROVACAO,
+    });
+    await contexto.app.get(EmpresaRepository).create(empresa);
+    const admin = UserFactory.create({
+      role: UserRole.ADMIN,
+      email: 'admin@fivo.test',
+    });
+    await contexto.app.get(UserRepository).create(admin);
+    const { token } = await contexto.app
+      .get(SessionService)
+      .criar(admin.id.toString());
+    transporte.forceFailure();
+
+    const resposta = await comCookieDeSessao(
+      api().post(`/admin/empresas/${empresa.id.toString()}/rejeicao`).send({
+        motivo: 'Documentação do CNPJ não confere com a razão social.',
+      }),
+      token,
+    );
+
+    expect(resposta.status).toBe(204);
+    const linhas = await pendencias();
+    expect(linhas).toHaveLength(1);
+    expect(linhas[0]).toMatchObject({
+      para: EMAIL_DONA,
+      template: TemplateEmail.CADASTRO_REJEITADO,
+    });
+  });
+
+  it.each([TemplateEmail.SENHA_REDEFINICAO, TemplateEmail.EMAIL_CONFIRMACAO])(
+    'e-mail %s (carrega token) que falha propaga o erro e nunca entra na fila',
+    async (template) => {
+      transporte.forceFailure();
+
+      await expect(
+        contexto.app.get(Mailer).enviar({
+          para: EMAIL_DONA,
+          template,
+          dados: { token: 'segredo' },
+        }),
+      ).rejects.toThrow();
+
+      expect(await pendencias()).toHaveLength(0);
+    },
+  );
 });

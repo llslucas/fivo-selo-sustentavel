@@ -5,6 +5,7 @@ import { Mailer } from '@domain/fivo/application/ports/mailer';
 import { Storage } from '@domain/fivo/application/ports/storage';
 import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
 import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
+import { Cnpj } from '@domain/fivo/entities/cnpj';
 import { Empresa, EmpresaStatus } from '@domain/fivo/entities/empresa';
 import { User, UserRole } from '@domain/fivo/entities/user';
 import { SessionService } from '@infra/auth/session.service';
@@ -164,27 +165,68 @@ describe('Concorrência e robustez do cadastro de empresa (e2e)', () => {
     }
   });
 
-  it('suspensões concorrentes da mesma empresa aprovada → uma aplica (204), a outra 409', async () => {
-    const empresa = await criarPendente('dona@empresa.test');
+  async function empresaEm(email: string, status: EmpresaStatus) {
+    const empresa = await criarPendente(email);
     await contexto.prisma.empresa.update({
       where: { id: empresa.id.toString() },
-      data: { status: EmpresaStatus.APROVADA },
+      data: { status },
     });
-    const id = empresa.id.toString();
+    return empresa.id.toString();
+  }
+
+  it.each([
+    ['suspensao', EmpresaStatus.APROVADA, EmpresaStatus.SUSPENSA],
+    ['reativacao', EmpresaStatus.SUSPENSA, EmpresaStatus.APROVADA],
+  ])(
+    '%s concorrente da mesma empresa → uma aplica (204), a outra 409, uma auditoria',
+    async (rota, inicial, final) => {
+      for (let rodada = 0; rodada < RODADAS_DE_CORRIDA; rodada++) {
+        await contexto.prisma.registroAuditoria.deleteMany();
+        const id = await empresaEm(`dona${rodada}@empresa.test`, inicial);
+
+        const [a, b] = await Promise.all([
+          comCookieDeSessao(
+            api().post(`/admin/empresas/${id}/${rota}`),
+            tokenAdmin,
+          ),
+          comCookieDeSessao(
+            api().post(`/admin/empresas/${id}/${rota}`),
+            tokenAdmin,
+          ),
+        ]);
+
+        expect([a.status, b.status].sort()).toEqual([204, 409]);
+        expect(await contexto.prisma.registroAuditoria.count()).toBe(1);
+        const linha = await contexto.prisma.empresa.findUniqueOrThrow({
+          where: { id },
+        });
+        expect(linha.status).toBe(final);
+      }
+    },
+  );
+
+  it('re-cadastros simultâneos de uma empresa REJEITADA → exatamente um 201 e um 409; a empresa fica PENDENTE_APROVACAO com o e-mail do vencedor', async () => {
+    const dono = await criarUsuario(UserRole.EMPRESA, 'antigo@empresa.test');
+    const rejeitada = EmpresaFactory.create({
+      usuarioId: dono.id,
+      cnpj: Cnpj.create('12345678000195').value as Cnpj,
+      status: EmpresaStatus.REJEITADA,
+    });
+    await contexto.app.get(EmpresaRepository).create(rejeitada);
 
     const [a, b] = await Promise.all([
-      comCookieDeSessao(
-        api().post(`/admin/empresas/${id}/suspensao`),
-        tokenAdmin,
-      ),
-      comCookieDeSessao(
-        api().post(`/admin/empresas/${id}/suspensao`),
-        tokenAdmin,
-      ),
+      cadastrar('novo-a@empresa.test'),
+      cadastrar('novo-b@empresa.test'),
     ]);
 
-    expect([a.status, b.status].sort()).toEqual([204, 409]);
-    expect(await contexto.prisma.registroAuditoria.count()).toBe(1);
+    expect([a.status, b.status].sort()).toEqual([201, 409]);
+    const linha = await contexto.prisma.empresa.findUniqueOrThrow({
+      where: { id: rejeitada.id.toString() },
+      include: { usuario: true },
+    });
+    expect(linha.status).toBe(EmpresaStatus.PENDENTE_APROVACAO);
+    const vencedor = a.status === 201 ? 'novo-a' : 'novo-b';
+    expect(linha.usuario?.email).toBe(`${vencedor}@empresa.test`);
   });
 
   it('storage em falha no upload do logo → 503 e nenhuma linha órfã em usuario, empresa ou arquivo', async () => {

@@ -148,7 +148,15 @@ export class CriarEmpresaUseCase {
     await this.unitOfWork.executar(async () => {
       if (empresaReaproveitavel) {
         await this.userRepository.save(user);
-        await this.empresaRepository.save(empresa);
+        const aplicada = await this.empresaRepository.salvarTransicao(
+          empresa,
+          EmpresaStatus.REJEITADA,
+        );
+
+        // Outro re-cadastro venceu a corrida: desfaz a escrita do usuário.
+        if (!aplicada) {
+          throw new EmpresaAlreadyExistsError();
+        }
       } else {
         await this.userRepository.create(user);
         await this.empresaRepository.create(empresa);

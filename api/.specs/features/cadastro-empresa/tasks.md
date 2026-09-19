@@ -1073,6 +1073,8 @@ T28 → T32
 
 **Nota de qualidade (2026-09-19)**: CAS via `EmpresaRepository.salvarTransicao(empresa, estadoEsperado)` (`updateMany where {id, status}`; `count !== 1` → `TransicaoInvalidaError`), aplicado nas 4 decisões (aprovar, rejeitar, suspender, reativar) antes de auditar/enviar e-mail. Sensor manual: sem o filtro de estado, 2 dos 4 e2e falham. GAP 3 do `validation-fase5.md` fechado. O cenário de falha de storage também existe em `cadastro-empresa.e2e-spec.ts`; aqui fica no sweep por exigência da task.
 
+**Correção pós-verificação (2026-09-19)**: o re-cadastro de empresa `REJEITADA` (`criar-empresa.ts`) também grava com CAS (`salvarTransicao(empresa, REJEITADA)`), com e2e de re-cadastros simultâneos; suspensão e reativação concorrentes cobertas com 8 rodadas.
+
 ---
 
 ### T31: Fila de reenvio de e-mail
