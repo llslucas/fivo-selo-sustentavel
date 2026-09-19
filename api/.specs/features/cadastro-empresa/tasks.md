@@ -884,6 +884,9 @@ T28 → T32
 **Tests**: e2e
 **Gate**: full
 
+**Nota de qualidade — resolvida (2026-09-19, pós-validação da Fase 5)**: o cookie de sessão agora liga `Secure` sozinho em `NODE_ENV=production` (`COOKIE_SECURE` sobrescreve); teste `auth.e2e-spec.ts` ("em produção o cookie de sessão ganha Secure"). Fronteira de 8h coberta por 7h59 → 200 e 8h01 → 401. Ver `validation-fase5.md` (GAP 4, GAP 6).
+
+
 **Commit**: `feat(api): backbone de autenticação (sessão opaca, guards, decorators)`
 
 ---
@@ -911,6 +914,9 @@ T28 → T32
 
 **Tests**: e2e
 **Gate**: full
+
+**Nota de qualidade — resolvida (2026-09-19, pós-validação da Fase 5)**: logo acima do limite agora responde 422 "Arquivo inválido: tamanho excede o limite de 5 MB." (multer corta em 5 MB e o `DomainExceptionFilter` traduz o 413 do multer); antes o teto de 10 MB devolvia 413. Teste com anexo de 11 MB em `cadastro-empresa.e2e-spec.ts`. Ver `validation-fase5.md` (GAP 2).
+
 
 **Commit**: `feat(api): endpoints de autocadastro e dados da empresa`
 
@@ -941,6 +947,9 @@ T28 → T32
 **Tests**: e2e
 **Gate**: full
 
+**Nota de qualidade — resolvida (2026-09-19, pós-validação da Fase 5)**: o bloqueio de 5 falhas era burlável por concorrência (15 logins paralelos → nenhum 429). `AutenticarUsuarioUseCase` agora lê, decide e grava o contador dentro de `UnitOfWork` com `UserRepository.findByEmailParaAtualizacao` (`SELECT ... FOR NO KEY UPDATE`). e2e: 12 tentativas erradas em paralelo → exatamente 5 × 401 e 7 × 429, `falhasLogin` = 5; sem o lock o teste falha. Mensagem do 429 alinhada ao design ("Muitas tentativas, tente em 15 minutos"). Ver `validation-fase5.md` (GAP 1, GAP 5).
+
+
 **Commit**: `feat(api): login, logout e expiração de sessão`
 
 ---
@@ -969,6 +978,9 @@ T28 → T32
 
 **Tests**: e2e
 **Gate**: full
+
+**Nota de qualidade — resolvida (2026-09-19, pós-validação da Fase 5)**: mensagens de "motivo insuficiente" e "transição inválida" alinhadas ao design e asseridas nos e2e; rejeição com e-mail indisponível coberta. **Aberto → T30**: aprovação e rejeição paralelas ainda vencem ambas (`update where id` sem estado esperado em `prisma-empresa-repository.ts`); a T30 precisa de `updateMany` condicional + teste paralelo. Ver `validation-fase5.md` (GAP 3).
+
 
 **Commit**: `feat(api): fila e decisões de aprovação/suspensão de empresa`
 
@@ -1024,6 +1036,9 @@ T28 → T32
 **Tests**: e2e
 **Gate**: full
 
+**Nota de qualidade — resolvida (2026-09-19, pós-validação da Fase 5)**: cobertura de `PATCH /empresas/me/email` (401/403), descarte do logo órfão no `PATCH /empresas/me` e logo de 11 MB na edição. Ver `validation-fase5.md` (GAP 4).
+
+
 **Commit**: `feat(api): edição cadastral e recuperação de senha (rotas P2)`
 
 ---
@@ -1031,6 +1046,7 @@ T28 → T32
 ### T30: Sweep de concorrência e re-cadastro
 
 **What**: Suite e2e dedicada aos edge cases de corrida + ajustes mínimos: `Promise.all` de dois `POST /empresas` com o mesmo CNPJ (índice único → exatamente um 201, um 409); aprovação + rejeição concorrentes do mesmo pendente (`updateMany` condicional / CAS → uma aplica, a outra 409); `Storage` forçado a falhar → `POST /empresas` → 503 sem `empresa`/`usuario` órfãos.
+**Escopo adicional (validação da Fase 5, GAP 3)**: a corrida de decisões de admin foi reproduzida (5 de 6 rodadas com ≥ 2 respostas 204, várias linhas de auditoria e e-mails contraditórios). O CAS deve ser `updateMany({ where: { id, status: estadoEsperado } })` no adaptador Prisma; `count === 0` → `TransicaoInvalidaError` (409) antes de auditar e enviar e-mail.
 **Where**: `api/test/cadastro-empresa/concorrencia.e2e-spec.ts`
 **Depends on**: T25, T27, T28
 **Reuses**: helpers de e2e (T16)

@@ -48,9 +48,9 @@ interface LogoEnviado {
   buffer: Buffer;
 }
 
-// Teto de segurança do multer; o limite de negócio (5 MB) é do `Arquivo.criar`
-// e responde 422 com a mensagem do limite.
-const TETO_UPLOAD_BYTES = 10 * 1024 * 1024;
+// Mesmo limite de `Arquivo.criar` (5 MB); o multer corta o upload aqui e o
+// `DomainExceptionFilter` devolve 422 com o limite (EMP-01 AC6).
+const LIMITE_LOGO_BYTES = 5 * 1024 * 1024;
 
 @Controller('empresas')
 export class CadastroEmpresaController {
@@ -68,7 +68,7 @@ export class CadastroEmpresaController {
   @Public()
   @Post()
   @UseInterceptors(
-    FileInterceptor('logo', { limits: { fileSize: TETO_UPLOAD_BYTES } }),
+    FileInterceptor('logo', { limits: { fileSize: LIMITE_LOGO_BYTES } }),
   )
   async criar(
     @Body(new ZodValidationPipe(criarEmpresaSchema)) dados: CriarEmpresaDto,
@@ -109,7 +109,7 @@ export class CadastroEmpresaController {
   @Roles(UserRole.EMPRESA)
   @Patch('me')
   @UseInterceptors(
-    FileInterceptor('logo', { limits: { fileSize: TETO_UPLOAD_BYTES } }),
+    FileInterceptor('logo', { limits: { fileSize: LIMITE_LOGO_BYTES } }),
   )
   async editar(
     @Body(new ZodValidationPipe(editarEmpresaSchema)) dados: EditarEmpresaDto,

@@ -110,7 +110,27 @@ describe('AutenticacaoController (e2e)', () => {
     const bloqueada = await entrar('pessoa@fivo.test', SENHA);
 
     expect(bloqueada.status).toBe(429);
+    expect(bloqueada.body).toMatchObject({
+      message: 'Muitas tentativas, tente em 15 minutos',
+    });
     expect(bloqueada.headers['set-cookie']).toBeUndefined();
+  });
+
+  it('12 tentativas erradas em paralelo: 5 são contabilizadas e as demais respondem 429', async () => {
+    await criarUsuario(UserRole.EMPRESA, 'pessoa@fivo.test');
+
+    const respostas = await Promise.all(
+      Array.from({ length: 12 }, () =>
+        entrar('pessoa@fivo.test', 'SenhaErrada123'),
+      ),
+    );
+
+    const status = respostas.map((resposta) => resposta.status);
+    expect(status.filter((codigo) => codigo === 401)).toHaveLength(5);
+    expect(status.filter((codigo) => codigo === 429)).toHaveLength(7);
+    const usuario = await contexto.prisma.usuario.findFirstOrThrow();
+    expect(usuario.falhasLogin).toBe(5);
+    expect(usuario.bloqueadoAte).not.toBeNull();
   });
 
   it('o cookie do login autentica a requisição seguinte', async () => {

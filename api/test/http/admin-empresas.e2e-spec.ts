@@ -251,6 +251,9 @@ describe('AdminEmpresasController (e2e)', () => {
         );
 
         expect(resposta.status).toBe(409);
+        expect(resposta.body).toMatchObject({
+          message: 'Operação não permitida para o estado atual',
+        });
         expect(await statusNoBanco(empresa)).toBe(estadoInicial);
       },
     );
@@ -279,6 +282,20 @@ describe('AdminEmpresasController (e2e)', () => {
       );
 
       expect(resposta.status).toBe(404);
+    });
+
+    it('falha do provedor de e-mail não desfaz a rejeição', async () => {
+      const empresa = await criarEmpresa('dona@empresa.test');
+      mailer.forceFailure();
+
+      const resposta = await comoAdmin(
+        api()
+          .post(`/admin/empresas/${empresa.id.toString()}/rejeicao`)
+          .send({ motivo: MOTIVO_VALIDO }),
+      );
+
+      expect(resposta.status).toBe(204);
+      expect(await statusNoBanco(empresa)).toBe(EmpresaStatus.REJEITADA);
     });
 
     it('falha do provedor de e-mail não desfaz a aprovação', async () => {
@@ -354,6 +371,11 @@ describe('AdminEmpresasController (e2e)', () => {
       const registros = await contexto.prisma.registroAuditoria.findMany({
         orderBy: { criadoEm: 'asc' },
       });
+      for (const registro of registros) {
+        expect(Math.abs(Date.now() - registro.criadoEm.getTime())).toBeLessThan(
+          60_000,
+        );
+      }
       expect(
         registros.map((registro) => ({
           usuarioId: registro.usuarioId,

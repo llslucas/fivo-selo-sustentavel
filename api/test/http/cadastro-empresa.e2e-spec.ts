@@ -282,6 +282,27 @@ describe('CadastroEmpresaController (e2e)', () => {
       expect((await contarLinhas()).empresas).toBe(0);
     });
 
+    it('logo de 11 MB (acima do teto do upload) → 422 informando o limite, e não 413', async () => {
+      const resposta = await enviarCadastro(campos(), {
+        buffer: Buffer.concat([
+          pngBuffer(512, 512),
+          Buffer.alloc(11 * 1024 * 1024),
+        ]),
+        nome: 'logo.png',
+        tipo: 'image/png',
+      });
+
+      expect(resposta.status).toBe(422);
+      expect(resposta.body).toMatchObject({
+        message: contendo('5 MB'),
+      });
+      expect(await contarLinhas()).toEqual({
+        usuarios: 0,
+        empresas: 0,
+        arquivos: 0,
+      });
+    });
+
     it('storage indisponível no upload do logo → 503 com a mensagem da spec e nada persistido', async () => {
       storage.forceFailure();
 

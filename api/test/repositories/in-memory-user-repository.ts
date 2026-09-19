@@ -14,6 +14,10 @@ export class InMemoryUserRepository implements UserRepository {
     return Promise.resolve(user ?? null);
   }
 
+  findByEmailParaAtualizacao(email: string): Promise<User | null> {
+    return this.findByEmail(email);
+  }
+
   create(user: User): Promise<void> {
     this.items.push(user);
     return Promise.resolve();

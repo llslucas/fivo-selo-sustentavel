@@ -129,6 +129,22 @@ describe('AuthModule — sessão opaca, guards e decorators (e2e)', () => {
     expect(String(resposta.headers['set-cookie'][0])).toContain('Secure');
   });
 
+  it('em produção o cookie de sessão ganha Secure mesmo sem COOKIE_SECURE', async () => {
+    const nodeEnvAnterior = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    const user = await criarUsuario(UserRole.EMPRESA, 'a@empresa.test');
+
+    try {
+      const resposta = await request(servidorHttp(contexto)).post(
+        `/prova-auth/entrar/${user.id.toString()}`,
+      );
+
+      expect(String(resposta.headers['set-cookie'][0])).toContain('Secure');
+    } finally {
+      process.env.NODE_ENV = nodeEnvAnterior;
+    }
+  });
+
   it('rota protegida sem cookie → 401', async () => {
     const resposta = await request(servidorHttp(contexto)).get(
       '/prova-auth/protegida',
@@ -222,6 +238,27 @@ describe('AuthModule — sessão opaca, guards e decorators (e2e)', () => {
     const sessao = await contexto.prisma.sessao.findFirstOrThrow();
     expect(sessao.revogadaEm).not.toBeNull();
   });
+
+  it.each([
+    ['7h59 de inatividade', 7 * 60 * 60 * 1000 + 59 * 60 * 1000, 200],
+    ['8h01 de inatividade', 8 * 60 * 60 * 1000 + 60 * 1000, 401],
+  ])(
+    'fronteira da expiração: %s → %i',
+    async (_rotulo, inatividadeMs, esperado) => {
+      const user = await criarUsuario(UserRole.EMPRESA, 'a@empresa.test');
+      const { token } = await sessionService.criar(user.id.toString());
+      await contexto.prisma.sessao.updateMany({
+        data: { ultimoAcessoEm: new Date(Date.now() - inatividadeMs) },
+      });
+
+      const resposta = await comCookieDeSessao(
+        request(servidorHttp(contexto)).get('/prova-auth/protegida'),
+        token,
+      );
+
+      expect(resposta.status).toBe(esperado);
+    },
+  );
 
   it('requisição dentro da janela desliza ultimoAcessoEm', async () => {
     const user = await criarUsuario(UserRole.EMPRESA, 'a@empresa.test');

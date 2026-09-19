@@ -4,6 +4,7 @@ import {
   ExceptionFilter,
   HttpException,
   Logger,
+  PayloadTooLargeException,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 
@@ -30,6 +31,18 @@ export class DomainExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const { httpAdapter } = this.httpAdapterHost;
     const resposta: unknown = host.switchToHttp().getResponse();
+
+    if (exception instanceof PayloadTooLargeException) {
+      httpAdapter.reply(
+        resposta,
+        {
+          statusCode: 422,
+          message: 'Arquivo inválido: tamanho excede o limite de 5 MB.',
+        },
+        422,
+      );
+      return;
+    }
 
     if (exception instanceof HttpException) {
       httpAdapter.reply(

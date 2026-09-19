@@ -33,6 +33,17 @@ export class PrismaUserRepository implements UserRepository {
     return usuario ? PrismaUserMapper.toDomain(usuario) : null;
   }
 
+  async findByEmailParaAtualizacao(email: string): Promise<User | null> {
+    // FOR NO KEY UPDATE serializa quem atualiza a mesma linha sem bloquear a
+    // checagem de FK de `sessao`, que usa FOR KEY SHARE.
+    await this.db
+      .$queryRaw`SELECT id FROM usuario WHERE email = ${email} FOR NO KEY UPDATE`;
+
+    const usuario = await this.db.usuario.findUnique({ where: { email } });
+
+    return usuario ? PrismaUserMapper.toDomain(usuario) : null;
+  }
+
   async create(user: User): Promise<void> {
     try {
       await this.db.usuario.create({

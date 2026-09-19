@@ -4,6 +4,6 @@ export class MotivoInsuficienteError extends Error implements UseCaseError {
   readonly status = 422;
 
   constructor() {
-    super('Motivo insuficiente para rejeição.');
+    super('O motivo deve ter no mínimo 20 caracteres');
   }
 }

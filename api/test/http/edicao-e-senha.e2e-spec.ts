@@ -224,6 +224,48 @@ describe('Rotas P2 — edição cadastral e recuperação de senha (e2e)', () =>
       expect(linha.nomeFantasia).toBe('Empresa Teste');
     });
 
+    it('falha do caso de uso depois do upload (CNPJ divergente + logo válido) → 422 e o logo enviado é descartado', async () => {
+      const { token } = await criarEmpresa('dona@empresa.test');
+
+      const resposta = await comCookieDeSessao(
+        api()
+          .patch('/empresas/me')
+          .field('cnpj', '11222333000181')
+          .attach('logo', pngBuffer(512, 512), {
+            filename: 'novo.png',
+            contentType: 'image/png',
+          }),
+        token,
+      );
+
+      expect(resposta.status).toBe(422);
+      expect(await contexto.prisma.arquivo.count()).toBe(0);
+      expect(storage.arquivos.size).toBe(0);
+    });
+
+    it('logo de 11 MB na edição → 422 informando o limite', async () => {
+      const { token } = await criarEmpresa('dona@empresa.test');
+
+      const resposta = await comCookieDeSessao(
+        api()
+          .patch('/empresas/me')
+          .attach(
+            'logo',
+            Buffer.concat([
+              pngBuffer(512, 512),
+              Buffer.alloc(11 * 1024 * 1024),
+            ]),
+            { filename: 'grande.png', contentType: 'image/png' },
+          ),
+        token,
+      );
+
+      expect(resposta.status).toBe(422);
+      expect(resposta.body).toMatchObject({
+        message: expect.stringContaining('5 MB') as string,
+      });
+    });
+
     it('sem sessão → 401; ADMIN → 403', async () => {
       const semSessao = await api().patch('/empresas/me').send({});
       const admin = await criarUsuario(UserRole.ADMIN, 'admin@fivo.test');
@@ -241,6 +283,31 @@ describe('Rotas P2 — edição cadastral e recuperação de senha (e2e)', () =>
   });
 
   describe('troca de e-mail (EMP-08 AC3)', () => {
+    it('PATCH /empresas/me/email sem sessão → 401 e para ADMIN/INSTITUICAO → 403', async () => {
+      const semSessao = await api()
+        .patch('/empresas/me/email')
+        .send({ novoEmail: 'novo@empresa.test' });
+      const resultados: number[] = [];
+
+      for (const role of [UserRole.ADMIN, UserRole.INSTITUICAO]) {
+        const intruso = await criarUsuario(role, `${role}@fivo.test`);
+        const { token } = await contexto.app
+          .get(SessionService)
+          .criar(intruso.id.toString());
+        const resposta = await comCookieDeSessao(
+          api()
+            .patch('/empresas/me/email')
+            .send({ novoEmail: 'novo@empresa.test' }),
+          token,
+        );
+        resultados.push(resposta.status);
+      }
+
+      expect(semSessao.status).toBe(401);
+      expect(resultados).toEqual([403, 403]);
+      expect(mailer.mensagens).toEqual([]);
+    });
+
     it('o e-mail antigo segue ativo até a confirmação; o link vai para o novo endereço', async () => {
       const { token } = await criarEmpresa('antigo@empresa.test');
 
