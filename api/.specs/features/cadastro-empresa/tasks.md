@@ -1221,10 +1221,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Double filtra `revogadaEm === null` antes de revogar
-- [ ] Unit: sessão já revogada mantém a data original após a redefinição; sessões ativas são revogadas
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 157 unit (≥ 1 novo)
+- [x] Double filtra `revogadaEm === null` antes de revogar
+- [x] Unit: sessão já revogada mantém a data original após a redefinição; sessões ativas são revogadas
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 157 unit (≥ 1 novo)
 
 **Tests**: unit
 **Gate**: quick
