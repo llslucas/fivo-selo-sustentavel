@@ -741,11 +741,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `Argon2Hasher.hash` produz string ≠ texto claro; `compare` → `true`/`false` corretos
-- [ ] `GeradorTokenOpaco.gerar()` tem entropia ≥ 256 bits; `sha256` é determinístico
-- [ ] Testes unit para os dois providers (co-locados)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 5 testes passam
+- [x] `Argon2Hasher.hash` produz string ≠ texto claro; `compare` → `true`/`false` corretos — `argon2-hasher.spec.ts:9-10` (hash ≠ plain, prefixo `$argon2id$`), `:16` (compare true), `:22` (compare false)
+- [x] `GeradorTokenOpaco.gerar()` tem entropia ≥ 256 bits; `sha256` é determinístico — `gerador-token-opaco.spec.ts:6-11` (≥ 43 chars base64url = 256 bits), `:20-24` (sha256 determinístico)
+- [x] Testes unit para os dois providers (co-locados) — `argon2-hasher.spec.ts`, `gerador-token-opaco.spec.ts`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — exit 0, 137/137 testes
+- [x] Test count: ≥ 5 testes passam — 9 novos (4 `Argon2Hasher` + 5 `GeradorTokenOpaco`)
 
 **Tests**: unit
 **Gate**: quick
@@ -767,11 +767,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `LogMailer.enviar` resolve sempre e registra `para` + `template`
-- [ ] Os 5 templates declarados
-- [ ] Teste unit do `LogMailer`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 2 testes passam
+- [x] `LogMailer.enviar` resolve sempre e registra `para` + `template` — `log-mailer.spec.ts:6-24` (`resolves.toBeUndefined()` + `logSpy` chamado com `para` e `template`)
+- [x] Os 5 templates declarados — já existiam em `application/ports/mailer.ts` (`TemplateEmail`); confirmado cobrindo os 5 em `log-mailer.spec.ts:27-41`
+- [x] Teste unit do `LogMailer` — `log-mailer.spec.ts`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — exit 0, 139/139 testes
+- [x] Test count: ≥ 2 testes passam — 2 novos
 
 **Tests**: unit
 **Gate**: quick
@@ -793,11 +793,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Roundtrip `salvar` → `ler` devolve os mesmos bytes; `remover` apaga
-- [ ] Falha de escrita simulada (dir sem permissão) → `StorageIndisponivelError`
-- [ ] Testes unit com diretório temporário (`os.tmpdir()`), limpo no `afterEach`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 5 testes passam
+- [x] Roundtrip `salvar` → `ler` devolve os mesmos bytes; `remover` apaga — `local-disk-storage.spec.ts:21-29` (roundtrip, `Buffer.equals`), `:31-40` (`remover` + `ler` subsequente rejeita)
+- [x] Falha de escrita simulada (dir sem permissão) → `StorageIndisponivelError` — sem permissão real testável como root; simulado forçando `ENOTDIR` (arquivo no lugar de diretório) em `local-disk-storage.spec.ts:42-49` (`salvar`) e `:59-66` (`remover`), mais `ler` de chave inexistente em `:51-57`
+- [x] Testes unit com diretório temporário (`os.tmpdir()`), limpo no `afterEach` — `local-disk-storage.spec.ts:12-19` (`mkdtemp`/`rm` recursivo)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — exit 0, 144/144 testes
+- [x] Test count: ≥ 5 testes passam — 5 novos
 
 **Tests**: unit
 **Gate**: quick
@@ -819,13 +819,13 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Aceita PNG/JPG/SVG válidos → linha `arquivo` + objeto no storage
-- [ ] `Arquivo.criar` devolvendo `Left` → 422 com o limite (MIME divergente dos magic bytes, > 5 MB, raster < 512×512, SVG com script)
-- [ ] Falha do storage → erro 503, nenhuma linha `arquivo` órfã
-- [ ] `lerBytes` devolve os bytes e o mime do registro
-- [ ] e2e via rota-probe (ou teste do service contra o Postgres de teste) cobre cada ramo
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 8 testes e2e passam
+- [x] Aceita PNG/JPG/SVG válidos → linha `arquivo` + objeto no storage — `arquivo-service.e2e-spec.ts:72-93` (PNG), `:95-113` (JPG), `:115-132` (SVG)
+- [x] `Arquivo.criar` devolvendo `Left` → 422 com o limite (MIME divergente dos magic bytes, > 5 MB, raster < 512×512, SVG com script) — `:134-152` (magic bytes divergentes), `:154-169` (> 5 MB), `:171-183` (< 512×512), `:185-197` (SVG com `<script>`)
+- [x] Falha do storage → erro 503, nenhuma linha `arquivo` órfã — `:199-217` (`rejects.toBeInstanceOf(StorageIndisponivelError)` + `prisma.arquivo.count()` → `0`)
+- [x] `lerBytes` devolve os bytes e o mime do registro — `:219-233`
+- [x] e2e via rota-probe (ou teste do service contra o Postgres de teste) cobre cada ramo — teste do service direto (`new ArquivoService(prisma, storage)`) contra o Postgres de teste, sem módulo Nest (não há `ArquivoModule` — a task só pediu o service; wiring em rota fica para T25/T28)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 37 e2e; `npm run build` também passa
+- [x] Test count: ≥ 8 testes e2e passam — 9 novos
 
 **Tests**: e2e
 **Gate**: full
