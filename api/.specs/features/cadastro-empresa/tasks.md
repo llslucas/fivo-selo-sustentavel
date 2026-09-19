@@ -793,11 +793,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Roundtrip `salvar` → `ler` devolve os mesmos bytes; `remover` apaga
-- [ ] Falha de escrita simulada (dir sem permissão) → `StorageIndisponivelError`
-- [ ] Testes unit com diretório temporário (`os.tmpdir()`), limpo no `afterEach`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 5 testes passam
+- [x] Roundtrip `salvar` → `ler` devolve os mesmos bytes; `remover` apaga — `local-disk-storage.spec.ts:21-29` (roundtrip, `Buffer.equals`), `:31-40` (`remover` + `ler` subsequente rejeita)
+- [x] Falha de escrita simulada (dir sem permissão) → `StorageIndisponivelError` — sem permissão real testável como root; simulado forçando `ENOTDIR` (arquivo no lugar de diretório) em `local-disk-storage.spec.ts:42-49` (`salvar`) e `:59-66` (`remover`), mais `ler` de chave inexistente em `:51-57`
+- [x] Testes unit com diretório temporário (`os.tmpdir()`), limpo no `afterEach` — `local-disk-storage.spec.ts:12-19` (`mkdtemp`/`rm` recursivo)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — exit 0, 144/144 testes
+- [x] Test count: ≥ 5 testes passam — 5 novos
 
 **Tests**: unit
 **Gate**: quick
