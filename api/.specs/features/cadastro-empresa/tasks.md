@@ -741,11 +741,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `Argon2Hasher.hash` produz string ≠ texto claro; `compare` → `true`/`false` corretos
-- [ ] `GeradorTokenOpaco.gerar()` tem entropia ≥ 256 bits; `sha256` é determinístico
-- [ ] Testes unit para os dois providers (co-locados)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 5 testes passam
+- [x] `Argon2Hasher.hash` produz string ≠ texto claro; `compare` → `true`/`false` corretos — `argon2-hasher.spec.ts:9-10` (hash ≠ plain, prefixo `$argon2id$`), `:16` (compare true), `:22` (compare false)
+- [x] `GeradorTokenOpaco.gerar()` tem entropia ≥ 256 bits; `sha256` é determinístico — `gerador-token-opaco.spec.ts:6-11` (≥ 43 chars base64url = 256 bits), `:20-24` (sha256 determinístico)
+- [x] Testes unit para os dois providers (co-locados) — `argon2-hasher.spec.ts`, `gerador-token-opaco.spec.ts`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — exit 0, 137/137 testes
+- [x] Test count: ≥ 5 testes passam — 9 novos (4 `Argon2Hasher` + 5 `GeradorTokenOpaco`)
 
 **Tests**: unit
 **Gate**: quick
