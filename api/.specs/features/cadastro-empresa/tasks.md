@@ -1047,7 +1047,7 @@ T28 → T32
 
 **What**: Suite e2e dedicada aos edge cases de corrida + ajustes mínimos: `Promise.all` de dois `POST /empresas` com o mesmo CNPJ (índice único → exatamente um 201, um 409); aprovação + rejeição concorrentes do mesmo pendente (`updateMany` condicional / CAS → uma aplica, a outra 409); `Storage` forçado a falhar → `POST /empresas` → 503 sem `empresa`/`usuario` órfãos.
 **Escopo adicional (validação da Fase 5, GAP 3)**: a corrida de decisões de admin foi reproduzida (5 de 6 rodadas com ≥ 2 respostas 204, várias linhas de auditoria e e-mails contraditórios). O CAS deve ser `updateMany({ where: { id, status: estadoEsperado } })` no adaptador Prisma; `count === 0` → `TransicaoInvalidaError` (409) antes de auditar e enviar e-mail.
-**Where**: `api/test/cadastro-empresa/concorrencia.e2e-spec.ts`
+**Where**: `api/test/http/concorrencia.e2e-spec.ts` (convenção do repo: e2e HTTP em `test/http`)
 **Depends on**: T25, T27, T28
 **Reuses**: helpers de e2e (T16)
 **Requirement**: EMP-01, EMP-04, EMP-05, Edge Cases
@@ -1057,17 +1057,21 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Dois cadastros simultâneos mesmo CNPJ → exatamente um 201 e um 409
-- [ ] Aprovação + rejeição concorrentes → uma aplica, a outra 409, estado final consistente com a 1ª
-- [ ] `Storage` em falha → 503 e nenhuma linha órfã
-- [ ] Nenhum ajuste de código enfraquece testes existentes
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 4 testes e2e passam
+- [x] Dois cadastros simultâneos mesmo CNPJ → exatamente um 201 e um 409
+- [x] Aprovação + rejeição concorrentes → uma aplica, a outra 409, estado final consistente com a 1ª
+- [x] `Storage` em falha → 503 e nenhuma linha órfã
+- [x] Nenhum ajuste de código enfraquece testes existentes
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 4 testes e2e passam (4 novos; total 159 e2e, 150 unit)
 
 **Tests**: e2e
 **Gate**: full
 
 **Commit**: `test(api): sweep de concorrência e re-cadastro`
+
+---
+
+**Nota de qualidade (2026-09-19)**: CAS via `EmpresaRepository.salvarTransicao(empresa, estadoEsperado)` (`updateMany where {id, status}`; `count !== 1` → `TransicaoInvalidaError`), aplicado nas 4 decisões (aprovar, rejeitar, suspender, reativar) antes de auditar/enviar e-mail. Sensor manual: sem o filtro de estado, 2 dos 4 e2e falham. GAP 3 do `validation-fase5.md` fechado. O cenário de falha de storage também existe em `cadastro-empresa.e2e-spec.ts`; aqui fica no sweep por exigência da task.
 
 ---
 

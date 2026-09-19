@@ -141,4 +141,21 @@ describe('AprovarEmpresaUseCase', () => {
     );
     expect(empresaAprovada?.status).toBe(EmpresaStatus.APROVADA);
   });
+
+  it('should return TransicaoInvalidaError and leave no audit or e-mail when another decision wins the race', async () => {
+    const empresa = await criarEmpresaPendente();
+    const admin = UserFactory.create({ role: UserRole.ADMIN });
+    jest
+      .spyOn(empresaRepository, 'salvarTransicao')
+      .mockResolvedValueOnce(false);
+
+    const response = await sut.execute(empresa.id.toString(), admin);
+
+    expect(response.isLeft()).toBe(true);
+    if (response.isLeft()) {
+      expect(response.value).toBeInstanceOf(TransicaoInvalidaError);
+    }
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
+    expect(mailer.mensagens).toHaveLength(0);
+  });
 });

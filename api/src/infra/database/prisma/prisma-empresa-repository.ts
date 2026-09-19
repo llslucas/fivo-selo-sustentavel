@@ -97,4 +97,19 @@ export class PrismaEmpresaRepository implements EmpresaRepository {
       throw erro;
     }
   }
+
+  async salvarTransicao(
+    empresa: Empresa,
+    estadoEsperado: string,
+  ): Promise<boolean> {
+    const { count } = await this.db.empresa.updateMany({
+      where: {
+        id: empresa.id.toString(),
+        status: statusParaPrisma(estadoEsperado),
+      },
+      data: PrismaEmpresaMapper.toPrisma(empresa),
+    });
+
+    return count === 1;
+  }
 }

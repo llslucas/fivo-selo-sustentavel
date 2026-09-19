@@ -81,6 +81,8 @@ describe('CriarEmpresaUseCase — transação atômica User + Empresa (e2e)', ()
       listarPorEstado: (estado, ordem) =>
         empresaRepository.listarPorEstado(estado, ordem),
       save: (empresa) => empresaRepository.save(empresa),
+      salvarTransicao: (empresa, estado) =>
+        empresaRepository.salvarTransicao(empresa, estado),
       create: async (empresa: Empresa) => {
         await contexto.prisma.empresa.create({
           data: PrismaEmpresaMapper.toPrisma(EmpresaFactory.create()),

@@ -62,4 +62,9 @@ export class InMemoryEmpresaRepository implements EmpresaRepository {
 
     return Promise.resolve();
   }
+
+  async salvarTransicao(empresa: Empresa): Promise<boolean> {
+    await this.save(empresa);
+    return true;
+  }
 }
