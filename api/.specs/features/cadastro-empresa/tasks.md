@@ -1246,10 +1246,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Os 4 cenários (a)–(d) cobertos
-- [ ] Mutante: remover `if (this.emExecucao) return` derruba (b); remover o `finally` derruba (c)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 161 unit (≥ 4 novos)
+- [x] Os 4 cenários (a)–(d) cobertos
+- [x] Mutante: remover `if (this.emExecucao) return` derruba (b); remover o `finally` derruba (c)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 161 unit (≥ 4 novos)
 
 **Tests**: unit
 **Gate**: quick
