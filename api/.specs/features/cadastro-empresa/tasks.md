@@ -873,13 +873,13 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `SessionService.criar` grava só o `sha256`; cookie `sessao` httpOnly/SameSite=Lax (`secure` condicionado a env)
-- [ ] `validar` rejeita token inexistente, revogado e expirado (`ultimoAcessoEm` > 8h → revoga); em sucesso desliza
-- [ ] `AuthGuard` global: 401 sem cookie válido; `@Public` isenta; `RolesGuard`: 403 quando o papel não bate
-- [ ] Seed cria um `ADMIN` idempotente
-- [ ] e2e via rota-probe protegida: sem cookie → 401; sessão válida → 200; papel errado → 403; sessão revogada → 401; `ultimoAcessoEm` forçado a −9h → 401
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 7 testes e2e passam
+- [x] `SessionService.criar` grava só o `sha256`; cookie httpOnly/SameSite=Lax (`secure` condicionado a `COOKIE_SECURE`) — `auth.e2e-spec.ts:102` (`tokenHash` `toBe(sha256(token))`), `:116` (`HttpOnly`), `:118` (`not.toContain('Secure')`), `:129` (`toContain('Secure')` com env). Nome do cookie: `fivo_sessao` (já definido no harness T16)
+- [x] `validar` rejeita token inexistente, revogado e expirado (> 8h → revoga); em sucesso desliza — `:146` (inexistente → 401), `:206` (revogada → 401), `:221`/`:223` (−9h → 401 + `revogadaEm` `not.toBeNull()`), `:241` (`ultimoAcessoEm` `toBeGreaterThan(...)`)
+- [x] `AuthGuard` global: 401 sem cookie válido; `@Public` isenta; `RolesGuard`: 403 quando o papel não bate — `:137` (sem cookie → 401), teste `@Public` (200), `:189` (`negada.status` `toBe(403)`, body `Acesso negado`)
+- [x] Seed cria um `ADMIN` idempotente — `:258` (`admins` `toHaveLength(1)` após duas execuções; e-mail em minúsculas; senha só como hash verificável por `Hasher.compare`). `AdminSeeder` lê `ADMIN_EMAIL`/`ADMIN_SENHA`/`ADMIN_NOME` (documentados em `.env.example`)
+- [x] e2e via rota-probe protegida: sem cookie → 401; sessão válida → 200; papel errado → 403; sessão revogada → 401; `ultimoAcessoEm` forçado a −9h → 401 — `auth.e2e-spec.ts` (12 testes); sensor: 3 mutantes de `SessionService` (sem checar revogada, sem deslizar, limite de 8h ×100) mortos
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 69 e2e
+- [x] Test count: ≥ 7 testes e2e passam — 12 novos
 
 **Tests**: e2e
 **Gate**: full

@@ -1,10 +1,12 @@
 import type { Server } from 'node:http';
 
-import { INestApplication, Type } from '@nestjs/common';
+import { INestApplication, ModuleMetadata, Type } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { Test as RequisicaoSupertest } from 'supertest';
 
 import { AppModule } from '@infra/app.module';
+import { NOME_COOKIE_SESSAO } from '@infra/auth/auth.constants';
+import { configurarApp } from '@infra/http/configurar-app';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
 
 export interface AppDeTeste {
@@ -18,14 +20,18 @@ export interface AppDeTeste {
  * (carregada por `test/helpers/load-env.ts`, registrado em `setupFiles`).
  */
 export async function criarAppDeTeste(
-  controllersDeProva: Type<unknown>[] = [],
+  opcoes: {
+    controllers?: Type<unknown>[];
+    imports?: ModuleMetadata['imports'];
+  } = {},
 ): Promise<AppDeTeste> {
   const moduleRef = await Test.createTestingModule({
-    imports: [AppModule],
-    controllers: controllersDeProva,
+    imports: [AppModule, ...(opcoes.imports ?? [])],
+    controllers: opcoes.controllers ?? [],
   }).compile();
 
   const app = moduleRef.createNestApplication();
+  configurarApp(app);
   const prisma = app.get(PrismaService);
 
   await app.init();
@@ -69,7 +75,7 @@ export function servidorHttp(contexto: AppDeTeste): Server {
   return contexto.app.getHttpServer() as Server;
 }
 
-export const NOME_COOKIE_SESSAO = 'fivo_sessao';
+export { NOME_COOKIE_SESSAO };
 
 /** Injeta o cookie de sessão opaca (AD-012) em uma request supertest. */
 export function comCookieDeSessao(
