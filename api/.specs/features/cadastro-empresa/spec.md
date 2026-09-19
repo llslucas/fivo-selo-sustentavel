@@ -46,6 +46,10 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | Formato e limites do logo | PNG, JPG ou SVG; até 5 MB; mínimo 512×512 px para raster | O mesmo arquivo alimenta o selo impresso (300 DPI) e a vitrine de parceiros | n |
 | Exclusão de conta pela própria empresa | Não oferecida na v1; empresa solicita ao admin, que suspende | Exclusão em cascata (campanhas públicas, selos em embalagens físicas) tem impacto que a v1 não trata | n |
 | Retenção de dados de empresa rejeitada | Mantidos por 90 dias e então anonimizados | Permite reanálise e auditoria sem reter dado pessoal indefinidamente (LGPD) | n |
+| Validade do link de confirmação de troca de e-mail | 24 horas; depois disso, 400 "Link de confirmação inválido ou expirado" e a troca fica pendente até novo pedido | A spec era omissa (achado adiado da Fase 6); token sem expiração é um segredo de vida infinita. 24 h > 60 min da redefinição de senha porque a troca não concede acesso, só muda o endereço | n |
+| Posição do re-cadastro na fila | O re-cadastro de empresa `REJEITADA` reinicia `criadoEm` e volta ao fim da fila de análise | Comportamento atual do código (validação da Fase 6, re-verificação 2); a fila ordena por `criadoEm` e o re-cadastro é uma submissão nova | n |
+| Retenção da fila de e-mail | Linhas de `email_pendente` enviadas ou esgotadas são removidas após 30 dias | Dívida operacional apontada na Fase 6; `dados` guarda nome e motivo de decisão (dado pessoal) | n |
+| Documentação do contrato HTTP | OpenAPI 3 gerado do código, servido em `/docs` (Swagger UI) e `/docs/openapi.json` fora de produção; em produção só com `SWAGGER_ENABLED=true` | AD-010 exige contratos `web`↔`api` explícitos; gerar do código evita um documento escrito à mão que diverge das rotas | n |
 
 **Open questions:** none - todas resolvidas ou registradas acima.
 
@@ -128,6 +132,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 3. WHEN a empresa altera o e-mail de acesso THEN the system SHALL manter o e-mail anterior ativo até que o novo endereço seja confirmado por link enviado a ele.
 4. WHEN a empresa substitui o logo THEN the system SHALL manter os selos já gerados inalterados e aplicar o novo logo apenas em selos gerados a partir da substituição.
 5. The system SHALL aplicar aos uploads de logo em edição as mesmas restrições de formato, tamanho e dimensão do cadastro inicial.
+6. IF o link de confirmação de troca de e-mail for usado mais de 24 horas após a solicitação THEN the system SHALL responder HTTP 400 com a mensagem "Link de confirmação inválido ou expirado" e manter o e-mail anterior ativo.
 
 **Independent Test**: Alterar telefone e logo pela área da empresa e verificar a atualização na vitrine de parceiros; tentar alterar CNPJ e receber 422.
 
@@ -166,12 +171,30 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 ---
 
+### P2: Contrato HTTP documentado (OpenAPI)
+
+**User Story**: Como desenvolvedor do `web`, quero um documento OpenAPI gerado da própria API, para consumir as rotas desta feature sem ler o código do `api` e sem depender de um contrato escrito à mão.
+
+**Why P2**: Não muda o comportamento da plataforma, mas AD-010 exige contrato explícito entre `web` e `api`, e a rodada do `web` começa depois desta feature.
+
+**Acceptance Criteria**
+
+1. WHILE `NODE_ENV` for diferente de `production`, ou `SWAGGER_ENABLED` for `true`, the system SHALL servir o documento OpenAPI 3 em `GET /docs/openapi.json` e a Swagger UI em `GET /docs`, sem exigir sessão.
+2. WHILE `NODE_ENV` for `production` e `SWAGGER_ENABLED` não for `true` the system SHALL responder HTTP 404 em `/docs` e `/docs/openapi.json`.
+3. The system SHALL documentar toda rota HTTP registrada na aplicação, com método, caminho, corpo de requisição, respostas de sucesso e cada status de erro que a rota pode devolver.
+4. The system SHALL derivar os esquemas de corpo de requisição dos mesmos esquemas de validação usados pelas rotas, de modo que um campo obrigatório na validação seja obrigatório no documento.
+5. The system SHALL declarar a autenticação por cookie de sessão como esquema de segurança e marcar como protegida toda rota que não seja pública.
+
+**Independent Test**: Subir a API em desenvolvimento, abrir `/docs`, executar `POST /empresas` pela Swagger UI e comparar a lista de rotas do documento com as rotas registradas no Nest.
+
+---
+
 ## Edge Cases
 
 - IF dois cadastros com o mesmo CNPJ forem submetidos simultaneamente THEN the system SHALL persistir apenas o primeiro e rejeitar o segundo com HTTP 409, garantido por restrição de unicidade no banco.
 - IF o serviço de armazenamento de arquivos estiver indisponível durante o upload do logo THEN the system SHALL responder HTTP 503 com a mensagem "Não foi possível enviar o logo, tente novamente" e preservar os demais dados já preenchidos.
 - IF o provedor de e-mail estiver indisponível durante aprovação ou rejeição THEN the system SHALL concluir a mudança de estado, registrar a falha em log e enfileirar o e-mail para nova tentativa.
-- WHEN o nome da empresa contiver caracteres HTML ou script THEN the system SHALL escapá-los na renderização das páginas públicas, impedindo execução.
+- WHEN o nome da empresa contiver caracteres HTML ou script THEN the system SHALL persisti-lo e devolvê-lo sem alteração pela API, sempre como `application/json`; o escape na renderização das páginas públicas é obrigação do `web` (feature `paginas-publicas`).
 - IF o mesmo cadastro pendente for aprovado e rejeitado concorrentemente por dois administradores THEN the system SHALL aplicar apenas a primeira decisão e responder HTTP 409 à segunda.
 - WHEN uma empresa rejeitada tentar se cadastrar novamente com o mesmo CNPJ THEN the system SHALL permitir um novo cadastro que substitui o registro rejeitado e retorna à fila de análise.
 
@@ -191,12 +214,13 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | EMP-08 | P2: Manutenção dos dados cadastrais | Execute | Verified (domínio) — T12, `validation-fase2.md`; `EditarDadosEmpresaUseCase` — CNPJ imutável, troca de e-mail via `emailPendente`; rotas entregues em T29 (e2e; confirmação de e-mail com caso de uso próprio); falta a reflexão em ≤60s nas páginas públicas, `paginas-publicas` |
 | EMP-09 | P2: Recuperação de senha | Execute | Verified (domínio) — T13, `validation-fase2.md`; `SolicitarRecuperacaoSenha`/`RedefinirSenhaUseCase` — token opaco, expiração de 60 min, revogação de sessões; rotas entregues em T29 (e2e) |
 | EMP-10 | P3: Suspensão e reativação de empresa | Execute | Verified (domínio) — T11, `validation-fase2.md`; `Suspender`/`ReativarEmpresaUseCase` em `Either` com auditoria; propagação HTTP 404 das páginas públicas é infra/`paginas-publicas` |
+| EMP-11 | P2: Contrato HTTP documentado (OpenAPI) | Tasks | In Tasks — T47–T55 |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 10 total, 0 mapeados para tasks (`tasks.md` a refazer após aprovação do design), 10 não mapeados ⚠️ (esperado — Design em revisão após a virada de arquitetura de AD-017; parte dos casos de uso de domínio já existe na branch `feat/new-arch` e precisa de retrabalho)
+**Coverage:** 11 total, 11 mapeados para tasks em `tasks.md` (EMP-11 acrescentado em 2026-09-19 com as Fases 7–9), 0 não mapeados.
 
 ---
 
@@ -204,5 +228,5 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 - [ ] Uma empresa conclui o cadastro completo em menos de 5 minutos sem suporte humano.
 - [ ] Nenhuma campanha ou selo é criado por empresa não aprovada (verificável por teste de integração retornando 403).
-- [ ] Administrador processa a fila de análise e a empresa recebe a decisão por e-mail em menos de 1 minuto após a aprovação.
+- [ ] Administrador processa a fila de análise e, com o provedor de e-mail disponível, a empresa recebe a decisão por e-mail em menos de 1 minuto após a aprovação (com o provedor fora, vale o reenvio com backoff do edge case de e-mail).
 - [ ] Zero senhas em texto claro no banco e nos logs (verificável por inspeção de schema e por teste que grava e relê a credencial).

@@ -157,11 +157,11 @@
 ## Handoff
 
 - **Feature**: `cadastro-empresa` (`.specs/features/cadastro-empresa/`)
-- **Phase / Task**: Fase 6 completa (T30–T32). Todas as tasks T1–T33 concluídas.
-- **Completed**: T1–T33. Fase 6 verificada em `validation-fase6.md` (PASS na re-verificação 3, após 3 iterações); gate: 150 unit, 175 e2e.
+- **Phase / Task**: Fases 1–6 completas (T1–T33, PR #45 mergeado na `main`). Fases 7–9 (T34–T55) planejadas em 2026-09-19, aguardando aprovação.
+- **Completed**: T1–T33. Fase 6 verificada em `validation-fase6.md` (PASS na re-verificação 3); gate: 150 unit, 175 e2e.
 - **In-progress** (file:line): nenhum
-- **Next step**: gerar o `validation.md` consolidado da feature (exigido por `validate_state.py`; o projeto usa relatórios por fase), abrir o PR de `feat/cadastro-empresa-robustez` para a main (precisa de go-ahead para push) e retomar os follow-ups.
+- **Next step**: aprovar as tasks T34–T55 e executar a Fase 7 (T34). A feature só fecha após a Fase 9 e o `validation.md` consolidado (exigido por `validate_state.py`).
 - **Blockers**: nenhum
-- **Follow-ups não escopados**: `AutenticarUsuarioUseCase` duplica a criação de sessão de `SessionService.criar` e nunca grava ip/userAgent; canais laterais de tempo em login e recuperação de senha; token de troca de e-mail sem expiração (spec omissa); SVG servido inline sem CSP/Content-Disposition; worker de e-mail sem teste do guard de reentrância e `InMemoryEmpresaRepository.salvarTransicao` sem CAS real (minors da Fase 6); precisão de spec: escape de HTML no `web`, mensagem do AC6 (limite violado) e o "e-mail em < 1 min" incompatível com o primeiro backoff de 60 s.
+- **Follow-ups**: os achados adiados das Fases 3, 5 e 6 viraram T34–T46 (Fases 7–8); a precisão de spec (escape no `web`, SLA de e-mail, expiração do link de troca de e-mail) foi resolvida na `spec.md`. EMP-11 (OpenAPI/Swagger) adicionado à spec e planejado em T47–T55. Suposições novas com `Confirmed? n`: prazo de 24 h do link de troca de e-mail, re-cadastro volta ao fim da fila, retenção de 30 dias da `email_pendente`, Swagger desligado em produção por padrão.
 - **Uncommitted files**: none
-- **Branch**: `feat/cadastro-empresa-robustez` (não enviada ao remoto)
+- **Branch**: `feat/cadastro-empresa-hardening` (local, não enviada ao remoto)

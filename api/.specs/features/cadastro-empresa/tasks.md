@@ -35,6 +35,8 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 | Adaptadores Prisma dos repositórios + mappers domínio↔row | e2e | Roundtrip contra Postgres de teste: `create` → `findBy*` devolve entidade equivalente; ramo de erro (violação de unicidade) | `test/**/*.e2e-spec.ts` | `cd api && npx jest --config ./test/jest-e2e.json` |
 | Controllers, guards, filter, pipe — `src/infra/http/**`, `src/infra/auth/**` | e2e | Toda rota em escopo: happy + cada edge case listado + caminhos de erro (401/403/409/422/429/503) | `test/**/*.e2e-spec.ts` | `cd api && npx jest --config ./test/jest-e2e.json` |
 | Schema Prisma, migrations, módulos Nest, `PrismaService`, `main.ts` | none | build gate apenas | — | build gate |
+| Documento OpenAPI — `configurarApp`, decorators `@nestjs/swagger` nos controllers, `openapi.json` versionado (Fase 9) | e2e | Toda rota registrada documentada; asserções sobre o JSON gerado (operação, status, `required`, `security`), não sobre os decorators | `test/http/openapi*.e2e-spec.ts` | `cd api && npx jest --config ./test/jest-e2e.json` |
+| Helper zod→OpenAPI (Fase 9) | unit | Conversão de `required`, restrições e registro de componente | `src/infra/http/openapi/*.spec.ts` | `cd api && npx jest` |
 
 ## Gate Check Commands
 
@@ -166,6 +168,54 @@ T28 → T30
 T25 → T31
 T27 → T31
 T28 → T32
+```
+
+### Phase 7: Hardening — doubles, worker e autenticação
+
+Achados adiados das validações das Fases 3, 5 e 6 que tocam teste de contrato e o fluxo de login/recuperação. Ordem: T34 … T39.
+
+```
+T30 → T34
+T18 → T35
+T31 → T36
+T26 → T37
+T37 → T38
+T29 → T39
+```
+
+### Phase 8: Hardening — troca de e-mail, entrega de arquivo e fila
+
+Achados adiados que mudam schema, contrato de repositório ou cabeçalho HTTP. Ordem: T40 … T46.
+
+```
+T29 → T40
+T40 → T41
+T41 → T42
+T32 → T43
+T43 → T44
+T32 → T45
+T36 → T46
+```
+
+### Phase 9: Contrato HTTP em OpenAPI (Swagger)
+
+EMP-11. Documento gerado do código, com os esquemas de corpo derivados dos esquemas Zod das rotas. Ordem: T47 … T55.
+
+```
+T29 → T47
+T47 → T48
+T48 → T49
+T48 → T50
+T48 → T51
+T48 → T52
+T43 → T53
+T48 → T53
+T49 → T54
+T50 → T54
+T51 → T54
+T52 → T54
+T53 → T54
+T54 → T55
 ```
 
 ---
@@ -1130,6 +1180,563 @@ T28 → T32
 
 ---
 
+> **Fases 7–9 adicionadas em 2026-09-19**, antes do fechamento da feature. As Fases 7 e 8 transformam em tasks os achados adiados das validações (`validation-fase3.md` Finding 3; `validation-fase5.md` Findings 7, 8 e 10, N5 e `findUniqueOrThrow`; `validation-fase6.md` GAP B, GAP C, GAP E e as observações residuais de `save` cadastral, retenção de `email_pendente` e expiração do token de troca de e-mail). A Fase 9 entrega EMP-11 (OpenAPI/Swagger), requisito novo da spec. Baseline de testes antes da Fase 7: **150 unit, 175 e2e**.
+
+### T34: Double `InMemoryEmpresaRepository` alinhado ao contrato de `save`/`salvarTransicao`
+
+**What**: O double passa a reproduzir o contrato do adaptador Prisma: `save` preserva `status`, `decididoPor`, `decididoEm` e `motivoDecisao` do item guardado; `salvarTransicao(empresa, estadoEsperado)` devolve `false` sem gravar quando o status guardado difere de `estadoEsperado`. A porta `EmpresaRepository` ganha docstring em `save` dizendo que ele não altera estado nem decisão. Unit dos 4 use cases de decisão + re-cadastro cobrindo o CAS perdido com o double real (sem mock): estado alterado entre a leitura e a gravação → `TransicaoInvalidaError` (ou `EmpresaAlreadyExistsError` no re-cadastro), 0 auditoria, 0 e-mail.
+**Where**: `api/test/repositories/in-memory-empresa-repository.ts`
+**Depends on**: T30
+**Reuses**: `aprovar-empresa.spec.ts` (caso de CAS perdido com mock), `PrismaEmpresaRepository` como referência do contrato
+**Requirement**: EMP-05 (AC5, AC7) — `validation-fase6.md` GAP E
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `save` no double não altera as 4 colunas de decisão (unit que salva uma leitura obsoleta depois de uma transição)
+- [ ] `salvarTransicao` no double compara `estadoEsperado`; CAS perdido coberto em `aprovar`, `rejeitar`, `suspender`, `reativar` e no re-cadastro de `criar-empresa`
+- [ ] Mutante: `salvarTransicao` do double voltando a devolver `true` sempre derruba ao menos 5 testes unit
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [ ] Test count: ≥ 156 unit (≥ 6 novos), 175 e2e inalterados
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `test(api): double de empresa reproduz o cas do repositório`
+
+---
+
+### T35: Double `InMemorySessaoRepository` — `revogarTodasDoUsuario` preserva revogações anteriores
+
+**What**: `revogarTodasDoUsuario` do double passa a filtrar `revogadaEm === null`, como o adaptador Prisma, e não sobrescreve a data de sessões já revogadas. Unit em `redefinir-senha.spec.ts`: sessão revogada antes da redefinição mantém a `revogadaEm` original.
+**Where**: `api/test/repositories/in-memory-sessao-repository.ts`
+**Depends on**: T18
+**Reuses**: `PrismaSessaoRepository.revogarTodasDoUsuario` (contrato de referência)
+**Requirement**: EMP-09 (AC3) — `validation-fase3.md` Finding 3
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Double filtra `revogadaEm === null` antes de revogar
+- [ ] Unit: sessão já revogada mantém a data original após a redefinição; sessões ativas são revogadas
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [ ] Test count: ≥ 157 unit (≥ 1 novo)
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `test(api): double de sessão preserva revogações anteriores`
+
+---
+
+### T36: `EmailPendenteWorker` — reentrância e falha do dreno cobertas
+
+**What**: Unit do worker com um `EmailPendenteService` falso: (a) `executar()` chama `drenar()` uma vez; (b) duas chamadas sobrepostas (a primeira ainda pendente) resultam em um só `drenar`; (c) `drenar` rejeitando → `executar()` resolve sem propagar, registra o erro e a chamada seguinte volta a drenar (`emExecucao` liberado); (d) com `NODE_ENV=test`, `onModuleInit` não agenda nada.
+**Where**: `api/src/infra/mail/email-pendente.worker.spec.ts`
+**Depends on**: T31
+**Reuses**: `EmailPendenteWorker` (T31)
+**Requirement**: EMP-04, Edge Cases (provedor de e-mail indisponível) — `validation-fase6.md` GAP B
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Os 4 cenários (a)–(d) cobertos
+- [ ] Mutante: remover `if (this.emExecucao) return` derruba (b); remover o `finally` derruba (c)
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [ ] Test count: ≥ 161 unit (≥ 4 novos)
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `test(api): cobre reentrância e falha do worker de e-mail`
+
+---
+
+### T37: Login grava `ip`/`userAgent` e deixa de duplicar a criação de sessão
+
+**What**: `AutenticarUsuarioUseCase` recebe `ip` e `userAgent` na requisição e os grava na `sessao`. A geração do token (256 bits) e do `sha256` sai do caso de uso para uma função pura de domínio (`gerarTokenDeSessao()` em `src/domain/fivo/application/`, só `node:crypto`), usada também por `SessionService.criar` — um único formato de token para os dois caminhos. `AutenticacaoController` passa `req.ip` e o cabeçalho `user-agent`.
+**Where**: `api/src/domain/fivo/application/use-cases/autenticar-usuario.ts`
+**Depends on**: T26
+**Reuses**: `SessionService.criar` (T24), `SessaoRepository.criar`
+**Requirement**: EMP-06 — `validation-fase5.md` Finding 7
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit: a sessão criada pelo caso de uso carrega o `ip` e o `userAgent` recebidos
+- [ ] e2e em `autenticacao.e2e-spec.ts`: `POST /sessoes` com `User-Agent` definido → a linha de `sessao` tem `ip` e `user_agent` preenchidos; o token do cookie autentica `GET /empresas/me`
+- [ ] `SessionService.criar` e o caso de uso usam a mesma função de geração (nenhum `randomBytes`/`createHash` de token de sessão fora dela)
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 162 unit, ≥ 176 e2e
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `refactor(api): login grava ip e user-agent com gerador de sessão único`
+
+---
+
+### T38: Login sem canal lateral de tempo para e-mail inexistente
+
+**What**: Com e-mail inexistente, `AutenticarUsuarioUseCase` executa `hasher.compare` contra um hash-isca fixo (gerado uma vez por processo) antes de devolver `CredenciaisInvalidasError`, de modo que o custo da resposta não distingue conta inexistente de senha errada. O corpo e o status continuam idênticos (EMP-06 AC2).
+**Where**: `api/src/domain/fivo/application/use-cases/autenticar-usuario.ts`
+**Depends on**: T37
+**Reuses**: porta `Hasher`, `FakeHasher`
+**Requirement**: EMP-06 (AC2) — `validation-fase5.md` Finding 8 (login)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit: e-mail inexistente → `hasher.compare` chamado exatamente 1 vez e resposta `CredenciaisInvalidasError`
+- [ ] Unit: e-mail existente com senha errada → também 1 chamada de `compare` (paridade)
+- [ ] Mutante: retornar antes do `compare` no ramo de e-mail inexistente derruba o teste
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [ ] Test count: ≥ 164 unit (≥ 2 novos)
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `fix(api): login compara hash-isca quando o e-mail não existe`
+
+---
+
+### T39: Recuperação de senha responde sem aguardar o envio do e-mail
+
+**What**: `SolicitarRecuperacaoSenhaUseCase` persiste o token e dispara o e-mail sem aguardar o `Mailer` no caminho da resposta (a falha do envio é registrada em log, não propagada), para que o tempo do 202 não revele se a conta existe. `SENHA_REDEFINICAO` continua fora da fila de reenvio (carrega token).
+**Where**: `api/src/domain/fivo/application/use-cases/solicitar-recuperacao-senha.ts`
+**Depends on**: T29
+**Reuses**: `Mailer`, `FakeMailer`
+**Requirement**: EMP-09 (AC1, AC2) — `validation-fase5.md` Finding 8 (recuperação)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit: com um `Mailer` que só resolve sob comando, o caso de uso resolve antes do envio terminar e o token já está persistido
+- [ ] Unit: `Mailer` rejeitando → caso de uso resolve `right`, sem exceção não tratada
+- [ ] e2e existente de `POST /senha/recuperacao` (202 neutro) segue verde
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [ ] Test count: ≥ 166 unit (≥ 2 novos)
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `fix(api): recuperação de senha não aguarda o envio do e-mail`
+
+---
+
+### T40: Expiração do link de troca de e-mail — domínio
+
+**What**: `Empresa.solicitarTrocaDeEmail` passa a registrar `tokenTrocaEmailExpiraEm = agora + 24 h`; `ConfirmarTrocaEmailUseCase` recebe `agora` e devolve `TokenConfirmacaoEmailInvalidoError` ("Link de confirmação inválido ou expirado") quando o prazo venceu, mantendo o e-mail anterior e a pendência.
+**Where**: `api/src/domain/fivo/application/use-cases/confirmar-troca-email.ts`
+**Depends on**: T29
+**Reuses**: padrão de expiração de `RedefinirSenhaUseCase` (T13)
+**Requirement**: EMP-08 (AC6)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit: confirmação em 23h59 → sucesso; em 24h01 → `TokenConfirmacaoEmailInvalidoError`, `user.email` inalterado
+- [ ] Unit da entidade: `solicitarTrocaDeEmail` grava o prazo de 24 h; `limparTrocaDeEmail` zera o prazo
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [ ] Test count: ≥ 169 unit (≥ 3 novos)
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `feat(api): link de troca de e-mail expira em 24 horas`
+
+---
+
+### T41: Expiração do link de troca de e-mail — persistência e rota
+
+**What**: Coluna `token_troca_email_expira_em` (migration nova), mapeada em `PrismaEmpresaMapper`; o controller passa `agora` ao caso de uso. e2e: link usado dentro do prazo → 204/200 atual; link com prazo vencido (forçado no banco) → 400 com a mensagem literal e e-mail de login inalterado.
+**Where**: `api/src/infra/database/prisma/mappers/prisma-empresa-mapper.ts`
+**Depends on**: T40
+**Reuses**: harness e2e (T16), `edicao-e-senha.e2e-spec.ts`
+**Requirement**: EMP-08 (AC6)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Migration aplicada por `npx prisma migrate deploy` no banco de teste
+- [ ] e2e: prazo vencido → 400 `"Link de confirmação inválido ou expirado"`; login com o e-mail antigo continua funcionando
+- [ ] e2e: roundtrip de repositório preserva `tokenTrocaEmailExpiraEm`
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 178 e2e (≥ 2 novos)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `feat(api): persiste prazo do link de troca de e-mail`
+
+---
+
+### T42: Confirmação de troca de e-mail grava só as colunas de e-mail
+
+**What**: `EmpresaRepository` ganha `salvarTrocaDeEmail(empresa)`, que grava apenas `emailPendente`, `tokenTrocaEmailHash` e `tokenTrocaEmailExpiraEm`; `ConfirmarTrocaEmailUseCase` e o pedido de troca passam a usá-lo em vez do `save` cadastral. Fecha o *lost update* entre `PATCH /empresas/me` e a confirmação de e-mail (um sobrescrevia os dados do outro a partir de leitura obsoleta). Double em memória acompanha.
+**Where**: `api/src/infra/database/prisma/prisma-empresa-repository.ts`
+**Depends on**: T41
+**Reuses**: padrão de `save` restrito às colunas cadastrais (Fase 6, GAP A)
+**Requirement**: EMP-08 (AC1, AC3) — `validation-fase6.md` re-verificação 2, observação residual de `save`
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] e2e de repositório sequencial: leitura obsoleta → `save` de `nomeFantasia` → `salvarTrocaDeEmail(obsoleta)` → `nomeFantasia` novo preservado
+- [ ] e2e de repositório: `save` cadastral com leitura obsoleta não apaga `emailPendente` gravado por `salvarTrocaDeEmail`
+- [ ] Unit dos casos de uso de troca de e-mail seguem verdes com o double atualizado
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 180 e2e (≥ 2 novos)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `fix(api): troca de e-mail não sobrescreve dados cadastrais`
+
+---
+
+### T43: Entrega de binário com CSP `sandbox` e `Content-Disposition`
+
+**What**: `GET /arquivos/:id` passa a responder com `Content-Security-Policy: default-src 'none'; sandbox` em todo arquivo e `Content-Disposition: attachment` para `image/svg+xml` (`inline` para raster), como defesa em profundidade além do bloqueio de script no upload. `<img>` continua exibindo o SVG.
+**Where**: `api/src/infra/http/arquivo.controller.ts`
+**Depends on**: T32
+**Reuses**: `arquivo.e2e-spec.ts`
+**Requirement**: EMP-03, Edge Cases (conteúdo hostil) — `validation-fase5.md` Finding 10
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] e2e: PNG → CSP presente, `Content-Disposition: inline`, `nosniff` mantido
+- [ ] e2e: SVG → CSP presente, `Content-Disposition: attachment`
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 182 e2e (≥ 2 novos)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `fix(api): serve arquivos com csp sandbox e content-disposition`
+
+---
+
+### T44: `ArquivoService.lerBytes` devolve 404 quando o registro some
+
+**What**: Troca `findUniqueOrThrow` por `findUnique` em `lerBytes`; registro ausente vira `null` e o controller responde 404 "Arquivo não encontrado" em vez de 500.
+**Where**: `api/src/infra/arquivo/arquivo.service.ts`
+**Depends on**: T43
+**Reuses**: `arquivo.e2e-spec.ts`
+**Requirement**: EMP-03 — `validation-fase5.md` (erro de domínio → status, exceção de `lerBytes`)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] e2e de service: `lerBytes` com id inexistente → `null`, sem exceção
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 183 e2e (≥ 1 novo)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `fix(api): leitura de arquivo ausente responde 404`
+
+---
+
+### T45: Mensagem e corpo do 422 de logo asseridos no cadastro
+
+**What**: Fecha as asserções fracas do 422 de logo: no caminho `POST /empresas`, SVG com script e raster abaixo de 512×512 assertam `body.message` com o limite violado (EMP-01 AC6), e o 422 de upload acima de 5 MB asserta `body.statusCode === 422` além da mensagem (mutante N5).
+**Where**: `api/test/http/cadastro-empresa.e2e-spec.ts`
+**Depends on**: T32
+**Reuses**: `edicao-e-senha.e2e-spec.ts` (asserção `stringContaining('512x512')` no caminho de edição)
+**Requirement**: EMP-01 (AC5, AC6) — `validation-fase6.md` GAP C; `validation-fase5.md` N5
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Os 3 casos assertam status **e** mensagem literal do limite
+- [ ] Mutantes: `statusCode: 413` no corpo do filtro e mensagem de dimensão alterada em `Arquivo.criar` são mortos
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 183 e2e (asserções novas; nenhum teste removido)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `test(api): assere mensagem e corpo do 422 de logo no cadastro`
+
+---
+
+### T46: Retenção da fila `email_pendente`
+
+**What**: `EmailPendenteService.expurgar(agora)` remove linhas com `enviadoEm` ou `esgotadoEm` anteriores a `agora − 30 dias`; o worker chama o expurgo após cada dreno. Linhas ainda pendentes nunca são removidas.
+**Where**: `api/src/infra/mail/email-pendente.service.ts`
+**Depends on**: T36
+**Reuses**: `email-pendente.e2e-spec.ts`, worker (T31/T36)
+**Requirement**: Edge Cases (provedor de e-mail indisponível) — `validation-fase6.md` revisão adversarial item 5
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] e2e: enviada há 31 dias → removida; enviada há 29 dias → mantida; esgotada há 31 dias → removida; pendente antiga → mantida
+- [ ] Unit do worker (T36): `executar()` chama o expurgo depois do dreno
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 167 unit, ≥ 187 e2e (≥ 4 novos)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `feat(api): expurga a fila de e-mail após 30 dias`
+
+---
+
+### T47: Setup do `@nestjs/swagger` — documento e Swagger UI em `/docs`
+
+**What**: Instala `@nestjs/swagger@^11` (compatível com `@nestjs/core` 11; a 12 exige Nest 12). `configurarApp` monta o documento com `DocumentBuilder` (título, versão do `package.json`, `addCookieAuth` com o nome de `NOME_COOKIE_SESSAO`) e serve a UI em `/docs` e o JSON em `/docs/openapi.json` quando `NODE_ENV !== 'production'` ou `SWAGGER_ENABLED === 'true'`. `.env.example` ganha `SWAGGER_ENABLED`. Sem `class-validator`/`class-transformer` (os DTOs são Zod — ver T48).
+**Where**: `api/src/infra/http/configurar-app.ts`
+**Depends on**: T29
+**Reuses**: `configurarApp` (usado por `main.ts` e pelo harness e2e)
+**Requirement**: EMP-11 (AC1, AC2, AC5)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] e2e (`test/http/openapi.e2e-spec.ts`): `GET /docs/openapi.json` sem sessão → 200, `openapi` começa com `3.`, `components.securitySchemes` tem o cookie de sessão
+- [ ] e2e: `GET /docs` → 200 HTML
+- [ ] e2e: com `NODE_ENV=production` e sem `SWAGGER_ENABLED` → 404 nas duas rotas; com `SWAGGER_ENABLED=true` → 200
+- [ ] `npm run build` passa com a dependência nova
+- [ ] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 190 e2e (≥ 3 novos)
+
+**Tests**: e2e
+**Gate**: build
+
+**Commit**: `feat(api): documento openapi e swagger ui em /docs`
+
+---
+
+### T48: Esquemas OpenAPI derivados dos esquemas Zod
+
+**What**: Helper `esquemaOpenApi(nome, schema)` que converte um esquema Zod em JSON Schema com `z.toJSONSchema(schema, { io: 'input' })` (nativo do Zod 4, sem dependência nova), registra o resultado em `components.schemas` e devolve a `$ref` para `@ApiBody`/`@ApiResponse`. Inclui o esquema `ErroResposta` (`statusCode`, `message`, `errors[]` com `campo`/`mensagem`), que é o corpo de erro do `DomainExceptionFilter` e do `ZodValidationPipe`.
+**Where**: `api/src/infra/http/openapi/esquema-openapi.ts`
+**Depends on**: T47
+**Reuses**: `criarEmpresaSchema`, `ZodValidationPipe` (formato do erro)
+**Requirement**: EMP-11 (AC3, AC4)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit: `criarEmpresaSchema` convertido → `required` contém `razaoSocial`, `cnpj`, `email`, `senha`, `uf` e não contém `complemento`/`site`; `uf` tem `minLength`/`maxLength` 2
+- [ ] Unit: `ErroResposta` tem `statusCode` inteiro e `message` string obrigatórios
+- [ ] Unit: dois registros com o mesmo nome não duplicam o componente
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [ ] Test count: ≥ 170 unit (≥ 3 novos)
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `feat(api): converte esquemas zod em componentes openapi`
+
+---
+
+### T49: Documentar `CadastroEmpresaController`
+
+**What**: `@ApiTags('empresas')` e, por rota, `@ApiOperation`, corpo e respostas: `POST /empresas` e `PATCH /empresas/me` como `multipart/form-data` (campos do esquema Zod + `logo` binário opcional), `GET /empresas/me`, `PATCH /empresas/me/email`, `POST /empresas/me/email/confirmacao`. Respostas de erro com `ErroResposta`: 401/403 nas rotas protegidas, 409, 422, 503 conforme o controller. `POST /empresas` e a confirmação marcadas públicas (sem `security`).
+**Where**: `api/src/infra/http/cadastro-empresa.controller.ts`
+**Depends on**: T48
+**Reuses**: `esquemaOpenApi` (T48), `empresa.presenter.ts` (forma da resposta)
+**Requirement**: EMP-11 (AC3, AC4, AC5)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] e2e (`openapi.e2e-spec.ts`): as 5 operações existem com os status documentados; `POST /empresas` tem `multipart/form-data` com `logo` `format: binary` e os `required` do Zod
+- [ ] e2e: `GET /empresas/me` tem `security` com o cookie; `POST /empresas` não tem
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 192 e2e (≥ 2 novos)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `docs(api): documenta rotas de cadastro de empresa no openapi`
+
+---
+
+### T50: Documentar `AutenticacaoController`
+
+**What**: `POST /sessoes` (corpo Zod; 201 com `Set-Cookie` descrito em `headers`; 401, 422, 429) e `DELETE /sessoes/atual` (204; 401), com `@ApiTags('sessoes')`. Login público; logout protegido.
+**Where**: `api/src/infra/http/autenticacao.controller.ts`
+**Depends on**: T48
+**Reuses**: `esquemaOpenApi` (T48)
+**Requirement**: EMP-11 (AC3, AC5)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] e2e: as 2 operações com os status acima; 201 do login declara o cabeçalho `Set-Cookie`
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 193 e2e (≥ 1 novo)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `docs(api): documenta rotas de sessão no openapi`
+
+---
+
+### T51: Documentar `SenhaController`
+
+**What**: `POST /senha/recuperacao` (202 neutro; 422) e `POST /senha/redefinicao` (204; 400 "Link de redefinição inválido ou expirado"; 422), ambas públicas, `@ApiTags('senha')`.
+**Where**: `api/src/infra/http/senha.controller.ts`
+**Depends on**: T48
+**Reuses**: `esquemaOpenApi` (T48)
+**Requirement**: EMP-11 (AC3, AC5)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] e2e: as 2 operações com os status acima e sem `security`
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 194 e2e (≥ 1 novo)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `docs(api): documenta rotas de senha no openapi`
+
+---
+
+### T52: Documentar `AdminEmpresasController`
+
+**What**: `GET /admin/empresas` (fila; 200 com a lista; 401, 403) e as 4 decisões `POST /admin/empresas/:id/{aprovacao,rejeicao,suspensao,reativacao}` (204; 401, 403, 404, 409; 422 no motivo da rejeição), `@ApiTags('admin')`, todas protegidas e descritas como exclusivas do papel `ADMIN`.
+**Where**: `api/src/infra/http/admin-empresas.controller.ts`
+**Depends on**: T48
+**Reuses**: `esquemaOpenApi` (T48), `admin-empresas.dto.ts`
+**Requirement**: EMP-11 (AC3, AC5)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] e2e: as 5 operações com os status acima; `rejeicao` tem corpo com `motivo` obrigatório
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 195 e2e (≥ 1 novo)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `docs(api): documenta rotas de administração no openapi`
+
+---
+
+### T53: Documentar `ArquivoController`
+
+**What**: `GET /arquivos/:id` com resposta 200 binária (`image/png`, `image/jpeg`, `image/svg+xml`, `application/pdf` com `format: binary`), cabeçalhos `X-Content-Type-Options`, `Content-Security-Policy` e `Content-Disposition` (T43) declarados; 401, 403, 404.
+**Where**: `api/src/infra/http/arquivo.controller.ts`
+**Depends on**: T43, T48
+**Reuses**: `esquemaOpenApi` (T48)
+**Requirement**: EMP-11 (AC3, AC5)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] e2e: a operação declara conteúdo binário e os 3 cabeçalhos, com 401/403/404
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 196 e2e (≥ 1 novo)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `docs(api): documenta entrega de arquivos no openapi`
+
+---
+
+### T54: Teste de paridade rotas ↔ documento
+
+**What**: e2e que enumera as rotas registradas no Nest (via `DiscoveryService`/metadados de `@Controller` + método HTTP) e exige que cada uma exista no documento OpenAPI com o mesmo método e caminho (`:id` → `{id}`), que cada operação tenha ao menos uma resposta 2xx e que toda rota sem `@Public` tenha `security`. Rota nova sem documentação passa a quebrar o gate.
+**Where**: `api/test/http/openapi-paridade.e2e-spec.ts`
+**Depends on**: T49, T50, T51, T52, T53
+**Reuses**: `IS_PUBLIC_KEY` do `@Public` (T24)
+**Requirement**: EMP-11 (AC3, AC5)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] e2e: 15 rotas registradas = 15 operações documentadas (conjunto igual, não só contagem)
+- [ ] e2e: rotas `@Public` sem `security`; demais com `security`
+- [ ] Mutante: remover `@ApiResponse` de 2xx de uma rota ou comentar uma rota do documento derruba o teste
+- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 198 e2e (≥ 2 novos)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `test(api): paridade entre rotas registradas e documento openapi`
+
+---
+
+### T55: Exportação versionada do `openapi.json`
+
+**What**: Script `npm run openapi:export` (`api/scripts/exportar-openapi.ts`) que sobe o `AppModule` sem ouvir porta, gera o documento e grava `api/openapi.json` com chaves ordenadas; o arquivo é versionado para o `web` gerar tipos (AD-010). e2e compara o documento gerado com o arquivo versionado e falha com a instrução "rode npm run openapi:export" quando divergem.
+**Where**: `api/scripts/exportar-openapi.ts`
+**Depends on**: T54
+**Reuses**: montagem do documento de `configurarApp` (T47) extraída para uma função reutilizável
+**Requirement**: EMP-11 (AC3)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `npm run openapi:export` gera `api/openapi.json` e encerra com exit 0 (sem deixar worker ou conexão abertos)
+- [ ] e2e: documento gerado igual ao arquivo versionado; alterar um `@ApiResponse` sem reexportar derruba o teste
+- [ ] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [ ] Test count: ≥ 199 e2e (≥ 1 novo)
+
+**Tests**: e2e
+**Gate**: build
+
+**Commit**: `build(api): exporta openapi.json versionado`
+
+---
+
 ## Phase Execution Map
 
 Grafo completo de dependências (`origem → alvo`), união das arestas dos blocos por fase:
@@ -1205,13 +1812,42 @@ T28 → T30
 T25 → T31
 T27 → T31
 T28 → T32
+T30 → T34
+T18 → T35
+T31 → T36
+T26 → T37
+T37 → T38
+T29 → T39
+T29 → T40
+T40 → T41
+T41 → T42
+T32 → T43
+T43 → T44
+T32 → T45
+T36 → T46
+T29 → T47
+T47 → T48
+T48 → T49
+T48 → T50
+T48 → T51
+T48 → T52
+T43 → T53
+T48 → T53
+T49 → T54
+T50 → T54
+T51 → T54
+T52 → T54
+T53 → T54
+T54 → T55
 ```
 
-Ordem de execução (prosa): Fase 1 `T1 … T7` (T2 antes de T4; o resto sem ordem forçada) · Fase 2 `T8 → T9 → T10 → T11 → T12 → T13` · Fase 3 `T14 → T15 → T16 → T17 → T18 → T33` · Fase 4 `T19 → T20 → T21 → T22` · Fase 5 `T23 → T24 → T25 → T26 → T27 → T28 → T29` · Fase 6 `T30 → T31 → T32`.
+Ordem de execução (prosa): Fase 1 `T1 … T7` (T2 antes de T4; o resto sem ordem forçada) · Fase 2 `T8 → T9 → T10 → T11 → T12 → T13` · Fase 3 `T14 → T15 → T16 → T17 → T18 → T33` · Fase 4 `T19 → T20 → T21 → T22` · Fase 5 `T23 → T24 → T25 → T26 → T27 → T28 → T29` · Fase 6 `T30 → T31 → T32` · Fase 7 `T34 → T35 → T36 → T37 → T38 → T39` · Fase 8 `T40 → T41 → T42 → T43 → T44 → T45 → T46` · Fase 9 `T47 → T48 → T49 → T50 → T51 → T52 → T53 → T54 → T55`.
 
 Execução estritamente sequencial — sem paralelismo intra-fase.
 
 **Batches previstos para o Execute** (~7 tasks/worker, fases inteiras): Fase 1 (7) → batch 1; Fase 2 (6) → batch 2; Fases 3+4 (10, incl. T33) → batch 3; Fase 5 (7) → batch 4; Fase 6 (3) → batch 5. Verifier ao final. As Fases 1–2 fecham a regra de negócio e podem ser executadas e verificadas isoladamente antes de qualquer trabalho de infra.
+
+**Batches da rodada de fechamento (Fases 7–9, 22 tasks)**: Fase 7 (6) → batch 6; Fase 8 (7) → batch 7; Fase 9 (9) → batch 8. Verifier ao fim de cada fase (convenção `validation-faseN.md`) e, ao fim da Fase 9, o `validation.md` consolidado da feature exigido por `validate_state.py`.
 
 > **T33 adicionada em 2026-09-18** após a validação da Fase 3 (`validation-fase3.md`, GAP 2 escalado) — ver AD-019 em `STATE.md`. Bloqueia T25; T14–T18 e o restante das Fases 4–6 não foram renumeradas.
 
@@ -1249,6 +1885,21 @@ Execução estritamente sequencial — sem paralelismo intra-fase.
 | T25–T28 | 1 controller / fatia de rota cada | ✅ Granular |
 | T29 | rotas P2 sobre controllers existentes — modificação focada | ⚠️ OK (coeso) |
 | T30–T32 | 1 arquivo de teste + ajustes mínimos cada | ✅ Granular |
+| T34, T35 | 1 double + os unit que provam o contrato dele | ✅ Granular |
+| T36 | 1 arquivo de teste | ✅ Granular |
+| T37 | 1 caso de uso + função de token + repasse no controller — uma preocupação (criação de sessão) | ⚠️ OK (coeso) |
+| T38, T39 | 1 caso de uso cada | ✅ Granular |
+| T40 | entidade + 1 caso de uso — uma regra (prazo do link) | ⚠️ OK (coeso) |
+| T41 | migration + mapper + repasse de `agora` — uma entrega (persistir o prazo) | ⚠️ OK (coeso) |
+| T42 | 1 método de porta + adaptador + double + 2 callers — uma preocupação (escrita restrita de e-mail) | ⚠️ OK (coeso) |
+| T43, T44 | 1 controller / 1 service | ✅ Granular |
+| T45 | 1 arquivo de teste | ✅ Granular |
+| T46 | 1 método de service + chamada no worker | ✅ Granular |
+| T47 | setup de biblioteca (dependência + `configurarApp` + env) | ⚠️ OK (uma entrega: servir o documento) |
+| T48 | 1 helper | ✅ Granular |
+| T49–T53 | 1 controller cada | ✅ Granular |
+| T54 | 1 arquivo de teste | ✅ Granular |
+| T55 | 1 script + extração da montagem do documento | ⚠️ OK (coeso) |
 
 Nenhuma task cria múltiplos componentes não relacionados. T3, T4 e T7 concentram regra numa entidade/camada só (rich domain model — a regra e o dado que ela protege ficam juntos). T24 é a única perto de 1,5× do budget — cadeia única de backbone de auth.
 
@@ -1291,6 +1942,28 @@ Nenhuma task cria múltiplos componentes não relacionados. T3, T4 e T7 concentr
 | T30 | T25, T27, T28 | T25→T30, T27→T30, T28→T30 | ✅ |
 | T31 | T25, T27 | T25→T31, T27→T31 | ✅ |
 | T32 | T28 | T28→T32 | ✅ |
+| T34 | T30 | T30→T34 | ✅ |
+| T35 | T18 | T18→T35 | ✅ |
+| T36 | T31 | T31→T36 | ✅ |
+| T37 | T26 | T26→T37 | ✅ |
+| T38 | T37 | T37→T38 | ✅ |
+| T39 | T29 | T29→T39 | ✅ |
+| T40 | T29 | T29→T40 | ✅ |
+| T41 | T40 | T40→T41 | ✅ |
+| T42 | T41 | T41→T42 | ✅ |
+| T43 | T32 | T32→T43 | ✅ |
+| T44 | T43 | T43→T44 | ✅ |
+| T45 | T32 | T32→T45 | ✅ |
+| T46 | T36 | T36→T46 | ✅ |
+| T47 | T29 | T29→T47 | ✅ |
+| T48 | T47 | T47→T48 | ✅ |
+| T49 | T48 | T48→T49 | ✅ |
+| T50 | T48 | T48→T50 | ✅ |
+| T51 | T48 | T48→T51 | ✅ |
+| T52 | T48 | T48→T52 | ✅ |
+| T53 | T43, T48 | T43→T53, T48→T53 | ✅ |
+| T54 | T49, T50, T51, T52, T53 | T49→T54, T50→T54, T51→T54, T52→T54, T53→T54 | ✅ |
+| T55 | T54 | T54→T55 | ✅ |
 
 Toda dependência aponta para trás (fase anterior) ou para uma task anterior na mesma fase. Paridade completa.
 
@@ -1323,6 +1996,19 @@ Toda dependência aponta para trás (fase anterior) ou para uma task anterior na
 | T25–T28 | controllers | e2e | e2e | ✅ |
 | T29 | controllers (mod) | e2e | e2e | ✅ |
 | T30–T32 | suites e2e | e2e | e2e | ✅ |
+| T34, T35 | test doubles, com unit de casos de uso que provam o contrato | unit (casos de uso) | unit | ✅ |
+| T36 | adaptador de infra sem I/O (worker) | unit | unit | ✅ |
+| T37 | caso de uso + controller | e2e (maior das duas) | e2e | ✅ |
+| T38, T39, T40 | casos de uso / entidade | unit | unit | ✅ |
+| T41, T42 | adaptador Prisma + mapper + migration | e2e | e2e | ✅ |
+| T43 | controller | e2e | e2e | ✅ |
+| T44, T46 | service c/ Prisma | e2e | e2e | ✅ |
+| T45 | suite e2e | e2e | e2e | ✅ |
+| T47 | documento OpenAPI (`configurarApp`) | e2e | e2e | ✅ |
+| T48 | helper puro zod→OpenAPI | unit | unit | ✅ |
+| T49–T53 | documento OpenAPI (decorators de controller) | e2e | e2e | ✅ |
+| T54 | suite e2e | e2e | e2e | ✅ |
+| T55 | script de tooling + documento versionado | e2e (drift do documento) | e2e | ✅ |
 
 Nenhuma violação. `Tests: none` só nas layers que a matrix marca como `none` (schema, glue de módulo Nest, erros de aplicação, portas). Nenhum teste é adiado para outra task.
 
@@ -1332,16 +2018,17 @@ Nenhuma violação. `Tests: none` só nas layers que a matrix marca como `none` 
 
 | Requirement ID | Tasks |
 | -------------- | ----- |
-| EMP-01 | T3, T5, T7, T8, T14, T16, T20, T25, T31, T33 |
+| EMP-01 | T3, T5, T7, T8, T14, T16, T20, T25, T31, T33, T45 |
 | EMP-02 | T1, T2, T6, T8, T23, T25, T33 |
-| EMP-03 | T5, T7, T21, T22, T25, T28 |
-| EMP-04 | T10, T20, T27, T31 |
-| EMP-05 | T3, T10, T11, T23, T27 |
-| EMP-06 | T6, T9, T19, T24, T25, T26 |
+| EMP-03 | T5, T7, T21, T22, T25, T28, T43, T44 |
+| EMP-04 | T10, T20, T27, T31, T36 |
+| EMP-05 | T3, T10, T11, T23, T27, T30, T34 |
+| EMP-06 | T6, T9, T19, T24, T25, T26, T37, T38 |
 | EMP-07 | T4, T9, T24, T26 |
-| EMP-08 | T3, T12, T29 |
-| EMP-09 | T13, T18, T20, T29 |
+| EMP-08 | T3, T12, T29, T40, T41, T42 |
+| EMP-09 | T13, T18, T20, T29, T35, T39 |
 | EMP-10 | T11, T27 |
-| Edge Cases | T8, T22, T30, T31, T32 |
+| EMP-11 | T47, T48, T49, T50, T51, T52, T53, T54, T55 |
+| Edge Cases | T8, T22, T30, T31, T32, T36, T43, T46 |
 
-**Coverage:** 10 requisitos, 10 mapeados para tasks, 0 não mapeados.
+**Coverage:** 11 requisitos, 11 mapeados para tasks, 0 não mapeados.
