@@ -171,4 +171,21 @@ describe('AutenticarUsuarioUseCase', () => {
     expect(sessao.tokenHash).toBe(hashEsperado);
     expect(sessao.tokenHash).not.toBe(response.value.token);
   });
+
+  it('should persist the ip and the userAgent received in the request on the sessao', async () => {
+    await criarUsuario();
+
+    const response = await sut.execute({
+      email: 'john@example.com',
+      senha: SENHA_CORRETA,
+      agora: AGORA,
+      ip: '203.0.113.7',
+      userAgent: 'Mozilla/5.0 (Teste)',
+    });
+
+    expect(response.isRight()).toBe(true);
+    expect(sessaoRepository.items).toHaveLength(1);
+    expect(sessaoRepository.items[0].ip).toBe('203.0.113.7');
+    expect(sessaoRepository.items[0].userAgent).toBe('Mozilla/5.0 (Teste)');
+  });
 });

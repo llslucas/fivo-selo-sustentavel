@@ -1271,11 +1271,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit: a sessão criada pelo caso de uso carrega o `ip` e o `userAgent` recebidos
-- [ ] e2e em `autenticacao.e2e-spec.ts`: `POST /sessoes` com `User-Agent` definido → a linha de `sessao` tem `ip` e `user_agent` preenchidos; o token do cookie autentica `GET /empresas/me`
-- [ ] `SessionService.criar` e o caso de uso usam a mesma função de geração (nenhum `randomBytes`/`createHash` de token de sessão fora dela)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 162 unit, ≥ 176 e2e
+- [x] Unit: a sessão criada pelo caso de uso carrega o `ip` e o `userAgent` recebidos
+- [x] e2e em `autenticacao.e2e-spec.ts`: `POST /sessoes` com `User-Agent` definido → a linha de `sessao` tem `ip` e `user_agent` preenchidos; o token do cookie autentica `GET /empresas/me`
+- [x] `SessionService.criar` e o caso de uso usam a mesma função de geração (nenhum `randomBytes`/`createHash` de token de sessão fora dela)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 162 unit, ≥ 176 e2e
 
 **Tests**: e2e
 **Gate**: full

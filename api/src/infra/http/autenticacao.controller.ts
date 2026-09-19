@@ -1,5 +1,13 @@
-import { Body, Controller, Delete, HttpCode, Post, Res } from '@nestjs/common';
-import type { Response } from 'express';
+import {
+  Body,
+  Controller,
+  Delete,
+  HttpCode,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
+import type { Request, Response } from 'express';
 
 import { AutenticarUsuarioUseCase } from '@domain/fivo/application/use-cases/autenticar-usuario';
 import { UserRole } from '@domain/fivo/entities/user';
@@ -29,10 +37,16 @@ export class AutenticacaoController {
   @HttpCode(200)
   async entrar(
     @Body(new ZodValidationPipe(loginSchema)) dados: LoginDto,
+    @Req() requisicao: Request,
     @Res({ passthrough: true }) resposta: Response,
   ): Promise<{ papel: UserRole }> {
     const { token, papel } = desembrulhar(
-      await this.autenticarUsuario.execute({ ...dados, agora: new Date() }),
+      await this.autenticarUsuario.execute({
+        ...dados,
+        agora: new Date(),
+        ip: requisicao.ip,
+        userAgent: requisicao.headers['user-agent'],
+      }),
     );
 
     definirCookieDeSessao(resposta, token);
