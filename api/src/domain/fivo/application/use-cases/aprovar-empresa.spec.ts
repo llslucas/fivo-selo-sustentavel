@@ -1,6 +1,6 @@
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
-import { EmpresaStatus } from '@domain/fivo/entities/empresa';
+import { Empresa, EmpresaStatus } from '@domain/fivo/entities/empresa';
 import { UserRole } from '@domain/fivo/entities/user';
 import { FakeMailer } from '@test/cryptography/fake-mailer';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
@@ -11,6 +11,8 @@ import { InMemoryUserRepository } from '@test/repositories/in-memory-user-reposi
 import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
 import { TemplateEmail } from '../ports/mailer';
 import { AprovarEmpresaUseCase } from './aprovar-empresa';
+
+const MOTIVO_DA_VENCEDORA = 'Documentação incompleta para validar o CNPJ.';
 
 describe('AprovarEmpresaUseCase', () => {
   let empresaRepository: InMemoryEmpresaRepository;
@@ -44,6 +46,16 @@ describe('AprovarEmpresaUseCase', () => {
       status: EmpresaStatus.PENDENTE_APROVACAO,
     });
     await empresaRepository.create(empresa);
+
+    return empresa;
+  }
+
+  async function lerEmpresa(id: string): Promise<Empresa> {
+    const empresa = await empresaRepository.findById(id);
+
+    if (!empresa) {
+      throw new Error(`Empresa ${id} não encontrada no repositório`);
+    }
 
     return empresa;
   }
@@ -155,6 +167,40 @@ describe('AprovarEmpresaUseCase', () => {
     if (response.isLeft()) {
       expect(response.value).toBeInstanceOf(TransicaoInvalidaError);
     }
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
+    expect(mailer.mensagens).toHaveLength(0);
+  });
+
+  it('should keep the winning decision, return TransicaoInvalidaError and leave no audit or e-mail when the stored status changed after the read (CAS of the real double)', async () => {
+    const empresa = await criarEmpresaPendente();
+    const admin = UserFactory.create({ role: UserRole.ADMIN });
+    const outroAdmin = UserFactory.create({ role: UserRole.ADMIN });
+
+    const leituraObsoleta = await lerEmpresa(empresa.id.toString());
+
+    // Outra decisão vence a corrida entre a leitura e a gravação.
+    const vencedora = await lerEmpresa(empresa.id.toString());
+    vencedora.rejeitar(outroAdmin.id, MOTIVO_DA_VENCEDORA);
+    await empresaRepository.salvarTransicao(
+      vencedora,
+      EmpresaStatus.PENDENTE_APROVACAO,
+    );
+
+    jest
+      .spyOn(empresaRepository, 'findById')
+      .mockResolvedValueOnce(leituraObsoleta);
+
+    const response = await sut.execute(empresa.id.toString(), admin);
+
+    expect(response.isLeft()).toBe(true);
+    if (response.isLeft()) {
+      expect(response.value).toBeInstanceOf(TransicaoInvalidaError);
+    }
+
+    const guardada = await lerEmpresa(empresa.id.toString());
+    expect(guardada.status).toBe(EmpresaStatus.REJEITADA);
+    expect(guardada.decididoPor?.equals(outroAdmin.id)).toBe(true);
+    expect(guardada.motivoDecisao).toBe(MOTIVO_DA_VENCEDORA);
     expect(registroAuditoriaRepository.items).toHaveLength(0);
     expect(mailer.mensagens).toHaveLength(0);
   });

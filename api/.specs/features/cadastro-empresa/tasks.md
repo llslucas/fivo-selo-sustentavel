@@ -1195,11 +1195,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] `save` no double não altera as 4 colunas de decisão (unit que salva uma leitura obsoleta depois de uma transição)
-- [ ] `salvarTransicao` no double compara `estadoEsperado`; CAS perdido coberto em `aprovar`, `rejeitar`, `suspender`, `reativar` e no re-cadastro de `criar-empresa`
-- [ ] Mutante: `salvarTransicao` do double voltando a devolver `true` sempre derruba ao menos 5 testes unit
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 156 unit (≥ 6 novos), 175 e2e inalterados
+- [x] `save` no double não altera as 4 colunas de decisão (unit que salva uma leitura obsoleta depois de uma transição)
+- [x] `salvarTransicao` no double compara `estadoEsperado`; CAS perdido coberto em `aprovar`, `rejeitar`, `suspender`, `reativar` e no re-cadastro de `criar-empresa`
+- [x] Mutante: `salvarTransicao` do double voltando a devolver `true` sempre derruba ao menos 5 testes unit
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 156 unit (≥ 6 novos), 175 e2e inalterados
 
 **Tests**: unit
 **Gate**: quick

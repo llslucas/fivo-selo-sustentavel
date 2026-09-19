@@ -1,4 +1,4 @@
-import { EmpresaStatus } from '@domain/fivo/entities/empresa';
+import { Empresa, EmpresaStatus } from '@domain/fivo/entities/empresa';
 import { UserRole } from '@domain/fivo/entities/user';
 import { FakeHasher } from '@test/cryptography/fake-hasher';
 import { FakeMailer } from '@test/cryptography/fake-mailer';
@@ -60,6 +60,16 @@ describe('CriarEmpresaUseCase', () => {
       new InMemoryUnitOfWork(),
     );
   });
+
+  async function lerEmpresa(id: string): Promise<Empresa> {
+    const empresa = await empresaRepository.findById(id);
+
+    if (!empresa) {
+      throw new Error(`Empresa ${id} não encontrada no repositório`);
+    }
+
+    return empresa;
+  }
 
   it('should create the User (EMPRESA) and the Empresa (PENDENTE_APROVACAO) with hashed password on valid data', async () => {
     const response = await sut.execute(validRequest());
@@ -243,5 +253,44 @@ describe('CriarEmpresaUseCase', () => {
 
     const empresa = await empresaRepository.findById(response.value.empresaId);
     expect(empresa?.logoArquivoId?.toString()).toBe(arquivoId);
+  });
+
+  it('should keep the winning re-registration and throw EmpresaAlreadyExistsError when the stored status changed after the read (CAS of the real double)', async () => {
+    const cnpjOrError = Cnpj.create('12345678000195');
+    if (cnpjOrError.isLeft()) throw new Error('invalid cnpj fixture');
+
+    const existingUser = UserFactory.create({
+      email: 'contato@empresateste.com.br',
+    });
+    await userRepository.create(existingUser);
+
+    const rejectedEmpresa = EmpresaFactory.create({
+      cnpj: cnpjOrError.value,
+      status: EmpresaStatus.REJEITADA,
+      usuarioId: existingUser.id,
+    });
+    await empresaRepository.create(rejectedEmpresa);
+
+    const leituraObsoleta = await lerEmpresa(rejectedEmpresa.id.toString());
+
+    // Outro re-cadastro vence a corrida entre a leitura e a gravação.
+    const vencedor = await sut.execute(
+      validRequest({ razaoSocial: 'Empresa Vencedora LTDA' }),
+    );
+    expect(vencedor.isRight()).toBe(true);
+
+    jest
+      .spyOn(empresaRepository, 'findByCnpj')
+      .mockResolvedValueOnce(leituraObsoleta);
+
+    await expect(
+      sut.execute(validRequest({ razaoSocial: 'Empresa Perdedora LTDA' })),
+    ).rejects.toBeInstanceOf(EmpresaAlreadyExistsError);
+
+    const guardada = await lerEmpresa(rejectedEmpresa.id.toString());
+    expect(guardada.razaoSocial).toBe('Empresa Vencedora LTDA');
+    expect(guardada.status).toBe(EmpresaStatus.PENDENTE_APROVACAO);
+    expect(empresaRepository.items).toHaveLength(1);
+    expect(mailer.mensagens).toHaveLength(1);
   });
 });

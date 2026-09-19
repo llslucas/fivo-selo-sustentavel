@@ -1,6 +1,6 @@
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
-import { EmpresaStatus } from '@domain/fivo/entities/empresa';
+import { Empresa, EmpresaStatus } from '@domain/fivo/entities/empresa';
 import { UserRole } from '@domain/fivo/entities/user';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { UserFactory } from '@test/factories/user-factory';
@@ -22,6 +22,16 @@ describe('SuspenderEmpresaUseCase', () => {
       registroAuditoriaRepository,
     );
   });
+
+  async function lerEmpresa(id: string): Promise<Empresa> {
+    const empresa = await empresaRepository.findById(id);
+
+    if (!empresa) {
+      throw new Error(`Empresa ${id} não encontrada no repositório`);
+    }
+
+    return empresa;
+  }
 
   it('should suspend an APROVADA empresa: set SUSPENSA and write one audit row', async () => {
     const empresa = EmpresaFactory.create({ status: EmpresaStatus.APROVADA });
@@ -83,5 +93,35 @@ describe('SuspenderEmpresaUseCase', () => {
     if (response.isLeft()) {
       expect(response.value).toBeInstanceOf(ResourceNotFoundError);
     }
+  });
+
+  it('should keep the winning decision, return TransicaoInvalidaError and leave no audit when the stored status changed after the read (CAS of the real double)', async () => {
+    const empresa = EmpresaFactory.create({ status: EmpresaStatus.APROVADA });
+    await empresaRepository.create(empresa);
+    const admin = UserFactory.create({ role: UserRole.ADMIN });
+    const outroAdmin = UserFactory.create({ role: UserRole.ADMIN });
+
+    const leituraObsoleta = await lerEmpresa(empresa.id.toString());
+
+    // Outra suspensão vence a corrida entre a leitura e a gravação.
+    const vencedora = await lerEmpresa(empresa.id.toString());
+    vencedora.suspender(outroAdmin.id);
+    await empresaRepository.salvarTransicao(vencedora, EmpresaStatus.APROVADA);
+
+    jest
+      .spyOn(empresaRepository, 'findById')
+      .mockResolvedValueOnce(leituraObsoleta);
+
+    const response = await sut.execute(empresa.id.toString(), admin);
+
+    expect(response.isLeft()).toBe(true);
+    if (response.isLeft()) {
+      expect(response.value).toBeInstanceOf(TransicaoInvalidaError);
+    }
+
+    const guardada = await lerEmpresa(empresa.id.toString());
+    expect(guardada.status).toBe(EmpresaStatus.SUSPENSA);
+    expect(guardada.decididoPor?.equals(outroAdmin.id)).toBe(true);
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
   });
 });
