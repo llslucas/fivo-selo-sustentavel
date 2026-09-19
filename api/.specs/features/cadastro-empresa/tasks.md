@@ -767,11 +767,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `LogMailer.enviar` resolve sempre e registra `para` + `template`
-- [ ] Os 5 templates declarados
-- [ ] Teste unit do `LogMailer`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 2 testes passam
+- [x] `LogMailer.enviar` resolve sempre e registra `para` + `template` — `log-mailer.spec.ts:6-24` (`resolves.toBeUndefined()` + `logSpy` chamado com `para` e `template`)
+- [x] Os 5 templates declarados — já existiam em `application/ports/mailer.ts` (`TemplateEmail`); confirmado cobrindo os 5 em `log-mailer.spec.ts:27-41`
+- [x] Teste unit do `LogMailer` — `log-mailer.spec.ts`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest` — exit 0, 139/139 testes
+- [x] Test count: ≥ 2 testes passam — 2 novos
 
 **Tests**: unit
 **Gate**: quick
