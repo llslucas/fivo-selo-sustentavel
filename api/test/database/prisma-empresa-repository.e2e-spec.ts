@@ -228,7 +228,7 @@ describe('PrismaEmpresaRepository (e2e)', () => {
     ]);
   });
 
-  it('save persiste a transição de estado com autor e data da decisão', async () => {
+  it('salvarTransicao persiste a transição de estado com autor e data da decisão', async () => {
     const empresa = EmpresaFactory.create({ cnpj: cnpj(CNPJ_A) });
     const adminId = new UniqueEntityId();
 
@@ -237,8 +237,12 @@ describe('PrismaEmpresaRepository (e2e)', () => {
     const resultado = empresa.aprovar(adminId);
     expect(resultado.isRight()).toBe(true);
 
-    await repository.save(empresa);
+    const aplicada = await repository.salvarTransicao(
+      empresa,
+      EmpresaStatus.PENDENTE_APROVACAO,
+    );
 
+    expect(aplicada).toBe(true);
     const encontrada = await repository.findById(empresa.id.toString());
 
     expect(encontrada!.status).toBe(EmpresaStatus.APROVADA);
@@ -246,6 +250,25 @@ describe('PrismaEmpresaRepository (e2e)', () => {
     expect(encontrada!.decididoEm?.getTime()).toBe(
       empresa.decididoEm!.getTime(),
     );
+  });
+
+  it('save não sobrescreve estado nem decisão gravados por outra transição', async () => {
+    const empresa = EmpresaFactory.create({ cnpj: cnpj(CNPJ_A) });
+    await repository.create(empresa);
+    const obsoleta = (await repository.findById(empresa.id.toString()))!;
+    const adminId = new UniqueEntityId();
+    const decidida = (await repository.findById(empresa.id.toString()))!;
+    decidida.aprovar(adminId);
+    await repository.salvarTransicao(
+      decidida,
+      EmpresaStatus.PENDENTE_APROVACAO,
+    );
+
+    await repository.save(obsoleta);
+
+    const final = await repository.findById(empresa.id.toString());
+    expect(final!.status).toBe(EmpresaStatus.APROVADA);
+    expect(final!.decididoPor?.toString()).toBe(adminId.toString());
   });
 
   it('create com CNPJ já cadastrado falha com EmpresaAlreadyExistsError (409)', async () => {

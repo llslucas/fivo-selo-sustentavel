@@ -236,4 +236,136 @@ O núcleo da T30 (CAS de decisão de admin) está correto e **fecha o GAP 3 do `
 
 ## Correções pós-verificação (iteração 1)
 
-Gaps 1, 2, 3, 4, 6 e 7 tratados no commit de correção: reativação e suspensão com 8 rodadas de corrida (M9/M2), re-cadastro de empresa `REJEITADA` com CAS em `criar-empresa.ts` e e2e de re-cadastro simultâneo, e2e de que `SENHA_REDEFINICAO`/`EMAIL_CONFIRMACAO` nunca entram na fila (M8), backoff asserido com literais 60 s/120 s (M6/M6b), enfileiramento do e-mail de rejeição. Sensor manual: reativar e re-cadastro sem CAS derrubam 2 e2e. Gate: 150 unit, 172 e2e. Não tratados: gap 5 (worker só coberto via service, por ser desligado em teste), gap 8 (escape no `web`, mensagem do AC6 e SLA de 1 min são precisão de spec) e o risco menor de `editar-dados-empresa`/`confirmar-troca-email` regravarem `status`. Veredito segue **FAIL** até a re-verificação independente.
+Gaps 1, 2, 3, 4, 6 e 7 tratados no commit de correção (nota do autor): reativação e suspensão com 8 rodadas de corrida (M9/M2), re-cadastro de empresa `REJEITADA` com CAS em `criar-empresa.ts` e e2e de re-cadastro simultâneo, e2e de que `SENHA_REDEFINICAO`/`EMAIL_CONFIRMACAO` nunca entram na fila (M8), backoff asserido com literais 60 s/120 s (M6/M6b), enfileiramento do e-mail de rejeição. Sensor manual: reativar e re-cadastro sem CAS derrubam 2 e2e. Gate: 150 unit, 172 e2e. Não tratados: gap 5 (worker só coberto via service, por ser desligado em teste), gap 8 (escape no `web`, mensagem do AC6 e SLA de 1 min são precisão de spec) e o risco menor de `editar-dados-empresa`/`confirmar-troca-email` regravarem `status`. Veredito segue **FAIL** até a re-verificação independente.
+
+---
+
+# Re-verificação 1
+
+**Date**: 2026-09-19
+**Diff range**: `d5c328b..HEAD` (`c79994a`) — 4 commits (`f247cda`, `89ee2d8`, `770ff6a`, `c79994a`)
+**Verifier**: sub-agente independente (author ≠ verifier); nenhuma linha de código/teste do tree real foi alterada
+**Escopo**: confirmar sob mutação o fechamento dos blockers 1–2 e majors 3–4, varrer novos caminhos de transição sem CAS e rodar o gate completo
+
+## Veredito
+
+# ❌ FAIL
+
+**Os 6 gaps tratados na iteração 1 estão de fato fechados** — todos morrem sob mutação, agora de forma **determinística** (5/5 execuções, sem flakiness). O gate passa inteiro. Porém o item (c) desta re-verificação **promoveu a “risco menor” do rodapé anterior a blocker**: `editar-dados-empresa` e `confirmar-troca-email` sobrescrevem `status` e **desfazem uma decisão de admin já aplicada e já auditada**, o que foi demonstrado empiricamente (8 de 30 rodadas). Isso anula, na prática, a própria garantia que a T30 introduziu.
+
+## Isolamento
+
+- Worktree: `git worktree add /tmp/sensor-f6-rv1 HEAD --detach`; `node_modules` por symlink, `.env` copiado; **nunca `git stash`**
+- Postgres de teste `localhost:5433` compartilhado, `maxWorkers: 1` (default de `test/jest-e2e.json`), **nenhuma suíte em paralelo**
+- Descarte: `git worktree remove --force` + `git worktree prune`
+- `git status --porcelain` do tree real: **vazio antes e depois** → isolamento confirmado; `HEAD` segue `c79994a`
+
+## Gate Check
+
+| Comando | Resultado |
+| --- | --- |
+| `npx tsc -p tsconfig.json --noEmit` | ✅ exit 0 |
+| `npx eslint "{src,test}/**/*.ts"` | ✅ exit 0, 0 problemas |
+| `npx jest` (unit) | ✅ 29 suítes, **150 passed**, 0 failed, 0 skipped |
+| `npx jest --config ./test/jest-e2e.json` | ✅ 18 suítes, **172 passed**, 0 failed, 0 skipped, 60,4 s |
+
+**Total**: 322 testes (era 317) — **+5 e2e** na iteração de correção, 0 unit. Nenhum teste removido, nenhuma asserção enfraquecida.
+
+## Sensor de discriminação (re-execução)
+
+**Baseline de flakiness**: `concorrencia.e2e-spec.ts` sem mutação → **5/5 execuções verdes** (6 testes cada). Suíte estável.
+
+| # | Alvo (`file:line`) | Mutação | Suítes / execuções | Killed? |
+| - | ------------------ | ------- | ------------------ | ------- |
+| MA | `src/domain/fivo/application/use-cases/reativar-empresa.ts:44-51` | `salvarTransicao(empresa, statusAnterior)` + guarda → `save(empresa)` (CAS removido) | `concorrencia.e2e` **×5** | ✅ **Killed 5/5** (era **SURVIVED** como M9) |
+| MB | `src/domain/fivo/application/use-cases/suspender-empresa.ts:44-51` | idem | `concorrencia.e2e` **×5** | ✅ **Killed 5/5** (era killed 4/5 como M2 — flakiness eliminada) |
+| MC | `src/domain/fivo/application/use-cases/criar-empresa.ts:151-159` | `salvarTransicao(empresa, REJEITADA)` + guarda → `save(empresa)` (CAS removido do re-cadastro) | `concorrencia.e2e` **×5** | ✅ **Killed 5/5** — falha em `test/http/concorrencia.e2e-spec.ts:222` (`[201,409]` → `[201,201]`) |
+| MC2 | `criar-empresa.ts:156-159` | mantém o CAS, remove só o `if (!aplicada) throw new EmpresaAlreadyExistsError()` | `concorrencia.e2e` ×3 | ✅ **Killed 3/3** |
+| MD | `src/infra/mail/mailer-resiliente.ts:13-17` | acrescenta `EMAIL_CONFIRMACAO` e `SENHA_REDEFINICAO` a `TEMPLATES_ENFILEIRAVEIS` | `email-pendente.e2e` | ✅ **Killed** (2 testes falham — `email-pendente.e2e-spec.ts:248-263`) (era **SURVIVED** como M8) |
+| ME | `src/infra/mail/email-pendente.service.ts:18` | backoff `2 ** (t-1)` → `7 ** (t-1)` | `email-pendente.e2e` | ✅ **Killed** (`email-pendente.e2e-spec.ts:175-177`, literal `120_000`) (era **SURVIVED** como M6) |
+| MF | `src/infra/mail/email-pendente.service.ts:15` | `BACKOFF_BASE_MS` `60_000` → `1` | `email-pendente.e2e` | ✅ **Killed** (`email-pendente.e2e-spec.ts:169`, literal `60_000`) (era **SURVIVED** como M6b) |
+
+**Resultado**: 7 mutantes, **7 killed, 0 survived**, 26 execuções de suíte. Os 3 sobreviventes e o intermitente do relatório anterior estão todos mortos.
+
+### (a) Blockers 1 e 2 — fechados
+
+- **Blocker 1 (CAS em reativar)**: `reativar-empresa.ts:44-51` usa `salvarTransicao` + `TransicaoInvalidaError`; coberto por `concorrencia.e2e-spec.ts:177-206` (`it.each` de suspensão **e** reativação, **8 rodadas** cada, asserindo `[204,409]`, `registroAuditoria.count() === 1` e `linha.status === final`). MA morto 5/5. ✅
+- **Blocker 2 (CAS no re-cadastro)**: `criar-empresa.ts:148-163` — `salvarTransicao(empresa, EmpresaStatus.REJEITADA)` dentro do `unitOfWork`, com `throw new EmpresaAlreadyExistsError()` quando o CAS perde (desfazendo a escrita do usuário). Coberto por `concorrencia.e2e-spec.ts:208-230`, que além do `[201,409]` verifica que a empresa fica `PENDENTE_APROVACAO` **com o e-mail do vencedor** (`:229`) — asserção forte, mata também MC2. ✅
+
+### (b) Majors 3 e 4 — fechados
+
+- **Major 3 (allow-list)**: `email-pendente.e2e-spec.ts:248-263` — `it.each([SENHA_REDEFINICAO, EMAIL_CONFIRMACAO])` com `dados: { token: 'segredo' }`, transporte em falha → `rejects.toThrow()` **e** `pendencias()` com length 0. Cobre o ramo do `throw` e a ausência de linha na fila. ✅
+- **Major 4 (backoff)**: a tautologia sumiu — `email-pendente.e2e-spec.ts:169` (`agora + 60_000`), `:175-177` (`segunda + 120_000`) e `:178-180` (`criadoEm + 60_000`, o atraso do `enfileirar`) usam **literais**. Mata base e expoente de forma independente. ✅
+
+## (c) Varredura de transições de status sem CAS — **novo blocker**
+
+`grep -rn "empresaRepository\.(save|salvarTransicao|create)" src/` (excluindo specs) → 8 chamadas. As **5 transições de estado** (aprovar `:48`, rejeitar `:53`, suspender `:44`, reativar `:44`, re-cadastro `criar-empresa.ts:151`) usam `salvarTransicao`. **Nenhum caminho de transição novo ficou sem CAS.** Sobram exatamente as 2 `save` já listadas como “não tratadas” — e elas **são** um gap real:
+
+- `src/infra/database/prisma/mappers/prisma-empresa-mapper.ts:110` — `toPrisma` monta a linha **inteira**, incluindo `status`, `decididoPor`, `decididoEm`, `motivoDecisao`. Logo todo `save` regrava o estado da decisão.
+- `src/domain/fivo/application/use-cases/editar-dados-empresa.ts:60` faz `findById` e `:101-104` copia `status`/`decididoPor`/`decididoEm`/`motivoDecisao` do valor **lido antes**; `:117` grava tudo de volta sem filtro. Não há guarda de status algum no use case.
+- `src/domain/fivo/application/use-cases/confirmar-troca-email.ts:60` — mesma forma: a leitura (`findByTokenTrocaEmail`) acontece **fora** do `unitOfWork`, e o `save` dentro dele regrava `status` com o valor obsoleto.
+
+**Evidência empírica** (probe descartável no worktree, `PATCH /empresas/me` × `POST /admin/empresas/:id/suspensao` em `Promise.all`, empresa `APROVADA`, 30 rodadas — arquivo deletado, nada no tree real):
+
+```
+rodada 3: status=APROVADA httpSuspensao=204 auditoria=1
+... (8 ocorrências)
+CLOBBERS: 8/30
+```
+
+Em **8 de 30 corridas**: o admin recebe **204**, o `registroAuditoria` grava `EMPRESA_SUSPENSA`, **e a empresa continua `APROVADA` com `decididoPor = null`**. A edição do dono pousa depois do `updateMany` do CAS (que casou legitimamente) e o sobrescreve.
+
+**É gap real, e é blocker** — não o “risco menor” do rodapé da iteração 1:
+
+1. Viola **EMP-05 AC5**: uma transição aplicada é silenciosamente desfeita por um caminho que não é de decisão.
+2. Viola **EMP-05 AC7** (“auditoria imutável de toda mudança de estado”): a auditoria passa a registrar uma mudança que **não existe** no estado — divergência auditoria↔estado, pior que não auditar.
+3. **Anula a correção da T30**: o CAS protege as decisões entre si, mas qualquer `PATCH /empresas/me` concorrente passa por cima. Impacto de negócio direto: empresa suspensa segue pública/aprovada.
+4. É **reproduzível com ~27% de taxa** em uma máquina só — não é uma janela teórica.
+5. Não há **nenhum** teste que cubra isso (nenhuma suíte cruza edição com decisão).
+
+## Gaps restantes ranqueados
+
+### GAP A (Blocker) — `save` regrava `status` e desfaz decisões já aplicadas e auditadas
+
+- **Evidência**: `editar-dados-empresa.ts:101-104,117`; `confirmar-troca-email.ts:60`; `prisma-empresa-mapper.ts:110`. Probe: 8/30 rodadas com `204` + 1 linha de auditoria + `status` revertido para `APROVADA` e `decididoPor = null`.
+- **Causa raiz**: `PrismaEmpresaMapper.toPrisma` é usado tanto por `save` quanto por `salvarTransicao`; `save` é um blind write de todas as colunas a partir de uma leitura obsoleta.
+- **Fix task**: restringir o `save` de dados cadastrais às colunas que ele realmente edita — p.ex. um `atualizarDados(empresa)` no `PrismaEmpresaRepository` com um `data` explícito sem `status`/`decididoPor`/`decididoEm`/`motivoDecisao` (ou um `PrismaEmpresaMapper.toPrismaDadosCadastrais`). `confirmar-troca-email` idem (só `emailPendente`/`tokenTrocaEmailHash`).
+- **Done when**: e2e com `PATCH /empresas/me` concorrente a `POST .../suspensao` em ≥8 rodadas → a empresa termina **sempre** `SUSPENSA` com `decididoPor` preenchido, e o teste falha se o `status` voltar ao `data` do update.
+
+### GAP B (Minor) — `EmailPendenteWorker` sem nenhuma cobertura (ex-GAP 5, reaberto)
+
+- **Evidência**: `grep -rn "EmailPendenteWorker" test/` → **0 ocorrências** (reconfirmado nesta iteração). `email-pendente.worker.ts:22-24` desliga o agendamento em `NODE_ENV=test` e `executar()` nunca é chamado; o Done-when “o worker drena pendências” continua provado pelo `EmailPendenteService`.
+- **Fix task**: unit com `EmailPendenteService` falso — (a) `executar()` chama `drenar()`; (b) reentrância: duas chamadas sobrepostas → um só `drenar`; (c) `drenar` rejeitando → `executar()` não propaga e `emExecucao` volta a `false`.
+
+### GAP C (Spec-precision, não bloqueia) — ex-GAP 8, intacto
+
+- Escape “na renderização das páginas públicas” é do `web`; a API só prova round-trip JSON (`conteudo-hostil.e2e-spec.ts:67-93`). Ação: separar na spec a obrigação da API da do `web`.
+- EMP-01 AC6 (“422 informando qual limite foi violado”): a mensagem não é asserida em `conteudo-hostil.e2e-spec.ts:103` nem em `arquivo.e2e-spec.ts:222` — embora `edicao-e-senha.e2e-spec.ts:196-198` já faça isso (`stringContaining('512x512')`) no caminho de edição. Ação: replicar a asserção de mensagem no caminho de cadastro.
+- Success Criteria (“decisão por e-mail em menos de 1 minuto”): incompatível por construção com o primeiro backoff de 60 s + worker de 30 s quando o provedor falha. Ação: qualificar (“com o provedor disponível”).
+
+### Fechados nesta iteração
+
+GAP 1 (MA ✅), GAP 2 (MC/MC2 ✅), GAP 3 (MD ✅), GAP 4 (ME/MF ✅), GAP 6 (MB agora 5/5, determinístico ✅), GAP 7 (`email-pendente.e2e-spec.ts:211-246` — rejeição enfileirada com `template: CADASTRO_REJEITADO` ✅).
+
+## Summary
+
+**Overall**: ❌ Not Ready (iteração 1 de no máximo 3 — **1 blocker novo**, 1 minor, 1 spec-precision)
+
+**Sensor**: 7 mutantes — **7 killed, 0 survived**; baseline de flakiness 5/5 verde; `concorrencia.e2e` executada 5× por mutante de CAS
+**Gate**: 322 passed (150 unit + 172 e2e), 0 failed, 0 skipped
+**Isolamento**: worktree `/tmp/sensor-f6-rv1` descartado; `git status --porcelain` do tree real vazio antes e depois
+
+**O que funciona**: todos os 6 gaps roteados foram fechados com asserções que discriminam de verdade — o `it.each` de suspensão/reativação com 8 rodadas eliminou a não-determinância do M2, o teste de re-cadastro simultâneo checa o **e-mail do vencedor** (não só o par de status), a allow-list ganhou o teste do ramo negado com `token` explícito e o backoff passou a usar literais em três pontos.
+
+**O que falta**: GAP A. É o mesmo defeito de lost update que a T30 resolveu nas decisões, agora vindo de um caminho que ninguém classificou como “transição”. Enquanto o `save` de dados cadastrais escrever a coluna `status`, o CAS das decisões é uma garantia parcial — e a auditoria mente. Deve ser corrigido antes de dar a Fase 6 por concluída; GAP B e C podem ir no mesmo lote ou em edição de spec.
+
+**Next steps**: rotear GAP A (e opcionalmente GAP B) como fix tasks e re-despachar o Verifier (iteração 2 de 3).
+
+### Notas de processo
+
+- `python3 .claude/skills/tlc-spec-driven/scripts/validate_state.py cadastro-empresa` segue reportando `ERROR ... no validation.md` — esperado enquanto a convenção por fase estiver em uso; o `validation.md` consolidado só cabe ao fim da feature.
+- Lições sugeridas ao orquestrador (escopo deste Verifier limita a escrita a este arquivo): (1) *CAS só protege se **todo** escritor da coluna participar dele — um `save` que serializa a entidade inteira é um escritor oculto*; (2) *mapper “linha inteira” compartilhado entre update de dados e update de estado transforma qualquer edição em lost update de estado*; (3) *gap classificado como “risco menor” sem probe deve ser medido antes de ser despriorizado — aqui a taxa real foi ~27%*.
+
+## Correções pós-re-verificação 1 (iteração 2)
+
+GAP A: `PrismaEmpresaRepository.save` grava só as colunas cadastrais; `status`, `decididoPor`, `decididoEm` e `motivoDecisao` mudam apenas por `salvarTransicao` (CAS). e2e `PATCH /empresas/me` × suspensão (24 rodadas) e teste de repositório de que `save` com leitura obsoleta não desfaz a decisão; o sensor com o `save` antigo derruba 2 testes. O teste "save persiste a transição" foi migrado para `salvarTransicao` mantendo as asserções (o contrato antigo era o defeito). GAP B: `EmailPendenteWorker.executar` coberto por e2e. GAP C segue como precisão de spec. Gate: 150 unit, 175 e2e. Veredito segue **FAIL** até a re-verificação 2.

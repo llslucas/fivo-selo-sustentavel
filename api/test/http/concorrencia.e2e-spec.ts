@@ -205,6 +205,44 @@ describe('Concorrência e robustez do cadastro de empresa (e2e)', () => {
     },
   );
 
+  it('edição cadastral concorrente com suspensão → a suspensão nunca é desfeita (estado e decididoPor coerentes com a auditoria)', async () => {
+    for (let rodada = 0; rodada < RODADAS_DE_CORRIDA * 3; rodada++) {
+      await contexto.prisma.registroAuditoria.deleteMany();
+      const id = await empresaEm(
+        `dona${rodada}@empresa.test`,
+        EmpresaStatus.APROVADA,
+      );
+      const linha = await contexto.prisma.empresa.findUniqueOrThrow({
+        where: { id },
+      });
+      const { token: tokenDona } = await contexto.app
+        .get(SessionService)
+        .criar(linha.usuarioId as string);
+
+      const [edicao, suspensao] = await Promise.all([
+        comCookieDeSessao(
+          api()
+            .patch('/empresas/me')
+            .send({ nomeFantasia: `Novo ${rodada}` }),
+          tokenDona,
+        ),
+        comCookieDeSessao(
+          api().post(`/admin/empresas/${id}/suspensao`),
+          tokenAdmin,
+        ),
+      ]);
+
+      expect(edicao.status).toBe(200);
+      expect(suspensao.status).toBe(204);
+      const final = await contexto.prisma.empresa.findUniqueOrThrow({
+        where: { id },
+      });
+      expect(final.status).toBe(EmpresaStatus.SUSPENSA);
+      expect(final.decididoPor).not.toBeNull();
+      expect(await contexto.prisma.registroAuditoria.count()).toBe(1);
+    }
+  });
+
   it('re-cadastros simultâneos de uma empresa REJEITADA → exatamente um 201 e um 409; a empresa fica PENDENTE_APROVACAO com o e-mail do vencedor', async () => {
     const dono = await criarUsuario(UserRole.EMPRESA, 'antigo@empresa.test');
     const rejeitada = EmpresaFactory.create({

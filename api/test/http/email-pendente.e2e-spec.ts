@@ -11,6 +11,7 @@ import {
   MAX_TENTATIVAS,
   atrasoDoBackoff,
 } from '@infra/mail/email-pendente.service';
+import { EmailPendenteWorker } from '@infra/mail/email-pendente.worker';
 import { TransporteEmail } from '@infra/mail/transporte-email';
 import { FakeMailer } from '@test/cryptography/fake-mailer';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
@@ -261,4 +262,18 @@ describe('Fila de reenvio de e-mail (e2e)', () => {
       expect(await pendencias()).toHaveLength(0);
     },
   );
+
+  it('EmailPendenteWorker.executar drena as pendências vencidas', async () => {
+    transporte.forceFailure();
+    await cadastrar();
+    transporte.resetFailure();
+    await contexto.prisma.emailPendente.updateMany({
+      data: { proximaTentativaEm: new Date(Date.now() - 1_000) },
+    });
+
+    await contexto.app.get(EmailPendenteWorker).executar();
+
+    expect(transporte.mensagens).toHaveLength(1);
+    expect((await pendencias())[0].enviadoEm).not.toBeNull();
+  });
 });
