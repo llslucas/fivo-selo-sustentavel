@@ -157,11 +157,11 @@
 ## Handoff
 
 - **Feature**: `cadastro-empresa` (`.specs/features/cadastro-empresa/`)
-- **Phase / Task**: Fases 1–6 completas (T1–T33, PR #45 mergeado na `main`). Fases 7–9 (T34–T55) planejadas em 2026-09-19, aguardando aprovação.
-- **Completed**: T1–T33. Fase 6 verificada em `validation-fase6.md` (PASS na re-verificação 3); gate: 150 unit, 175 e2e.
+- **Phase / Task**: Fases 1–7 completas (T1–T39). Fase 7 (T34–T39) implementada e verificada em 2026-09-19 na branch `feat/cadastro-empresa-fase7` (não mergeada, não enviada ao remoto). Fases 8–9 (T40–T55) planejadas, aguardando aprovação do usuário (só a Fase 7 foi aprovada nesta rodada).
+- **Completed**: T1–T39. Fase 7 verificada em `validation-fase7.md` (PASS; 9/9 mutantes mortos, 28/28 critérios com evidência `file:line`); gate: 166 unit, 176 e2e.
 - **In-progress** (file:line): nenhum
-- **Next step**: aprovar as tasks T34–T55 e executar a Fase 7 (T34). A feature só fecha após a Fase 9 e o `validation.md` consolidado (exigido por `validate_state.py`).
+- **Next step**: decidir sobre a branch `feat/cadastro-empresa-fase7` (abrir PR? mergear? manter local?) e aprovar (ou não) as Fases 8–9 (T40–T55). A feature só fecha após a Fase 9 e o `validation.md` consolidado (exigido por `validate_state.py` — hoje ele não reconhece a convenção `validation-faseN.md` usada por esta feature, achado já registrado na Fase 6, ainda sem correção do script).
 - **Blockers**: nenhum
-- **Follow-ups**: os achados adiados das Fases 3, 5 e 6 viraram T34–T46 (Fases 7–8); a precisão de spec (escape no `web`, SLA de e-mail, expiração do link de troca de e-mail) foi resolvida na `spec.md`. EMP-11 (OpenAPI/Swagger) adicionado à spec e planejado em T47–T55. Suposições novas com `Confirmed? n`: prazo de 24 h do link de troca de e-mail, re-cadastro volta ao fim da fila, retenção de 30 dias da `email_pendente`, Swagger desligado em produção por padrão.
+- **Follow-ups**: 2 achados menores, não bloqueantes, do Verifier da Fase 7 (`validation-fase7.md` Achados 1–2) — candidatos a fix task se/quando a Fase 8 for aprovada: (1) `GeradorTokenOpaco.gerar()` ficou sem caller de produção depois de T37 (só usado pelo próprio spec e por `hashDoTokenDeSessao` em `auth.e2e-spec.ts:102`); (2) `hashIsca` em `autenticar-usuario.ts:18-23` memoiza uma *promise*, não o valor resolvido — se `hasher.hash()` rejeitar na 1ª chamada, todo login com e-mail inexistente passa a falhar (reabre o canal lateral que T38 fechou), probabilidade remota. Follow-ups anteriores (Fases 8–9 ainda não aprovadas, EMP-11/Swagger, suposições `Confirmed? n`) seguem válidos — ver `spec.md` §Assumptions.
 - **Uncommitted files**: none
-- **Branch**: `feat/cadastro-empresa-hardening` (local, não enviada ao remoto)
+- **Branch**: `feat/cadastro-empresa-fase7` (local, não enviada ao remoto; 6 commits à frente de `main`)
