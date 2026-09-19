@@ -4,6 +4,6 @@ export class TransicaoInvalidaError extends Error implements UseCaseError {
   readonly status = 409;
 
   constructor() {
-    super('Transição inválida.');
+    super('Operação não permitida para o estado atual');
   }
 }

@@ -5,6 +5,7 @@ import { FakeMailer } from '@test/cryptography/fake-mailer';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { UserFactory } from '@test/factories/user-factory';
 import { InMemoryEmpresaRepository } from '@test/repositories/in-memory-empresa-repository';
+import { InMemoryUnitOfWork } from '@test/repositories/in-memory-unit-of-work';
 import { InMemoryUserRepository } from '@test/repositories/in-memory-user-repository';
 import { InvalidCnpjError } from '../errors/invalid-cnpj.error';
 import { SenhaFracaError } from '../errors/senha-fraca.error';
@@ -56,6 +57,7 @@ describe('CriarEmpresaUseCase', () => {
       empresaRepository,
       hasher,
       mailer,
+      new InMemoryUnitOfWork(),
     );
   });
 

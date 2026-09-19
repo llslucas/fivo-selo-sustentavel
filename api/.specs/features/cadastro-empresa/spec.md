@@ -181,15 +181,15 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| EMP-01 | P1: Autocadastro da empresa | Execute | Verified (domínio) — T8, `validation-fase2.md`; `CriarEmpresaUseCase` reescrito, testado e verificado; falta a rota HTTP, T25 |
+| EMP-01 | P1: Autocadastro da empresa | Execute | Verified (domínio) — T8, `validation-fase2.md`; `CriarEmpresaUseCase` reescrito, testado e verificado; rota `POST /empresas` entregue em T25 (e2e), transação atômica em T33 |
 | EMP-02 | P1: Autocadastro — validação de CNPJ, e-mail e senha | Execute | Verified (domínio) — T8, `validation-fase2.md`; `Cnpj`/`Senha`/unicidade de e-mail e CNPJ cobertos no caso de uso |
 | EMP-03 | P1: Autocadastro — upload e validação de logo | Execute | Verified (domínio, parcial) — T8, `validation-fase2.md`; caso de uso recebe/vincula `logoArquivoId`; upload e validação do arquivo em si seguem na Fase 4, T22/T28 |
-| EMP-04 | P1: Aprovação do cadastro pelo administrador | Execute | Verified (domínio) — T10, `validation-fase2.md`; `Aprovar`/`RejeitarEmpresaUseCase` em `Either` + `ListarFilaAprovacaoUseCase`; falta a rota HTTP, T27 |
-| EMP-05 | P1: Aprovação — máquina de estados e auditoria | Execute | Verified (domínio) — T10/T11, `validation-fase2.md`; transições delegadas à entidade, auditoria via `RegistroAuditoriaRepository`, `AssegurarEmpresaAprovadaUseCase` (AC4); CAS de decisão concorrente é infra, T17 |
-| EMP-06 | P1: Autenticação e sessão — credenciais e papéis `EMPRESA`, `INSTITUICAO` e `ADMIN` | Execute | Verified (domínio) — T9, `validation-fase2.md`; `AutenticarUsuarioUseCase` reescrito com sessão opaca; falta cookie/guard HTTP, T24 |
-| EMP-07 | P1: Autenticação — rate limit e expiração de sessão | Execute | Verified (domínio) — T9, `validation-fase2.md`; bloqueio de 5 tentativas cobre AC3; expiração por inatividade de 8h é validação de sessão, T24 |
-| EMP-08 | P2: Manutenção dos dados cadastrais | Execute | Verified (domínio) — T12, `validation-fase2.md`; `EditarDadosEmpresaUseCase` — CNPJ imutável, troca de e-mail via `emailPendente`; falta a rota HTTP, T29, e a reflexão em ≤60s nas páginas públicas, `paginas-publicas` |
-| EMP-09 | P2: Recuperação de senha | Execute | Verified (domínio) — T13, `validation-fase2.md`; `SolicitarRecuperacaoSenha`/`RedefinirSenhaUseCase` — token opaco, expiração de 60 min, revogação de sessões; falta a rota HTTP, T29 |
+| EMP-04 | P1: Aprovação do cadastro pelo administrador | Execute | Verified (domínio) — T10, `validation-fase2.md`; `Aprovar`/`RejeitarEmpresaUseCase` em `Either` + `ListarFilaAprovacaoUseCase`; rotas de fila/decisão entregues em T27 (e2e) |
+| EMP-05 | P1: Aprovação — máquina de estados e auditoria | Execute | Verified (domínio) — T10/T11, `validation-fase2.md`; transições delegadas à entidade, auditoria via `RegistroAuditoriaRepository`, `AssegurarEmpresaAprovadaUseCase` (AC4); CAS de decisão concorrente é infra e segue aberto, T30 (ver `validation-fase5.md`, GAP 3) |
+| EMP-06 | P1: Autenticação e sessão — credenciais e papéis `EMPRESA`, `INSTITUICAO` e `ADMIN` | Execute | Verified (domínio) — T9, `validation-fase2.md`; `AutenticarUsuarioUseCase` reescrito com sessão opaca; login/logout e cookie em T26, guards em T24 (e2e) |
+| EMP-07 | P1: Autenticação — rate limit e expiração de sessão | Execute | Verified (domínio) — T9, `validation-fase2.md`; bloqueio de 5 tentativas cobre AC3; 429 no login em T26; expiração por inatividade de 8h validada em T24/T26 (e2e) |
+| EMP-08 | P2: Manutenção dos dados cadastrais | Execute | Verified (domínio) — T12, `validation-fase2.md`; `EditarDadosEmpresaUseCase` — CNPJ imutável, troca de e-mail via `emailPendente`; rotas entregues em T29 (e2e; confirmação de e-mail com caso de uso próprio); falta a reflexão em ≤60s nas páginas públicas, `paginas-publicas` |
+| EMP-09 | P2: Recuperação de senha | Execute | Verified (domínio) — T13, `validation-fase2.md`; `SolicitarRecuperacaoSenha`/`RedefinirSenhaUseCase` — token opaco, expiração de 60 min, revogação de sessões; rotas entregues em T29 (e2e) |
 | EMP-10 | P3: Suspensão e reativação de empresa | Execute | Verified (domínio) — T11, `validation-fase2.md`; `Suspender`/`ReativarEmpresaUseCase` em `Either` com auditoria; propagação HTTP 404 das páginas públicas é infra/`paginas-publicas` |
 
 **ID format:** `[CATEGORY]-[NUMBER]`

@@ -157,10 +157,11 @@
 ## Handoff
 
 - **Feature**: `cadastro-empresa` (`.specs/features/cadastro-empresa/`)
-- **Phase / Task**: Fase 4 completa (T19–T22). Próxima: Fase 5 (`T23 → T24 → T25 → T26 → T27 → T28 → T29`).
-- **Completed**: T19, T20, T21, T22 (mais T1–T18 de fases anteriores; T33 de Fase 3 ainda aberta — ver AD-019)
-- **In-progress** (file:line): nenhum — Fase 4 fechada, sem edição pendente
-- **Next step**: Implementar T23 (`DomainExceptionFilter` + `ZodValidationPipe`), primeira task da Fase 5. T33 (transação atômica User+Empresa, AD-019) segue aberta e bloqueia T25 — resolver antes ou durante a Fase 5, já que T25 depende dela.
-- **Blockers**: T25 não pode ser concluída sem T33 (ver `Depends on` de T25 em `tasks.md`)
+- **Phase / Task**: Fase 5 completa (T23–T29) mais T33 (Fase 3). Próxima: Fase 6 (`T30 → T31 → T32`).
+- **Completed**: T1–T29 e T33. Fase 5 verificada em `validation-fase5.md`; gaps 1, 2, 4, 5 e 6 corrigidos no commit `18ecb43`; re-verificação 1 em andamento.
+- **In-progress** (file:line): nenhum
+- **Next step**: T30. Inclui o CAS de decisões de admin (GAP 3 do `validation-fase5.md`: aprovação e rejeição paralelas vencem ambas; usar `updateMany` condicional em `prisma-empresa-repository.ts`). Depois T31 (fila de reenvio de e-mail) e T32 (escape de conteúdo).
+- **Blockers**: nenhum
+- **Follow-ups não escopados**: `AutenticarUsuarioUseCase` duplica a criação de sessão de `SessionService.criar` e nunca grava ip/userAgent; canais laterais de tempo em login e recuperação de senha (compare fictício); token de troca de e-mail sem expiração (spec omissa); SVG servido inline sem CSP/Content-Disposition.
 - **Uncommitted files**: none
-- **Branch**: `feat/cadastro-empresa-infra-cripto-mail-storage`
+- **Branch**: `feat/cadastro-empresa-http-auth-sessao` (não enviada ao remoto)

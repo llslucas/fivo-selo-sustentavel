@@ -713,13 +713,13 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `UnitOfWork` declarada como `abstract class` sem dependência de infra (ESLint de `src/domain/**` passa)
-- [ ] `PrismaUnitOfWork` usa `PrismaService.$transaction`; a transação só comita se as duas escritas (`User` + `Empresa`) tiverem sucesso
-- [ ] `CriarEmpresaUseCase` usa `unitOfWork.executar` para as duas escritas; `criar-empresa.spec.ts` (unit, com `InMemoryUnitOfWork`) continua verde, sem enfraquecer nenhuma asserção existente
-- [ ] e2e novo contra Postgres real força a escrita de `Empresa` a falhar depois da de `User` (ex. CNPJ duplicado injetado entre as duas chamadas) → nenhuma linha `usuario` sobrevive; o e-mail volta a ficar disponível para novo cadastro
-- [ ] e2e de corrida: duas chamadas ao caso de uso com o mesmo CNPJ em paralelo (`Promise.all`) → exatamente um sucesso, nenhum `usuario` órfão no banco ao final
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 3 testes novos (unit de `criar-empresa.spec.ts` confirmado inalterado + 2 e2e) passam
+- [x] `UnitOfWork` declarada como `abstract class` sem dependência de infra (ESLint de `src/domain/**` passa) — `ports/unit-of-work.ts`
+- [x] `PrismaUnitOfWork` usa `PrismaService.$transaction`; a transação só comita se as duas escritas (`User` + `Empresa`) tiverem sucesso — propagação via `AsyncLocalStorage` (`PrismaTransactionContext`); sensor: com o boundary desligado os 2 e2e falham
+- [x] `CriarEmpresaUseCase` usa `unitOfWork.executar` para as duas escritas; `criar-empresa.spec.ts` continua verde (só a construção do SUT ganhou o `InMemoryUnitOfWork`; nenhuma asserção alterada)
+- [x] e2e novo contra Postgres real força a escrita de `Empresa` a falhar depois da de `User` → nenhuma linha `usuario` sobrevive; o e-mail volta a ficar disponível — `criar-empresa-transacao.e2e-spec.ts` (1º teste: `expect(await contexto.prisma.usuario.count()).toBe(0)`, novo cadastro `isRight()`)
+- [x] e2e de corrida: duas chamadas com o mesmo CNPJ em paralelo → exatamente um sucesso, nenhum `usuario` órfão — 2º teste: `expect([...classificados].sort()).toEqual(['conflito','sucesso'])`, `usuario.count()` → `1`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 39 e2e
+- [x] Test count: ≥ 3 testes novos (unit de `criar-empresa.spec.ts` confirmado inalterado + 2 e2e) passam — 144 unit inalterados + 2 e2e novos
 
 **Tests**: e2e
 **Gate**: full
@@ -847,11 +847,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Cada classe de erro de `application/errors/` mapeia para o `status` esperado (tabela Error Handling do design), verificado por rota-probe que lança cada uma
-- [ ] `ZodValidationPipe` devolve 422 com o campo inválido
-- [ ] Erro não-domínio (ex.: `NotFoundException` do Nest) mantém o comportamento padrão
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 6 testes e2e passam
+- [x] Cada classe de erro de `application/errors/` mapeia para o `status` esperado (tabela Error Handling do design), verificado por rota-probe que lança cada uma — `domain-exception-filter.e2e-spec.ts:117` (`expect(resposta.status).toBe(STATUS_ESPERADO[nome])`, 14 classes via `it.each`) e `:119` (body `{ statusCode, message }`)
+- [x] `ZodValidationPipe` devolve 422 com o campo inválido — `:131` (`toMatchObject({ statusCode: 422, message: 'Nome é obrigatório', errors: [{ campo: 'nome', ... }] })`)
+- [x] Erro não-domínio (ex.: `NotFoundException` do Nest) mantém o comportamento padrão — `:155` (`error: 'Not Found'`, 404); erro sem `status` → 500 genérico sem vazar mensagem (`:170`)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 57 e2e
+- [x] Test count: ≥ 6 testes e2e passam — 18 novos
 
 **Tests**: e2e
 **Gate**: full
@@ -873,16 +873,19 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `SessionService.criar` grava só o `sha256`; cookie `sessao` httpOnly/SameSite=Lax (`secure` condicionado a env)
-- [ ] `validar` rejeita token inexistente, revogado e expirado (`ultimoAcessoEm` > 8h → revoga); em sucesso desliza
-- [ ] `AuthGuard` global: 401 sem cookie válido; `@Public` isenta; `RolesGuard`: 403 quando o papel não bate
-- [ ] Seed cria um `ADMIN` idempotente
-- [ ] e2e via rota-probe protegida: sem cookie → 401; sessão válida → 200; papel errado → 403; sessão revogada → 401; `ultimoAcessoEm` forçado a −9h → 401
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 7 testes e2e passam
+- [x] `SessionService.criar` grava só o `sha256`; cookie httpOnly/SameSite=Lax (`secure` condicionado a `COOKIE_SECURE`) — `auth.e2e-spec.ts:102` (`tokenHash` `toBe(sha256(token))`), `:116` (`HttpOnly`), `:118` (`not.toContain('Secure')`), `:129` (`toContain('Secure')` com env). Nome do cookie: `fivo_sessao` (já definido no harness T16)
+- [x] `validar` rejeita token inexistente, revogado e expirado (> 8h → revoga); em sucesso desliza — `:146` (inexistente → 401), `:206` (revogada → 401), `:221`/`:223` (−9h → 401 + `revogadaEm` `not.toBeNull()`), `:241` (`ultimoAcessoEm` `toBeGreaterThan(...)`)
+- [x] `AuthGuard` global: 401 sem cookie válido; `@Public` isenta; `RolesGuard`: 403 quando o papel não bate — `:137` (sem cookie → 401), teste `@Public` (200), `:189` (`negada.status` `toBe(403)`, body `Acesso negado`)
+- [x] Seed cria um `ADMIN` idempotente — `:258` (`admins` `toHaveLength(1)` após duas execuções; e-mail em minúsculas; senha só como hash verificável por `Hasher.compare`). `AdminSeeder` lê `ADMIN_EMAIL`/`ADMIN_SENHA`/`ADMIN_NOME` (documentados em `.env.example`)
+- [x] e2e via rota-probe protegida: sem cookie → 401; sessão válida → 200; papel errado → 403; sessão revogada → 401; `ultimoAcessoEm` forçado a −9h → 401 — `auth.e2e-spec.ts` (12 testes); sensor: 3 mutantes de `SessionService` (sem checar revogada, sem deslizar, limite de 8h ×100) mortos
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 69 e2e
+- [x] Test count: ≥ 7 testes e2e passam — 12 novos
 
 **Tests**: e2e
 **Gate**: full
+
+**Nota de qualidade — resolvida (2026-09-19, pós-validação da Fase 5)**: o cookie de sessão agora liga `Secure` sozinho em `NODE_ENV=production` (`COOKIE_SECURE` sobrescreve); teste `auth.e2e-spec.ts` ("em produção o cookie de sessão ganha Secure"). Fronteira de 8h coberta por 7h59 → 200 e 8h01 → 401. Ver `validation-fase5.md` (GAP 4, GAP 6).
+
 
 **Commit**: `feat(api): backbone de autenticação (sessão opaca, guards, decorators)`
 
@@ -891,7 +894,7 @@ T28 → T32
 ### T25: `CadastroEmpresaController` — autocadastro e dados próprios
 
 **What**: `POST /empresas` (multipart: dados + `logo`, `@Public`) → o controller chama `ArquivoService.uploadImagem` para o logo (se veio) e depois `CriarEmpresaUseCase` com o `arquivoId`; 201 `{ id }`. `GET /empresas/me` (`@Roles(EMPRESA)`) → dados da própria empresa, 403 para recurso de outra. DTOs `zod`. Registrar controller + fiação de DI dos casos de uso → adaptadores no `HttpModule`/`AppModule`.
-**Where**: `api/src/infra/http/`
+**Where**: `api/src/infra/http/` (controller, DTO zod, presenter, `desembrulhar`); extras necessários: `EmpresaRepository.findByUsuarioId` (porta + Prisma + in-memory, para `GET /empresas/me`), `ArquivoService.remover` (descarta o logo órfão quando o cadastro falha depois do upload) e `ArquivoModule`
 **Depends on**: T8, T20, T22, T24, T33
 **Reuses**: `CriarEmpresaUseCase` (T8), `Mailer` (T20), `ArquivoService` (T22), guards (T24), `UnitOfWork` (T33)
 **Requirement**: EMP-01, EMP-02, EMP-03, EMP-06
@@ -901,16 +904,19 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `POST /empresas` com dados válidos → 201 `{ id }`, empresa `PENDENTE_APROVACAO`, senha só como hash
-- [ ] CNPJ inválido → 422 "CNPJ inválido" sem persistir; duplicado → 409; senha < 10 → 422; logo inválido → 422 com o limite; storage fora → 503
-- [ ] Falha de e-mail → 201 mesmo assim
-- [ ] `GET /empresas/me` → dados próprios; recurso de outra empresa → 403
-- [ ] e2e cobre todos os ACs de EMP-01/02/03 e o Independent Test
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 12 testes e2e passam
+- [x] `POST /empresas` com dados válidos → 201 `{ id }`, empresa `PENDENTE_APROVACAO`, senha só como hash — `cadastro-empresa.e2e-spec.ts:122` (`toBe(201)`), `:129` (`PENDENTE_APROVACAO`), `:133` (`senhaHash` `toMatch(/^\$argon2id\$/)`); logo válido vinculado (`:144`); e-mail `CADASTRO_RECEBIDO` enviado (`:159`)
+- [x] CNPJ inválido → 422 "CNPJ inválido" sem persistir (nem o logo enviado: `:191`); CNPJ/e-mail duplicado → 409 (`:203`, `:215`); senha < 10 → 422 (`:225`); logo inválido → 422 com o limite (formato `:261`, dimensão `:278`, tamanho 5 MB); storage fora → 503 "Não foi possível enviar o logo, tente novamente" (`:294`)
+- [x] Falha de e-mail → 201 mesmo assim — `:172` (`toBe(201)` com `FakeMailer.forceFailure()`; empresa persistida)
+- [x] `GET /empresas/me` → dados próprios; papel de outra área (ADMIN/INSTITUICAO) → 403 (`:378`); sem sessão → 401 (`:365`); cada empresa vê só a própria. A rota não recebe id, então "recurso de outra empresa" se resolve por construção (identidade vem da sessão)
+- [x] e2e cobre todos os ACs de EMP-01/02/03; o Independent Test (empresa pendente na fila do admin) fecha em T27 — aqui a empresa consta `PENDENTE_APROVACAO` no banco e em `GET /empresas/me`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 88 e2e; sensor: 3 mutantes (sem descartar logo órfão, sem `toLowerCase` do e-mail, `/me` aberto a ADMIN) mortos
+- [x] Test count: ≥ 12 testes e2e passam — 19 novos
 
 **Tests**: e2e
 **Gate**: full
+
+**Nota de qualidade — resolvida (2026-09-19, pós-validação da Fase 5)**: logo acima do limite agora responde 422 "Arquivo inválido: tamanho excede o limite de 5 MB." (multer corta em 5 MB e o `DomainExceptionFilter` traduz o 413 do multer); antes o teto de 10 MB devolvia 413. Teste com anexo de 11 MB em `cadastro-empresa.e2e-spec.ts`. Ver `validation-fase5.md` (GAP 2).
+
 
 **Commit**: `feat(api): endpoints de autocadastro e dados da empresa`
 
@@ -929,17 +935,20 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Login correto → 200 `{ papel }` + `Set-Cookie: sessao`
-- [ ] E-mail inexistente e senha errada → ambos 401 "Credenciais inválidas"
-- [ ] 5 falhas em 15 min → 429 nas seguintes
-- [ ] `DELETE /sessoes/atual` → a requisição autenticada seguinte com o token antigo → 401
-- [ ] Sessão inativa > 8h (tempo forçado no teste) → 401 na próxima requisição
-- [ ] e2e cobre EMP-06/07 e o Independent Test (login por papel, 429, acesso cruzado 403)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 8 testes e2e passam
+- [x] Login correto → 200 `{ papel }` + `Set-Cookie` httpOnly — `autenticacao.e2e-spec.ts:80-81` (`toBe(200)`, `toEqual({ papel: role })`, um teste por papel EMPRESA/INSTITUICAO/ADMIN). Cookie chama-se `fivo_sessao` (T24)
+- [x] E-mail inexistente e senha errada → ambos 401 "Credenciais inválidas" — `:94-99` (status 401 nos dois; `senhaErrada.body` `toEqual(emailInexistente.body)`)
+- [x] 5 falhas em 15 min → 429 nas seguintes — `:107` (5 × 401) e `:112` (`bloqueada.status` `toBe(429)`, mesmo com a senha certa, sem `Set-Cookie`)
+- [x] `DELETE /sessoes/atual` → a requisição autenticada seguinte com o token antigo → 401 — `:145` (204), `:146` (401), `:148` (`revogadaEm` `not.toBeNull()`); sem sessão → 401 (`:156`)
+- [x] Sessão inativa > 8h (tempo forçado no teste) → 401 na próxima requisição — `:171` (`ultimoAcessoEm` −9h via banco, `GET /empresas/me` → 401)
+- [x] e2e cobre EMP-06/07 e o Independent Test (login por papel, 429, acesso cruzado 403) — `:185` (ADMIN/INSTITUICAO em rota de empresa → 403); fluxo cadastro → login com e-mail em outra caixa (`:220-221`)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 101 e2e; sensor: mutantes "sem Set-Cookie" (8 falhas) e "logout sem revogar" (1 falha) mortos
+- [x] Test count: ≥ 8 testes e2e passam — 13 novos
 
 **Tests**: e2e
 **Gate**: full
+
+**Nota de qualidade — resolvida (2026-09-19, pós-validação da Fase 5)**: o bloqueio de 5 falhas era burlável por concorrência (15 logins paralelos → nenhum 429). `AutenticarUsuarioUseCase` agora lê, decide e grava o contador dentro de `UnitOfWork` com `UserRepository.findByEmailParaAtualizacao` (`SELECT ... FOR NO KEY UPDATE`). O hash roda fora do lock (só decisão e gravação ficam sob lock), pois dentro dele 80 logins simultâneos esgotavam o pool (61 × 500, GAP 7 da re-verificação); guardado por e2e com 30 logins corretos paralelos. e2e: 12 tentativas erradas em paralelo → exatamente 5 × 401 e 7 × 429, `falhasLogin` = 5; sem o lock o teste falha. Mensagem do 429 alinhada ao design ("Muitas tentativas, tente em 15 minutos"). Ver `validation-fase5.md` (GAP 1, GAP 5).
+
 
 **Commit**: `feat(api): login, logout e expiração de sessão`
 
@@ -958,17 +967,20 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `GET /admin/empresas` lista da mais antiga para a mais recente com nome, CNPJ, e-mail, data
-- [ ] `aprovacao` → `APROVADA` + admin + data-hora + e-mail; `rejeicao` com motivo < 20 → 422; com motivo ok → `REJEITADA` + motivo por e-mail
-- [ ] `suspensao`/`reativacao` respeitam as transições; fora do conjunto → 409; segunda decisão concorrente → 409
-- [ ] Não-admin em qualquer endpoint → 403, nenhum estado alterado
-- [ ] Toda mudança gera linha em `registro_auditoria`
-- [ ] e2e cobre EMP-04/05/10 e os Independent Tests
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 12 testes e2e passam
+- [x] `GET /admin/empresas` lista da mais antiga para a mais recente com nome, CNPJ, e-mail, data — `admin-empresas.e2e-spec.ts` (1º teste: `toEqual([antiga, nova])` com `id`, `razaoSocial`, `cnpj`, `email`, `criadoEm`; aprovadas ficam fora); `estado` ≠ `PENDENTE_APROVACAO` → 422 (`:139`)
+- [x] `aprovacao` → `APROVADA` + admin + data-hora + e-mail (`:151`, `decididoPor` = admin, `CADASTRO_APROVADO` `:161`); `rejeicao` motivo < 20 → 422 e segue pendente (`:175`); motivo ok → `REJEITADA` + motivo persistido e por e-mail (`:191`, `:200`)
+- [x] `suspensao`/`reativacao` respeitam as transições (`:227`, `:233`); fora do conjunto → 409 sem alterar o estado (`:253`, 4 casos); segunda decisão sobre o mesmo pendente → 409 e vale a primeira (`:272`). A corrida paralela real (CAS no banco) é o escopo da T30; aqui a segunda decisão é sequencial
+- [x] Não-admin em qualquer endpoint → 403, nenhum estado alterado — `:322` (EMPRESA e INSTITUICAO nas 5 rotas; estado `PENDENTE_APROVACAO` e zero linhas de auditoria); sem sessão → 401 (`:335`)
+- [x] Toda mudança gera linha em `registro_auditoria` — teste de auditoria (`toEqual` com `usuarioId` do admin, `entidadeId`, `estadoAnterior`/`estadoNovo` nas 3 transições) e o da rejeição com `motivo`
+- [x] e2e cobre EMP-04/05/10 e os Independent Tests (aprovar pendente, 403 para empresa, 409 na segunda aprovação); empresa inexistente → 404 (`:281`); falha do e-mail não desfaz a aprovação (`:292`). O filtro passou a traduzir `NotAllowedError` → 403 "Acesso negado" e `ResourceNotFoundError` → 404 (erros do `core` não têm `status`; 2 casos novos em `domain-exception-filter.e2e-spec.ts`)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 122 e2e; sensor: mutantes "sem `@Roles(ADMIN)`" (2 falhas) e "campo extra na fila" (1 falha) mortos
+- [x] Test count: ≥ 12 testes e2e passam — 19 novos (+2 no filtro)
 
 **Tests**: e2e
 **Gate**: full
+
+**Nota de qualidade — resolvida (2026-09-19, pós-validação da Fase 5)**: mensagens de "motivo insuficiente" e "transição inválida" alinhadas ao design e asseridas nos e2e; rejeição com e-mail indisponível coberta. **Aberto → T30**: aprovação e rejeição paralelas ainda vencem ambas (`update where id` sem estado esperado em `prisma-empresa-repository.ts`); a T30 precisa de `updateMany` condicional + teste paralelo. Ver `validation-fase5.md` (GAP 3).
+
 
 **Commit**: `feat(api): fila e decisões de aprovação/suspensão de empresa`
 
@@ -987,11 +999,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Dono/admin → 200 com o `Content-Type` do registro e `nosniff`
-- [ ] Não-dono → 403; id inexistente → 404
-- [ ] Um SVG com script foi rejeitado no upload (T22), então nunca chega aqui — teste confirma o 422 no upload
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 5 testes e2e passam
+- [x] Dono/admin → 200 com o `Content-Type` do registro e `nosniff` — `arquivo.e2e-spec.ts:113-115` (`toBe(200)`, `'image/png'`, `x-content-type-options` `'nosniff'`, bytes idênticos), `:130` (ADMIN em arquivo de outra empresa), `:144-145` (SVG → `image/svg+xml` + `nosniff`)
+- [x] Não-dono → 403 (`:158`; arquivo sem empresa vinculada só ao ADMIN: `:179-180`); id inexistente → 404 (`:191`); sem sessão → 401 (`:197`). A dona do arquivo é resolvida por `empresa.logoArquivoId` (`ArquivoService.buscarAcesso`)
+- [x] Um SVG com script foi rejeitado no upload (T22), então nunca chega aqui — teste confirma o 422 no upload (`:221`, `POST /empresas` com SVG com `<script>`; `arquivo.count()` → 0)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 130 e2e; sensor: mutantes "sem nosniff", "sem checar dono" e "ADMIN sem bypass" mortos (2 falhas cada)
+- [x] Test count: ≥ 5 testes e2e passam — 8 novos
 
 **Tests**: e2e
 **Gate**: full
@@ -1003,7 +1015,7 @@ T28 → T32
 ### T29: Rotas P2 — edição cadastral e recuperação de senha
 
 **What**: `PATCH /empresas/me` e `PATCH /empresas/me/email` + `POST /empresas/me/email/confirmacao` (`@Public`, identificada pelo token) → `EditarDadosEmpresaUseCase`; `POST /senha/recuperacao` (202 neutro) e `POST /senha/redefinicao` → os casos de uso de T13. DTOs `zod`.
-**Where**: `api/src/infra/http/`
+**Where**: `api/src/infra/http/` (rotas em `CadastroEmpresaController`, novo `SenhaController`, DTOs zod); domínio necessário para a confirmação de e-mail: `use-cases/confirmar-troca-email.ts`, `errors/token-confirmacao-email-invalido.error.ts`, `Empresa.limparTrocaDeEmail`, `User.alterarEmail`, `EmpresaRepository.findByTokenTrocaEmailHash`
 **Depends on**: T12, T13, T25, T26
 **Reuses**: `EditarDadosEmpresaUseCase` (T12), casos de uso de senha (T13), controllers existentes (T25/T26)
 **Requirement**: EMP-08, EMP-09
@@ -1013,16 +1025,19 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `PATCH /empresas/me` altera nome fantasia/telefone/endereço/logo; `cnpj` → 422
-- [ ] Troca de e-mail mantém o antigo ativo até `POST .../email/confirmacao` com token válido
-- [ ] `POST /senha/recuperacao` → 202 neutro exista ou não a conta
-- [ ] `POST /senha/redefinicao` com token válido → nova senha vale, antiga não, sessões anteriores caem; token inválido/expirado/usado → 400
-- [ ] e2e cobre EMP-08 e EMP-09 e os Independent Tests
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 10 testes e2e passam
+- [x] `PATCH /empresas/me` altera nome fantasia/telefone/endereço/logo; `cnpj` → 422 — `edicao-e-senha.e2e-spec.ts:134` (200 + valores novos, razão social e CNPJ intactos), `:175` (logo novo válido; arquivo anterior permanece: `arquivo.count()` → 2), `:195` (logo < 512×512 → 422, sem trocar nem gravar), `:216` (`cnpj` → 422 "CNPJ não pode ser alterado; solicite ao suporte", nada muda); 401/403 (`:238-239`)
+- [x] Troca de e-mail mantém o antigo ativo até `POST .../email/confirmacao` com token válido — `:257-263` (202; `emailPendente` no perfil; login antigo 200, novo 401; `EMAIL_CONFIRMACAO` ao novo endereço), `:289-291` (confirmação 204; login novo 200, antigo 401), `:320` (token inexistente/já usado → 400), `:341` (e-mail tomado nesse meio-tempo → 409). Não havia caso de uso de confirmação: criados `ConfirmarTrocaEmailUseCase` (+ `confirmar-troca-email.spec.ts`, 5 testes), `TokenConfirmacaoEmailInvalidoError` (400), `Empresa.limparTrocaDeEmail`, `User.alterarEmail` e `EmpresaRepository.findByTokenTrocaEmailHash`
+- [x] `POST /senha/recuperacao` → 202 neutro exista ou não a conta — `:357-359` (`toBe(202)` nos dois; `inexistente.body` `toEqual(existente.body)`; e-mail só para a conta existente)
+- [x] `POST /senha/redefinicao` com token válido → nova senha vale, antiga não, sessões anteriores caem — `:389-393` (204; login novo 200, antigo 401; sessão anterior 401, nova 200); token inválido/expirado/usado → 400 "Link de redefinição inválido ou expirado" (`:430`); senha curta → 422 e o token segue utilizável (`:452-456`)
+- [x] e2e cobre EMP-08 e EMP-09 e os Independent Tests (alterar telefone/logo e recusar CNPJ; recuperar → redefinir → senha antiga morta e sessões encerradas)
+- [x] Gate check passa (nível Build, última task da fase): `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 149 unit + 145 e2e; sensor: 3 mutantes (token de e-mail não limpo, sem checar e-mail ocupado, recuperação não-neutra) mortos
+- [x] Test count: ≥ 10 testes e2e passam — 14 novos e2e (+5 unit do caso de uso de confirmação, +1 caso no teste do filtro)
 
 **Tests**: e2e
 **Gate**: full
+
+**Nota de qualidade — resolvida (2026-09-19, pós-validação da Fase 5)**: cobertura de `PATCH /empresas/me/email` (401/403), descarte do logo órfão no `PATCH /empresas/me` e logo de 11 MB na edição. Ver `validation-fase5.md` (GAP 4).
+
 
 **Commit**: `feat(api): edição cadastral e recuperação de senha (rotas P2)`
 
@@ -1031,6 +1046,7 @@ T28 → T32
 ### T30: Sweep de concorrência e re-cadastro
 
 **What**: Suite e2e dedicada aos edge cases de corrida + ajustes mínimos: `Promise.all` de dois `POST /empresas` com o mesmo CNPJ (índice único → exatamente um 201, um 409); aprovação + rejeição concorrentes do mesmo pendente (`updateMany` condicional / CAS → uma aplica, a outra 409); `Storage` forçado a falhar → `POST /empresas` → 503 sem `empresa`/`usuario` órfãos.
+**Escopo adicional (validação da Fase 5, GAP 3)**: a corrida de decisões de admin foi reproduzida (5 de 6 rodadas com ≥ 2 respostas 204, várias linhas de auditoria e e-mails contraditórios). O CAS deve ser `updateMany({ where: { id, status: estadoEsperado } })` no adaptador Prisma; `count === 0` → `TransicaoInvalidaError` (409) antes de auditar e enviar e-mail.
 **Where**: `api/test/cadastro-empresa/concorrencia.e2e-spec.ts`
 **Depends on**: T25, T27, T28
 **Reuses**: helpers de e2e (T16)

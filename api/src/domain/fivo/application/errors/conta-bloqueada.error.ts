@@ -4,8 +4,6 @@ export class ContaBloqueadaError extends Error implements UseCaseError {
   readonly status = 429;
 
   constructor() {
-    super(
-      'Conta bloqueada temporariamente por excesso de tentativas de login.',
-    );
+    super('Muitas tentativas, tente em 15 minutos');
   }
 }

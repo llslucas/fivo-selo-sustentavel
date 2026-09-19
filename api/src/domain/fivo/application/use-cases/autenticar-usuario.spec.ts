@@ -3,6 +3,7 @@ import { UserRole } from '@domain/fivo/entities/user';
 import { Senha } from '@domain/fivo/entities/senha';
 import { FakeHasher } from '@test/cryptography/fake-hasher';
 import { UserFactory } from '@test/factories/user-factory';
+import { InMemoryUnitOfWork } from '@test/repositories/in-memory-unit-of-work';
 import { InMemorySessaoRepository } from '@test/repositories/in-memory-sessao-repository';
 import { InMemoryUserRepository } from '@test/repositories/in-memory-user-repository';
 import { ContaBloqueadaError } from '../errors/conta-bloqueada.error';
@@ -26,6 +27,7 @@ describe('AutenticarUsuarioUseCase', () => {
       userRepository,
       hasher,
       sessaoRepository,
+      new InMemoryUnitOfWork(),
     );
   });
 

@@ -1,7 +1,21 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+
+import { CryptographyModule } from '@infra/cryptography/cryptography.module';
+
+import { AdminSeeder } from './admin-seeder';
+import { AuthGuard } from './auth.guard';
+import { RolesGuard } from './roles.guard';
+import { SessionService } from './session.service';
 
 @Module({
-  imports: [],
-  providers: [],
+  imports: [CryptographyModule],
+  providers: [
+    SessionService,
+    AdminSeeder,
+    { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+  ],
+  exports: [SessionService],
 })
 export class AuthModule {}

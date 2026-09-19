@@ -1,10 +1,12 @@
 import type { Server } from 'node:http';
 
-import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { INestApplication, ModuleMetadata, Type } from '@nestjs/common';
+import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import type { Test as RequisicaoSupertest } from 'supertest';
 
 import { AppModule } from '@infra/app.module';
+import { NOME_COOKIE_SESSAO } from '@infra/auth/auth.constants';
+import { configurarApp } from '@infra/http/configurar-app';
 import { PrismaService } from '@infra/database/prisma/prisma.service';
 
 export interface AppDeTeste {
@@ -17,12 +19,23 @@ export interface AppDeTeste {
  * Sobe uma app Nest completa apontando para a `DATABASE_URL` de teste
  * (carregada por `test/helpers/load-env.ts`, registrado em `setupFiles`).
  */
-export async function criarAppDeTeste(): Promise<AppDeTeste> {
-  const moduleRef = await Test.createTestingModule({
-    imports: [AppModule],
-  }).compile();
+export async function criarAppDeTeste(
+  opcoes: {
+    controllers?: Type<unknown>[];
+    imports?: ModuleMetadata['imports'];
+    configurar?: (construtor: TestingModuleBuilder) => TestingModuleBuilder;
+  } = {},
+): Promise<AppDeTeste> {
+  const construtor = Test.createTestingModule({
+    imports: [AppModule, ...(opcoes.imports ?? [])],
+    controllers: opcoes.controllers ?? [],
+  });
+  const moduleRef = await (
+    opcoes.configurar?.(construtor) ?? construtor
+  ).compile();
 
   const app = moduleRef.createNestApplication();
+  configurarApp(app);
   const prisma = app.get(PrismaService);
 
   await app.init();
@@ -66,7 +79,7 @@ export function servidorHttp(contexto: AppDeTeste): Server {
   return contexto.app.getHttpServer() as Server;
 }
 
-export const NOME_COOKIE_SESSAO = 'fivo_sessao';
+export { NOME_COOKIE_SESSAO };
 
 /** Injeta o cookie de sessão opaca (AD-012) em uma request supertest. */
 export function comCookieDeSessao(
