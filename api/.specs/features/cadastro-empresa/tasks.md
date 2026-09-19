@@ -1106,7 +1106,7 @@ T28 → T32
 ### T32: Escape de conteúdo e verificação de sanitização
 
 **What**: Suite e2e confirmando o edge case "nome de empresa com HTML/script": o valor é aceito e persistido cru, mas devolvido pela API sem interpretação (o escape na renderização é do `web`; aqui garante-se que a API não injeta nem executa) e a rota `GET /arquivos/:id` nunca serve um SVG com script (bloqueado no upload). Ajustes mínimos se algum campo precisar de normalização.
-**Where**: `api/test/cadastro-empresa/conteudo-hostil.e2e-spec.ts`
+**Where**: `api/test/http/conteudo-hostil.e2e-spec.ts`
 **Depends on**: T28
 **Reuses**: helpers de e2e (T16)
 **Requirement**: Edge Cases
@@ -1116,10 +1116,10 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `POST /empresas` com `<script>` no nome → 201; `GET /empresas/me` devolve o valor como texto, sem tag interpretada no JSON
-- [ ] Upload de SVG com `<script>` → 422; nenhum arquivo criado
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 3 testes e2e passam
+- [x] `POST /empresas` com `<script>` no nome → 201; `GET /empresas/me` devolve o valor como texto, sem tag interpretada no JSON
+- [x] Upload de SVG com `<script>` → 422; nenhum arquivo criado
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 3 testes e2e passam (3 novos; total 167 e2e)
 
 **Tests**: e2e
 **Gate**: full
