@@ -1,5 +1,7 @@
 # Cadastro de Empresa — Validação da Fase 6 (T30–T32)
 
+> **Status final: ✅ PASS** (Re-verificação 3, 2026-09-19, diff `d5c328b..d5e0c0e`). As seções abaixo são o histórico das iterações: o veredito ❌ FAIL da verificação inicial e das re-verificações 1 e 2 vale para o `HEAD` de cada uma delas, não para o estado atual. O veredito corrente é o da seção **Re-verificação 3**, no fim do arquivo.
+
 **Date**: 2026-09-19
 **Spec**: `.specs/features/cadastro-empresa/spec.md`
 **Diff range**: `d5c328b..HEAD` (`770ff6a`) — 3 commits: `f247cda` (T30), `89ee2d8` (T31), `770ff6a` (T32)
@@ -530,3 +532,96 @@ Inalterado desde a re-verificação 1: escape “na renderização das páginas 
 ## Correção pós-re-verificação 2 (iteração 3)
 
 GAP D: o teste de repositório "save não sobrescreve estado nem decisão" passou a decidir por rejeição e assere `status`, `decididoPor`, `decididoEm` e `motivoDecisao`; o mutante que regrava `decididoEm`/`motivoDecisao` agora derruba o teste. Gates: 150 unit, 175 e2e. Os gaps B (reentrância do worker) e E (double em memória diverge do CAS real) seguem como minor sem correção. O relatório da re-verificação 2 deu 0 blockers e apontava só o GAP D para virar PASS; falta a confirmação independente (iteração 3 de 3).
+
+---
+
+# Re-verificação 3
+
+**Date**: 2026-09-19
+**Diff range**: `d5c328b..HEAD` (`d5e0c0e`) — 6 commits (`f247cda`, `89ee2d8`, `770ff6a`, `c79994a`, `6ef2e5a`, `d5e0c0e`)
+**Verifier**: sub-agente independente (author ≠ verifier); nenhuma linha de código/teste do tree real foi alterada
+**Escopo**: (a) confirmar sob mutação o fechamento do GAP D — o único item que impedia o PASS na re-verificação 2; (b) gate completo; (c) isolamento
+
+## Veredito
+
+# ✅ PASS
+
+**0 blockers, 0 majors, 2 minors conhecidos e aceitos (GAP B, GAP E).**
+
+O GAP D está fechado com evidência determinística. As quatro colunas que o `save` passou a proteger (`status`, `decididoPor`, `decididoEm`, `motivoDecisao`) agora têm asserção: os três mutantes que reintroduzem a regravação — **MG** (linha inteira), **MI** (só `motivoDecisao`) e **MI2** (só `decididoEm`) — **morrem 3/3 execuções cada**, sem depender de timing. MI e MI2, que na re-verificação 2 sobreviviam à suíte e2e inteira (175 testes), agora são mortos pelo teste de repositório sequencial. O gate passa inteiro: 325 testes, 0 falhas, 0 skips.
+
+## Isolamento
+
+- Worktree: `git worktree add /tmp/sensor-f6-rv3 HEAD --detach` (detached em `d5e0c0e`); `node_modules` por symlink, `.env` copiado; **nunca `git stash`**
+- Postgres de teste `localhost:5433` compartilhado; `maxWorkers: 1` (`test/jest-e2e.json`); **nenhuma suíte em paralelo**, nenhuma execução concorrente
+- Mutações aplicadas e revertidas por script no worktree; `git diff` do worktree **vazio** antes do descarte
+- Descarte: `git worktree remove --force /tmp/sensor-f6-rv3` + `git worktree prune`; `/tmp/sensor-f6-rv3` inexistente ao fim
+- **`git status --porcelain` do tree real: vazio antes e depois**; `HEAD` segue `d5e0c0e` em `feat/cadastro-empresa-robustez` → isolamento confirmado
+
+## (b) Gate Check
+
+| Comando | Resultado |
+| --- | --- |
+| `npx tsc -p tsconfig.json --noEmit` | ✅ exit 0 |
+| `npx eslint "{src,test}/**/*.ts"` | ✅ exit 0, 0 problemas |
+| `npx jest` (unit) | ✅ 29 suítes, **150 passed**, 0 failed, 0 skipped, 3,7 s |
+| `npx jest --config ./test/jest-e2e.json` | ✅ 18 suítes, **175 passed**, 0 failed, 0 skipped, 65,0 s |
+
+**Total**: 325 testes (150 unit + 175 e2e) — mesma contagem da re-verificação 2: o commit `d5e0c0e` **fortaleceu** um teste existente (+2 `expect`) em vez de acrescentar um novo. Nenhum teste removido ou skipado.
+
+## (a) Sensor — GAP D fechado
+
+Correção sob verificação: `test/database/prisma-empresa-repository.e2e-spec.ts:255-277` — o teste `save não sobrescreve estado nem decisão gravados por outra transição` passou a decidir por **rejeição com motivo** (`decidida.rejeitar(adminId, motivo)`, `:261`) e assere as 4 colunas depois de `repository.save(obsoleta)`: `status === REJEITADA` (`:271`), `decididoPor === adminId` (`:272`), `decididoEm?.getTime() === decidida.decididoEm!.getTime()` (`:273`) e `motivoDecisao === motivo` (`:274`).
+
+Suítes de cada rodada: `test/database/prisma-empresa-repository.e2e-spec.ts` + `test/http/concorrencia.e2e-spec.ts` (17 testes, incluindo as 24 rodadas de corrida).
+
+| # | Mutação em `prisma-empresa-repository.ts:94-97` | Execuções | Killed? | Falha exata |
+| - | --- | --- | --- | --- |
+| **MG** | `data: PrismaEmpresaMapper.toPrisma(empresa)` (regrava a linha inteira — o defeito do GAP A) | **×3** | ✅ **Killed 3/3** | 2 testes falham em todas: `concorrencia.e2e-spec.ts` (suspensão desfeita) + `prisma-empresa-repository.e2e-spec.ts` |
+| **MI** | `data: { ...cadastrais, motivoDecisao }` (regrava só `motivoDecisao`) | **×3** | ✅ **Killed 3/3** (antes SURVIVED) | `Expected: "Documentação do CNPJ não confere com a razão social." / Received: null` |
+| **MI2** | `data: { ...cadastrais, decididoEm }` (regrava só `decididoEm`) | **×3** | ✅ **Killed 3/3** (antes SURVIVED) | `Expected: 1789824830519 / Received: undefined` |
+
+**Resultado**: 3/3 mutantes mortos, **9 execuções, 9 kills, zero flakiness**. A mensagem de falha aponta direto para a coluna mutada em cada caso — a discriminação é por coluna, não por acidente de agregação.
+
+**Estabilidade**: MI e MI2 são mortos pelo teste **sequencial** de repositório (`create` → `findById` obsoleta → `rejeitar` + `salvarTransicao` → `save(obsoleta)` → `findById`), sem `Promise.all` e sem dependência de timing. O e2e de corrida de 24 rodadas segue como rede redundante (mata MG, passa limpo em MI/MI2 por não olhar essas colunas). A lição (1) da re-verificação 2 — “mutar **cada** coluna isoladamente” — foi aplicada e o resultado é positivo para as 4.
+
+## Gaps restantes ranqueados
+
+### GAP A — **FECHADO** ✅ (confirmado na re-verificação 2, re-confirmado aqui via MG 3/3)
+
+### GAP D — **FECHADO** ✅
+
+MI e MI2 morrem 3/3. As 4 colunas protegidas pelo `save` têm asserção.
+
+### GAP B (Minor, aberto — não bloqueia) — reentrância do `EmailPendenteWorker`
+
+`executar() → drenar()` está coberto (`test/http/email-pendente.e2e-spec.ts:266-278`), mas o guard `if (this.emExecucao) return` (`src/infra/mail/email-pendente.worker.ts:34`) e o `catch` seguem sem cobertura — `grep -rn "emExecucao" src/ test/` só encontra ocorrências em `src/`, nenhuma em `test/`. Severidade baixa e inalterada: a reserva por CAS no contador (`email-pendente.service.ts:62-76`) já impede envio duplicado mesmo sem o guard, então o pior caso é trabalho redundante, não e-mail duplicado. **Fix task** (backlog): unit com `EmailPendenteService` falso — (a) duas chamadas sobrepostas → um só `drenar`; (b) `drenar` rejeitando → `executar()` não propaga e `emExecucao` volta a `false`.
+
+### GAP E (Minor, aberto — não bloqueia) — double em memória diverge do contrato de `save`
+
+`test/repositories/in-memory-empresa-repository.ts`: `save` substitui a entidade inteira (grava `status`) e `salvarTransicao` ignora `estadoEsperado` e devolve `true` sempre; a porta (`empresa-repository.ts:15`) não documenta que `save` não altera estado/decisão. Nenhum use case depende disso hoje (todas as transições passam por `salvarTransicao`), mas a camada unit não detectaria uma regressão de contrato — é a via de reentrada do GAP A. **Fix task** (backlog): documentar a restrição na porta e alinhar o double (preservar as 4 colunas no `save`; comparar `estadoEsperado` no `salvarTransicao`).
+
+### GAP C (Spec-precision, não bloqueia) — intacto
+
+Inalterado desde a re-verificação 1: escape na renderização das páginas públicas é obrigação do `web`; a mensagem do 422 de EMP-01 AC6 não é asserida no caminho de cadastro; o Success Criterion de “e-mail em menos de 1 minuto” é incompatível com backoff de 60 s + worker de 30 s quando o provedor falha. Todos são edição de spec, não de código.
+
+## Summary
+
+**Overall**: ✅ **Ready** — iteração 3 de 3; **0 blockers, 0 majors, 2 minors aceitos** (GAP B, GAP E) + GAP C (spec-precision)
+
+**Spec-anchored check**: EMP-05 AC5/AC7 e EMP-04 verificados no caminho de edição concorrente com citação `file:line` (`concorrencia.e2e-spec.ts:235-242`, `prisma-empresa-repository.e2e-spec.ts:271-274`); a divergência auditoria↔estado por `motivoDecisao`/`decididoEm` perdidos deixou de ser possível sem derrubar a suíte
+**Sensor**: 3 mutantes (MG, MI, MI2) — **3 killed, 0 survived**, 3 execuções cada, determinísticos
+**Gate**: 325 passed (150 unit + 175 e2e), 0 failed, 0 skipped; `tsc` e `eslint` limpos
+**Isolamento**: worktree `/tmp/sensor-f6-rv3` descartado; `git status --porcelain` do tree real vazio antes e depois
+
+**O que funciona**: a correção do GAP A removeu o escritor oculto em vez de espalhar CAS — `salvarTransicao` é a única porta de entrada das colunas de estado, e a garantia virou estrutural. O commit `d5e0c0e` fechou o último buraco de discriminação no lugar certo e pelo custo certo: 2 `expect` num teste sequencial que já existia, em vez de mais um e2e de corrida. A cobertura fica nos dois níveis complementares — repositório determinístico como prova, corrida de 24 rodadas como rede.
+
+**O que falta (não bloqueia)**: GAP B e GAP E são fortalecimento de teste/documentação de porta, baratos e sem risco em produção hoje; GAP C é edição de spec. Recomenda-se agendá-los como um lote de dívida, não como bloqueio da Fase 6.
+
+**Next steps**: Fase 6 aprovada; seguir para a próxima fase. Registrar GAP B, GAP E e GAP C no backlog.
+
+### Notas de processo
+
+- `python3 .claude/skills/tlc-spec-driven/scripts/validate_state.py cadastro-empresa` segue reportando `ERROR ... no validation.md` — esperado enquanto a convenção por fase (`validation-faseN.md`) estiver em uso; vale alinhar o script à convenção.
+- Lição confirmada nesta iteração: *mutar cada coluna/campo protegido isoladamente é o que separa “a correção existe” de “a correção está defendida”* — MG sozinho dava um falso verde nas re-verificações anteriores; MI e MI2 só apareceram quando a mutação foi granular.
+- Lição confirmada: *o melhor matador de um bug de corrida é um teste sequencial no nível do repositório* — 9/9 kills sem flakiness, contra a corrida de 8/30 que originou o gap.
