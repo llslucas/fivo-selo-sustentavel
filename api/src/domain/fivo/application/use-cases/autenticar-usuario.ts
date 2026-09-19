@@ -1,20 +1,33 @@
-import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { Either, left, right } from '@core/either';
 import { User, UserRole } from '@domain/fivo/entities/user';
 import { Injectable } from '@nestjs/common';
 import { ContaBloqueadaError } from '../errors/conta-bloqueada.error';
 import { CredenciaisInvalidasError } from '../errors/wrong-credentials.error';
+import { gerarTokenDeSessao } from '../gerar-token-de-sessao';
 import { Hasher } from '../ports/cryptography/hasher';
 import { UserRepository } from '../ports/database/user-repository';
 import { SessaoRepository } from '../ports/sessao-repository';
 import { UnitOfWork } from '../ports/unit-of-work';
 
-const TOKEN_BYTES = 32; // 256 bits
+/**
+ * Hash-isca, gerado uma vez por processo: com e-mail inexistente o login paga
+ * o mesmo `compare` de uma senha errada, então o tempo da resposta não
+ * distingue conta inexistente de credencial errada (EMP-06 AC2).
+ */
+let hashIsca: Promise<string> | undefined;
+
+function iscaDeComparacao(hasher: Hasher): Promise<string> {
+  hashIsca ??= hasher.hash(randomUUID());
+  return hashIsca;
+}
 
 export interface AutenticarUsuarioUseCaseRequest {
   email: string;
   senha: string;
   agora: Date;
+  ip?: string;
+  userAgent?: string;
 }
 
 export type AutenticarUsuarioUseCaseResponse = Either<
@@ -38,11 +51,14 @@ export class AutenticarUsuarioUseCase {
     email,
     senha,
     agora,
+    ip,
+    userAgent,
   }: AutenticarUsuarioUseCaseRequest): Promise<AutenticarUsuarioUseCaseResponse> {
     const emailNormalizado = email.toLowerCase();
     const inicial = await this.userRepository.findByEmail(emailNormalizado);
 
     if (!inicial) {
+      await this.hasher.compare(senha, await iscaDeComparacao(this.hasher));
       return left(new CredenciaisInvalidasError());
     }
 
@@ -88,8 +104,7 @@ export class AutenticarUsuarioUseCase {
 
     const user = autenticado.value;
 
-    const tokenBruto = randomBytes(TOKEN_BYTES).toString('hex');
-    const tokenHash = createHash('sha256').update(tokenBruto).digest('hex');
+    const { token, tokenHash } = gerarTokenDeSessao();
 
     await this.sessaoRepository.criar({
       id: randomUUID(),
@@ -97,8 +112,10 @@ export class AutenticarUsuarioUseCase {
       tokenHash,
       criadaEm: agora,
       ultimoAcessoEm: agora,
+      ip,
+      userAgent,
     });
 
-    return right({ token: tokenBruto, papel: user.role });
+    return right({ token, papel: user.role });
   }
 }

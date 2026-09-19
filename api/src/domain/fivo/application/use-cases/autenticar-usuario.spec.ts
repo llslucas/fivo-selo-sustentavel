@@ -171,4 +171,60 @@ describe('AutenticarUsuarioUseCase', () => {
     expect(sessao.tokenHash).toBe(hashEsperado);
     expect(sessao.tokenHash).not.toBe(response.value.token);
   });
+
+  it('should persist the ip and the userAgent received in the request on the sessao', async () => {
+    await criarUsuario();
+
+    const response = await sut.execute({
+      email: 'john@example.com',
+      senha: SENHA_CORRETA,
+      agora: AGORA,
+      ip: '203.0.113.7',
+      userAgent: 'Mozilla/5.0 (Teste)',
+    });
+
+    expect(response.isRight()).toBe(true);
+    expect(sessaoRepository.items).toHaveLength(1);
+    expect(sessaoRepository.items[0].ip).toBe('203.0.113.7');
+    expect(sessaoRepository.items[0].userAgent).toBe('Mozilla/5.0 (Teste)');
+  });
+
+  it('should compare the submitted password against a decoy hash exactly once when the e-mail does not exist', async () => {
+    const compareSpy = jest.spyOn(hasher, 'compare');
+
+    const response = await sut.execute({
+      email: 'ghost@example.com',
+      senha: SENHA_CORRETA,
+      agora: AGORA,
+    });
+
+    expect(compareSpy).toHaveBeenCalledTimes(1);
+    expect(compareSpy).toHaveBeenCalledWith(
+      SENHA_CORRETA,
+      expect.stringMatching(/.+/),
+    );
+    expect(response.isLeft()).toBe(true);
+    if (response.isLeft()) {
+      expect(response.value).toBeInstanceOf(CredenciaisInvalidasError);
+      expect(response.value.status).toBe(401);
+      expect(response.value.message).toBe('Credenciais inválidas');
+    }
+  });
+
+  it('should compare exactly once for an existing e-mail with a wrong password, matching the unknown e-mail path', async () => {
+    await criarUsuario();
+    const compareSpy = jest.spyOn(hasher, 'compare');
+
+    const response = await sut.execute({
+      email: 'john@example.com',
+      senha: 'senha-errada-123',
+      agora: AGORA,
+    });
+
+    expect(compareSpy).toHaveBeenCalledTimes(1);
+    expect(response.isLeft()).toBe(true);
+    if (response.isLeft()) {
+      expect(response.value).toBeInstanceOf(CredenciaisInvalidasError);
+    }
+  });
 });

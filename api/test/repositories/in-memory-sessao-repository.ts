@@ -39,8 +39,10 @@ export class InMemorySessaoRepository implements SessaoRepository {
   revogarTodasDoUsuario(usuarioId: string): Promise<void> {
     const agora = new Date();
 
+    // Espelha o `where: { usuarioId, revogadaEm: null }` do adaptador Prisma:
+    // sessão já revogada mantém a data original.
     this.items
-      .filter((item) => item.usuarioId === usuarioId)
+      .filter((item) => item.usuarioId === usuarioId && !item.revogadaEm)
       .forEach((item) => {
         item.revogadaEm = agora;
       });

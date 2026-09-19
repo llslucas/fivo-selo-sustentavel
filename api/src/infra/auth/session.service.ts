@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 
+import {
+  gerarTokenDeSessao,
+  hashDoTokenDeSessao,
+} from '@domain/fivo/application/gerar-token-de-sessao';
 import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
 import { SessaoRepository } from '@domain/fivo/application/ports/sessao-repository';
-import { GeradorTokenOpaco } from '@infra/cryptography/gerador-token-opaco';
 
 import { INATIVIDADE_MAXIMA_MS } from './auth.constants';
 import { UsuarioAutenticado } from './usuario-autenticado';
@@ -18,7 +21,6 @@ export class SessionService {
   constructor(
     private readonly sessaoRepository: SessaoRepository,
     private readonly userRepository: UserRepository,
-    private readonly geradorToken: GeradorTokenOpaco,
   ) {}
 
   async criar(
@@ -26,12 +28,12 @@ export class SessionService {
     contexto: ContextoDeSessao = {},
     agora: Date = new Date(),
   ): Promise<{ token: string }> {
-    const token = this.geradorToken.gerar();
+    const { token, tokenHash } = gerarTokenDeSessao();
 
     await this.sessaoRepository.criar({
       id: randomUUID(),
       usuarioId,
-      tokenHash: this.geradorToken.sha256(token),
+      tokenHash,
       criadaEm: agora,
       ultimoAcessoEm: agora,
       ip: contexto.ip,
@@ -46,7 +48,7 @@ export class SessionService {
     agora: Date = new Date(),
   ): Promise<UsuarioAutenticado | null> {
     const sessao = await this.sessaoRepository.buscarPorTokenHash(
-      this.geradorToken.sha256(tokenCru),
+      hashDoTokenDeSessao(tokenCru),
     );
 
     if (!sessao || sessao.revogadaEm) {

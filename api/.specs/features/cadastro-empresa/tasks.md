@@ -1195,11 +1195,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] `save` no double não altera as 4 colunas de decisão (unit que salva uma leitura obsoleta depois de uma transição)
-- [ ] `salvarTransicao` no double compara `estadoEsperado`; CAS perdido coberto em `aprovar`, `rejeitar`, `suspender`, `reativar` e no re-cadastro de `criar-empresa`
-- [ ] Mutante: `salvarTransicao` do double voltando a devolver `true` sempre derruba ao menos 5 testes unit
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 156 unit (≥ 6 novos), 175 e2e inalterados
+- [x] `save` no double não altera as 4 colunas de decisão (unit que salva uma leitura obsoleta depois de uma transição)
+- [x] `salvarTransicao` no double compara `estadoEsperado`; CAS perdido coberto em `aprovar`, `rejeitar`, `suspender`, `reativar` e no re-cadastro de `criar-empresa`
+- [x] Mutante: `salvarTransicao` do double voltando a devolver `true` sempre derruba ao menos 5 testes unit
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 156 unit (≥ 6 novos), 175 e2e inalterados
 
 **Tests**: unit
 **Gate**: quick
@@ -1221,10 +1221,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Double filtra `revogadaEm === null` antes de revogar
-- [ ] Unit: sessão já revogada mantém a data original após a redefinição; sessões ativas são revogadas
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 157 unit (≥ 1 novo)
+- [x] Double filtra `revogadaEm === null` antes de revogar
+- [x] Unit: sessão já revogada mantém a data original após a redefinição; sessões ativas são revogadas
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 157 unit (≥ 1 novo)
 
 **Tests**: unit
 **Gate**: quick
@@ -1246,10 +1246,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Os 4 cenários (a)–(d) cobertos
-- [ ] Mutante: remover `if (this.emExecucao) return` derruba (b); remover o `finally` derruba (c)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 161 unit (≥ 4 novos)
+- [x] Os 4 cenários (a)–(d) cobertos
+- [x] Mutante: remover `if (this.emExecucao) return` derruba (b); remover o `finally` derruba (c)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 161 unit (≥ 4 novos)
 
 **Tests**: unit
 **Gate**: quick
@@ -1271,11 +1271,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit: a sessão criada pelo caso de uso carrega o `ip` e o `userAgent` recebidos
-- [ ] e2e em `autenticacao.e2e-spec.ts`: `POST /sessoes` com `User-Agent` definido → a linha de `sessao` tem `ip` e `user_agent` preenchidos; o token do cookie autentica `GET /empresas/me`
-- [ ] `SessionService.criar` e o caso de uso usam a mesma função de geração (nenhum `randomBytes`/`createHash` de token de sessão fora dela)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 162 unit, ≥ 176 e2e
+- [x] Unit: a sessão criada pelo caso de uso carrega o `ip` e o `userAgent` recebidos
+- [x] e2e em `autenticacao.e2e-spec.ts`: `POST /sessoes` com `User-Agent` definido → a linha de `sessao` tem `ip` e `user_agent` preenchidos; o token do cookie autentica `GET /empresas/me`
+- [x] `SessionService.criar` e o caso de uso usam a mesma função de geração (nenhum `randomBytes`/`createHash` de token de sessão fora dela)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 162 unit, ≥ 176 e2e
 
 **Tests**: e2e
 **Gate**: full
@@ -1297,11 +1297,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit: e-mail inexistente → `hasher.compare` chamado exatamente 1 vez e resposta `CredenciaisInvalidasError`
-- [ ] Unit: e-mail existente com senha errada → também 1 chamada de `compare` (paridade)
-- [ ] Mutante: retornar antes do `compare` no ramo de e-mail inexistente derruba o teste
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 164 unit (≥ 2 novos)
+- [x] Unit: e-mail inexistente → `hasher.compare` chamado exatamente 1 vez e resposta `CredenciaisInvalidasError`
+- [x] Unit: e-mail existente com senha errada → também 1 chamada de `compare` (paridade)
+- [x] Mutante: retornar antes do `compare` no ramo de e-mail inexistente derruba o teste
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 164 unit (≥ 2 novos)
 
 **Tests**: unit
 **Gate**: quick
@@ -1323,11 +1323,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit: com um `Mailer` que só resolve sob comando, o caso de uso resolve antes do envio terminar e o token já está persistido
-- [ ] Unit: `Mailer` rejeitando → caso de uso resolve `right`, sem exceção não tratada
-- [ ] e2e existente de `POST /senha/recuperacao` (202 neutro) segue verde
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 166 unit (≥ 2 novos)
+- [x] Unit: com um `Mailer` que só resolve sob comando, o caso de uso resolve antes do envio terminar e o token já está persistido
+- [x] Unit: `Mailer` rejeitando → caso de uso resolve `right`, sem exceção não tratada
+- [x] e2e existente de `POST /senha/recuperacao` (202 neutro) segue verde
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 166 unit (≥ 2 novos)
 
 **Tests**: unit
 **Gate**: quick

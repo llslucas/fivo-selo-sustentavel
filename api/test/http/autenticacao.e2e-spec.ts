@@ -159,6 +159,33 @@ describe('AutenticacaoController (e2e)', () => {
     expect(resposta.body).toMatchObject({ email: 'pessoa@fivo.test' });
   });
 
+  it('o login grava ip e user-agent na sessão, e o token do cookie autentica /empresas/me', async () => {
+    const user = await criarUsuario(UserRole.EMPRESA, 'pessoa@fivo.test');
+    await contexto.app
+      .get(EmpresaRepository)
+      .create(EmpresaFactory.create({ usuarioId: user.id }));
+
+    const login = await request(servidorHttp(contexto))
+      .post('/sessoes')
+      .set('User-Agent', 'FivoTeste/1.0')
+      .send({ email: 'pessoa@fivo.test', senha: SENHA });
+
+    expect(login.status).toBe(200);
+
+    const sessoes = await contexto.prisma.sessao.findMany();
+    expect(sessoes).toHaveLength(1);
+    expect(sessoes[0].userAgent).toBe('FivoTeste/1.0');
+    expect(sessoes[0].ip).toMatch(/(127\.0\.0\.1|::1)$/);
+
+    const resposta = await comCookieDeSessao(
+      request(servidorHttp(contexto)).get('/empresas/me'),
+      extrairToken(login),
+    );
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body).toMatchObject({ email: 'pessoa@fivo.test' });
+  });
+
   it('logout → 204 e o token antigo passa a responder 401', async () => {
     await criarUsuario(UserRole.EMPRESA, 'pessoa@fivo.test');
     const token = extrairToken(await entrar('pessoa@fivo.test', SENHA));

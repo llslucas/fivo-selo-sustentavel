@@ -44,17 +44,25 @@ export class SolicitarRecuperacaoSenhaUseCase {
         ),
       });
 
+      // Envio fora do caminho da resposta: o tempo do 202 não pode revelar se
+      // a conta existe (EMP-09 AC1). Falha de envio fica só no log.
+      this.dispararEmail(email, tokenBruto);
+    }
+
+    return right(undefined);
+  }
+
+  private dispararEmail(para: string, token: string): void {
+    void (async () => {
       try {
         await this.mailer.enviar({
-          para: email,
+          para,
           template: TemplateEmail.SENHA_REDEFINICAO,
-          dados: { token: tokenBruto },
+          dados: { token },
         });
       } catch (error) {
         console.error('Falha ao enviar e-mail de recuperação de senha', error);
       }
-    }
-
-    return right(undefined);
+    })();
   }
 }

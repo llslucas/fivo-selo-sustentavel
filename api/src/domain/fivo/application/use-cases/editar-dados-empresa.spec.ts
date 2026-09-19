@@ -1,5 +1,6 @@
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
+import { Empresa, EmpresaStatus } from '@domain/fivo/entities/empresa';
 import { FakeMailer } from '@test/cryptography/fake-mailer';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { InMemoryEmpresaRepository } from '@test/repositories/in-memory-empresa-repository';
@@ -17,6 +18,16 @@ describe('EditarDadosEmpresaUseCase', () => {
     mailer = new FakeMailer();
     sut = new EditarDadosEmpresaUseCase(empresaRepository, mailer);
   });
+
+  async function lerEmpresa(id: string): Promise<Empresa> {
+    const empresa = await empresaRepository.findById(id);
+
+    if (!empresa) {
+      throw new Error(`Empresa ${id} não encontrada no repositório`);
+    }
+
+    return empresa;
+  }
 
   it('should persist nomeFantasia/telefone/endereco/logoArquivoId changes', async () => {
     const empresa = EmpresaFactory.create();
@@ -160,5 +171,43 @@ describe('EditarDadosEmpresaUseCase', () => {
 
     const atualizada = await empresaRepository.findById(empresa.id.toString());
     expect(atualizada?.logoArquivoId?.equals(logoOriginal)).toBe(true);
+  });
+
+  it('should persist the cadastral fields without undoing the admin decision when saving a stale read', async () => {
+    const empresa = EmpresaFactory.create({
+      status: EmpresaStatus.PENDENTE_APROVACAO,
+    });
+    await empresaRepository.create(empresa);
+
+    const leituraObsoleta = await lerEmpresa(empresa.id.toString());
+
+    // O admin decide entre a leitura e a gravação da edição.
+    const adminId = new UniqueEntityId();
+    const motivo = 'Documentação incompleta para validar o CNPJ informado.';
+    const decidida = await lerEmpresa(empresa.id.toString());
+    decidida.rejeitar(adminId, motivo);
+    await empresaRepository.salvarTransicao(
+      decidida,
+      EmpresaStatus.PENDENTE_APROVACAO,
+    );
+    const decididoEm = decidida.decididoEm;
+
+    jest
+      .spyOn(empresaRepository, 'findById')
+      .mockResolvedValueOnce(leituraObsoleta);
+
+    const response = await sut.execute({
+      empresaId: empresa.id.toString(),
+      telefone: '11888887777',
+    });
+
+    expect(response.isRight()).toBe(true);
+
+    const guardada = await lerEmpresa(empresa.id.toString());
+    expect(guardada.telefone).toBe('11888887777');
+    expect(guardada.status).toBe(EmpresaStatus.REJEITADA);
+    expect(guardada.decididoPor?.equals(adminId)).toBe(true);
+    expect(guardada.decididoEm).toEqual(decididoEm);
+    expect(guardada.motivoDecisao).toBe(motivo);
   });
 });

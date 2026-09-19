@@ -101,6 +101,46 @@ describe('RedefinirSenhaUseCase', () => {
     );
   });
 
+  it('should revoke only the active sessions, keeping the original revogadaEm of an already revoked one', async () => {
+    const user = await criarUsuarioComTokenValido();
+    const revogadaAntes = new Date('2025-12-31T10:00:00Z');
+
+    await sessaoRepository.criar({
+      id: 'sessao-ja-revogada',
+      usuarioId: user.id.toString(),
+      tokenHash: 'hash-1',
+      criadaEm: AGORA,
+      ultimoAcessoEm: AGORA,
+      revogadaEm: revogadaAntes,
+    });
+    await sessaoRepository.criar({
+      id: 'sessao-ativa',
+      usuarioId: user.id.toString(),
+      tokenHash: 'hash-2',
+      criadaEm: AGORA,
+      ultimoAcessoEm: AGORA,
+    });
+
+    const response = await sut.execute({
+      token: TOKEN_BRUTO,
+      novaSenha: SENHA_NOVA,
+      agora: AGORA,
+    });
+
+    expect(response.isRight()).toBe(true);
+
+    const jaRevogada = sessaoRepository.items.find(
+      (sessao) => sessao.id === 'sessao-ja-revogada',
+    );
+    expect(jaRevogada?.revogadaEm).toEqual(revogadaAntes);
+
+    const ativa = sessaoRepository.items.find(
+      (sessao) => sessao.id === 'sessao-ativa',
+    );
+    expect(ativa?.revogadaEm).toBeInstanceOf(Date);
+    expect(ativa?.revogadaEm).not.toEqual(revogadaAntes);
+  });
+
   it('should reject with TokenInvalidoError (400) when the token does not exist', async () => {
     const response = await sut.execute({
       token: 'token-inexistente',
