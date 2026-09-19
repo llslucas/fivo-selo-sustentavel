@@ -133,6 +133,16 @@ describe('AutenticacaoController (e2e)', () => {
     expect(usuario.bloqueadoAte).not.toBeNull();
   });
 
+  it('30 logins corretos simultâneos não esgotam o pool do banco (hash fora do lock)', async () => {
+    await criarUsuario(UserRole.EMPRESA, 'pessoa@fivo.test');
+
+    const respostas = await Promise.all(
+      Array.from({ length: 30 }, () => entrar('pessoa@fivo.test', SENHA)),
+    );
+
+    expect(respostas.every((resposta) => resposta.status === 200)).toBe(true);
+  }, 60_000);
+
   it('o cookie do login autentica a requisição seguinte', async () => {
     const user = await criarUsuario(UserRole.EMPRESA, 'pessoa@fivo.test');
     await contexto.app

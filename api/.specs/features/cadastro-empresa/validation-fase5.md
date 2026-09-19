@@ -245,3 +245,42 @@ Rodados no mesmo worktree contra o Postgres de teste, sequencialmente:
 **Next steps**: (1) GAP 1 com e2e concorrente; (2) GAP 2; (3) fechar GAP 4 (5 testes pequenos); (4) T30 deve incluir E1 como teste (decisões paralelas) e corrigir a rastreabilidade EMP-05; (5) alinhar mensagens (GAP 5); (6) definir HTTPS/TTL de confirmação na spec.
 
 **Higiene**: worktree `/tmp/verif-fase5` removido (`git worktree list` só com a árvore principal); `git status --porcelain` da árvore real idêntico ao inicial (vazio) — o único arquivo novo é este relatório.
+
+---
+
+## Re-verificação 1 (fixes do commit `18ecb43`)
+
+**Veredito atualizado: ⚠️ PASS com 2 issues** — os gaps de segurança/spec (GAP 1, 2, 4, 5, 6) estão corrigidos e discriminados pela suíte; permanecem GAP 3 (escopo T30) e **um novo achado de regressão (GAP 7, Major)** introduzido pelo próprio fix do GAP 1.
+
+**Gate (árvore real, sem pipe, exit 0)**: tsc, eslint, **149 unit + 154 e2e** verdes.
+
+### Reprodução dos experimentos (worktree isolado)
+- **E2 (login paralelo) — corrigido.** 15 logins errados → `401×5, 429×10`, `falhasLogin=5`; 60 → `401×5, 429×55`. Antes: 16×401, sem 429.
+- **E3 (logo grande) — corrigido.** 11 MB e 6 MB → 422 `"Arquivo inválido: tamanho excede o limite de 5 MB."`, 0 linhas em `empresa`/`arquivo`. Efeito colateral menor: o filtro mapeia **qualquer** `PayloadTooLargeException` para 422 com a mensagem do logo (`domain-exception.filter.ts:35-45`); um JSON de 2 MB em `/sessoes` ainda dá 413 (body-parser não é `PayloadTooLargeException` do Nest), então o impacto real é nulo hoje.
+
+### Sensor (17 mutantes novos/refeitos): 14 mortos × 3 sobreviventes
+| Mutante | Resultado |
+| --- | --- |
+| M18 (`PATCH /me/email` sem `@Roles`), M21 (PATCH não descarta logo), M25/M26/M26b/M26c (limite 8h → 2h / 8,9h / 8h03 / 7h54) | ✅ todos mortos (fronteira 7h59/8h01 em `auth.e2e-spec.ts`) |
+| N1 (sem `FOR NO KEY UPDATE`), N2 (login lê sem lock) | ✅ mortos pelo e2e de 12 logins paralelos (5×401 / 7×429) |
+| N3 (413 não mapeado), N10 (mensagem sem "5 MB"), N6 (Secure default off em produção), N11 (env `COOKIE_SECURE` explícita ignorada), N7 (msg 429), N9 (msg transição) | ✅ mortos |
+| N4 (multer volta a 10 MB) | ⚠️ sobrevive, **equivalente**: 6–10 MB cai em `Arquivo.criar` (422 com a mesma mensagem) e >10 MB no filtro (422) |
+| N5 (corpo diz `statusCode: 413` com HTTP 422) | ❌ sobrevive — testes checam o status HTTP e a mensagem, não `body.statusCode` (Minor) |
+| N8 (mensagem do motivo revertida) | ❌ sobrevive — o 422 de motivo curto em HTTP só asserta status (`admin-empresas.e2e-spec.ts:175`); a mensagem "O motivo deve ter no mínimo 20 caracteres" não é asserida em lugar nenhum (o unit só checa `instanceof`). Contradiz o "asserida em literal" do commit (Minor) |
+
+### GAP 7 (novo, **Major**, regressão) — o lock do login segura conexão do pool durante o hash argon2 e estoura em rajada → 500
+- **Evidência** (Prisma pool padrão = 2×CPU+1 = 5, `maxWait` da transação interativa = 2 s): 80 logins simultâneos em 80 contas distintas → **19×200 + 61×500** (senha correta) e **21×401 + 59×500** (senha errada); 40 logins corretos simultâneos na mesma conta → **20×200 + 20×500**. Log: `PrismaClientKnownRequestError: Transaction API error: Unable to start a transaction in the given time` (P2028), devolvido pelo filtro como 500. No commit anterior (`cd51b0f`) as mesmas 80 requisições dão **80×200** (mais lento, sem erro). Durante uma rajada de 40, `GET /empresas/me` autenticado levou 1,9 s (vs. ~ms): pool ocupado → o restante da API degrada.
+- **Causa**: `autenticar-usuario.ts` faz `hasher.compare` (~100 ms de CPU) **dentro** de `unitOfWork.executar`, então cada login retém 1 das 5 conexões pelo tempo do hash mais a espera pelo lock; sem deadlock (o lock holder só usa o `tx`; o `insert` de `sessao` roda depois do UoW — confirmado, nenhuma rajada travou), mas com starvation do pool.
+- **Impacto**: qualquer pico de ~25+ logins simultâneos, ou um atacante com rajada, gera 500 para usuários legítimos e degrada endpoints autenticados — uma amplificação de DoS que não existia antes do fix.
+- **Fix Plan**: tirar o hash da seção crítica. (a) fora da transação: `findByEmail` (sem lock) → `hasher.compare`; (b) transação curta: `findByEmailParaAtualizacao` → se `estaBloqueado` → 429; senão aplicar `registrarFalhaDeLogin`/`registrarLoginOk` conforme o resultado de (a) e `save`. O lock passa a durar poucos ms. Alternativas complementares: semáforo de concorrência para `/sessoes`, ou `transactionOptions {maxWait, timeout}` explícitos. Teste: 80 logins paralelos em contas distintas → 0×500; manter o e2e de 12 paralelos (5×401/7×429), que continuará matando N1/N2.
+
+### GAP 3 — decisões admin concorrentes (posição)
+**Aceito como escopo da T30, condicionado**: (i) está registrado em `tasks.md` e na rastreabilidade do `spec.md`; (ii) o "Done when" da T27 é sequencial e a T30 é a task que fecha o edge case; (iii) o risco é conhecido e reproduzido (E1). **Não** fecha a feature: a T30 precisa incluir o teste paralelo (E1) e o `updateMany` condicional antes de EMP-05 poder ser dado como Verified. Status EMP-05: ❌ Needs Fix até a T30.
+
+### Gaps restantes (ranqueados)
+1. **GAP 7 (Major)** — pool/hash dentro do lock do login (fix acima). Bloqueia PASS limpo.
+2. **GAP 3 (Major, T30)** — corrida de decisões admin.
+3. Minor: N8 (literal do motivo sem assert) e N5 (`body.statusCode` do 422 de logo); rejeição por 413 genérico mapeada para a mensagem do logo.
+4. Findings 7/8/10 da primeira rodada seguem abertos (não bloqueantes).
+
+**Higiene**: worktree `/tmp/verif-fase5` removido; `git status --porcelain` da árvore real idêntico ao do início da re-verificação (o único arquivo alterado por mim é este relatório).

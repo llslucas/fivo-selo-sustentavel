@@ -947,7 +947,7 @@ T28 → T32
 **Tests**: e2e
 **Gate**: full
 
-**Nota de qualidade — resolvida (2026-09-19, pós-validação da Fase 5)**: o bloqueio de 5 falhas era burlável por concorrência (15 logins paralelos → nenhum 429). `AutenticarUsuarioUseCase` agora lê, decide e grava o contador dentro de `UnitOfWork` com `UserRepository.findByEmailParaAtualizacao` (`SELECT ... FOR NO KEY UPDATE`). e2e: 12 tentativas erradas em paralelo → exatamente 5 × 401 e 7 × 429, `falhasLogin` = 5; sem o lock o teste falha. Mensagem do 429 alinhada ao design ("Muitas tentativas, tente em 15 minutos"). Ver `validation-fase5.md` (GAP 1, GAP 5).
+**Nota de qualidade — resolvida (2026-09-19, pós-validação da Fase 5)**: o bloqueio de 5 falhas era burlável por concorrência (15 logins paralelos → nenhum 429). `AutenticarUsuarioUseCase` agora lê, decide e grava o contador dentro de `UnitOfWork` com `UserRepository.findByEmailParaAtualizacao` (`SELECT ... FOR NO KEY UPDATE`). O hash roda fora do lock (só decisão e gravação ficam sob lock), pois dentro dele 80 logins simultâneos esgotavam o pool (61 × 500, GAP 7 da re-verificação); guardado por e2e com 30 logins corretos paralelos. e2e: 12 tentativas erradas em paralelo → exatamente 5 × 401 e 7 × 429, `falhasLogin` = 5; sem o lock o teste falha. Mensagem do 429 alinhada ao design ("Muitas tentativas, tente em 15 minutos"). Ver `validation-fase5.md` (GAP 1, GAP 5).
 
 
 **Commit**: `feat(api): login, logout e expiração de sessão`

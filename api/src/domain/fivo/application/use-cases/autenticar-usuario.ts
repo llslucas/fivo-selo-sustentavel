@@ -39,15 +39,28 @@ export class AutenticarUsuarioUseCase {
     senha,
     agora,
   }: AutenticarUsuarioUseCaseRequest): Promise<AutenticarUsuarioUseCaseResponse> {
-    // A linha do usuário fica travada durante a checagem e a gravação do
-    // contador, senão tentativas paralelas leem o mesmo `falhasLogin` e o
-    // bloqueio de 5 falhas (EMP-07 AC3) deixa de valer.
+    const emailNormalizado = email.toLowerCase();
+    const inicial = await this.userRepository.findByEmail(emailNormalizado);
+
+    if (!inicial) {
+      return left(new CredenciaisInvalidasError());
+    }
+
+    if (inicial.estaBloqueado(agora)) {
+      return left(new ContaBloqueadaError());
+    }
+
+    // O hash (lento) roda fora do lock para não prender conexões do pool.
+    const senhaValida = await this.hasher.compare(senha, inicial.senha.valor);
+
+    // Só a decisão e a gravação do contador ficam sob lock de linha; sem isso,
+    // tentativas paralelas leem o mesmo `falhasLogin` e o bloqueio de 5 falhas
+    // (EMP-07 AC3) deixa de valer.
     const autenticado = await this.unitOfWork.executar<
       Either<CredenciaisInvalidasError | ContaBloqueadaError, User>
     >(async () => {
-      const user = await this.userRepository.findByEmailParaAtualizacao(
-        email.toLowerCase(),
-      );
+      const user =
+        await this.userRepository.findByEmailParaAtualizacao(emailNormalizado);
 
       if (!user) {
         return left(new CredenciaisInvalidasError());
@@ -56,8 +69,6 @@ export class AutenticarUsuarioUseCase {
       if (user.estaBloqueado(agora)) {
         return left(new ContaBloqueadaError());
       }
-
-      const senhaValida = await this.hasher.compare(senha, user.senha.valor);
 
       if (!senhaValida) {
         user.registrarFalhaDeLogin(agora);
