@@ -929,14 +929,14 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Login correto → 200 `{ papel }` + `Set-Cookie: sessao`
-- [ ] E-mail inexistente e senha errada → ambos 401 "Credenciais inválidas"
-- [ ] 5 falhas em 15 min → 429 nas seguintes
-- [ ] `DELETE /sessoes/atual` → a requisição autenticada seguinte com o token antigo → 401
-- [ ] Sessão inativa > 8h (tempo forçado no teste) → 401 na próxima requisição
-- [ ] e2e cobre EMP-06/07 e o Independent Test (login por papel, 429, acesso cruzado 403)
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 8 testes e2e passam
+- [x] Login correto → 200 `{ papel }` + `Set-Cookie` httpOnly — `autenticacao.e2e-spec.ts:80-81` (`toBe(200)`, `toEqual({ papel: role })`, um teste por papel EMPRESA/INSTITUICAO/ADMIN). Cookie chama-se `fivo_sessao` (T24)
+- [x] E-mail inexistente e senha errada → ambos 401 "Credenciais inválidas" — `:94-99` (status 401 nos dois; `senhaErrada.body` `toEqual(emailInexistente.body)`)
+- [x] 5 falhas em 15 min → 429 nas seguintes — `:107` (5 × 401) e `:112` (`bloqueada.status` `toBe(429)`, mesmo com a senha certa, sem `Set-Cookie`)
+- [x] `DELETE /sessoes/atual` → a requisição autenticada seguinte com o token antigo → 401 — `:145` (204), `:146` (401), `:148` (`revogadaEm` `not.toBeNull()`); sem sessão → 401 (`:156`)
+- [x] Sessão inativa > 8h (tempo forçado no teste) → 401 na próxima requisição — `:171` (`ultimoAcessoEm` −9h via banco, `GET /empresas/me` → 401)
+- [x] e2e cobre EMP-06/07 e o Independent Test (login por papel, 429, acesso cruzado 403) — `:185` (ADMIN/INSTITUICAO em rota de empresa → 403); fluxo cadastro → login com e-mail em outra caixa (`:220-221`)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 101 e2e; sensor: mutantes "sem Set-Cookie" (8 falhas) e "logout sem revogar" (1 falha) mortos
+- [x] Test count: ≥ 8 testes e2e passam — 13 novos
 
 **Tests**: e2e
 **Gate**: full
