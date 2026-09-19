@@ -1323,11 +1323,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit: com um `Mailer` que só resolve sob comando, o caso de uso resolve antes do envio terminar e o token já está persistido
-- [ ] Unit: `Mailer` rejeitando → caso de uso resolve `right`, sem exceção não tratada
-- [ ] e2e existente de `POST /senha/recuperacao` (202 neutro) segue verde
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 166 unit (≥ 2 novos)
+- [x] Unit: com um `Mailer` que só resolve sob comando, o caso de uso resolve antes do envio terminar e o token já está persistido
+- [x] Unit: `Mailer` rejeitando → caso de uso resolve `right`, sem exceção não tratada
+- [x] e2e existente de `POST /senha/recuperacao` (202 neutro) segue verde
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 166 unit (≥ 2 novos)
 
 **Tests**: unit
 **Gate**: quick
