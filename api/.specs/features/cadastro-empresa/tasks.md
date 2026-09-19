@@ -847,11 +847,11 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Cada classe de erro de `application/errors/` mapeia para o `status` esperado (tabela Error Handling do design), verificado por rota-probe que lança cada uma
-- [ ] `ZodValidationPipe` devolve 422 com o campo inválido
-- [ ] Erro não-domínio (ex.: `NotFoundException` do Nest) mantém o comportamento padrão
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 6 testes e2e passam
+- [x] Cada classe de erro de `application/errors/` mapeia para o `status` esperado (tabela Error Handling do design), verificado por rota-probe que lança cada uma — `domain-exception-filter.e2e-spec.ts:117` (`expect(resposta.status).toBe(STATUS_ESPERADO[nome])`, 14 classes via `it.each`) e `:119` (body `{ statusCode, message }`)
+- [x] `ZodValidationPipe` devolve 422 com o campo inválido — `:131` (`toMatchObject({ statusCode: 422, message: 'Nome é obrigatório', errors: [{ campo: 'nome', ... }] })`)
+- [x] Erro não-domínio (ex.: `NotFoundException` do Nest) mantém o comportamento padrão — `:155` (`error: 'Not Found'`, 404); erro sem `status` → 500 genérico sem vazar mensagem (`:170`)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 57 e2e
+- [x] Test count: ≥ 6 testes e2e passam — 18 novos
 
 **Tests**: e2e
 **Gate**: full

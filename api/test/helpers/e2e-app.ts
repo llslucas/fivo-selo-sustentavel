@@ -1,6 +1,6 @@
 import type { Server } from 'node:http';
 
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, Type } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { Test as RequisicaoSupertest } from 'supertest';
 
@@ -17,9 +17,12 @@ export interface AppDeTeste {
  * Sobe uma app Nest completa apontando para a `DATABASE_URL` de teste
  * (carregada por `test/helpers/load-env.ts`, registrado em `setupFiles`).
  */
-export async function criarAppDeTeste(): Promise<AppDeTeste> {
+export async function criarAppDeTeste(
+  controllersDeProva: Type<unknown>[] = [],
+): Promise<AppDeTeste> {
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
+    controllers: controllersDeProva,
   }).compile();
 
   const app = moduleRef.createNestApplication();
