@@ -958,14 +958,14 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `GET /admin/empresas` lista da mais antiga para a mais recente com nome, CNPJ, e-mail, data
-- [ ] `aprovacao` → `APROVADA` + admin + data-hora + e-mail; `rejeicao` com motivo < 20 → 422; com motivo ok → `REJEITADA` + motivo por e-mail
-- [ ] `suspensao`/`reativacao` respeitam as transições; fora do conjunto → 409; segunda decisão concorrente → 409
-- [ ] Não-admin em qualquer endpoint → 403, nenhum estado alterado
-- [ ] Toda mudança gera linha em `registro_auditoria`
-- [ ] e2e cobre EMP-04/05/10 e os Independent Tests
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 12 testes e2e passam
+- [x] `GET /admin/empresas` lista da mais antiga para a mais recente com nome, CNPJ, e-mail, data — `admin-empresas.e2e-spec.ts` (1º teste: `toEqual([antiga, nova])` com `id`, `razaoSocial`, `cnpj`, `email`, `criadoEm`; aprovadas ficam fora); `estado` ≠ `PENDENTE_APROVACAO` → 422 (`:139`)
+- [x] `aprovacao` → `APROVADA` + admin + data-hora + e-mail (`:151`, `decididoPor` = admin, `CADASTRO_APROVADO` `:161`); `rejeicao` motivo < 20 → 422 e segue pendente (`:175`); motivo ok → `REJEITADA` + motivo persistido e por e-mail (`:191`, `:200`)
+- [x] `suspensao`/`reativacao` respeitam as transições (`:227`, `:233`); fora do conjunto → 409 sem alterar o estado (`:253`, 4 casos); segunda decisão sobre o mesmo pendente → 409 e vale a primeira (`:272`). A corrida paralela real (CAS no banco) é o escopo da T30; aqui a segunda decisão é sequencial
+- [x] Não-admin em qualquer endpoint → 403, nenhum estado alterado — `:322` (EMPRESA e INSTITUICAO nas 5 rotas; estado `PENDENTE_APROVACAO` e zero linhas de auditoria); sem sessão → 401 (`:335`)
+- [x] Toda mudança gera linha em `registro_auditoria` — teste de auditoria (`toEqual` com `usuarioId` do admin, `entidadeId`, `estadoAnterior`/`estadoNovo` nas 3 transições) e o da rejeição com `motivo`
+- [x] e2e cobre EMP-04/05/10 e os Independent Tests (aprovar pendente, 403 para empresa, 409 na segunda aprovação); empresa inexistente → 404 (`:281`); falha do e-mail não desfaz a aprovação (`:292`). O filtro passou a traduzir `NotAllowedError` → 403 "Acesso negado" e `ResourceNotFoundError` → 404 (erros do `core` não têm `status`; 2 casos novos em `domain-exception-filter.e2e-spec.ts`)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json` — exit 0, 144 unit + 122 e2e; sensor: mutantes "sem `@Roles(ADMIN)`" (2 falhas) e "campo extra na fila" (1 falha) mortos
+- [x] Test count: ≥ 12 testes e2e passam — 19 novos (+2 no filtro)
 
 **Tests**: e2e
 **Gate**: full

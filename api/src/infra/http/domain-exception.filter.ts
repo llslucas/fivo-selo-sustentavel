@@ -7,6 +7,9 @@ import {
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 
+import { NotAllowedError } from '@core/errors/not-allowed-error';
+import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
+
 interface ErroComStatus extends Error {
   status: number;
 }
@@ -33,6 +36,24 @@ export class DomainExceptionFilter implements ExceptionFilter {
         resposta,
         exception.getResponse(),
         exception.getStatus(),
+      );
+      return;
+    }
+
+    if (exception instanceof NotAllowedError) {
+      httpAdapter.reply(
+        resposta,
+        { statusCode: 403, message: 'Acesso negado' },
+        403,
+      );
+      return;
+    }
+
+    if (exception instanceof ResourceNotFoundError) {
+      httpAdapter.reply(
+        resposta,
+        { statusCode: 404, message: 'Recurso não encontrado' },
+        404,
       );
       return;
     }

@@ -10,6 +10,8 @@ import {
 import request from 'supertest';
 import { z } from 'zod';
 
+import { NotAllowedError } from '@core/errors/not-allowed-error';
+import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
 import { ArquivoInvalidoError } from '@domain/fivo/application/errors/arquivo-invalido-error';
 import { CnpjImutavelError } from '@domain/fivo/application/errors/cnpj-imutavel.error';
 import { ContaBloqueadaError } from '@domain/fivo/application/errors/conta-bloqueada.error';
@@ -47,6 +49,8 @@ const ERROS_DE_DOMINIO: Record<string, () => Error> = {
   'transicao-invalida': () => new TransicaoInvalidaError(),
   'usuario-ja-existe': () => new UserAlreadyExistsError(),
   'credenciais-invalidas': () => new CredenciaisInvalidasError(),
+  'nao-permitido': () => new NotAllowedError(),
+  'recurso-nao-encontrado': () => new ResourceNotFoundError('Empresa'),
 };
 
 // Tabela "Error Handling Strategy" do design.md.
@@ -65,6 +69,15 @@ const STATUS_ESPERADO: Record<string, number> = {
   'transicao-invalida': 409,
   'usuario-ja-existe': 409,
   'credenciais-invalidas': 401,
+  'nao-permitido': 403,
+  'recurso-nao-encontrado': 404,
+};
+
+// Erros genéricos do `core` não carregam status nem mensagem em pt-BR; o filtro
+// traduz (design.md: "Acesso negado" no 403).
+const MENSAGEM_ESPERADA: Record<string, string> = {
+  'nao-permitido': 'Acesso negado',
+  'recurso-nao-encontrado': 'Recurso não encontrado',
 };
 
 const esquemaDeProva = z.object({
@@ -110,7 +123,8 @@ describe('DomainExceptionFilter e ZodValidationPipe (e2e)', () => {
   it.each(Object.keys(ERROS_DE_DOMINIO))(
     'mapeia o erro de domínio "%s" para o status e a mensagem do erro',
     async (nome) => {
-      const esperado = ERROS_DE_DOMINIO[nome]();
+      const mensagem =
+        MENSAGEM_ESPERADA[nome] ?? ERROS_DE_DOMINIO[nome]().message;
 
       const resposta = await request(servidorHttp(contexto)).get(
         `/prova/erro-de-dominio/${nome}`,
@@ -119,7 +133,7 @@ describe('DomainExceptionFilter e ZodValidationPipe (e2e)', () => {
       expect(resposta.status).toBe(STATUS_ESPERADO[nome]);
       expect(resposta.body).toEqual({
         statusCode: STATUS_ESPERADO[nome],
-        message: esperado.message,
+        message: mensagem,
       });
     },
   );
