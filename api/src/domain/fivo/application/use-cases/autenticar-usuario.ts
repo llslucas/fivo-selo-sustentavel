@@ -10,6 +10,18 @@ import { UserRepository } from '../ports/database/user-repository';
 import { SessaoRepository } from '../ports/sessao-repository';
 import { UnitOfWork } from '../ports/unit-of-work';
 
+/**
+ * Hash-isca, gerado uma vez por processo: com e-mail inexistente o login paga
+ * o mesmo `compare` de uma senha errada, então o tempo da resposta não
+ * distingue conta inexistente de credencial errada (EMP-06 AC2).
+ */
+let hashIsca: Promise<string> | undefined;
+
+function iscaDeComparacao(hasher: Hasher): Promise<string> {
+  hashIsca ??= hasher.hash(randomUUID());
+  return hashIsca;
+}
+
 export interface AutenticarUsuarioUseCaseRequest {
   email: string;
   senha: string;
@@ -46,6 +58,7 @@ export class AutenticarUsuarioUseCase {
     const inicial = await this.userRepository.findByEmail(emailNormalizado);
 
     if (!inicial) {
+      await this.hasher.compare(senha, await iscaDeComparacao(this.hasher));
       return left(new CredenciaisInvalidasError());
     }
 

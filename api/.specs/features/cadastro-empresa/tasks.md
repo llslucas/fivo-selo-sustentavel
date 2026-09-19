@@ -1297,11 +1297,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit: e-mail inexistente → `hasher.compare` chamado exatamente 1 vez e resposta `CredenciaisInvalidasError`
-- [ ] Unit: e-mail existente com senha errada → também 1 chamada de `compare` (paridade)
-- [ ] Mutante: retornar antes do `compare` no ramo de e-mail inexistente derruba o teste
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 164 unit (≥ 2 novos)
+- [x] Unit: e-mail inexistente → `hasher.compare` chamado exatamente 1 vez e resposta `CredenciaisInvalidasError`
+- [x] Unit: e-mail existente com senha errada → também 1 chamada de `compare` (paridade)
+- [x] Mutante: retornar antes do `compare` no ramo de e-mail inexistente derruba o teste
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 164 unit (≥ 2 novos)
 
 **Tests**: unit
 **Gate**: quick
