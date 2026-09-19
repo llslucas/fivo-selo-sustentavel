@@ -58,6 +58,7 @@ const TABELAS_EM_ORDEM_DE_FK = [
   'sessao',
   'token_senha',
   'registro_auditoria',
+  'email_pendente',
   'empresa',
   'usuario',
   'arquivo',

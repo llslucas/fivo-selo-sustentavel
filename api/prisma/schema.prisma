@@ -148,3 +148,20 @@ model Arquivo {
 
   @@map("arquivo")
 }
+
+// Fila de reenvio de e-mail transacional (EMP-01 AC9, EMP-04). Só templates sem
+// segredo entram aqui; `dados` nunca carrega token.
+model EmailPendente {
+  id                 String    @id
+  para               String
+  template           String
+  dados              Json?
+  tentativas         Int       @default(0)
+  proximaTentativaEm DateTime  @map("proxima_tentativa_em")
+  enviadoEm          DateTime? @map("enviado_em")
+  esgotadoEm         DateTime? @map("esgotado_em")
+  criadoEm           DateTime  @map("criado_em")
+
+  @@index([enviadoEm, esgotadoEm, proximaTentativaEm], map: "email_pendente_fila_idx")
+  @@map("email_pendente")
+}

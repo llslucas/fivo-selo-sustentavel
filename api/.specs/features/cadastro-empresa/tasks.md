@@ -1078,7 +1078,7 @@ T28 → T32
 ### T31: Fila de reenvio de e-mail
 
 **What**: Modelo `email_pendente` (na migration de T14 ou uma nova), `EmailPendenteService.enfileirar` + `EmailPendenteWorker` (`@Interval`, backoff, para após N tentativas); os callers de `CriarEmpresaUseCase` e das decisões passam a enfileirar quando o `Mailer` falha (em vez de só logar).
-**Where**: `api/src/infra/mail/email-pendente.service.ts`
+**Where**: `api/src/infra/mail/email-pendente.service.ts` (+ `mailer-resiliente.ts`, `email-pendente.worker.ts`, `transporte-email.ts`)
 **Depends on**: T25, T27
 **Reuses**: `Mailer` (T20), `PrismaService` (T15)
 **Requirement**: EMP-01 (AC9), EMP-04, Edge Cases (provedor de e-mail indisponível)
@@ -1088,16 +1088,18 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `Mailer` em falha no cadastro/decisão → linha em `email_pendente`, operação segue normal
-- [ ] O worker drena pendências, marca `enviadoEm` no sucesso, incrementa `tentativas` + adia na falha, para após o teto
-- [ ] e2e com um `Mailer` de teste que falha sob demanda: cadastro → 201 + linha pendente; após o worker → linha marcada enviada
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 4 testes e2e passam
+- [x] `Mailer` em falha no cadastro/decisão → linha em `email_pendente`, operação segue normal
+- [x] O worker drena pendências, marca `enviadoEm` no sucesso, incrementa `tentativas` + adia na falha, para após o teto
+- [x] e2e com um `Mailer` de teste que falha sob demanda: cadastro → 201 + linha pendente; após o worker → linha marcada enviada
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 4 testes e2e passam (5 novos; total 164 e2e)
 
 **Tests**: e2e
 **Gate**: full
 
 **Commit**: `feat(api): fila de reenvio de e-mail transacional`
+
+**Nota de implementação (2026-09-19)**: `Mailer` da aplicação virou o decorador `MailerResiliente` sobre `TransporteEmail` (provedor real, hoje `LogMailer`); em falha enfileira e engole o erro, então os use cases não mudaram. Só `CADASTRO_*` entra na fila — `SENHA_REDEFINICAO` e `EMAIL_CONFIRMACAO` carregam token e seguem propagando o erro (não guardar segredo em claro). Worker é `setInterval` de 30 s (desligado com `NODE_ENV=test`) em vez de `@Interval`: `@nestjs/schedule` não é dependência do projeto. Teto de 5 tentativas, backoff 1·2ⁿ⁻¹ min; a tentativa é reservada com `updateMany` antes do envio (sem envio duplo entre instâncias). Migration `20260919124602_email_pendente`.
 
 ---
 
