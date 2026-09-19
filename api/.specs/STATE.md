@@ -157,11 +157,11 @@
 ## Handoff
 
 - **Feature**: `cadastro-empresa` (`.specs/features/cadastro-empresa/`)
-- **Phase / Task**: Fase 5 completa (T23–T29) mais T33 (Fase 3). Próxima: Fase 6 (`T30 → T31 → T32`).
-- **Completed**: T1–T29 e T33. Fase 5 verificada em `validation-fase5.md`; gaps 1, 2, 4, 5 e 6 corrigidos no commit `18ecb43`; re-verificação 1 em andamento.
+- **Phase / Task**: Fase 6 completa (T30–T32). Todas as tasks T1–T33 concluídas.
+- **Completed**: T1–T33. Fase 6 verificada em `validation-fase6.md` (PASS na re-verificação 3, após 3 iterações); gate: 150 unit, 175 e2e.
 - **In-progress** (file:line): nenhum
-- **Next step**: T30. Inclui o CAS de decisões de admin (GAP 3 do `validation-fase5.md`: aprovação e rejeição paralelas vencem ambas; usar `updateMany` condicional em `prisma-empresa-repository.ts`). Depois T31 (fila de reenvio de e-mail) e T32 (escape de conteúdo).
+- **Next step**: gerar o `validation.md` consolidado da feature (exigido por `validate_state.py`; o projeto usa relatórios por fase), abrir o PR de `feat/cadastro-empresa-robustez` para a main (precisa de go-ahead para push) e retomar os follow-ups.
 - **Blockers**: nenhum
-- **Follow-ups não escopados**: `AutenticarUsuarioUseCase` duplica a criação de sessão de `SessionService.criar` e nunca grava ip/userAgent; canais laterais de tempo em login e recuperação de senha (compare fictício); token de troca de e-mail sem expiração (spec omissa); SVG servido inline sem CSP/Content-Disposition.
+- **Follow-ups não escopados**: `AutenticarUsuarioUseCase` duplica a criação de sessão de `SessionService.criar` e nunca grava ip/userAgent; canais laterais de tempo em login e recuperação de senha; token de troca de e-mail sem expiração (spec omissa); SVG servido inline sem CSP/Content-Disposition; worker de e-mail sem teste do guard de reentrância e `InMemoryEmpresaRepository.salvarTransicao` sem CAS real (minors da Fase 6); precisão de spec: escape de HTML no `web`, mensagem do AC6 (limite violado) e o "e-mail em < 1 min" incompatível com o primeiro backoff de 60 s.
 - **Uncommitted files**: none
-- **Branch**: `feat/cadastro-empresa-http-auth-sessao` (não enviada ao remoto)
+- **Branch**: `feat/cadastro-empresa-robustez` (não enviada ao remoto)

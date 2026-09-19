@@ -85,9 +85,15 @@ export class PrismaEmpresaRepository implements EmpresaRepository {
 
   async save(empresa: Empresa): Promise<void> {
     try {
+      // Estado e decisão só mudam por `salvarTransicao`: regravá-los aqui, a
+      // partir de uma leitura obsoleta, desfaria a decisão de um admin.
+      const { status, decididoPor, decididoEm, motivoDecisao, ...cadastrais } =
+        PrismaEmpresaMapper.toPrisma(empresa);
+      void [status, decididoPor, decididoEm, motivoDecisao];
+
       await this.db.empresa.update({
         where: { id: empresa.id.toString() },
-        data: PrismaEmpresaMapper.toPrisma(empresa),
+        data: cadastrais,
       });
     } catch (erro) {
       if (ehViolacaoDeUnicidade(erro)) {
@@ -96,5 +102,20 @@ export class PrismaEmpresaRepository implements EmpresaRepository {
 
       throw erro;
     }
+  }
+
+  async salvarTransicao(
+    empresa: Empresa,
+    estadoEsperado: string,
+  ): Promise<boolean> {
+    const { count } = await this.db.empresa.updateMany({
+      where: {
+        id: empresa.id.toString(),
+        status: statusParaPrisma(estadoEsperado),
+      },
+      data: PrismaEmpresaMapper.toPrisma(empresa),
+    });
+
+    return count === 1;
   }
 }

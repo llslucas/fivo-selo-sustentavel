@@ -13,4 +13,9 @@ export abstract class EmpresaRepository {
   ): Promise<Empresa[]>;
   abstract create(empresa: Empresa): Promise<void>;
   abstract save(empresa: Empresa): Promise<void>;
+  /** Grava a transição só se o estado persistido ainda for `estadoEsperado`; `false` se outra decisão venceu. */
+  abstract salvarTransicao(
+    empresa: Empresa,
+    estadoEsperado: string,
+  ): Promise<boolean>;
 }

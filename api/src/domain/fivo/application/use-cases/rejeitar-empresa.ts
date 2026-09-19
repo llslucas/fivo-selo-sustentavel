@@ -50,7 +50,14 @@ export class RejeitarEmpresaUseCase {
       return left(result.value);
     }
 
-    await this.empresaRepository.save(empresa);
+    const aplicada = await this.empresaRepository.salvarTransicao(
+      empresa,
+      statusAnterior,
+    );
+
+    if (!aplicada) {
+      return left(new TransicaoInvalidaError());
+    }
 
     await this.registroAuditoriaRepository.registrar({
       id: randomUUID(),

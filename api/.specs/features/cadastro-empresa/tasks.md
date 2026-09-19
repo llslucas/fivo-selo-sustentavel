@@ -1047,7 +1047,7 @@ T28 → T32
 
 **What**: Suite e2e dedicada aos edge cases de corrida + ajustes mínimos: `Promise.all` de dois `POST /empresas` com o mesmo CNPJ (índice único → exatamente um 201, um 409); aprovação + rejeição concorrentes do mesmo pendente (`updateMany` condicional / CAS → uma aplica, a outra 409); `Storage` forçado a falhar → `POST /empresas` → 503 sem `empresa`/`usuario` órfãos.
 **Escopo adicional (validação da Fase 5, GAP 3)**: a corrida de decisões de admin foi reproduzida (5 de 6 rodadas com ≥ 2 respostas 204, várias linhas de auditoria e e-mails contraditórios). O CAS deve ser `updateMany({ where: { id, status: estadoEsperado } })` no adaptador Prisma; `count === 0` → `TransicaoInvalidaError` (409) antes de auditar e enviar e-mail.
-**Where**: `api/test/cadastro-empresa/concorrencia.e2e-spec.ts`
+**Where**: `api/test/http/concorrencia.e2e-spec.ts` (convenção do repo: e2e HTTP em `test/http`)
 **Depends on**: T25, T27, T28
 **Reuses**: helpers de e2e (T16)
 **Requirement**: EMP-01, EMP-04, EMP-05, Edge Cases
@@ -1057,12 +1057,12 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Dois cadastros simultâneos mesmo CNPJ → exatamente um 201 e um 409
-- [ ] Aprovação + rejeição concorrentes → uma aplica, a outra 409, estado final consistente com a 1ª
-- [ ] `Storage` em falha → 503 e nenhuma linha órfã
-- [ ] Nenhum ajuste de código enfraquece testes existentes
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 4 testes e2e passam
+- [x] Dois cadastros simultâneos mesmo CNPJ → exatamente um 201 e um 409
+- [x] Aprovação + rejeição concorrentes → uma aplica, a outra 409, estado final consistente com a 1ª
+- [x] `Storage` em falha → 503 e nenhuma linha órfã
+- [x] Nenhum ajuste de código enfraquece testes existentes
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 4 testes e2e passam (4 novos; total 159 e2e, 150 unit)
 
 **Tests**: e2e
 **Gate**: full
@@ -1071,10 +1071,16 @@ T28 → T32
 
 ---
 
+**Nota de qualidade (2026-09-19)**: CAS via `EmpresaRepository.salvarTransicao(empresa, estadoEsperado)` (`updateMany where {id, status}`; `count !== 1` → `TransicaoInvalidaError`), aplicado nas 4 decisões (aprovar, rejeitar, suspender, reativar) antes de auditar/enviar e-mail. Sensor manual: sem o filtro de estado, 2 dos 4 e2e falham. GAP 3 do `validation-fase5.md` fechado. O cenário de falha de storage também existe em `cadastro-empresa.e2e-spec.ts`; aqui fica no sweep por exigência da task.
+
+**Correção pós-verificação (2026-09-19)**: o re-cadastro de empresa `REJEITADA` (`criar-empresa.ts`) também grava com CAS (`salvarTransicao(empresa, REJEITADA)`), com e2e de re-cadastros simultâneos; suspensão e reativação concorrentes cobertas com 8 rodadas.
+
+---
+
 ### T31: Fila de reenvio de e-mail
 
 **What**: Modelo `email_pendente` (na migration de T14 ou uma nova), `EmailPendenteService.enfileirar` + `EmailPendenteWorker` (`@Interval`, backoff, para após N tentativas); os callers de `CriarEmpresaUseCase` e das decisões passam a enfileirar quando o `Mailer` falha (em vez de só logar).
-**Where**: `api/src/infra/mail/email-pendente.service.ts`
+**Where**: `api/src/infra/mail/email-pendente.service.ts` (+ `mailer-resiliente.ts`, `email-pendente.worker.ts`, `transporte-email.ts`)
 **Depends on**: T25, T27
 **Reuses**: `Mailer` (T20), `PrismaService` (T15)
 **Requirement**: EMP-01 (AC9), EMP-04, Edge Cases (provedor de e-mail indisponível)
@@ -1084,23 +1090,25 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `Mailer` em falha no cadastro/decisão → linha em `email_pendente`, operação segue normal
-- [ ] O worker drena pendências, marca `enviadoEm` no sucesso, incrementa `tentativas` + adia na falha, para após o teto
-- [ ] e2e com um `Mailer` de teste que falha sob demanda: cadastro → 201 + linha pendente; após o worker → linha marcada enviada
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 4 testes e2e passam
+- [x] `Mailer` em falha no cadastro/decisão → linha em `email_pendente`, operação segue normal
+- [x] O worker drena pendências, marca `enviadoEm` no sucesso, incrementa `tentativas` + adia na falha, para após o teto
+- [x] e2e com um `Mailer` de teste que falha sob demanda: cadastro → 201 + linha pendente; após o worker → linha marcada enviada
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 4 testes e2e passam (5 novos; total 164 e2e)
 
 **Tests**: e2e
 **Gate**: full
 
 **Commit**: `feat(api): fila de reenvio de e-mail transacional`
 
+**Nota de implementação (2026-09-19)**: `Mailer` da aplicação virou o decorador `MailerResiliente` sobre `TransporteEmail` (provedor real, hoje `LogMailer`); em falha enfileira e engole o erro, então os use cases não mudaram. Só `CADASTRO_*` entra na fila — `SENHA_REDEFINICAO` e `EMAIL_CONFIRMACAO` carregam token e seguem propagando o erro (não guardar segredo em claro). Worker é `setInterval` de 30 s (desligado com `NODE_ENV=test`) em vez de `@Interval`: `@nestjs/schedule` não é dependência do projeto. Teto de 5 tentativas, backoff 1·2ⁿ⁻¹ min; a tentativa é reservada com `updateMany` antes do envio (sem envio duplo entre instâncias). Migration `20260919124602_email_pendente`.
+
 ---
 
 ### T32: Escape de conteúdo e verificação de sanitização
 
 **What**: Suite e2e confirmando o edge case "nome de empresa com HTML/script": o valor é aceito e persistido cru, mas devolvido pela API sem interpretação (o escape na renderização é do `web`; aqui garante-se que a API não injeta nem executa) e a rota `GET /arquivos/:id` nunca serve um SVG com script (bloqueado no upload). Ajustes mínimos se algum campo precisar de normalização.
-**Where**: `api/test/cadastro-empresa/conteudo-hostil.e2e-spec.ts`
+**Where**: `api/test/http/conteudo-hostil.e2e-spec.ts`
 **Depends on**: T28
 **Reuses**: helpers de e2e (T16)
 **Requirement**: Edge Cases
@@ -1110,10 +1118,10 @@ T28 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `POST /empresas` com `<script>` no nome → 201; `GET /empresas/me` devolve o valor como texto, sem tag interpretada no JSON
-- [ ] Upload de SVG com `<script>` → 422; nenhum arquivo criado
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 3 testes e2e passam
+- [x] `POST /empresas` com `<script>` no nome → 201; `GET /empresas/me` devolve o valor como texto, sem tag interpretada no JSON
+- [x] Upload de SVG com `<script>` → 422; nenhum arquivo criado
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 3 testes e2e passam (3 novos; total 167 e2e)
 
 **Tests**: e2e
 **Gate**: full
