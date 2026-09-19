@@ -153,3 +153,14 @@
 - **Scope**: `cadastro-empresa` — task T33 (nova, Fase 3), bloqueia T25 (Fase 5).
 - **Date**: 2026-09-18
 - **Status**: active
+
+## Handoff
+
+- **Feature**: `cadastro-empresa` (`.specs/features/cadastro-empresa/`)
+- **Phase / Task**: Fase 4 completa (T19–T22). Próxima: Fase 5 (`T23 → T24 → T25 → T26 → T27 → T28 → T29`).
+- **Completed**: T19, T20, T21, T22 (mais T1–T18 de fases anteriores; T33 de Fase 3 ainda aberta — ver AD-019)
+- **In-progress** (file:line): nenhum — Fase 4 fechada, sem edição pendente
+- **Next step**: Implementar T23 (`DomainExceptionFilter` + `ZodValidationPipe`), primeira task da Fase 5. T33 (transação atômica User+Empresa, AD-019) segue aberta e bloqueia T25 — resolver antes ou durante a Fase 5, já que T25 depende dela.
+- **Blockers**: T25 não pode ser concluída sem T33 (ver `Depends on` de T25 em `tasks.md`)
+- **Uncommitted files**: none
+- **Branch**: `feat/cadastro-empresa-infra-cripto-mail-storage`
