@@ -39,6 +39,7 @@ export class EmailPendenteWorker implements OnModuleInit, OnModuleDestroy {
 
     try {
       await this.fila.drenar();
+      await this.fila.expurgar();
     } catch (erro) {
       this.logger.error('Falha ao drenar a fila de e-mail', erro);
     } finally {

@@ -6,6 +6,7 @@ import { EmailPendenteWorker } from './email-pendente.worker';
 /** Dreno controlado: cada `drenar` só termina quando o teste manda. */
 class EmailPendenteServiceFalso {
   public chamadas = 0;
+  public expurgos = 0;
   public falhar = false;
   private resolver?: (entregues: number) => void;
 
@@ -19,6 +20,11 @@ class EmailPendenteServiceFalso {
     return new Promise<number>((resolve) => {
       this.resolver = resolve;
     });
+  }
+
+  expurgar(): Promise<number> {
+    this.expurgos += 1;
+    return Promise.resolve(0);
   }
 
   concluir(entregues = 0): void {
@@ -47,6 +53,18 @@ describe('EmailPendenteWorker', () => {
     await execucao;
 
     expect(fila.chamadas).toBe(1);
+  });
+
+  it('purges the queue after the drain finishes, not before', async () => {
+    const { worker, fila } = criarWorker();
+
+    const execucao = worker.executar();
+    expect(fila.expurgos).toBe(0);
+
+    fila.concluir();
+    await execucao;
+
+    expect(fila.expurgos).toBe(1);
   });
 
   it('drains only once when a second executar() overlaps the first', async () => {

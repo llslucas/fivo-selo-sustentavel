@@ -1500,10 +1500,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: enviada há 31 dias → removida; enviada há 29 dias → mantida; esgotada há 31 dias → removida; pendente antiga → mantida
-- [ ] Unit do worker (T36): `executar()` chama o expurgo depois do dreno
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 167 unit, ≥ 187 e2e (≥ 4 novos)
+- [x] e2e: enviada há 31 dias → removida; enviada há 29 dias → mantida; esgotada há 31 dias → removida; pendente antiga → mantida
+- [x] Unit do worker (T36): `executar()` chama o expurgo depois do dreno
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 167 unit, ≥ 187 e2e (≥ 4 novos)
 
 **Tests**: e2e
 **Gate**: full

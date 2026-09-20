@@ -276,4 +276,62 @@ describe('Fila de reenvio de e-mail (e2e)', () => {
     expect(transporte.mensagens).toHaveLength(1);
     expect((await pendencias())[0].enviadoEm).not.toBeNull();
   });
+
+  describe('expurgo (retenção de 30 dias)', () => {
+    const agora = new Date('2026-09-20T12:00:00.000Z');
+    const diasAtras = (dias: number) =>
+      new Date(agora.getTime() - dias * 24 * 60 * 60 * 1000);
+
+    async function criarLinha(
+      id: string,
+      estado: { enviadoEm?: Date; esgotadoEm?: Date },
+    ) {
+      await contexto.prisma.emailPendente.create({
+        data: {
+          id,
+          para: EMAIL_DONA,
+          template: TemplateEmail.CADASTRO_RECEBIDO,
+          proximaTentativaEm: diasAtras(60),
+          criadoEm: diasAtras(60),
+          ...estado,
+        },
+      });
+    }
+
+    it('remove a enviada há 31 dias', async () => {
+      await criarLinha('enviada-31d', { enviadoEm: diasAtras(31) });
+
+      await fila.expurgar(agora);
+
+      expect(await pendencias()).toHaveLength(0);
+    });
+
+    it('mantém a enviada há 29 dias', async () => {
+      await criarLinha('enviada-29d', { enviadoEm: diasAtras(29) });
+
+      await fila.expurgar(agora);
+
+      expect((await pendencias()).map((linha) => linha.id)).toEqual([
+        'enviada-29d',
+      ]);
+    });
+
+    it('remove a esgotada há 31 dias', async () => {
+      await criarLinha('esgotada-31d', { esgotadoEm: diasAtras(31) });
+
+      await fila.expurgar(agora);
+
+      expect(await pendencias()).toHaveLength(0);
+    });
+
+    it('mantém a pendente antiga, que ainda aguarda envio', async () => {
+      await criarLinha('pendente-antiga', {});
+
+      await fila.expurgar(agora);
+
+      expect((await pendencias()).map((linha) => linha.id)).toEqual([
+        'pendente-antiga',
+      ]);
+    });
+  });
 });
