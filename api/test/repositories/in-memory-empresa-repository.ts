@@ -32,6 +32,7 @@ function copiar(empresa: Empresa, decisao: Empresa = empresa): Empresa {
       logoArquivoId: empresa.logoArquivoId,
       emailPendente: empresa.emailPendente,
       tokenTrocaEmailHash: empresa.tokenTrocaEmailHash,
+      tokenTrocaEmailExpiraEm: empresa.tokenTrocaEmailExpiraEm,
       status: decisao.status,
       decididoPor: decisao.decididoPor,
       decididoEm: decisao.decididoEm,

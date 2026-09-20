@@ -37,7 +37,10 @@ export interface EmpresaProps {
   logoArquivoId?: UniqueEntityId | null;
   emailPendente?: string | null;
   tokenTrocaEmailHash?: string | null;
+  tokenTrocaEmailExpiraEm?: Date | null;
 }
+
+const PRAZO_TROCA_DE_EMAIL_MS = 24 * 60 * 60 * 1000;
 
 export class Empresa extends Entity<EmpresaProps> {
   static create(
@@ -120,6 +123,10 @@ export class Empresa extends Entity<EmpresaProps> {
 
   get tokenTrocaEmailHash(): string | null | undefined {
     return this._props.tokenTrocaEmailHash;
+  }
+
+  get tokenTrocaEmailExpiraEm(): Date | null | undefined {
+    return this._props.tokenTrocaEmailExpiraEm;
   }
 
   get logoArquivoId(): UniqueEntityId | null | undefined {
@@ -206,9 +213,23 @@ export class Empresa extends Entity<EmpresaProps> {
     return right(void 0);
   }
 
+  solicitarTrocaDeEmail(
+    novoEmail: string,
+    tokenHash: string,
+    agora: Date,
+  ): void {
+    this._props.emailPendente = novoEmail;
+    this._props.tokenTrocaEmailHash = tokenHash;
+    this._props.tokenTrocaEmailExpiraEm = new Date(
+      agora.getTime() + PRAZO_TROCA_DE_EMAIL_MS,
+    );
+    this._props.updatedAt = agora;
+  }
+
   limparTrocaDeEmail(): void {
     this._props.emailPendente = null;
     this._props.tokenTrocaEmailHash = null;
+    this._props.tokenTrocaEmailExpiraEm = null;
     this._props.updatedAt = new Date();
   }
 

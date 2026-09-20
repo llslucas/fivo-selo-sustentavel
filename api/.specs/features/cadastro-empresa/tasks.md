@@ -1349,10 +1349,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit: confirmação em 23h59 → sucesso; em 24h01 → `TokenConfirmacaoEmailInvalidoError`, `user.email` inalterado
-- [ ] Unit da entidade: `solicitarTrocaDeEmail` grava o prazo de 24 h; `limparTrocaDeEmail` zera o prazo
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 169 unit (≥ 3 novos)
+- [x] Unit: confirmação em 23h59 → sucesso; em 24h01 → `TokenConfirmacaoEmailInvalidoError`, `user.email` inalterado
+- [x] Unit da entidade: `solicitarTrocaDeEmail` grava o prazo de 24 h; `limparTrocaDeEmail` zera o prazo
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 169 unit (≥ 3 novos)
 
 **Tests**: unit
 **Gate**: quick

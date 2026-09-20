@@ -9,6 +9,7 @@ import { UnitOfWork } from '../ports/unit-of-work';
 
 interface ConfirmarTrocaEmailUseCaseRequest {
   token: string;
+  agora: Date;
 }
 
 export type ConfirmarTrocaEmailUseCaseResponse = Either<
@@ -26,13 +27,22 @@ export class ConfirmarTrocaEmailUseCase {
 
   async execute({
     token,
+    agora,
   }: ConfirmarTrocaEmailUseCaseRequest): Promise<ConfirmarTrocaEmailUseCaseResponse> {
     const tokenHash = createHash('sha256').update(token).digest('hex');
 
     const empresa =
       await this.empresaRepository.findByTokenTrocaEmailHash(tokenHash);
 
-    if (!empresa || !empresa.emailPendente || !empresa.usuarioId) {
+    const expiraEm = empresa?.tokenTrocaEmailExpiraEm;
+
+    if (
+      !empresa ||
+      !empresa.emailPendente ||
+      !empresa.usuarioId ||
+      !expiraEm ||
+      expiraEm.getTime() <= agora.getTime()
+    ) {
       return left(new TokenConfirmacaoEmailInvalidoError());
     }
 
