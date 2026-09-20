@@ -12,6 +12,13 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { StorageIndisponivelError } from '@domain/fivo/application/errors/storage-indisponivel-error';
 import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
@@ -41,6 +48,8 @@ import type {
 } from './edicao-empresa.dto';
 import { desembrulhar } from './desembrulhar';
 import { empresaParaResposta } from './empresa.presenter';
+import { ApiErro, ApiProtegida } from './openapi/decorators';
+import { esquemaOpenApi } from './openapi/esquema-openapi';
 import { ZodValidationPipe } from './zod-validation.pipe';
 
 interface LogoEnviado {
@@ -52,6 +61,69 @@ interface LogoEnviado {
 // `DomainExceptionFilter` devolve 422 com o limite (EMP-01 AC6).
 const LIMITE_LOGO_BYTES = 5 * 1024 * 1024;
 
+const LOGO_BINARIO = { type: 'string', format: 'binary' };
+
+const CORPO_CRIAR_EMPRESA = esquemaOpenApi('CriarEmpresa', criarEmpresaSchema, {
+  logo: LOGO_BINARIO,
+});
+const CORPO_EDITAR_EMPRESA = esquemaOpenApi(
+  'EditarEmpresa',
+  editarEmpresaSchema,
+  { logo: LOGO_BINARIO },
+);
+const CORPO_TROCAR_EMAIL = esquemaOpenApi('TrocarEmail', trocarEmailSchema);
+const CORPO_CONFIRMAR_EMAIL = esquemaOpenApi(
+  'ConfirmarEmail',
+  confirmarEmailSchema,
+);
+
+const RESPOSTA_EMPRESA = {
+  type: 'object',
+  required: [
+    'id',
+    'razaoSocial',
+    'nomeFantasia',
+    'cnpj',
+    'email',
+    'emailPendente',
+    'telefone',
+    'cep',
+    'logradouro',
+    'numero',
+    'complemento',
+    'bairro',
+    'cidade',
+    'uf',
+    'site',
+    'contato',
+    'status',
+    'logoArquivoId',
+    'criadoEm',
+  ],
+  properties: {
+    id: { type: 'string' },
+    razaoSocial: { type: 'string' },
+    nomeFantasia: { type: 'string' },
+    cnpj: { type: 'string' },
+    email: { type: 'string' },
+    emailPendente: { type: 'string', nullable: true },
+    telefone: { type: 'string' },
+    cep: { type: 'string' },
+    logradouro: { type: 'string' },
+    numero: { type: 'string' },
+    complemento: { type: 'string', nullable: true },
+    bairro: { type: 'string' },
+    cidade: { type: 'string' },
+    uf: { type: 'string' },
+    site: { type: 'string', nullable: true },
+    contato: { type: 'string' },
+    status: { type: 'string' },
+    logoArquivoId: { type: 'string', nullable: true },
+    criadoEm: { type: 'string', format: 'date-time' },
+  },
+};
+
+@ApiTags('empresas')
 @Controller('empresas')
 export class CadastroEmpresaController {
   private readonly logger = new Logger(CadastroEmpresaController.name);
@@ -65,6 +137,23 @@ export class CadastroEmpresaController {
     private readonly userRepository: UserRepository,
   ) {}
 
+  @ApiOperation({
+    summary: 'Cadastra uma empresa (fica pendente de aprovação)',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ schema: CORPO_CRIAR_EMPRESA })
+  @ApiResponse({
+    status: 201,
+    description: 'Empresa criada',
+    schema: {
+      type: 'object',
+      required: ['id'],
+      properties: { id: { type: 'string' } },
+    },
+  })
+  @ApiErro(409, 'CNPJ ou e-mail já cadastrado')
+  @ApiErro(422, 'Dados inválidos')
+  @ApiErro(503, 'Armazenamento de arquivos indisponível')
   @Public()
   @Post()
   @UseInterceptors(
@@ -91,6 +180,14 @@ export class CadastroEmpresaController {
     }
   }
 
+  @ApiOperation({ summary: 'Dados da empresa autenticada' })
+  @ApiResponse({
+    status: 200,
+    description: 'Empresa',
+    schema: RESPOSTA_EMPRESA,
+  })
+  @ApiProtegida({ comPapel: true })
+  @ApiErro(404, 'Empresa não encontrada')
   @Roles(UserRole.EMPRESA)
   @Get('me')
   async obterMinha(@CurrentUser() usuario: UsuarioAutenticado) {
@@ -106,6 +203,18 @@ export class CadastroEmpresaController {
     return empresaParaResposta(empresa, user.email);
   }
 
+  @ApiOperation({ summary: 'Edita os dados cadastrais da empresa' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ schema: CORPO_EDITAR_EMPRESA })
+  @ApiResponse({
+    status: 200,
+    description: 'Empresa atualizada',
+    schema: RESPOSTA_EMPRESA,
+  })
+  @ApiProtegida({ comPapel: true })
+  @ApiErro(404, 'Empresa não encontrada')
+  @ApiErro(422, 'Dados inválidos ou CNPJ imutável')
+  @ApiErro(503, 'Armazenamento de arquivos indisponível')
   @Roles(UserRole.EMPRESA)
   @Patch('me')
   @UseInterceptors(
@@ -134,6 +243,15 @@ export class CadastroEmpresaController {
     return this.obterMinha(usuario);
   }
 
+  @ApiOperation({ summary: 'Solicita a troca do e-mail de acesso' })
+  @ApiBody({ schema: CORPO_TROCAR_EMAIL })
+  @ApiResponse({
+    status: 202,
+    description: 'Link de confirmação enviado ao novo e-mail',
+  })
+  @ApiProtegida({ comPapel: true })
+  @ApiErro(404, 'Empresa não encontrada')
+  @ApiErro(422, 'E-mail inválido')
   @Roles(UserRole.EMPRESA)
   @Patch('me/email')
   @HttpCode(202)
@@ -147,6 +265,12 @@ export class CadastroEmpresaController {
     desembrulhar(await this.editarDados.execute({ empresaId, novoEmail }));
   }
 
+  @ApiOperation({ summary: 'Confirma a troca de e-mail pelo token do link' })
+  @ApiBody({ schema: CORPO_CONFIRMAR_EMAIL })
+  @ApiResponse({ status: 204, description: 'E-mail trocado' })
+  @ApiErro(400, 'Link de confirmação inválido ou expirado')
+  @ApiErro(409, 'E-mail já cadastrado')
+  @ApiErro(422, 'Token ausente')
   @Public()
   @Post('me/email/confirmacao')
   @HttpCode(204)

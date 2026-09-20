@@ -16,6 +16,7 @@ const componentes = new Map<string, EsquemaJson>();
 export function esquemaOpenApi(
   nome: string,
   schema: z.ZodType,
+  propriedadesExtras: Record<string, EsquemaJson> = {},
 ): ReferenciaOpenApi {
   const esquema = z.toJSONSchema(schema, {
     io: 'input',
@@ -24,6 +25,10 @@ export function esquemaOpenApi(
   }) as EsquemaJson;
 
   delete esquema.$schema;
+  esquema.properties = {
+    ...(esquema.properties as EsquemaJson | undefined),
+    ...propriedadesExtras,
+  };
 
   componentes.set(nome, esquema);
 

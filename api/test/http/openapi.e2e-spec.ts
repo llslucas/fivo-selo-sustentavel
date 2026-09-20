@@ -100,3 +100,95 @@ describe('Documento OpenAPI — setup (e2e)', () => {
     );
   });
 });
+
+interface Operacao {
+  security?: Record<string, string[]>[];
+  responses: Record<string, Record<string, unknown>>;
+  requestBody?: {
+    content: Record<string, { schema: Record<string, unknown> }>;
+  };
+}
+interface Documento {
+  paths: Record<string, Record<string, Operacao>>;
+  components: {
+    schemas: Record<
+      string,
+      {
+        required?: string[];
+        properties: Record<string, Record<string, unknown>>;
+      }
+    >;
+  };
+}
+
+async function lerDocumento(): Promise<Documento> {
+  let documento: Documento | undefined;
+
+  await comAmbiente({ NODE_ENV: 'test' }, async (contexto) => {
+    const resposta = await request(servidorHttp(contexto)).get(
+      '/docs/openapi.json',
+    );
+    documento = resposta.body as Documento;
+  });
+
+  return documento as Documento;
+}
+
+describe('Documento OpenAPI — CadastroEmpresaController (e2e)', () => {
+  let documento: Documento;
+
+  beforeAll(async () => {
+    documento = await lerDocumento();
+  });
+
+  it('documenta as 5 operações com os status esperados', () => {
+    const status = (caminho: string, metodo: string) =>
+      Object.keys(documento.paths[caminho][metodo].responses).sort();
+
+    expect(status('/empresas', 'post')).toEqual(['201', '409', '422', '503']);
+    expect(status('/empresas/me', 'get')).toEqual(['200', '401', '403', '404']);
+    expect(status('/empresas/me', 'patch')).toEqual([
+      '200',
+      '401',
+      '403',
+      '404',
+      '422',
+      '503',
+    ]);
+    expect(status('/empresas/me/email', 'patch')).toEqual([
+      '202',
+      '401',
+      '403',
+      '404',
+      '422',
+    ]);
+    expect(status('/empresas/me/email/confirmacao', 'post')).toEqual([
+      '204',
+      '400',
+      '409',
+      '422',
+    ]);
+  });
+
+  it('POST /empresas é multipart com logo binário e os required do Zod', () => {
+    const corpo = documento.paths['/empresas'].post.requestBody;
+    const ref = corpo?.content['multipart/form-data'].schema.$ref as string;
+    const esquema = documento.components.schemas[ref.split('/').pop() ?? ''];
+
+    expect(esquema.properties.logo).toEqual({
+      type: 'string',
+      format: 'binary',
+    });
+    expect(esquema.required).toEqual(
+      expect.arrayContaining(['razaoSocial', 'cnpj', 'email', 'senha', 'uf']),
+    );
+    expect(esquema.required).not.toContain('logo');
+  });
+
+  it('GET /empresas/me exige o cookie de sessão; POST /empresas é público', () => {
+    expect(documento.paths['/empresas/me'].get.security).toEqual([
+      { cookie: [] },
+    ]);
+    expect(documento.paths['/empresas'].post.security).toBeUndefined();
+  });
+});

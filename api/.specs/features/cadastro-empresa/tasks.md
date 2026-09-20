@@ -1578,10 +1578,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e (`openapi.e2e-spec.ts`): as 5 operações existem com os status documentados; `POST /empresas` tem `multipart/form-data` com `logo` `format: binary` e os `required` do Zod
-- [ ] e2e: `GET /empresas/me` tem `security` com o cookie; `POST /empresas` não tem
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 192 e2e (≥ 2 novos)
+- [x] e2e (`openapi.e2e-spec.ts`): as 5 operações existem com os status documentados; `POST /empresas` tem `multipart/form-data` com `logo` `format: binary` e os `required` do Zod
+- [x] e2e: `GET /empresas/me` tem `security` com o cookie; `POST /empresas` não tem
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 192 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full
