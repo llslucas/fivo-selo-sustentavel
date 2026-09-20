@@ -154,7 +154,9 @@ export class CadastroEmpresaController {
     @Body(new ZodValidationPipe(confirmarEmailSchema))
     { token }: ConfirmarEmailDto,
   ): Promise<void> {
-    desembrulhar(await this.confirmarTrocaEmail.execute({ token }));
+    desembrulhar(
+      await this.confirmarTrocaEmail.execute({ token, agora: new Date() }),
+    );
   }
 
   private async idDaEmpresaDe(usuario: UsuarioAutenticado): Promise<string> {

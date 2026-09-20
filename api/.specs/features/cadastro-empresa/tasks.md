@@ -1349,10 +1349,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit: confirmação em 23h59 → sucesso; em 24h01 → `TokenConfirmacaoEmailInvalidoError`, `user.email` inalterado
-- [ ] Unit da entidade: `solicitarTrocaDeEmail` grava o prazo de 24 h; `limparTrocaDeEmail` zera o prazo
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 169 unit (≥ 3 novos)
+- [x] Unit: confirmação em 23h59 → sucesso; em 24h01 → `TokenConfirmacaoEmailInvalidoError`, `user.email` inalterado
+- [x] Unit da entidade: `solicitarTrocaDeEmail` grava o prazo de 24 h; `limparTrocaDeEmail` zera o prazo
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 169 unit (≥ 3 novos)
 
 **Tests**: unit
 **Gate**: quick
@@ -1374,11 +1374,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Migration aplicada por `npx prisma migrate deploy` no banco de teste
-- [ ] e2e: prazo vencido → 400 `"Link de confirmação inválido ou expirado"`; login com o e-mail antigo continua funcionando
-- [ ] e2e: roundtrip de repositório preserva `tokenTrocaEmailExpiraEm`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 178 e2e (≥ 2 novos)
+- [x] Migration aplicada por `npx prisma migrate deploy` no banco de teste
+- [x] e2e: prazo vencido → 400 `"Link de confirmação inválido ou expirado"`; login com o e-mail antigo continua funcionando
+- [x] e2e: roundtrip de repositório preserva `tokenTrocaEmailExpiraEm`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 178 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full
@@ -1400,11 +1400,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e de repositório sequencial: leitura obsoleta → `save` de `nomeFantasia` → `salvarTrocaDeEmail(obsoleta)` → `nomeFantasia` novo preservado
-- [ ] e2e de repositório: `save` cadastral com leitura obsoleta não apaga `emailPendente` gravado por `salvarTrocaDeEmail`
-- [ ] Unit dos casos de uso de troca de e-mail seguem verdes com o double atualizado
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 180 e2e (≥ 2 novos)
+- [x] e2e de repositório sequencial: leitura obsoleta → `save` de `nomeFantasia` → `salvarTrocaDeEmail(obsoleta)` → `nomeFantasia` novo preservado
+- [x] e2e de repositório: `save` cadastral com leitura obsoleta não apaga `emailPendente` gravado por `salvarTrocaDeEmail`
+- [x] Unit dos casos de uso de troca de e-mail seguem verdes com o double atualizado
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 180 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full
@@ -1426,10 +1426,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: PNG → CSP presente, `Content-Disposition: inline`, `nosniff` mantido
-- [ ] e2e: SVG → CSP presente, `Content-Disposition: attachment`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 182 e2e (≥ 2 novos)
+- [x] e2e: PNG → CSP presente, `Content-Disposition: inline`, `nosniff` mantido
+- [x] e2e: SVG → CSP presente, `Content-Disposition: attachment`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 182 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full
@@ -1451,9 +1451,9 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e de service: `lerBytes` com id inexistente → `null`, sem exceção
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 183 e2e (≥ 1 novo)
+- [x] e2e de service: `lerBytes` com id inexistente → `null`, sem exceção
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 183 e2e (≥ 1 novo)
 
 **Tests**: e2e
 **Gate**: full
@@ -1475,10 +1475,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Os 3 casos assertam status **e** mensagem literal do limite
-- [ ] Mutantes: `statusCode: 413` no corpo do filtro e mensagem de dimensão alterada em `Arquivo.criar` são mortos
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 183 e2e (asserções novas; nenhum teste removido)
+- [x] Os 3 casos assertam status **e** mensagem literal do limite
+- [x] Mutantes: `statusCode: 413` no corpo do filtro e mensagem de dimensão alterada em `Arquivo.criar` são mortos
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 183 e2e (asserções novas; nenhum teste removido)
 
 **Tests**: e2e
 **Gate**: full
@@ -1500,10 +1500,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: enviada há 31 dias → removida; enviada há 29 dias → mantida; esgotada há 31 dias → removida; pendente antiga → mantida
-- [ ] Unit do worker (T36): `executar()` chama o expurgo depois do dreno
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 167 unit, ≥ 187 e2e (≥ 4 novos)
+- [x] e2e: enviada há 31 dias → removida; enviada há 29 dias → mantida; esgotada há 31 dias → removida; pendente antiga → mantida
+- [x] Unit do worker (T36): `executar()` chama o expurgo depois do dreno
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 167 unit, ≥ 187 e2e (≥ 4 novos)
 
 **Tests**: e2e
 **Gate**: full

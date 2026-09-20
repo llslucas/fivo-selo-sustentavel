@@ -79,10 +79,13 @@ export class ArquivoService {
     return right({ id: arquivo.id.toString() });
   }
 
-  async lerBytes(id: string): Promise<ArquivoBytes> {
-    const registro = await this.prisma.arquivo.findUniqueOrThrow({
-      where: { id },
-    });
+  async lerBytes(id: string): Promise<ArquivoBytes | null> {
+    const registro = await this.prisma.arquivo.findUnique({ where: { id } });
+
+    if (!registro) {
+      return null;
+    }
+
     const buffer = await this.storage.ler(registro.chaveStorage);
 
     return {

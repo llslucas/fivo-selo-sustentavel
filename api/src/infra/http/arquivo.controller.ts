@@ -19,6 +19,7 @@ export class ArquivoController {
 
   @Get(':id')
   @Header('X-Content-Type-Options', 'nosniff')
+  @Header('Content-Security-Policy', "default-src 'none'; sandbox")
   async baixar(
     @Param('id') id: string,
     @CurrentUser() usuario: UsuarioAutenticado,
@@ -36,8 +37,18 @@ export class ArquivoController {
       throw new ForbiddenException('Acesso negado');
     }
 
-    const { buffer, mime } = await this.arquivoService.lerBytes(id);
+    const bytes = await this.arquivoService.lerBytes(id);
 
-    return new StreamableFile(buffer, { type: mime });
+    if (!bytes) {
+      throw new NotFoundException('Arquivo não encontrado');
+    }
+
+    const { buffer, mime } = bytes;
+
+    // SVG é baixado, nunca renderizado como documento; raster segue inline.
+    return new StreamableFile(buffer, {
+      type: mime,
+      disposition: mime === 'image/svg+xml' ? 'attachment' : 'inline',
+    });
   }
 }
