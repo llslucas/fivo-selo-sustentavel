@@ -1426,10 +1426,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: PNG → CSP presente, `Content-Disposition: inline`, `nosniff` mantido
-- [ ] e2e: SVG → CSP presente, `Content-Disposition: attachment`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 182 e2e (≥ 2 novos)
+- [x] e2e: PNG → CSP presente, `Content-Disposition: inline`, `nosniff` mantido
+- [x] e2e: SVG → CSP presente, `Content-Disposition: attachment`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 182 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full

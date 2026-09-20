@@ -145,6 +145,39 @@ describe('GET /arquivos/:id (e2e)', () => {
     expect(resposta.headers['x-content-type-options']).toBe('nosniff');
   });
 
+  it('PNG é entregue com CSP sandbox, Content-Disposition inline e nosniff', async () => {
+    const arquivoId = await enviar(pngBuffer(512, 512), 'logo.png');
+    const dono = await criarEmpresaComLogo('dona@empresa.test', arquivoId);
+
+    const resposta = await comCookieDeSessao(
+      api().get(`/arquivos/${arquivoId}`),
+      await sessaoDe(dono),
+    );
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.headers['content-security-policy']).toBe(
+      "default-src 'none'; sandbox",
+    );
+    expect(resposta.headers['content-disposition']).toMatch(/^inline/);
+    expect(resposta.headers['x-content-type-options']).toBe('nosniff');
+  });
+
+  it('SVG é entregue com CSP sandbox e Content-Disposition attachment', async () => {
+    const arquivoId = await enviar(Buffer.from(SVG_VALIDO), 'logo.svg');
+    const dono = await criarEmpresaComLogo('dona@empresa.test', arquivoId);
+
+    const resposta = await comCookieDeSessao(
+      api().get(`/arquivos/${arquivoId}`),
+      await sessaoDe(dono),
+    );
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.headers['content-security-policy']).toBe(
+      "default-src 'none'; sandbox",
+    );
+    expect(resposta.headers['content-disposition']).toMatch(/^attachment/);
+  });
+
   it('outra empresa (não-dono) → 403 sem vazar o conteúdo', async () => {
     const arquivoId = await enviar(pngBuffer(512, 512), 'logo.png');
     await criarEmpresaComLogo('dona@empresa.test', arquivoId);

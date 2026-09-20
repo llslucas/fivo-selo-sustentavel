@@ -19,6 +19,7 @@ export class ArquivoController {
 
   @Get(':id')
   @Header('X-Content-Type-Options', 'nosniff')
+  @Header('Content-Security-Policy', "default-src 'none'; sandbox")
   async baixar(
     @Param('id') id: string,
     @CurrentUser() usuario: UsuarioAutenticado,
@@ -38,6 +39,10 @@ export class ArquivoController {
 
     const { buffer, mime } = await this.arquivoService.lerBytes(id);
 
-    return new StreamableFile(buffer, { type: mime });
+    // SVG é baixado, nunca renderizado como documento; raster segue inline.
+    return new StreamableFile(buffer, {
+      type: mime,
+      disposition: mime === 'image/svg+xml' ? 'attachment' : 'inline',
+    });
   }
 }
