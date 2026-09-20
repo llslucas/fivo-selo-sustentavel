@@ -118,6 +118,8 @@ export class EditarDadosEmpresaUseCase {
     await this.empresaRepository.save(empresaAtualizada);
 
     if (novoEmail) {
+      await this.empresaRepository.salvarTrocaDeEmail(empresaAtualizada);
+
       try {
         await this.mailer.enviar({
           para: novoEmail,

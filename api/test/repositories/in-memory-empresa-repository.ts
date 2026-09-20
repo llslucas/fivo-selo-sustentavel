@@ -7,10 +7,14 @@ import { Empresa } from '@domain/fivo/entities/empresa';
 /**
  * Copia a entidade para que o double guarde um estado próprio, como uma linha
  * de banco: mutar o objeto lido não muda o armazenado sem um `save` ou um
- * `salvarTransicao`. `decisao` fornece as 4 colunas de decisão, que o `save`
- * preserva do item guardado.
+ * `salvarTransicao`. `decisao` fornece as 4 colunas de decisão e `troca` as 3
+ * de troca de e-mail; o `save` preserva ambas do item guardado.
  */
-function copiar(empresa: Empresa, decisao: Empresa = empresa): Empresa {
+function copiar(
+  empresa: Empresa,
+  decisao: Empresa = empresa,
+  troca: Empresa = empresa,
+): Empresa {
   return Empresa.create(
     {
       razaoSocial: empresa.razaoSocial,
@@ -30,9 +34,9 @@ function copiar(empresa: Empresa, decisao: Empresa = empresa): Empresa {
       updatedAt: empresa.updatedAt,
       usuarioId: empresa.usuarioId,
       logoArquivoId: empresa.logoArquivoId,
-      emailPendente: empresa.emailPendente,
-      tokenTrocaEmailHash: empresa.tokenTrocaEmailHash,
-      tokenTrocaEmailExpiraEm: empresa.tokenTrocaEmailExpiraEm,
+      emailPendente: troca.emailPendente,
+      tokenTrocaEmailHash: troca.tokenTrocaEmailHash,
+      tokenTrocaEmailExpiraEm: troca.tokenTrocaEmailExpiraEm,
       status: decisao.status,
       decididoPor: decisao.decididoPor,
       decididoEm: decisao.decididoEm,
@@ -96,8 +100,20 @@ export class InMemoryEmpresaRepository implements EmpresaRepository {
 
     if (index !== -1) {
       // Espelha `PrismaEmpresaRepository.save`: status e decisão só mudam por
-      // `salvarTransicao`, então uma leitura obsoleta não desfaz a decisão.
-      this.items[index] = copiar(empresa, this.items[index]);
+      // `salvarTransicao` e a troca de e-mail por `salvarTrocaDeEmail`, então
+      // uma leitura obsoleta não desfaz nenhuma das duas.
+      this.items[index] = copiar(empresa, this.items[index], this.items[index]);
+    }
+
+    return Promise.resolve();
+  }
+
+  salvarTrocaDeEmail(empresa: Empresa): Promise<void> {
+    const index = this.items.findIndex((item) => item.id.equals(empresa.id));
+
+    if (index !== -1) {
+      // Espelha o adaptador Prisma: só as 3 colunas de troca de e-mail.
+      this.items[index] = copiar(this.items[index], this.items[index], empresa);
     }
 
     return Promise.resolve();

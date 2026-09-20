@@ -67,7 +67,7 @@ export class ConfirmarTrocaEmailUseCase {
 
     await this.unitOfWork.executar(async () => {
       await this.userRepository.save(user);
-      await this.empresaRepository.save(empresa);
+      await this.empresaRepository.salvarTrocaDeEmail(empresa);
     });
 
     return right(undefined);

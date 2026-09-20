@@ -87,9 +87,25 @@ export class PrismaEmpresaRepository implements EmpresaRepository {
     try {
       // Estado e decisão só mudam por `salvarTransicao`: regravá-los aqui, a
       // partir de uma leitura obsoleta, desfaria a decisão de um admin.
-      const { status, decididoPor, decididoEm, motivoDecisao, ...cadastrais } =
-        PrismaEmpresaMapper.toPrisma(empresa);
-      void [status, decididoPor, decididoEm, motivoDecisao];
+      const {
+        status,
+        decididoPor,
+        decididoEm,
+        motivoDecisao,
+        emailPendente,
+        tokenTrocaEmailHash,
+        tokenTrocaEmailExpiraEm,
+        ...cadastrais
+      } = PrismaEmpresaMapper.toPrisma(empresa);
+      void [
+        status,
+        decididoPor,
+        decididoEm,
+        motivoDecisao,
+        emailPendente,
+        tokenTrocaEmailHash,
+        tokenTrocaEmailExpiraEm,
+      ];
 
       await this.db.empresa.update({
         where: { id: empresa.id.toString() },
@@ -102,6 +118,16 @@ export class PrismaEmpresaRepository implements EmpresaRepository {
 
       throw erro;
     }
+  }
+
+  async salvarTrocaDeEmail(empresa: Empresa): Promise<void> {
+    const { emailPendente, tokenTrocaEmailHash, tokenTrocaEmailExpiraEm } =
+      PrismaEmpresaMapper.toPrisma(empresa);
+
+    await this.db.empresa.update({
+      where: { id: empresa.id.toString() },
+      data: { emailPendente, tokenTrocaEmailHash, tokenTrocaEmailExpiraEm },
+    });
   }
 
   async salvarTransicao(

@@ -1400,11 +1400,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e de repositório sequencial: leitura obsoleta → `save` de `nomeFantasia` → `salvarTrocaDeEmail(obsoleta)` → `nomeFantasia` novo preservado
-- [ ] e2e de repositório: `save` cadastral com leitura obsoleta não apaga `emailPendente` gravado por `salvarTrocaDeEmail`
-- [ ] Unit dos casos de uso de troca de e-mail seguem verdes com o double atualizado
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 180 e2e (≥ 2 novos)
+- [x] e2e de repositório sequencial: leitura obsoleta → `save` de `nomeFantasia` → `salvarTrocaDeEmail(obsoleta)` → `nomeFantasia` novo preservado
+- [x] e2e de repositório: `save` cadastral com leitura obsoleta não apaga `emailPendente` gravado por `salvarTrocaDeEmail`
+- [x] Unit dos casos de uso de troca de e-mail seguem verdes com o double atualizado
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 180 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full
