@@ -1475,10 +1475,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Os 3 casos assertam status **e** mensagem literal do limite
-- [ ] Mutantes: `statusCode: 413` no corpo do filtro e mensagem de dimensão alterada em `Arquivo.criar` são mortos
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 183 e2e (asserções novas; nenhum teste removido)
+- [x] Os 3 casos assertam status **e** mensagem literal do limite
+- [x] Mutantes: `statusCode: 413` no corpo do filtro e mensagem de dimensão alterada em `Arquivo.criar` são mortos
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 183 e2e (asserções novas; nenhum teste removido)
 
 **Tests**: e2e
 **Gate**: full

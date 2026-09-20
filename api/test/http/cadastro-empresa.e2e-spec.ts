@@ -251,6 +251,28 @@ describe('CadastroEmpresaController (e2e)', () => {
       });
     });
 
+    it('logo SVG com script → 422 informando o conteúdo proibido, sem persistir nada', async () => {
+      const resposta = await enviarCadastro(campos(), {
+        buffer: Buffer.from(
+          '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+        ),
+        nome: 'logo.svg',
+        tipo: 'image/svg+xml',
+      });
+
+      expect(resposta.status).toBe(422);
+      expect(resposta.body).toMatchObject({
+        statusCode: 422,
+        message:
+          'Arquivo SVG inválido: conteúdo contém script, foreignObject ou atributos onload/onclick/on*.',
+      });
+      expect(await contarLinhas()).toEqual({
+        usuarios: 0,
+        empresas: 0,
+        arquivos: 0,
+      });
+    });
+
     it('logo raster menor que 512x512 → 422 informando a dimensão mínima', async () => {
       const resposta = await enviarCadastro(campos(), {
         buffer: pngBuffer(100, 100),
@@ -260,7 +282,9 @@ describe('CadastroEmpresaController (e2e)', () => {
 
       expect(resposta.status).toBe(422);
       expect(resposta.body).toMatchObject({
-        message: contendo('512x512'),
+        statusCode: 422,
+        message:
+          'Arquivo inválido: dimensão mínima de 512x512 pixels para raster.',
       });
       expect((await contarLinhas()).empresas).toBe(0);
     });
@@ -277,7 +301,8 @@ describe('CadastroEmpresaController (e2e)', () => {
 
       expect(resposta.status).toBe(422);
       expect(resposta.body).toMatchObject({
-        message: contendo('5 MB'),
+        statusCode: 422,
+        message: 'Arquivo inválido: tamanho excede o limite de 5 MB.',
       });
       expect((await contarLinhas()).empresas).toBe(0);
     });
@@ -294,7 +319,8 @@ describe('CadastroEmpresaController (e2e)', () => {
 
       expect(resposta.status).toBe(422);
       expect(resposta.body).toMatchObject({
-        message: contendo('5 MB'),
+        statusCode: 422,
+        message: 'Arquivo inválido: tamanho excede o limite de 5 MB.',
       });
       expect(await contarLinhas()).toEqual({
         usuarios: 0,
