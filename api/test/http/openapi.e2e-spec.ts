@@ -192,3 +192,29 @@ describe('Documento OpenAPI — CadastroEmpresaController (e2e)', () => {
     expect(documento.paths['/empresas'].post.security).toBeUndefined();
   });
 });
+
+describe('Documento OpenAPI — AutenticacaoController (e2e)', () => {
+  let documento: Documento;
+
+  beforeAll(async () => {
+    documento = await lerDocumento();
+  });
+
+  it('documenta login (200 com Set-Cookie, 401, 422, 429, público) e logout (204, 401, protegido)', () => {
+    const login = documento.paths['/sessoes'].post;
+    const logout = documento.paths['/sessoes/atual'].delete;
+
+    expect(Object.keys(login.responses).sort()).toEqual([
+      '200',
+      '401',
+      '422',
+      '429',
+    ]);
+    expect(Object.keys(login.responses['200'].headers as object)).toContain(
+      'Set-Cookie',
+    );
+    expect(login.security).toBeUndefined();
+    expect(Object.keys(logout.responses).sort()).toEqual(['204', '401']);
+    expect(logout.security).toEqual([{ cookie: [] }]);
+  });
+});

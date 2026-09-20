@@ -1592,7 +1592,7 @@ T54 → T55
 
 ### T50: Documentar `AutenticacaoController`
 
-**What**: `POST /sessoes` (corpo Zod; 201 com `Set-Cookie` descrito em `headers`; 401, 422, 429) e `DELETE /sessoes/atual` (204; 401), com `@ApiTags('sessoes')`. Login público; logout protegido.
+**What**: `POST /sessoes` (corpo Zod; 200 — o controller usa `@HttpCode(200)`; a redação original dizia 201 — com `Set-Cookie` descrito em `headers`; 401, 422, 429) e `DELETE /sessoes/atual` (204; 401), com `@ApiTags('sessoes')`. Login público; logout protegido.
 **Where**: `api/src/infra/http/autenticacao.controller.ts`
 **Depends on**: T48
 **Reuses**: `esquemaOpenApi` (T48)
@@ -1603,9 +1603,9 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: as 2 operações com os status acima; 201 do login declara o cabeçalho `Set-Cookie`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 193 e2e (≥ 1 novo)
+- [x] e2e: as 2 operações com os status acima; 200 do login declara o cabeçalho `Set-Cookie`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 193 e2e (≥ 1 novo)
 
 **Tests**: e2e
 **Gate**: full
