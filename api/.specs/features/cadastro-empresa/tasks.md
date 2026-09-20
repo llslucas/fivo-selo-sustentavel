@@ -1451,9 +1451,9 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e de service: `lerBytes` com id inexistente → `null`, sem exceção
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 183 e2e (≥ 1 novo)
+- [x] e2e de service: `lerBytes` com id inexistente → `null`, sem exceção
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 183 e2e (≥ 1 novo)
 
 **Tests**: e2e
 **Gate**: full

@@ -37,7 +37,13 @@ export class ArquivoController {
       throw new ForbiddenException('Acesso negado');
     }
 
-    const { buffer, mime } = await this.arquivoService.lerBytes(id);
+    const bytes = await this.arquivoService.lerBytes(id);
+
+    if (!bytes) {
+      throw new NotFoundException('Arquivo não encontrado');
+    }
+
+    const { buffer, mime } = bytes;
 
     // SVG é baixado, nunca renderizado como documento; raster segue inline.
     return new StreamableFile(buffer, {
