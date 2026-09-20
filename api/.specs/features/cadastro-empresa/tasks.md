@@ -1374,11 +1374,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Migration aplicada por `npx prisma migrate deploy` no banco de teste
-- [ ] e2e: prazo vencido → 400 `"Link de confirmação inválido ou expirado"`; login com o e-mail antigo continua funcionando
-- [ ] e2e: roundtrip de repositório preserva `tokenTrocaEmailExpiraEm`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 178 e2e (≥ 2 novos)
+- [x] Migration aplicada por `npx prisma migrate deploy` no banco de teste
+- [x] e2e: prazo vencido → 400 `"Link de confirmação inválido ou expirado"`; login com o e-mail antigo continua funcionando
+- [x] e2e: roundtrip de repositório preserva `tokenTrocaEmailExpiraEm`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 178 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full
