@@ -218,3 +218,25 @@ describe('Documento OpenAPI — AutenticacaoController (e2e)', () => {
     expect(logout.security).toEqual([{ cookie: [] }]);
   });
 });
+
+describe('Documento OpenAPI — SenhaController (e2e)', () => {
+  let documento: Documento;
+
+  beforeAll(async () => {
+    documento = await lerDocumento();
+  });
+
+  it('documenta recuperação (202, 422) e redefinição (204, 400, 422), ambas públicas', () => {
+    const recuperacao = documento.paths['/senha/recuperacao'].post;
+    const redefinicao = documento.paths['/senha/redefinicao'].post;
+
+    expect(Object.keys(recuperacao.responses).sort()).toEqual(['202', '422']);
+    expect(Object.keys(redefinicao.responses).sort()).toEqual([
+      '204',
+      '400',
+      '422',
+    ]);
+    expect(recuperacao.security).toBeUndefined();
+    expect(redefinicao.security).toBeUndefined();
+  });
+});
