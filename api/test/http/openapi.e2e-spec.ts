@@ -305,3 +305,37 @@ describe('Documento OpenAPI — AdminEmpresasController (e2e)', () => {
     expect(esquema.required).toEqual(['motivo']);
   });
 });
+
+describe('Documento OpenAPI — ArquivoController (e2e)', () => {
+  it('declara conteúdo binário, os 3 cabeçalhos e 401/403/404, protegida', async () => {
+    const documento = await lerDocumento();
+    const operacao = documento.paths['/arquivos/{id}'].get;
+    const ok = operacao.responses['200'] as {
+      headers: Record<string, unknown>;
+      content: Record<string, { schema: unknown }>;
+    };
+
+    expect(Object.keys(operacao.responses).sort()).toEqual([
+      '200',
+      '401',
+      '403',
+      '404',
+    ]);
+    expect(Object.keys(ok.content).sort()).toEqual([
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/svg+xml',
+    ]);
+    expect(ok.content['image/png'].schema).toEqual({
+      type: 'string',
+      format: 'binary',
+    });
+    expect(Object.keys(ok.headers).sort()).toEqual([
+      'Content-Disposition',
+      'Content-Security-Policy',
+      'X-Content-Type-Options',
+    ]);
+    expect(operacao.security).toEqual([{ cookie: [] }]);
+  });
+});

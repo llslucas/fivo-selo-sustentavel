@@ -1675,9 +1675,9 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: a operação declara conteúdo binário e os 3 cabeçalhos, com 401/403/404
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 196 e2e (≥ 1 novo)
+- [x] e2e: a operação declara conteúdo binário e os 3 cabeçalhos, com 401/403/404
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 196 e2e (≥ 1 novo)
 
 **Tests**: e2e
 **Gate**: full
