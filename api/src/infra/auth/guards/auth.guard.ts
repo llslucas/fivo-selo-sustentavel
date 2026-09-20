@@ -6,10 +6,10 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-import { NOME_COOKIE_SESSAO } from './auth.constants';
-import { IS_PUBLIC_KEY } from './public.decorator';
-import { SessionService } from './session.service';
-import { RequisicaoAutenticada } from './usuario-autenticado';
+import { NOME_COOKIE_SESSAO } from '../auth.constants';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { SessionService } from '../session.service';
+import { RequisicaoAutenticada } from '../usuario-autenticado';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

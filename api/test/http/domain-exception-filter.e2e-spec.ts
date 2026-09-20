@@ -27,8 +27,8 @@ import { TokenInvalidoError } from '@domain/fivo/application/errors/token-invali
 import { TransicaoInvalidaError } from '@domain/fivo/application/errors/transicao-invalida.error';
 import { UserAlreadyExistsError } from '@domain/fivo/application/errors/users-already-exists.error';
 import { CredenciaisInvalidasError } from '@domain/fivo/application/errors/wrong-credentials.error';
-import { Public } from '@infra/auth/public.decorator';
-import { ZodValidationPipe } from '@infra/http/zod-validation.pipe';
+import { Public } from '@infra/auth/decorators/public.decorator';
+import { ZodValidationPipe } from '@infra/http/pipes/zod-validation.pipe';
 import {
   AppDeTeste,
   criarAppDeTeste,

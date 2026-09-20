@@ -25,16 +25,16 @@ import { RejeitarEmpresaUseCase } from '@domain/fivo/application/use-cases/rejei
 import { SuspenderEmpresaUseCase } from '@domain/fivo/application/use-cases/suspender-empresa';
 import { EmpresaStatus } from '@domain/fivo/entities/empresa';
 import { User, UserRole } from '@domain/fivo/entities/user';
-import { CurrentUser } from '@infra/auth/current-user.decorator';
-import { Roles } from '@infra/auth/roles.decorator';
+import { CurrentUser } from '@infra/auth/decorators/current-user.decorator';
+import { Roles } from '@infra/auth/decorators/roles.decorator';
 import type { UsuarioAutenticado } from '@infra/auth/usuario-autenticado';
 
-import { filaQuerySchema, rejeicaoSchema } from './admin-empresas.dto';
-import type { RejeicaoDto } from './admin-empresas.dto';
-import { desembrulhar } from './desembrulhar';
-import { ApiErro, ApiProtegida } from './openapi/decorators';
-import { esquemaOpenApi } from './openapi/esquema-openapi';
-import { ZodValidationPipe } from './zod-validation.pipe';
+import { filaQuerySchema, rejeicaoSchema } from '../admin-empresas.dto';
+import type { RejeicaoDto } from '../admin-empresas.dto';
+import { desembrulhar } from '../desembrulhar';
+import { ApiErro, ApiProtegida } from '../openapi/decorators';
+import { esquemaOpenApi } from '../openapi/esquema-openapi';
+import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
 
 const CORPO_REJEICAO = esquemaOpenApi('RejeicaoEmpresa', rejeicaoSchema);
 

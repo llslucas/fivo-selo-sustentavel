@@ -4,8 +4,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { CryptographyModule } from '@infra/cryptography/cryptography.module';
 
 import { AdminSeeder } from './admin-seeder';
-import { AuthGuard } from './auth.guard';
-import { RolesGuard } from './roles.guard';
+import { AuthGuard } from './guards/auth.guard';
+import { RolesGuard } from './guards/roles.guard';
 import { SessionService } from './session.service';
 
 @Module({
