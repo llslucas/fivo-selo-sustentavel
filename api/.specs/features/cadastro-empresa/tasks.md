@@ -1699,11 +1699,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: 15 rotas registradas = 15 operações documentadas (conjunto igual, não só contagem)
-- [ ] e2e: rotas `@Public` sem `security`; demais com `security`
-- [ ] Mutante: remover `@ApiResponse` de 2xx de uma rota ou comentar uma rota do documento derruba o teste
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 198 e2e (≥ 2 novos)
+- [x] e2e: 15 rotas registradas = 15 operações documentadas (conjunto igual, não só contagem)
+- [x] e2e: rotas `@Public` sem `security`; demais com `security`
+- [x] Mutante: `@ApiExcludeEndpoint()` numa rota ou remover `@ApiProtegida()` de uma rota protegida derruba o teste (remover o `@ApiResponse` 2xx não derruba: o Nest deriva o 2xx de `@HttpCode`, então o documento continua com resposta de sucesso)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 198 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full
