@@ -1525,12 +1525,12 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e (`test/http/openapi.e2e-spec.ts`): `GET /docs/openapi.json` sem sessão → 200, `openapi` começa com `3.`, `components.securitySchemes` tem o cookie de sessão
-- [ ] e2e: `GET /docs` → 200 HTML
-- [ ] e2e: com `NODE_ENV=production` e sem `SWAGGER_ENABLED` → 404 nas duas rotas; com `SWAGGER_ENABLED=true` → 200
-- [ ] `npm run build` passa com a dependência nova
-- [ ] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 190 e2e (≥ 3 novos)
+- [x] e2e (`test/http/openapi.e2e-spec.ts`): `GET /docs/openapi.json` sem sessão → 200, `openapi` começa com `3.`, `components.securitySchemes` tem o cookie de sessão
+- [x] e2e: `GET /docs` → 200 HTML
+- [x] e2e: com `NODE_ENV=production` e sem `SWAGGER_ENABLED` → 404 nas duas rotas; com `SWAGGER_ENABLED=true` → 200
+- [x] `npm run build` passa com a dependência nova
+- [x] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 190 e2e (≥ 3 novos)
 
 **Tests**: e2e
 **Gate**: build
