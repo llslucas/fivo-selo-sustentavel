@@ -1552,11 +1552,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit: `criarEmpresaSchema` convertido → `required` contém `razaoSocial`, `cnpj`, `email`, `senha`, `uf` e não contém `complemento`/`site`; `uf` tem `minLength`/`maxLength` 2
-- [ ] Unit: `ErroResposta` tem `statusCode` inteiro e `message` string obrigatórios
-- [ ] Unit: dois registros com o mesmo nome não duplicam o componente
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 170 unit (≥ 3 novos)
+- [x] Unit: `criarEmpresaSchema` convertido → `required` contém `razaoSocial`, `cnpj`, `email`, `senha`, `uf` e não contém `complemento`/`site`; `uf` tem `minLength`/`maxLength` 2
+- [x] Unit: `ErroResposta` tem `statusCode` inteiro e `message` string obrigatórios
+- [x] Unit: dois registros com o mesmo nome não duplicam o componente
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 170 unit (≥ 3 novos)
 
 **Tests**: unit
 **Gate**: quick

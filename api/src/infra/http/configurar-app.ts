@@ -7,6 +7,8 @@ import cookieParser from 'cookie-parser';
 
 import { NOME_COOKIE_SESSAO } from '@infra/auth/auth.constants';
 
+import { componentesOpenApi } from './openapi/esquema-openapi';
+
 const CAMINHO_DOCS = 'docs';
 
 function versaoDaApi(): string {
@@ -29,7 +31,17 @@ export function montarDocumentoOpenApi(app: INestApplication): OpenAPIObject {
     .addCookieAuth(NOME_COOKIE_SESSAO)
     .build();
 
-  return SwaggerModule.createDocument(app, configuracao);
+  const documento = SwaggerModule.createDocument(app, configuracao);
+
+  documento.components = {
+    ...documento.components,
+    schemas: {
+      ...documento.components?.schemas,
+      ...componentesOpenApi(),
+    },
+  };
+
+  return documento;
 }
 
 function swaggerHabilitado(): boolean {
