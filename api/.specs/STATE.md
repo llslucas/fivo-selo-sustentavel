@@ -157,11 +157,11 @@
 ## Handoff
 
 - **Feature**: `cadastro-empresa` (`.specs/features/cadastro-empresa/`)
-- **Phase / Task**: Fases 1–8 completas (T1–T46). Fase 8 (T40–T46) implementada e verificada em 2026-09-20 na branch `feat/cadastro-empresa-fase8` (não mergeada, não enviada ao remoto; 7 commits à frente de `main`). Fase 9 (T47–T55, Swagger/OpenAPI) planejada, aguardando aprovação do usuário.
-- **Completed**: T1–T46. Fase 8 verificada em `validation-fase8.md` (PASS; 19/21 mutantes mortos); gate: 171 unit, 188 e2e.
+- **Phase / Task**: Fases 1–9 completas (T1–T55). Fase 9 (T47–T55, OpenAPI/Swagger) implementada e verificada em 2026-09-20 na branch `feat/cadastro-empresa-fase9` (local, não enviada ao remoto). `validation.md` consolidado escrito.
+- **Completed**: T1–T55. Fase 9 verificada em `validation-fase9.md` (PASS; 25/26 mutantes mortos, o sobrevivente `SWAGGER_ENABLED` ≠ `true` foi coberto depois); gate: 174 unit, 205 e2e.
 - **In-progress** (file:line): nenhum
-- **Next step**: decidir sobre a branch `feat/cadastro-empresa-fase8` (PR / merge / manter local) e aprovar (ou não) a Fase 9. A feature só fecha após a Fase 9 e o `validation.md` consolidado (`validate_state.py` ainda não reconhece a convenção `validation-faseN.md`).
+- **Next step**: decidir sobre a branch `feat/cadastro-empresa-fase9` (PR / merge / manter local). Depois, rodada do `web`.
 - **Blockers**: nenhum
-- **Follow-ups** (Minor, não bloqueantes, de `validation-fase8.md`): (1) mutante M12 sobrevive: retenção 30→29 dias passa, porque `email-pendente.e2e-spec.ts:310` usa exatamente 29 d; usar 29d23h (mantida) e 30d+1min (removida); (2) expiração usa `<=` mas o AC6 diz "mais de 24 horas": decidir `<` vs `<=` e registrar; (3) `prisma-empresa-repository.e2e-spec.ts:346-348` não assere `tokenTrocaEmailExpiraEm` após `save` obsoleto; (4) ramo `!bytes → 404` do `ArquivoController` sem e2e HTTP; (5) migration sem backfill: trocas de e-mail pendentes antes dela viram "link inválido" (nota de release); (6) worker loga falha de `expurgar` como "Falha ao drenar" e pula o expurgo se o dreno falha. Follow-ups da Fase 7 seguem válidos (`GeradorTokenOpaco.gerar()` sem caller de produção; `hashIsca` memoiza promise).
+- **Follow-ups** (Minor, não bloqueantes): os da Fase 8 (M12 retenção 29d, `<` vs `<=` na expiração, asserção de `tokenTrocaEmailExpiraEm`, e2e do 404 de `!bytes`, nota de release sem backfill, log do worker) e os da Fase 7 seguem válidos. Da Fase 9: status documentados conferidos contra literais, paridade de AC5 só checa presença de `security`, AC3 não define 500/400 de corpo malformado.
 - **Uncommitted files**: none
-- **Branch**: `feat/cadastro-empresa-fase8` (local, não enviada ao remoto)
+- **Branch**: `feat/cadastro-empresa-fase9` (local, não enviada ao remoto)
