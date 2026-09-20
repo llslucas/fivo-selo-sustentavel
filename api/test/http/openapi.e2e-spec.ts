@@ -240,3 +240,68 @@ describe('Documento OpenAPI — SenhaController (e2e)', () => {
     expect(redefinicao.security).toBeUndefined();
   });
 });
+
+describe('Documento OpenAPI — AdminEmpresasController (e2e)', () => {
+  let documento: Documento;
+
+  beforeAll(async () => {
+    documento = await lerDocumento();
+  });
+
+  it('documenta a fila (200, 401, 403, 422) e as 4 decisões, todas protegidas', () => {
+    const status = (caminho: string) =>
+      Object.keys(documento.paths[caminho].post.responses).sort();
+
+    expect(
+      Object.keys(documento.paths['/admin/empresas'].get.responses).sort(),
+    ).toEqual(['200', '401', '403', '422']);
+    expect(status('/admin/empresas/{id}/aprovacao')).toEqual([
+      '204',
+      '401',
+      '403',
+      '404',
+      '409',
+    ]);
+    expect(status('/admin/empresas/{id}/suspensao')).toEqual([
+      '204',
+      '401',
+      '403',
+      '404',
+      '409',
+    ]);
+    expect(status('/admin/empresas/{id}/reativacao')).toEqual([
+      '204',
+      '401',
+      '403',
+      '404',
+      '409',
+    ]);
+    expect(status('/admin/empresas/{id}/rejeicao')).toEqual([
+      '204',
+      '401',
+      '403',
+      '404',
+      '409',
+      '422',
+    ]);
+
+    for (const operacao of [
+      documento.paths['/admin/empresas'].get,
+      documento.paths['/admin/empresas/{id}/aprovacao'].post,
+      documento.paths['/admin/empresas/{id}/rejeicao'].post,
+      documento.paths['/admin/empresas/{id}/suspensao'].post,
+      documento.paths['/admin/empresas/{id}/reativacao'].post,
+    ]) {
+      expect(operacao.security).toEqual([{ cookie: [] }]);
+    }
+  });
+
+  it('rejeicao tem corpo com motivo obrigatório', () => {
+    const corpo =
+      documento.paths['/admin/empresas/{id}/rejeicao'].post.requestBody;
+    const ref = corpo?.content['application/json'].schema.$ref as string;
+    const esquema = documento.components.schemas[ref.split('/').pop() ?? ''];
+
+    expect(esquema.required).toEqual(['motivo']);
+  });
+});

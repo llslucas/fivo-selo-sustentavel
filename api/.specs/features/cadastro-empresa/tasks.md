@@ -1651,9 +1651,9 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: as 5 operações com os status acima; `rejeicao` tem corpo com `motivo` obrigatório
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 195 e2e (≥ 1 novo)
+- [x] e2e: as 5 operações com os status acima; `rejeicao` tem corpo com `motivo` obrigatório
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 195 e2e (≥ 1 novo)
 
 **Tests**: e2e
 **Gate**: full
