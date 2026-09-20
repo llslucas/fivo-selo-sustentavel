@@ -1725,10 +1725,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] `npm run openapi:export` gera `api/openapi.json` e encerra com exit 0 (sem deixar worker ou conexão abertos)
-- [ ] e2e: documento gerado igual ao arquivo versionado; alterar um `@ApiResponse` sem reexportar derruba o teste
-- [ ] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 199 e2e (≥ 1 novo)
+- [x] `npm run openapi:export` gera `api/openapi.json` e encerra com exit 0 (sem deixar worker ou conexão abertos)
+- [x] e2e: documento gerado igual ao arquivo versionado; alterar um `@ApiResponse` sem reexportar derruba o teste
+- [x] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 199 e2e (≥ 1 novo)
 
 **Tests**: e2e
 **Gate**: build
