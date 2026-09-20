@@ -8,7 +8,7 @@ import {
 } from '@nestjs/core';
 import request from 'supertest';
 
-import { IS_PUBLIC_KEY } from '@infra/auth/public.decorator';
+import { IS_PUBLIC_KEY } from '@infra/auth/decorators/public.decorator';
 import {
   AppDeTeste,
   criarAppDeTeste,

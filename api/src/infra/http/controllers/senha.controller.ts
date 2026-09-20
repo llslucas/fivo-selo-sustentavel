@@ -4,14 +4,14 @@ import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { RedefinirSenhaUseCase } from '@domain/fivo/application/use-cases/redefinir-senha';
 import { SolicitarRecuperacaoSenhaUseCase } from '@domain/fivo/application/use-cases/solicitar-recuperacao-senha';
-import { Public } from '@infra/auth/public.decorator';
+import { Public } from '@infra/auth/decorators/public.decorator';
 
-import { desembrulhar } from './desembrulhar';
-import { ApiErro } from './openapi/decorators';
-import { esquemaOpenApi } from './openapi/esquema-openapi';
-import { redefinicaoSchema, recuperacaoSchema } from './senha.dto';
-import type { RecuperacaoDto, RedefinicaoDto } from './senha.dto';
-import { ZodValidationPipe } from './zod-validation.pipe';
+import { desembrulhar } from '../desembrulhar';
+import { ApiErro } from '../openapi/decorators';
+import { esquemaOpenApi } from '../openapi/esquema-openapi';
+import { redefinicaoSchema, recuperacaoSchema } from '../senha.dto';
+import type { RecuperacaoDto, RedefinicaoDto } from '../senha.dto';
+import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
 
 const CORPO_RECUPERACAO = esquemaOpenApi('RecuperacaoSenha', recuperacaoSchema);
 const CORPO_REDEFINICAO = esquemaOpenApi('RedefinicaoSenha', redefinicaoSchema);

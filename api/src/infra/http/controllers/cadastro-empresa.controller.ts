@@ -29,28 +29,28 @@ import { EditarDadosEmpresaUseCase } from '@domain/fivo/application/use-cases/ed
 import { TipoArquivo } from '@domain/fivo/entities/arquivo';
 import { UserRole } from '@domain/fivo/entities/user';
 import { ArquivoService } from '@infra/arquivo/arquivo.service';
-import { CurrentUser } from '@infra/auth/current-user.decorator';
-import { Public } from '@infra/auth/public.decorator';
-import { Roles } from '@infra/auth/roles.decorator';
+import { CurrentUser } from '@infra/auth/decorators/current-user.decorator';
+import { Public } from '@infra/auth/decorators/public.decorator';
+import { Roles } from '@infra/auth/decorators/roles.decorator';
 import type { UsuarioAutenticado } from '@infra/auth/usuario-autenticado';
 
-import { criarEmpresaSchema } from './cadastro-empresa.dto';
-import type { CriarEmpresaDto } from './cadastro-empresa.dto';
+import { criarEmpresaSchema } from '../cadastro-empresa.dto';
+import type { CriarEmpresaDto } from '../cadastro-empresa.dto';
 import {
   confirmarEmailSchema,
   editarEmpresaSchema,
   trocarEmailSchema,
-} from './edicao-empresa.dto';
+} from '../edicao-empresa.dto';
 import type {
   ConfirmarEmailDto,
   EditarEmpresaDto,
   TrocarEmailDto,
-} from './edicao-empresa.dto';
-import { desembrulhar } from './desembrulhar';
-import { empresaParaResposta } from './empresa.presenter';
-import { ApiErro, ApiProtegida } from './openapi/decorators';
-import { esquemaOpenApi } from './openapi/esquema-openapi';
-import { ZodValidationPipe } from './zod-validation.pipe';
+} from '../edicao-empresa.dto';
+import { desembrulhar } from '../desembrulhar';
+import { empresaParaResposta } from '../empresa.presenter';
+import { ApiErro, ApiProtegida } from '../openapi/decorators';
+import { esquemaOpenApi } from '../openapi/esquema-openapi';
+import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
 
 interface LogoEnviado {
   originalname: string;

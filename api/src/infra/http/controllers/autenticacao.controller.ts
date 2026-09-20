@@ -12,8 +12,8 @@ import type { Request, Response } from 'express';
 
 import { AutenticarUsuarioUseCase } from '@domain/fivo/application/use-cases/autenticar-usuario';
 import { UserRole } from '@domain/fivo/entities/user';
-import { CurrentUser } from '@infra/auth/current-user.decorator';
-import { Public } from '@infra/auth/public.decorator';
+import { CurrentUser } from '@infra/auth/decorators/current-user.decorator';
+import { Public } from '@infra/auth/decorators/public.decorator';
 import {
   definirCookieDeSessao,
   limparCookieDeSessao,
@@ -21,12 +21,12 @@ import {
 import { SessionService } from '@infra/auth/session.service';
 import type { UsuarioAutenticado } from '@infra/auth/usuario-autenticado';
 
-import { loginSchema } from './autenticacao.dto';
-import type { LoginDto } from './autenticacao.dto';
-import { desembrulhar } from './desembrulhar';
-import { ApiErro, ApiProtegida } from './openapi/decorators';
-import { esquemaOpenApi } from './openapi/esquema-openapi';
-import { ZodValidationPipe } from './zod-validation.pipe';
+import { loginSchema } from '../autenticacao.dto';
+import type { LoginDto } from '../autenticacao.dto';
+import { desembrulhar } from '../desembrulhar';
+import { ApiErro, ApiProtegida } from '../openapi/decorators';
+import { esquemaOpenApi } from '../openapi/esquema-openapi';
+import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
 
 const CORPO_LOGIN = esquemaOpenApi('Login', loginSchema);
 

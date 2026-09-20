@@ -11,10 +11,10 @@ import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { UserRole } from '@domain/fivo/entities/user';
 import { ArquivoService } from '@infra/arquivo/arquivo.service';
-import { CurrentUser } from '@infra/auth/current-user.decorator';
+import { CurrentUser } from '@infra/auth/decorators/current-user.decorator';
 import type { UsuarioAutenticado } from '@infra/auth/usuario-autenticado';
 
-import { ApiErro, ApiProtegida } from './openapi/decorators';
+import { ApiErro, ApiProtegida } from '../openapi/decorators';
 
 const CABECALHOS_ARQUIVO = {
   'X-Content-Type-Options': {
