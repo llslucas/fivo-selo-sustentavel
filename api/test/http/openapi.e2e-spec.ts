@@ -86,6 +86,20 @@ describe('Documento OpenAPI — setup (e2e)', () => {
     });
   });
 
+  it('responde 404 nas duas rotas em produção com SWAGGER_ENABLED diferente de true', async () => {
+    await comAmbiente(
+      { NODE_ENV: 'production', SWAGGER_ENABLED: 'false' },
+      async (contexto) => {
+        const servidor = servidorHttp(contexto);
+
+        expect((await request(servidor).get('/docs')).status).toBe(404);
+        expect((await request(servidor).get('/docs/openapi.json')).status).toBe(
+          404,
+        );
+      },
+    );
+  });
+
   it('serve as duas rotas em produção com SWAGGER_ENABLED=true', async () => {
     await comAmbiente(
       { NODE_ENV: 'production', SWAGGER_ENABLED: 'true' },
