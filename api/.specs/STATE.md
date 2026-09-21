@@ -154,6 +154,14 @@
 - **Date**: 2026-09-18
 - **Status**: active
 
+### AD-020
+- **Decision**: Em `catalogo-instituicoes`, a autoria é dividida por camada: **as tasks de domínio (T1–T20: entidades, value objects, erros de aplicação, portas, casos de uso, doubles em memória, factories e os testes unit correspondentes) são escritas por humanos do grupo**; **as tasks de infra (T21–T34: Prisma, adaptadores, `ArquivoService`, HTTP, OpenAPI, e2e) são delegadas ao agente**, e só começam depois de um **gate de handoff**: gate `build` verde + verificação independente do agente sobre `src/domain/**` registrada em `validation-dominio.md` com veredito PASS. Enquanto o domínio estiver aberto, o agente não escreve nem edita código em `src/domain/**`, `src/core/**`, `test/repositories/**` e `test/factories/**` desta feature — pode ler, revisar, rodar gates e escrever relatórios. **Cláusula de deadline:** o usuário pode autorizar explicitamente o agente a assumir tasks de domínio; a autorização é registrada aqui (data + tasks) antes da primeira linha de código.
+- **Reason**: O trabalho é escolar e a nota depende de o grupo escrever a regra de negócio; a infra é repetitiva, já tem precedente pronto em `cadastro-empresa` e não agrega aprendizado proporcional ao tempo. AD-018 suspendeu a exigência de autoria humana apenas em `cadastro-empresa`, quando o grupo não se disponibilizou — não vale como precedente para esta feature.
+- **Trade-off**: O caminho crítico passa a depender da disponibilidade do grupo: as 20 tasks de domínio bloqueiam toda a infra. A divisão também exige um gate de verificação extra no meio da feature, que não existia antes.
+- **Scope**: `catalogo-instituicoes` — tasks T1–T34.
+- **Date**: 2026-09-20
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: `cadastro-empresa` (`.specs/features/cadastro-empresa/`)
@@ -161,6 +169,16 @@
 - **Completed**: T1–T55. Fase 9 verificada em `validation-fase9.md` (PASS; 25/26 mutantes mortos, o sobrevivente `SWAGGER_ENABLED` ≠ `true` foi coberto depois); gate: 174 unit, 205 e2e.
 - **In-progress** (file:line): nenhum
 - **Next step**: decidir sobre a branch `feat/cadastro-empresa-fase9` (PR / merge / manter local). Depois, rodada do `web`.
+
+### Handoff — planejamento de `catalogo-instituicoes` (2026-09-20)
+
+- **Feature**: `catalogo-instituicoes` (`.specs/features/catalogo-instituicoes/`)
+- **Phase / Task**: Specify (premissas confirmadas), Design e Tasks concluídos; nenhuma task executada.
+- **Escopo da rodada**: P1 do `api` — autocadastro, fila e decisões do admin, curadoria de causas, catálogo de beneficiadas. P2 (área logada da instituição, notas internas) e `web` ficam para rodadas posteriores.
+- **Artefatos**: `spec.md` (13 requisitos, 10 mapeados para tasks), `design.md`, `tasks.md` (34 tasks / 9 fases; `validate_tasks.py` 0 erros, 5 warnings esperados de `Tests: none`).
+- **Autoria**: T1–T20 humanas, T21–T34 do agente, com gate de handoff entre elas (AD-020).
+- **Estado do código**: existe rascunho de um colega (`entities/instituicao.ts`, `criar/aprovar/rejeitar/suspender-instituicao`) fora do padrão AD-017 — será retrabalhado no lugar por T5, T13, T15, T16, T17.
+- **Blockers**: nenhum. **Uncommitted files**: os três artefatos acima + esta entrada.
 - **Blockers**: nenhum
 - **Follow-ups** (Minor, não bloqueantes): os da Fase 8 (M12 retenção 29d, `<` vs `<=` na expiração, asserção de `tokenTrocaEmailExpiraEm`, e2e do 404 de `!bytes`, nota de release sem backfill, log do worker) e os da Fase 7 seguem válidos. Da Fase 9: status documentados conferidos contra literais, paridade de AC5 só checa presença de `security`, AC3 não define 500/400 de corpo malformado.
 - **Uncommitted files**: none
