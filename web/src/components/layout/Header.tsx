@@ -6,8 +6,14 @@ import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Drawer from "@mui/material/Drawer";
+import Divider from "@mui/material/Divider";
 import Link from "next/link";
 import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import { APP_ROUTES } from "@/lib/routes";
 
 const navLinks = [
   { label: "Como funciona", href: "#como-funciona" },
@@ -15,11 +21,11 @@ const navLinks = [
   { label: "Instituições", href: "#" },
 ];
 
-// Distância de scroll (em px) a partir da qual o header deixa de ser transparente.
 const SCROLL_THRESHOLD = 24;
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     function handleScroll() {
@@ -45,9 +51,7 @@ export default function Header() {
         transition: "background-color 0.25s ease",
       }}
     >
-      {/* Gradiente decorativo p/ dar contraste ao texto enquanto transparente.
-          É mais alto que o próprio header de propósito, pra esmaecer bem devagar
-          e não criar uma linha dura na borda de baixo. */}
+      
       <Box
         aria-hidden
         sx={{
@@ -109,6 +113,7 @@ export default function Header() {
             </Stack>
           </Link>
 
+         
           <Stack
             direction="row"
             spacing={4}
@@ -147,10 +152,14 @@ export default function Header() {
             ))}
           </Stack>
 
+          {/* Botão Entrar Desktop */}
           <Button
+            component={Link}
+            href={APP_ROUTES.public.login}
             variant={scrolled ? "outlined" : "contained"}
             color={scrolled ? "inherit" : "primary"}
             sx={{
+              display: { xs: "none", md: "inline-flex" },
               transition: "background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease",
               ...(scrolled
                 ? {
@@ -166,8 +175,173 @@ export default function Header() {
           >
             Entrar
           </Button>
+
+          {/* Botão Hambúrguer Mobile */}
+          <IconButton
+            onClick={() => setMobileOpen(true)}
+            aria-label="abrir menu de navegação"
+            sx={{
+              display: { xs: "flex", md: "none" },
+              p: 1,
+              borderRadius: "10px",
+              border: 1,
+              borderColor: scrolled ? "divider" : "rgba(255, 255, 255, 0.18)",
+              color: "text.primary",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                bgcolor: scrolled ? "action.hover" : "#FFFFFF",
+              },
+            }}
+          >
+            <MenuRoundedIcon sx={{ fontSize: 24, color: "#1B1B19" }} />
+          </IconButton>
         </Stack>
       </Container>
+
+      {/* Drawer Mobile */}
+      <Drawer
+        anchor="right"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        slotProps={{
+          paper: {
+            sx: {
+              width: "82%",
+              maxWidth: 320,
+              bgcolor: "background.default",
+              p: 3,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            },
+          },
+        }}
+      >
+        <Box>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 3,
+            }}
+          >
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "10px",
+                  bgcolor: "primary.main",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "primary.contrastText",
+                }}
+              >
+                <GrassRoundedIcon sx={{ fontSize: 20 }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: "text.primary" }}>
+                Fivo
+              </Typography>
+            </Stack>
+
+            <IconButton
+              onClick={() => setMobileOpen(false)}
+              aria-label="fechar menu"
+              sx={{
+                borderRadius: "10px",
+                border: 1,
+                borderColor: "divider",
+                color: "text.primary",
+                p: 0.75,
+              }}
+            >
+              <CloseRoundedIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Box>
+
+          <Divider sx={{ mb: 2.5 }} />
+
+          {/* Itens de navegação */}
+          <Stack spacing={1}>
+            {navLinks.map((link) => (
+              <Button
+                key={link.label}
+                component={Link}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                sx={{
+                  justifyContent: "flex-start",
+                  py: 1.25,
+                  px: 1.5,
+                  borderRadius: 2,
+                  color: "text.primary",
+                  fontSize: "1rem",
+                  fontWeight: 500,
+                  textTransform: "none",
+                  "&:hover": {
+                    bgcolor: "action.hover",
+                    color: "primary.main",
+                  },
+                }}
+              >
+                {link.label}
+              </Button>
+            ))}
+          </Stack>
+        </Box>
+
+        {/* Ações do rodapé do Drawer */}
+        <Box sx={{ pt: 3, borderTop: 1, borderColor: "divider", display: "flex", flexDirection: "column", gap: 1.5 }}>
+          <Button
+            component={Link}
+            href={APP_ROUTES.public.login}
+            variant="contained"
+            fullWidth
+            onClick={() => setMobileOpen(false)}
+            sx={{
+              bgcolor: "primary.main",
+              color: "#ffffff",
+              py: 1.25,
+              borderRadius: 2,
+              fontWeight: 600,
+              textTransform: "none",
+              fontSize: "0.95rem",
+              boxShadow: "none",
+              "&:hover": {
+                bgcolor: "#0D533D",
+              },
+            }}
+          >
+            Entrar
+          </Button>
+
+          <Button
+            component={Link}
+            href={APP_ROUTES.public.cadastro}
+            variant="outlined"
+            fullWidth
+            onClick={() => setMobileOpen(false)}
+            sx={{
+              borderColor: "divider",
+              color: "text.primary",
+              py: 1.25,
+              borderRadius: 2,
+              fontWeight: 600,
+              textTransform: "none",
+              fontSize: "0.95rem",
+              "&:hover": {
+                borderColor: "text.secondary",
+                bgcolor: "action.hover",
+              },
+            }}
+          >
+            Cadastrar minha empresa
+          </Button>
+        </Box>
+      </Drawer>
     </Box>
   );
 }
