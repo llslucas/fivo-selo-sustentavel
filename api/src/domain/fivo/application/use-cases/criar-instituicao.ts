@@ -54,7 +54,7 @@ export class CriarInstituicaoUseCase {
       await this.instituicaoRepository.findByCnpj(cnpj);
 
     if (instituicaoAlreadyExists) {
-      return left(new InstituicaoAlreadyExistsError(cnpj));
+      return left(new InstituicaoAlreadyExistsError());
     }
 
     const cnpjOrError = Cnpj.create(cnpj);
