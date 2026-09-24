@@ -40,7 +40,7 @@ const ERROS_DE_DOMINIO: Record<string, () => Error> = {
   'cnpj-imutavel': () => new CnpjImutavelError(),
   'conta-bloqueada': () => new ContaBloqueadaError(),
   'empresa-ja-existe': () => new EmpresaAlreadyExistsError(),
-  'instituicao-ja-existe': () => new InstituicaoAlreadyExistsError('Casa X'),
+  'instituicao-ja-existe': () => new InstituicaoAlreadyExistsError(),
   'cnpj-invalido': () => new InvalidCnpjError(),
   'regra-invalida': () => new InvalidRuleValueError(),
   'motivo-insuficiente': () => new MotivoInsuficienteError(),

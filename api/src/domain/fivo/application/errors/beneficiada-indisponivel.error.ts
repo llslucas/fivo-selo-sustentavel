@@ -1,12 +1,12 @@
 import { UseCaseError } from '@core/types/use-case-error';
 
-export class InstituicaoAlreadyExistsError
+export class BeneficiadaIndisponivelError
   extends Error
   implements UseCaseError
 {
-  readonly status = 409;
+  readonly status = 422;
 
   constructor() {
-    super('CNPJ ou e-mail já cadastrado');
+    super('Instituição ou causa indisponível.');
   }
 }
