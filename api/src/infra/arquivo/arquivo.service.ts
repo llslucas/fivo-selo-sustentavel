@@ -65,7 +65,9 @@ export class ArquivoService {
     await this.prisma.arquivo.create({
       data: {
         id: arquivo.id.toString(),
-        tipo: arquivo.tipo,
+        // TODO(T21): remover o cast quando o enum TipoArquivo do schema.prisma
+        // incluir LOGO_INSTITUICAO e DOCUMENTO_INSTITUICAO.
+        tipo: arquivo.tipo as 'LOGO_EMPRESA',
         nomeOriginal: arquivo.nomeOriginal,
         mime: arquivo.mime,
         bytes: arquivo.bytes,

@@ -295,11 +295,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `DOCUMENTO_INSTITUICAO` aceita `application/pdf`, `image/jpeg`, `image/png`, limite 10 MB, **sem** exigência de dimensão mínima
-- [ ] `LOGO_INSTITUICAO` replica as regras de `LOGO_EMPRESA` (PNG/JPG/SVG, 5 MB, 512×512 para raster, sanitização de SVG)
-- [ ] O limite citado na mensagem de erro corresponde ao tipo avaliado (não mais "5 MB" fixo)
-- [ ] `arquivo.spec.ts` cobre: PDF aceito como documento, PDF rejeitado como logo, 10 MB aceito / 10 MB + 1 byte rejeitado, raster 300×300 aceito como documento e rejeitado como logo
-- [ ] Gate `quick` passa
+- [x] `DOCUMENTO_INSTITUICAO` aceita `application/pdf`, `image/jpeg`, `image/png`, limite 10 MB, **sem** exigência de dimensão mínima
+- [x] `LOGO_INSTITUICAO` replica as regras de `LOGO_EMPRESA` (PNG/JPG/SVG, 5 MB, 512×512 para raster, sanitização de SVG)
+- [x] O limite citado na mensagem de erro corresponde ao tipo avaliado (não mais "5 MB" fixo)
+- [x] `arquivo.spec.ts` cobre: PDF aceito como documento, PDF rejeitado como logo, 10 MB aceito / 10 MB + 1 byte rejeitado, raster 300×300 aceito como documento e rejeitado como logo
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
