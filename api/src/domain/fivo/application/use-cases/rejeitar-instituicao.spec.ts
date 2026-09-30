@@ -28,6 +28,7 @@ describe('RejeitarInstituicaoUseCase', () => {
     await rejeitarInstituicaoUseCase.execute(
       mockInstituicao.id.toString(),
       mockUser,
+      'Motivo de rejeicao suficientemente detalhado',
     );
 
     const updatedInstituicao = await instituicaoRepository.findById(
@@ -35,7 +36,7 @@ describe('RejeitarInstituicaoUseCase', () => {
     );
 
     expect(updatedInstituicao?.status).toBe(InstituicaoStatus.REJEITADA);
-    expect(updatedInstituicao?.decidido_por).toEqual(mockUser);
+    expect(updatedInstituicao?.decididoPor).toEqual(mockUser.id);
   });
 
   it('should throw a NotAllowedError if the user is not an admin', async () => {
@@ -48,6 +49,7 @@ describe('RejeitarInstituicaoUseCase', () => {
       rejeitarInstituicaoUseCase.execute(
         mockInstituicao.id.toString(),
         mockUser,
+        'Motivo de rejeicao suficientemente detalhado',
       ),
     ).rejects.toThrow(NotAllowedError);
   });
@@ -56,7 +58,11 @@ describe('RejeitarInstituicaoUseCase', () => {
     const mockUser = UserFactory.create({ role: UserRole.ADMIN });
 
     await expect(
-      rejeitarInstituicaoUseCase.execute('non-existent-id', mockUser),
+      rejeitarInstituicaoUseCase.execute(
+        'non-existent-id',
+        mockUser,
+        'Motivo de rejeicao suficientemente detalhado',
+      ),
     ).rejects.toThrow(ResourceNotFoundError);
   });
 });

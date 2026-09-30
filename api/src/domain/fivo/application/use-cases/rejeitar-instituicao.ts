@@ -2,12 +2,15 @@ import { User, UserRole } from '@domain/fivo/entities/user';
 import { InstituicaoRepository } from '../ports/database/instituicao-repository';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
-import { InstituicaoStatus } from '@domain/fivo/entities/instituicao';
 
 export class RejeitarInstituicaoUseCase {
   constructor(private readonly instituicaoRepository: InstituicaoRepository) {}
 
-  async execute(instituicaoId: string, user: User): Promise<void> {
+  async execute(
+    instituicaoId: string,
+    user: User,
+    motivo: string,
+  ): Promise<void> {
     if (user.role !== UserRole.ADMIN) {
       throw new NotAllowedError();
     }
@@ -19,9 +22,11 @@ export class RejeitarInstituicaoUseCase {
       throw new ResourceNotFoundError('Instituicao não encontrada');
     }
 
-    instituicao.status = InstituicaoStatus.REJEITADA;
-    instituicao.decidido_por = user;
-    instituicao.decidido_em = new Date();
+    const resultado = instituicao.rejeitar(user.id, motivo);
+
+    if (resultado.isLeft()) {
+      throw resultado.value;
+    }
 
     await this.instituicaoRepository.save(instituicao);
   }

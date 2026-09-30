@@ -22,7 +22,9 @@ describe('SuspenderInstituicaoUseCase', () => {
   it('should suspend an existing instituicao if the user is an admin', async () => {
     const mockUser = UserFactory.create({ role: UserRole.ADMIN });
 
-    const mockInstituicao = InstituicaoFactory.create();
+    const mockInstituicao = InstituicaoFactory.create({
+      status: InstituicaoStatus.APROVADA,
+    });
     await instituicaoRepository.create(mockInstituicao);
 
     await suspenderInstituicaoUseCase.execute(
@@ -35,7 +37,7 @@ describe('SuspenderInstituicaoUseCase', () => {
     );
 
     expect(updatedInstituicao?.status).toBe(InstituicaoStatus.SUSPENSA);
-    expect(updatedInstituicao?.decidido_por).toEqual(mockUser);
+    expect(updatedInstituicao?.decididoPor).toEqual(mockUser.id);
   });
 
   it('should throw a NotAllowedError if the user is not an admin', async () => {
