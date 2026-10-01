@@ -5,18 +5,18 @@ export default function CompApresenta() {
   return (
     <Box
       sx={{
-        backgroundColor: "#116A4D", 
+        backgroundColor: "#116A4D",
         color: "#ffffff",
-        p: { xs: 4, md: 6 },
+        p: { xs: 3, md: 5 },
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         height: "100%",
         width: "50%"
       }}
-    > 
+    >
       <Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 6 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 4 }}>
           <Box
             sx={{
               width: 32,
@@ -34,15 +34,15 @@ export default function CompApresenta() {
             Fivo
           </Typography>
         </Box>
-        <Typography variant="h3" sx={{ fontWeight: 600, mb: 3, lineHeight: 1.2 }}>
+        <Typography variant="h4" sx={{ fontWeight: 600, mb: 2, lineHeight: 1.25 }}>
           Cada produto vendido pode virar um impacto real.
         </Typography>
 
-        <Typography variant="body1" sx={{ color: "#A8D5C2", maxWidth: "80%", lineHeight: 1.6 }}>
+        <Typography variant="body2" sx={{ color: "#A8D5C2", maxWidth: "85%", lineHeight: 1.6 }}>
           Crie campanhas, gere seu selo e mostre ao consumidor exatamente para onde a doação foi.
         </Typography>
       </Box>
-      <Box sx={{ display: "flex", gap: 6, mt: 8 }}>
+      <Box sx={{ display: "flex", gap: 5, mt: 5 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 600 }}>
             312
