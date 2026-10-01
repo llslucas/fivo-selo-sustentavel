@@ -9,6 +9,7 @@ import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 type AvatarColor = "mint" | "peach" | "lavender";
 
 const companies: {
+  slug: string;
   initials: string;
   color: AvatarColor;
   name: string;
@@ -17,6 +18,7 @@ const companies: {
   amount: string;
 }[] = [
   {
+    slug: "cafe-serra-verde",
     initials: "SV",
     color: "mint",
     name: "Café Serra Verde",
@@ -25,6 +27,7 @@ const companies: {
     amount: "R$ 6.800 doados",
   },
   {
+    slug: "padaria-nova-era",
     initials: "PA",
     color: "peach",
     name: "Padaria Aurora",
@@ -33,6 +36,7 @@ const companies: {
     amount: "R$ 2.140 doados",
   },
   {
+    slug: "loja-mundo-verde",
     initials: "VN",
     color: "lavender",
     name: "Vinhos Nogueira",
@@ -53,7 +57,7 @@ export default function PartnerCompanies() {
           <Typography variant="h4" component="h2" sx={{ fontWeight: 700 }}>
             Empresas que já participam
           </Typography>
-          <Link href="#" style={{ color: "inherit", textDecoration: "none" }}>
+          <Link href="/parceiros" style={{ color: "inherit", textDecoration: "none" }}>
             <Stack
               direction="row"
               spacing={0.5}
@@ -84,7 +88,7 @@ export default function PartnerCompanies() {
           {companies.map((company) => (
             <Grid key={company.name} size={{ xs: 12, sm: 6, md: 4 }}>
               <Link
-                href="#"
+                href={`/parceiros/${company.slug}`}
                 style={{ color: "inherit", textDecoration: "none", display: "block", height: "100%" }}
               >
                 <Box

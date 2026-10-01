@@ -11,7 +11,7 @@ import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
 
 const navLinks = [
   { label: "Como funciona", href: "#como-funciona" },
-  { label: "Empresas parceiras", href: "#empresas-parceiras" },
+  { label: "Empresas parceiras", href: "/parceiros" },
   { label: "Instituições", href: "#" },
 ];
 
@@ -147,25 +147,27 @@ export default function Header() {
             ))}
           </Stack>
 
-          <Button
-            variant={scrolled ? "outlined" : "contained"}
-            color={scrolled ? "inherit" : "primary"}
-            sx={{
-              transition: "background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease",
-              ...(scrolled
-                ? {
-                    color: "text.primary",
-                    borderColor: "divider",
-                    "&:hover": { borderColor: "text.secondary", bgcolor: "action.hover" },
-                  }
-                : {
-                    boxShadow: "none",
-                    "&:hover": { boxShadow: "none" },
-                  }),
-            }}
-          >
-            Entrar
-          </Button>
+          <Link href="/login" style={{ textDecoration: "none" }}>
+            <Button
+              variant={scrolled ? "outlined" : "contained"}
+              color={scrolled ? "inherit" : "primary"}
+              sx={{
+                transition: "background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease",
+                ...(scrolled
+                  ? {
+                      color: "text.primary",
+                      borderColor: "divider",
+                      "&:hover": { borderColor: "text.secondary", bgcolor: "action.hover" },
+                    }
+                  : {
+                      boxShadow: "none",
+                      "&:hover": { boxShadow: "none" },
+                    }),
+              }}
+            >
+              Entrar
+            </Button>
+          </Link>
         </Stack>
       </Container>
     </Box>

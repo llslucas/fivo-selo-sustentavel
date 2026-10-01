@@ -145,8 +145,8 @@ export default function CompLogin() {
         </Box>
 
 
-        <Box sx={{ display: "flex", justifyContext: "flex-end", textAlign: "right" }}>
-          <Link href="/esqueci-minha-senha" underline="none" sx={{ color: "#116A4D", fontSize: "0.875rem", fontWeight: 500, width: "100%" }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", textAlign: "right" }}>
+          <Link href="/recuperar-senha" underline="none" sx={{ color: "#116A4D", fontSize: "0.875rem", fontWeight: 500, width: "100%" }}>
             Esqueci minha senha
           </Link>
         </Box>
