@@ -47,7 +47,7 @@ export class InMemoryInstituicaoRepository implements InstituicaoRepository {
 
   findById(id: string): Promise<Instituicao | null> {
     const instituicao = this.items.find((item) => item.id.toString() === id);
-    return Promise.resolve(instituicao ?? null);
+    return Promise.resolve(instituicao ? copiar(instituicao) : null);
   }
 
   findByCnpj(cnpj: string): Promise<Instituicao | null> {
