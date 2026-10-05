@@ -391,6 +391,33 @@ describe('Rotas P2 — edição cadastral e recuperação de senha (e2e)', () =>
       }
     });
 
+    it('link com prazo vencido → 400 "Link de confirmação inválido ou expirado", e o login segue com o e-mail antigo', async () => {
+      const { token } = await criarEmpresa('antigo@empresa.test');
+      await comCookieDeSessao(
+        api()
+          .patch('/empresas/me/email')
+          .send({ novoEmail: 'novo@empresa.test' }),
+        token,
+      ).expect(202);
+      await contexto.prisma.empresa.updateMany({
+        where: { emailPendente: 'novo@empresa.test' },
+        data: { tokenTrocaEmailExpiraEm: new Date(Date.now() - 60 * 1000) },
+      });
+
+      const confirmacao = await api()
+        .post('/empresas/me/email/confirmacao')
+        .send({ token: tokenDoEmail(mailer, TemplateEmail.EMAIL_CONFIRMACAO) });
+      const loginAntigo = await entrar('antigo@empresa.test', SENHA);
+      const loginNovo = await entrar('novo@empresa.test', SENHA);
+
+      expect(confirmacao.status).toBe(400);
+      expect(confirmacao.body).toMatchObject({
+        message: 'Link de confirmação inválido ou expirado',
+      });
+      expect(loginAntigo.status).toBe(200);
+      expect(loginNovo.status).toBe(401);
+    });
+
     it('e-mail novo já cadastrado por outra conta → 409 na confirmação, e o e-mail antigo continua', async () => {
       const { token } = await criarEmpresa('antigo@empresa.test');
       await comCookieDeSessao(

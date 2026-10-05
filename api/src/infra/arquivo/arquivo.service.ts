@@ -65,7 +65,9 @@ export class ArquivoService {
     await this.prisma.arquivo.create({
       data: {
         id: arquivo.id.toString(),
-        tipo: arquivo.tipo,
+        // TODO(T21): remover o cast quando o enum TipoArquivo do schema.prisma
+        // incluir LOGO_INSTITUICAO e DOCUMENTO_INSTITUICAO.
+        tipo: arquivo.tipo as 'LOGO_EMPRESA',
         nomeOriginal: arquivo.nomeOriginal,
         mime: arquivo.mime,
         bytes: arquivo.bytes,
@@ -79,10 +81,13 @@ export class ArquivoService {
     return right({ id: arquivo.id.toString() });
   }
 
-  async lerBytes(id: string): Promise<ArquivoBytes> {
-    const registro = await this.prisma.arquivo.findUniqueOrThrow({
-      where: { id },
-    });
+  async lerBytes(id: string): Promise<ArquivoBytes | null> {
+    const registro = await this.prisma.arquivo.findUnique({ where: { id } });
+
+    if (!registro) {
+      return null;
+    }
+
     const buffer = await this.storage.ler(registro.chaveStorage);
 
     return {

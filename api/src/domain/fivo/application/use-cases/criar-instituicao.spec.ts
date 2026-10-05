@@ -21,14 +21,16 @@ describe('CriarInstituicaoUseCase', () => {
       telefone: '11999999999',
       cep: '12345678',
       logradouro: 'Rua Teste',
-      numero: 123,
+      numero: '123',
       complemento: 'Apto 101',
       bairro: 'Bairro Teste',
       cidade: 'Cidade Teste',
       uf: 'SP',
       site: 'https://www.instituicaoteste.com.br',
-      email: 'contato@instituicaoteste.com.br',
       contato: 'João da Silva',
+      causaId: 'causa-teste',
+      descricao: 'Descricao publica da instituicao',
+      documentoArquivoId: 'arquivo-documento-teste',
     };
 
     const response = await criarInstituicaoUseCase.execute(request);

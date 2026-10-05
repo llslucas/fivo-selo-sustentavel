@@ -7,9 +7,9 @@ import { UserRepository } from '@domain/fivo/application/ports/database/user-rep
 import { User, UserRole } from '@domain/fivo/entities/user';
 import { AdminSeeder } from '@infra/auth/admin-seeder';
 import { AuthModule } from '@infra/auth/auth.module';
-import { CurrentUser } from '@infra/auth/current-user.decorator';
-import { Public } from '@infra/auth/public.decorator';
-import { Roles } from '@infra/auth/roles.decorator';
+import { CurrentUser } from '@infra/auth/decorators/current-user.decorator';
+import { Public } from '@infra/auth/decorators/public.decorator';
+import { Roles } from '@infra/auth/decorators/roles.decorator';
 import { definirCookieDeSessao } from '@infra/auth/session-cookie';
 import { SessionService } from '@infra/auth/session.service';
 import { UsuarioAutenticado } from '@infra/auth/usuario-autenticado';

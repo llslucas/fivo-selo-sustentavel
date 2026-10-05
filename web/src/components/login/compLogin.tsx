@@ -1,22 +1,55 @@
-'use client'; 
-import { APP_ROUTES } from '@/lib/routes';
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import NextLink from "next/link";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import Alert from "@mui/material/Alert";
+import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
-import NextLink from "next/link";
-import { useState } from "react";
+import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
+import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
+import { APP_ROUTES } from "@/lib/routes";
+import { ApiError, login } from "@/lib/api";
 
 export default function CompLogin() {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [errosCampo, setErrosCampo] = useState<Record<string, string>>({});
 
-  const handleLogin = () => {
-    // Aqui você pode adicionar a lógica de autenticação, como enviar os dados para o backend
-    console.log('Email:', email);
-    console.log('Senha:', senha);
-  };
+  async function handleLogin() {
+    setErro(null);
+    setErrosCampo({});
+    setLoading(true);
+    try {
+      await login(email, senha);
+      router.push(APP_ROUTES.private.dashboard);
+    } catch (e) {
+      if (e instanceof ApiError) {
+        setErrosCampo(e.fieldErrors);
+        setErro(
+          e.status === 401
+            ? "E-mail ou senha incorretos."
+            : e.status === 429
+              ? e.message
+              : e.message,
+        );
+      } else {
+        setErro("Não foi possível entrar. Tente novamente.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <Box
@@ -46,7 +79,17 @@ export default function CompLogin() {
         Acesse a área da sua empresa
       </Typography>
 
-      <Box component="form" noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+      <Box
+        component="form"
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleLogin();
+        }}
+        sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
+      >
+        {erro && <Alert severity="error">{erro}</Alert>}
+
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 600, color: "#1B1B19", mb: 0.75 }}>
             E-mail corporativo
@@ -55,8 +98,11 @@ export default function CompLogin() {
             fullWidth
             placeholder="nome@empresa.com.br"
             variant="outlined"
+            type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            error={Boolean(errosCampo.email)}
+            helperText={errosCampo.email}
             sx={{
               "& .MuiOutlinedInput-root": {
                 bgcolor: "#FFFFFF",
@@ -85,11 +131,33 @@ export default function CompLogin() {
           </Typography>
           <TextField
             fullWidth
-            type="password"
+            type={mostrarSenha ? "text" : "password"}
             placeholder="••••••••"
             variant="outlined"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
+            error={Boolean(errosCampo.senha)}
+            helperText={errosCampo.senha}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setMostrarSenha((v) => !v)}
+                      edge="end"
+                      size="small"
+                      aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+                    >
+                      {mostrarSenha ? (
+                        <VisibilityOffRoundedIcon fontSize="small" />
+                      ) : (
+                        <VisibilityRoundedIcon fontSize="small" />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
             sx={{
               "& .MuiOutlinedInput-root": {
                 bgcolor: "#FFFFFF",
@@ -129,14 +197,13 @@ export default function CompLogin() {
         </Box>
 
         <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1.75 }}>
-          <Button 
-            variant="contained" 
-            fullWidth 
-            component={NextLink}
-            href={APP_ROUTES.private.dashboard}
-            onClick={handleLogin}
-            sx={{ 
-              bgcolor: "#116A4D", 
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            disabled={loading || !email || !senha}
+            sx={{
+              bgcolor: "#116A4D",
               '&:hover': { bgcolor: "#0D533D" },
               textTransform: 'none',
               borderRadius: 2,
@@ -146,15 +213,15 @@ export default function CompLogin() {
               boxShadow: "none",
             }}
           >
-            Entrar
+            {loading ? <CircularProgress size={22} sx={{ color: "#fff" }} /> : "Entrar"}
           </Button>
-          
-          <Button 
-            variant="outlined" 
-            fullWidth 
+
+          <Button
+            variant="outlined"
+            fullWidth
             component={NextLink}
             href={APP_ROUTES.public.cadastro}
-            sx={{ 
+            sx={{
               color: "#1B1B19",
               borderColor: "#E5E7EB",
               bgcolor: "#ffffff",

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -89,7 +90,7 @@ describe('ArquivoService (e2e)', () => {
     expect(linha?.altura).toBe(512);
 
     const lido = await service.lerBytes(resultado.value.id);
-    expect(lido.buffer.equals(buffer)).toBe(true);
+    expect(lido?.buffer.equals(buffer)).toBe(true);
   });
 
   it('aceita JPG válido (>=512x512) e persiste a linha + o objeto no storage', async () => {
@@ -227,8 +228,12 @@ describe('ArquivoService (e2e)', () => {
 
     const lido = await service.lerBytes(resultado.value.id);
 
-    expect(lido.mime).toBe('image/jpeg');
-    expect(lido.nomeOriginal).toBe('logo.jpg');
-    expect(lido.buffer.equals(buffer)).toBe(true);
+    expect(lido?.mime).toBe('image/jpeg');
+    expect(lido?.nomeOriginal).toBe('logo.jpg');
+    expect(lido?.buffer.equals(buffer)).toBe(true);
+  });
+
+  it('lerBytes com id inexistente devolve null, sem exceção', async () => {
+    await expect(service.lerBytes(randomUUID())).resolves.toBeNull();
   });
 });

@@ -131,6 +131,22 @@ describe('PrismaEmpresaRepository (e2e)', () => {
     expect(encontrada!.updatedAt?.getTime()).toBe(empresa.updatedAt!.getTime());
   });
 
+  it('roundtrip preserva o prazo do link de troca de e-mail', async () => {
+    const empresa = EmpresaFactory.create({
+      cnpj: cnpj(CNPJ_A),
+      emailPendente: 'novo-email@empresa.test',
+      tokenTrocaEmailHash: 'sha256-do-token-de-troca',
+      tokenTrocaEmailExpiraEm: new Date('2026-04-06T11:00:00.000Z'),
+    });
+
+    await repository.create(empresa);
+
+    const encontrada = await repository.findById(empresa.id.toString());
+    expect(encontrada!.tokenTrocaEmailExpiraEm?.getTime()).toBe(
+      new Date('2026-04-06T11:00:00.000Z').getTime(),
+    );
+  });
+
   it('create seguido de findByCnpj devolve a mesma entidade', async () => {
     const empresa = EmpresaFactory.create({ cnpj: cnpj(CNPJ_B) });
 
@@ -272,6 +288,64 @@ describe('PrismaEmpresaRepository (e2e)', () => {
     expect(final!.decididoPor?.toString()).toBe(adminId.toString());
     expect(final!.decididoEm?.getTime()).toBe(decidida.decididoEm!.getTime());
     expect(final!.motivoDecisao).toBe(motivo);
+  });
+
+  it('salvarTrocaDeEmail com leitura obsoleta preserva os dados cadastrais gravados por save', async () => {
+    const empresa = EmpresaFactory.create({
+      cnpj: cnpj(CNPJ_A),
+      nomeFantasia: 'Nome Antigo',
+    });
+    await repository.create(empresa);
+    const obsoleta = (await repository.findById(empresa.id.toString()))!;
+    await repository.save(
+      EmpresaFactory.create(
+        { cnpj: cnpj(CNPJ_A), nomeFantasia: 'Nome Novo' },
+        empresa.id,
+      ),
+    );
+    obsoleta.solicitarTrocaDeEmail(
+      'novo@empresa.test',
+      'hash-do-token',
+      new Date('2026-04-05T11:00:00.000Z'),
+    );
+
+    await repository.salvarTrocaDeEmail(obsoleta);
+
+    const final = await repository.findById(empresa.id.toString());
+    expect(final!.nomeFantasia).toBe('Nome Novo');
+    expect(final!.emailPendente).toBe('novo@empresa.test');
+    expect(final!.tokenTrocaEmailHash).toBe('hash-do-token');
+    expect(final!.tokenTrocaEmailExpiraEm?.getTime()).toBe(
+      new Date('2026-04-06T11:00:00.000Z').getTime(),
+    );
+  });
+
+  it('save cadastral com leitura obsoleta não apaga o e-mail pendente gravado por salvarTrocaDeEmail', async () => {
+    const empresa = EmpresaFactory.create({
+      cnpj: cnpj(CNPJ_A),
+      nomeFantasia: 'Nome Antigo',
+    });
+    await repository.create(empresa);
+    const obsoleta = (await repository.findById(empresa.id.toString()))!;
+    const comTroca = (await repository.findById(empresa.id.toString()))!;
+    comTroca.solicitarTrocaDeEmail(
+      'novo@empresa.test',
+      'hash-do-token',
+      new Date('2026-04-05T11:00:00.000Z'),
+    );
+    await repository.salvarTrocaDeEmail(comTroca);
+
+    await repository.save(
+      EmpresaFactory.create(
+        { cnpj: obsoleta.cnpj, nomeFantasia: 'Nome Novo' },
+        empresa.id,
+      ),
+    );
+
+    const final = await repository.findById(empresa.id.toString());
+    expect(final!.nomeFantasia).toBe('Nome Novo');
+    expect(final!.emailPendente).toBe('novo@empresa.test');
+    expect(final!.tokenTrocaEmailHash).toBe('hash-do-token');
   });
 
   it('create com CNPJ já cadastrado falha com EmpresaAlreadyExistsError (409)', async () => {

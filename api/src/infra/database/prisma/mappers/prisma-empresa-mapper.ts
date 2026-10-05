@@ -64,6 +64,7 @@ export class PrismaEmpresaMapper {
         motivoDecisao: raw.motivoDecisao,
         emailPendente: raw.emailPendente,
         tokenTrocaEmailHash: raw.tokenTrocaEmailHash,
+        tokenTrocaEmailExpiraEm: raw.tokenTrocaEmailExpiraEm,
         usuarioId: raw.usuarioId ? new UniqueEntityId(raw.usuarioId) : null,
         logoArquivoId: raw.logoArquivoId
           ? new UniqueEntityId(raw.logoArquivoId)
@@ -99,6 +100,7 @@ export class PrismaEmpresaMapper {
       motivoDecisao: empresa.motivoDecisao ?? null,
       emailPendente: empresa.emailPendente ?? null,
       tokenTrocaEmailHash: empresa.tokenTrocaEmailHash ?? null,
+      tokenTrocaEmailExpiraEm: empresa.tokenTrocaEmailExpiraEm ?? null,
       criadoEm: empresa.createdAt,
       atualizadoEm: empresa.updatedAt ?? null,
     };

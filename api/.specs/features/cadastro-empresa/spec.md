@@ -214,7 +214,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | EMP-08 | P2: Manutenção dos dados cadastrais | Execute | Verified (domínio) — T12, `validation-fase2.md`; `EditarDadosEmpresaUseCase` — CNPJ imutável, troca de e-mail via `emailPendente`; rotas entregues em T29 (e2e; confirmação de e-mail com caso de uso próprio); falta a reflexão em ≤60s nas páginas públicas, `paginas-publicas` |
 | EMP-09 | P2: Recuperação de senha | Execute | Verified (domínio) — T13, `validation-fase2.md`; `SolicitarRecuperacaoSenha`/`RedefinirSenhaUseCase` — token opaco, expiração de 60 min, revogação de sessões; rotas entregues em T29 (e2e) |
 | EMP-10 | P3: Suspensão e reativação de empresa | Execute | Verified (domínio) — T11, `validation-fase2.md`; `Suspender`/`ReativarEmpresaUseCase` em `Either` com auditoria; propagação HTTP 404 das páginas públicas é infra/`paginas-publicas` |
-| EMP-11 | P2: Contrato HTTP documentado (OpenAPI) | Tasks | In Tasks — T47–T55 |
+| EMP-11 | P2: Contrato HTTP documentado (OpenAPI) | Execute | Verified — T47–T55, `validation-fase9.md`; OpenAPI gerado do código, `openapi.json` versionado, paridade rotas ↔ documento em e2e |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 

@@ -12,6 +12,8 @@ import { UserAlreadyExistsError } from '../errors/users-already-exists.error';
 import { ConfirmarTrocaEmailUseCase } from './confirmar-troca-email';
 
 const TOKEN = 'token-de-confirmacao';
+const AGORA = new Date('2026-09-20T12:00:00.000Z');
+const HORA_MS = 60 * 60 * 1000;
 const hashDe = (token: string) =>
   createHash('sha256').update(token).digest('hex');
 
@@ -30,6 +32,7 @@ describe('ConfirmarTrocaEmailUseCase', () => {
       usuarioId: user.id,
       emailPendente: 'novo@empresa.test',
       tokenTrocaEmailHash: hashDe(TOKEN),
+      tokenTrocaEmailExpiraEm: new Date(AGORA.getTime() + 24 * HORA_MS),
     });
     await empresaRepository.create(empresa);
 
@@ -49,7 +52,7 @@ describe('ConfirmarTrocaEmailUseCase', () => {
   it('should switch the login e-mail to the pending one and clear the pending change on a valid token', async () => {
     const { user, empresa } = await prepararTrocaPendente();
 
-    const response = await sut.execute({ token: TOKEN });
+    const response = await sut.execute({ token: TOKEN, agora: AGORA });
 
     expect(response.isRight()).toBe(true);
     const userAtualizado = await userRepository.findById(user.id.toString());
@@ -64,7 +67,7 @@ describe('ConfirmarTrocaEmailUseCase', () => {
   it('should return TokenConfirmacaoEmailInvalidoError (400) for an unknown token and change nothing', async () => {
     const { user } = await prepararTrocaPendente();
 
-    const response = await sut.execute({ token: 'outro-token' });
+    const response = await sut.execute({ token: 'outro-token', agora: AGORA });
 
     expect(response.isLeft()).toBe(true);
     expect(response.value).toBeInstanceOf(TokenConfirmacaoEmailInvalidoError);
@@ -78,9 +81,9 @@ describe('ConfirmarTrocaEmailUseCase', () => {
 
   it('should reject a token that was already used', async () => {
     await prepararTrocaPendente();
-    await sut.execute({ token: TOKEN });
+    await sut.execute({ token: TOKEN, agora: AGORA });
 
-    const segunda = await sut.execute({ token: TOKEN });
+    const segunda = await sut.execute({ token: TOKEN, agora: AGORA });
 
     expect(segunda.isLeft()).toBe(true);
     expect(segunda.value).toBeInstanceOf(TokenConfirmacaoEmailInvalidoError);
@@ -95,7 +98,7 @@ describe('ConfirmarTrocaEmailUseCase', () => {
       }),
     );
 
-    const response = await sut.execute({ token: TOKEN });
+    const response = await sut.execute({ token: TOKEN, agora: AGORA });
 
     expect(response.isLeft()).toBe(true);
     expect(response.value).toBeInstanceOf(UserAlreadyExistsError);
@@ -112,9 +115,45 @@ describe('ConfirmarTrocaEmailUseCase', () => {
     });
     await empresaRepository.create(empresa);
 
-    const response = await sut.execute({ token: TOKEN });
+    const response = await sut.execute({ token: TOKEN, agora: AGORA });
 
     expect(response.isLeft()).toBe(true);
     expect(response.value).toBeInstanceOf(TokenConfirmacaoEmailInvalidoError);
+  });
+
+  it('should confirm the change at 23h59 after the request', async () => {
+    const { user } = await prepararTrocaPendente();
+
+    const response = await sut.execute({
+      token: TOKEN,
+      agora: new Date(AGORA.getTime() + 23 * HORA_MS + 59 * 60 * 1000),
+    });
+
+    expect(response.isRight()).toBe(true);
+    expect((await userRepository.findById(user.id.toString()))?.email).toBe(
+      'novo@empresa.test',
+    );
+  });
+
+  it('should reject the link at 24h01, keeping the previous e-mail and the pending change', async () => {
+    const { user, empresa } = await prepararTrocaPendente();
+
+    const response = await sut.execute({
+      token: TOKEN,
+      agora: new Date(AGORA.getTime() + 24 * HORA_MS + 60 * 1000),
+    });
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(TokenConfirmacaoEmailInvalidoError);
+    expect((response.value as TokenConfirmacaoEmailInvalidoError).message).toBe(
+      'Link de confirmação inválido ou expirado',
+    );
+    expect((await userRepository.findById(user.id.toString()))?.email).toBe(
+      'antigo@empresa.test',
+    );
+    const empresaDepois = await empresaRepository.findById(
+      empresa.id.toString(),
+    );
+    expect(empresaDepois?.emailPendente).toBe('novo@empresa.test');
   });
 });

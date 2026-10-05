@@ -71,17 +71,8 @@ export class EditarDadosEmpresaUseCase {
       }
     }
 
-    let emailPendente = empresa.emailPendente;
-    let tokenTrocaEmailHash = empresa.tokenTrocaEmailHash;
+    const agora = new Date();
     let tokenBruto: string | undefined;
-
-    if (novoEmail) {
-      emailPendente = novoEmail;
-      tokenBruto = randomBytes(TOKEN_BYTES).toString('hex');
-      tokenTrocaEmailHash = createHash('sha256')
-        .update(tokenBruto)
-        .digest('hex');
-    }
 
     const empresaAtualizada = Empresa.create(
       {
@@ -103,20 +94,32 @@ export class EditarDadosEmpresaUseCase {
         decididoEm: empresa.decididoEm,
         motivoDecisao: empresa.motivoDecisao,
         createdAt: empresa.createdAt,
-        updatedAt: new Date(),
+        updatedAt: agora,
         usuarioId: empresa.usuarioId,
         logoArquivoId: logoArquivoId
           ? new UniqueEntityId(logoArquivoId)
           : empresa.logoArquivoId,
-        emailPendente,
-        tokenTrocaEmailHash,
+        emailPendente: empresa.emailPendente,
+        tokenTrocaEmailHash: empresa.tokenTrocaEmailHash,
+        tokenTrocaEmailExpiraEm: empresa.tokenTrocaEmailExpiraEm,
       },
       empresa.id,
     );
 
+    if (novoEmail) {
+      tokenBruto = randomBytes(TOKEN_BYTES).toString('hex');
+      empresaAtualizada.solicitarTrocaDeEmail(
+        novoEmail,
+        createHash('sha256').update(tokenBruto).digest('hex'),
+        agora,
+      );
+    }
+
     await this.empresaRepository.save(empresaAtualizada);
 
     if (novoEmail) {
+      await this.empresaRepository.salvarTrocaDeEmail(empresaAtualizada);
+
       try {
         await this.mailer.enviar({
           para: novoEmail,

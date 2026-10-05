@@ -81,6 +81,8 @@ describe('CriarEmpresaUseCase — transação atômica User + Empresa (e2e)', ()
       listarPorEstado: (estado, ordem) =>
         empresaRepository.listarPorEstado(estado, ordem),
       save: (empresa) => empresaRepository.save(empresa),
+      salvarTrocaDeEmail: (empresa) =>
+        empresaRepository.salvarTrocaDeEmail(empresa),
       salvarTransicao: (empresa, estado) =>
         empresaRepository.salvarTransicao(empresa, estado),
       create: async (empresa: Empresa) => {

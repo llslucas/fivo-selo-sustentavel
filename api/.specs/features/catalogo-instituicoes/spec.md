@@ -43,17 +43,19 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | Instituição como usuário da plataforma | Papel `INSTITUICAO` com login e área logada própria | Decidido com o usuário (AD-008): sem conta, toda correção de dado vira ticket manual para a Fivo Lab | y |
 | Documento de validação | Exatamente 1 arquivo obrigatório na submissão, PDF, JPG ou PNG de até 10 MB, sem tipo fixo exigido, com descrição livre opcional de até 200 caracteres | Decidido com o usuário (AD-008): a documentação de terceiro setor é heterogênea; exigir tipos fixos barraria instituições pequenas legítimas | y |
 | Autenticação da instituição | Reaproveita e-mail + senha, política de senha, rate limit de login e expiração de sessão definidos em `cadastro-empresa` | Uma única implementação de autenticação para os três papéis reduz superfície de erro de segurança | y |
-| Estados da instituição | `PENDENTE_APROVACAO`, `APROVADA`, `REJEITADA`, `SUSPENSA`, `INATIVA` | Espelha a máquina de estados da empresa e preserva a inativação sem exclusão física | n |
-| Curadoria de causas | Continua exclusiva do administrador; a instituição escolhe uma causa já existente no seu cadastro | Causa é taxonomia da plataforma; se cada instituição criasse a sua, o agrupamento por causa perderia sentido | n |
-| Vínculo instituição–causa | Cada instituição pertence a exatamente uma causa | A proposta usa "instituição ou causa" alternadamente; o vínculo único permite que a campanha aponte para um dos dois sem ambiguidade | n |
-| Vínculo da campanha | A campanha referencia uma instituição OU uma causa, nunca ambas e nunca nenhuma | Evita conflito de exibição na página pública sobre quem é a beneficiada | n |
-| Remoção de instituição | Nunca há exclusão física; a instituição vai a `INATIVA` e deixa de aparecer para novas campanhas | Campanhas já publicadas e selos já impressos em embalagens referenciam a instituição para sempre | n |
-| Efeito da inativação sobre campanhas existentes | Campanhas já aprovadas continuam publicadas apontando para a instituição inativada | Um selo já impresso em embalagem física não pode ser retirado do mundo real; retirar a página quebraria a promessa ao consumidor | n |
-| Volume esperado na v1 | Até 200 instituições e 20 causas | Dimensiona a interface: lista com busca simples é suficiente, sem paginação sofisticada | n |
-| Logo da instituição | Opcional; mesmas restrições de formato, tamanho e dimensão do logo de empresa | Nem toda instituição pequena tem material de marca disponível | n |
-| Reenvio do documento após rejeição | Permitido: a instituição rejeitada corrige dados, substitui o documento e volta para a fila de análise | Sem isso, uma rejeição por documento ilegível exigiria novo cadastro e novo CNPJ duplicado | n |
+| Estados da instituição | `PENDENTE_APROVACAO`, `APROVADA`, `REJEITADA`, `SUSPENSA`, `INATIVA` | Espelha a máquina de estados da empresa e preserva a inativação sem exclusão física | y |
+| Curadoria de causas | Continua exclusiva do administrador; a instituição escolhe uma causa já existente no seu cadastro | Causa é taxonomia da plataforma; se cada instituição criasse a sua, o agrupamento por causa perderia sentido | y |
+| Vínculo instituição–causa | Cada instituição pertence a exatamente uma causa | A proposta usa "instituição ou causa" alternadamente; o vínculo único permite que a campanha aponte para um dos dois sem ambiguidade | y |
+| Vínculo da campanha | A campanha referencia uma instituição OU uma causa, nunca ambas e nunca nenhuma | Evita conflito de exibição na página pública sobre quem é a beneficiada | y |
+| Remoção de instituição | Nunca há exclusão física; a instituição vai a `INATIVA` e deixa de aparecer para novas campanhas | Campanhas já publicadas e selos já impressos em embalagens referenciam a instituição para sempre | y |
+| Efeito da inativação sobre campanhas existentes | Campanhas já aprovadas continuam publicadas apontando para a instituição inativada | Um selo já impresso em embalagem física não pode ser retirado do mundo real; retirar a página quebraria a promessa ao consumidor | y |
+| Volume esperado na v1 | Até 200 instituições e 20 causas | Dimensiona a interface: lista com busca simples é suficiente, sem paginação sofisticada | y |
+| Logo da instituição | Opcional; mesmas restrições de formato, tamanho e dimensão do logo de empresa | Nem toda instituição pequena tem material de marca disponível | y |
+| Reenvio do documento após rejeição | Permitido: a instituição rejeitada corrige dados, substitui o documento e volta para a fila de análise | Sem isso, uma rejeição por documento ilegível exigiria novo cadastro e novo CNPJ duplicado | y |
 
 **Open questions:** none - todas resolvidas ou registradas acima.
+
+> As nove premissas que estavam pendentes foram confirmadas pelo usuário em 2026-09-20, junto com o recorte da rodada: **P1 apenas** (P2 — área logada da instituição e notas internas de curadoria — fica para uma rodada posterior).
 
 ---
 
@@ -69,7 +71,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 1. WHEN a instituição envia o formulário de cadastro com nome, CNPJ, e-mail, telefone, endereço, causa, descrição, site ou canal de contato público, senha e documento de validação THEN the system SHALL criar a instituição no estado `PENDENTE_APROVACAO` e responder HTTP 201 com o identificador da instituição.
 2. IF o CNPJ informado não tiver 14 dígitos ou falhar na verificação dos dígitos verificadores THEN the system SHALL rejeitar o cadastro com HTTP 422 e a mensagem "CNPJ inválido", sem persistir dado algum.
-3. IF o CNPJ ou o e-mail já existir em outra instituição THEN the system SHALL rejeitar o cadastro com HTTP 409 e a mensagem "CNPJ ou e-mail já cadastrado".
+3. IF o CNPJ já existir em outra instituição, ou o e-mail já existir em qualquer conta da plataforma (unicidade global de e-mail, AD-013) THEN the system SHALL rejeitar o cadastro com HTTP 409 e a mensagem "CNPJ ou e-mail já cadastrado".
 4. IF a senha tiver menos de 10 caracteres THEN the system SHALL rejeitar o cadastro com HTTP 422 e a mensagem "A senha deve ter no mínimo 10 caracteres".
 5. The system SHALL armazenar a senha da instituição apenas como hash com algoritmo de derivação de chave com salt (bcrypt ou argon2), nunca em texto claro.
 6. IF o cadastro for submetido sem documento de validação THEN the system SHALL rejeitar com HTTP 422 e a mensagem "Anexe um documento que comprove a existência da instituição".
@@ -200,25 +202,25 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| INST-01 | P1: Autocadastro da instituição — dados cadastrais e validações | Design | Pending |
-| INST-02 | P1: Autocadastro da instituição — documento de validação obrigatório | Design | Pending |
-| INST-03 | P1: Autocadastro da instituição — credencial e vínculo com causa | Design | Pending |
-| INST-04 | P1: Aprovação pelo administrador — fila, decisão e comunicação | Design | Pending |
-| INST-05 | P1: Aprovação pelo administrador — máquina de estados e auditoria | Design | Pending |
-| INST-06 | P1: Aprovação pelo administrador — acesso restrito ao documento | Design | Pending |
-| INST-07 | P1: Manutenção de causas pelo administrador | Design | Pending |
-| INST-08 | P1: Seleção da beneficiada — listagem e busca | Design | Pending |
-| INST-09 | P1: Seleção da beneficiada — vínculo exclusivo e validação | Design | Pending |
-| INST-10 | P1: Seleção da beneficiada — exposição pública de dados | Design | Pending |
-| INST-11 | P2: Área logada da instituição — autenticação e isolamento | - | Pending |
-| INST-12 | P2: Área logada da instituição — edição e reanálise | - | Pending |
-| INST-13 | P2: Notas internas de curadoria | - | Pending |
+| INST-01 | P1: Autocadastro da instituição — dados cadastrais e validações | Tasks | In Tasks (T1, T5, T13, T21, T29, T34) |
+| INST-02 | P1: Autocadastro da instituição — documento de validação obrigatório | Tasks | In Tasks (T1, T3, T4, T13, T24, T29) |
+| INST-03 | P1: Autocadastro da instituição — credencial e vínculo com causa | Tasks | In Tasks (T1, T5, T13, T29) |
+| INST-04 | P1: Aprovação pelo administrador — fila, decisão e comunicação | Tasks | In Tasks (T7, T14, T15, T16, T23, T30, T33, T34) |
+| INST-05 | P1: Aprovação pelo administrador — máquina de estados e auditoria | Tasks | In Tasks (T5, T7, T15-T18, T21, T23, T30, T31, T33) |
+| INST-06 | P1: Aprovação pelo administrador — acesso restrito ao documento | Tasks | In Tasks (T8, T15, T25, T26, T30) |
+| INST-07 | P1: Manutenção de causas pelo administrador | Tasks | In Tasks (T1, T2, T6, T9-T12, T21, T22, T27, T28, T34) |
+| INST-08 | P1: Seleção da beneficiada — listagem e busca | Tasks | In Tasks (T7, T12, T19, T23, T28, T32, T34) |
+| INST-09 | P1: Seleção da beneficiada — vínculo exclusivo e validação | Tasks | In Tasks (T1, T20); o consumo em campanha fica na feature `campanhas` |
+| INST-10 | P1: Seleção da beneficiada — exposição pública de dados | Tasks | In Tasks (T19, T32) |
+| INST-11 | P2: Área logada da instituição — autenticação e isolamento | - | Deferred (rodada P2) |
+| INST-12 | P2: Área logada da instituição — edição e reanálise | - | Deferred (rodada P2) |
+| INST-13 | P2: Notas internas de curadoria | - | Deferred (rodada P2) |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 13 total, 0 mapeados para tasks, 13 não mapeados ⚠️ (esperado — fase Tasks ainda não executada)
+**Coverage:** 13 total, 10 mapeados para tasks (INST-01…INST-10, T1–T34), 3 adiados para a rodada P2 (INST-11…INST-13).
 
 ---
 

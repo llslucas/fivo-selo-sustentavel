@@ -4,9 +4,9 @@ export class InstituicaoAlreadyExistsError
   extends Error
   implements UseCaseError
 {
-  readonly status = 422;
+  readonly status = 409;
 
-  constructor(instituicao: string) {
-    super(`A instituição ${instituicao} já existe.`);
+  constructor() {
+    super('CNPJ ou e-mail já cadastrado');
   }
 }

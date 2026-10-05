@@ -260,3 +260,30 @@ describe('Company Reactivation', () => {
     expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
   });
 });
+
+describe('Company e-mail change request', () => {
+  const agora = new Date('2026-09-20T12:00:00.000Z');
+
+  it('should record the pending e-mail, the token hash and a 24 hour deadline', () => {
+    const empresa = EmpresaFactory.create();
+
+    empresa.solicitarTrocaDeEmail('novo@empresa.test', 'hash-do-token', agora);
+
+    expect(empresa.emailPendente).toBe('novo@empresa.test');
+    expect(empresa.tokenTrocaEmailHash).toBe('hash-do-token');
+    expect(empresa.tokenTrocaEmailExpiraEm).toEqual(
+      new Date('2026-09-21T12:00:00.000Z'),
+    );
+  });
+
+  it('should clear the deadline together with the pending change', () => {
+    const empresa = EmpresaFactory.create();
+    empresa.solicitarTrocaDeEmail('novo@empresa.test', 'hash-do-token', agora);
+
+    empresa.limparTrocaDeEmail();
+
+    expect(empresa.emailPendente).toBeNull();
+    expect(empresa.tokenTrocaEmailHash).toBeNull();
+    expect(empresa.tokenTrocaEmailExpiraEm).toBeNull();
+  });
+});

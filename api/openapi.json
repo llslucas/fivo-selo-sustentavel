@@ -1,0 +1,1490 @@
+{
+  "components": {
+    "schemas": {
+      "ConfirmarEmail": {
+        "properties": {
+          "token": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "type": "object"
+      },
+      "CriarEmpresa": {
+        "properties": {
+          "bairro": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "cep": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "cidade": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "cnpj": {
+            "type": "string"
+          },
+          "complemento": {
+            "type": "string"
+          },
+          "contato": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "logo": {
+            "format": "binary",
+            "type": "string"
+          },
+          "logradouro": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "nomeFantasia": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "numero": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "razaoSocial": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "senha": {
+            "type": "string"
+          },
+          "site": {
+            "type": "string"
+          },
+          "telefone": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "uf": {
+            "maxLength": 2,
+            "minLength": 2,
+            "type": "string"
+          }
+        },
+        "required": [
+          "razaoSocial",
+          "nomeFantasia",
+          "cnpj",
+          "email",
+          "senha",
+          "telefone",
+          "cep",
+          "logradouro",
+          "numero",
+          "bairro",
+          "cidade",
+          "uf",
+          "contato"
+        ],
+        "type": "object"
+      },
+      "EditarEmpresa": {
+        "properties": {
+          "bairro": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "cep": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "cidade": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "cnpj": {
+            "type": "string"
+          },
+          "complemento": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "contato": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "logo": {
+            "format": "binary",
+            "type": "string"
+          },
+          "logradouro": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "nomeFantasia": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "numero": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "site": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "telefone": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "uf": {
+            "maxLength": 2,
+            "minLength": 2,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ErroResposta": {
+        "properties": {
+          "errors": {
+            "items": {
+              "properties": {
+                "campo": {
+                  "type": "string"
+                },
+                "mensagem": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "campo",
+                "mensagem"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusCode": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message"
+        ],
+        "type": "object"
+      },
+      "Login": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "senha": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "senha"
+        ],
+        "type": "object"
+      },
+      "RecuperacaoSenha": {
+        "properties": {
+          "email": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "type": "object"
+      },
+      "RedefinicaoSenha": {
+        "properties": {
+          "novaSenha": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "novaSenha"
+        ],
+        "type": "object"
+      },
+      "RejeicaoEmpresa": {
+        "properties": {
+          "motivo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "motivo"
+        ],
+        "type": "object"
+      },
+      "TrocarEmail": {
+        "properties": {
+          "novoEmail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "novoEmail"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "cookie": {
+        "in": "cookie",
+        "name": "fivo_sessao",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "contact": {},
+    "description": "API de cadastro e autenticação de empresas",
+    "title": "Fivo — Selo Isso Importa",
+    "version": "0.0.1"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/admin/empresas": {
+      "get": {
+        "operationId": "AdminEmpresasController_listar",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "estado",
+            "required": false,
+            "schema": {
+              "enum": [
+                "PENDENTE_APROVACAO"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "properties": {
+                      "cnpj": {
+                        "type": "string"
+                      },
+                      "criadoEm": {
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "razaoSocial": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "razaoSocial",
+                      "cnpj",
+                      "email",
+                      "criadoEm"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Empresas pendentes, da mais antiga para a mais recente"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Estado não suportado"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Fila de empresas pendentes de aprovação (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/empresas/{id}/aprovacao": {
+      "post": {
+        "operationId": "AdminEmpresasController_aprovar",
+        "parameters": [
+          {
+            "description": "Id da empresa",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Decisão registrada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Empresa não encontrada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Transição de estado inválida para a situação atual"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Aprova a empresa (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/empresas/{id}/reativacao": {
+      "post": {
+        "operationId": "AdminEmpresasController_reativar",
+        "parameters": [
+          {
+            "description": "Id da empresa",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Decisão registrada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Empresa não encontrada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Transição de estado inválida para a situação atual"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Reativa a empresa (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/empresas/{id}/rejeicao": {
+      "post": {
+        "operationId": "AdminEmpresasController_rejeitar",
+        "parameters": [
+          {
+            "description": "Id da empresa",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejeicaoEmpresa"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Decisão registrada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Empresa não encontrada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Transição de estado inválida para a situação atual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Motivo ausente ou insuficiente"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Rejeita a empresa com motivo (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/empresas/{id}/suspensao": {
+      "post": {
+        "operationId": "AdminEmpresasController_suspender",
+        "parameters": [
+          {
+            "description": "Id da empresa",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Decisão registrada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Empresa não encontrada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Transição de estado inválida para a situação atual"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Suspende a empresa (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/arquivos/{id}": {
+      "get": {
+        "operationId": "ArquivoController_baixar",
+        "parameters": [
+          {
+            "description": "Id do arquivo",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "image/jpeg": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "image/svg+xml": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Bytes do arquivo, com o Content-Type do registro",
+            "headers": {
+              "Content-Disposition": {
+                "description": "`attachment` para SVG; `inline` para os demais tipos",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Security-Policy": {
+                "description": "Sempre `default-src 'none'; sandbox`",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "Sempre `nosniff`",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Arquivo não encontrado"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Baixa um arquivo (dono do arquivo ou ADMIN)",
+        "tags": [
+          "arquivos"
+        ]
+      }
+    },
+    "/empresas": {
+      "post": {
+        "operationId": "CadastroEmpresaController_criar",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/CriarEmpresa"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Empresa criada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "CNPJ ou e-mail já cadastrado"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Dados inválidos"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Armazenamento de arquivos indisponível"
+          }
+        },
+        "summary": "Cadastra uma empresa (fica pendente de aprovação)",
+        "tags": [
+          "empresas"
+        ]
+      }
+    },
+    "/empresas/me": {
+      "get": {
+        "operationId": "CadastroEmpresaController_obterMinha",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "bairro": {
+                      "type": "string"
+                    },
+                    "cep": {
+                      "type": "string"
+                    },
+                    "cidade": {
+                      "type": "string"
+                    },
+                    "cnpj": {
+                      "type": "string"
+                    },
+                    "complemento": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "contato": {
+                      "type": "string"
+                    },
+                    "criadoEm": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "emailPendente": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "logoArquivoId": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "logradouro": {
+                      "type": "string"
+                    },
+                    "nomeFantasia": {
+                      "type": "string"
+                    },
+                    "numero": {
+                      "type": "string"
+                    },
+                    "razaoSocial": {
+                      "type": "string"
+                    },
+                    "site": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "telefone": {
+                      "type": "string"
+                    },
+                    "uf": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "razaoSocial",
+                    "nomeFantasia",
+                    "cnpj",
+                    "email",
+                    "emailPendente",
+                    "telefone",
+                    "cep",
+                    "logradouro",
+                    "numero",
+                    "complemento",
+                    "bairro",
+                    "cidade",
+                    "uf",
+                    "site",
+                    "contato",
+                    "status",
+                    "logoArquivoId",
+                    "criadoEm"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Empresa"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Empresa não encontrada"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Dados da empresa autenticada",
+        "tags": [
+          "empresas"
+        ]
+      },
+      "patch": {
+        "operationId": "CadastroEmpresaController_editar",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/EditarEmpresa"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "bairro": {
+                      "type": "string"
+                    },
+                    "cep": {
+                      "type": "string"
+                    },
+                    "cidade": {
+                      "type": "string"
+                    },
+                    "cnpj": {
+                      "type": "string"
+                    },
+                    "complemento": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "contato": {
+                      "type": "string"
+                    },
+                    "criadoEm": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "emailPendente": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "logoArquivoId": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "logradouro": {
+                      "type": "string"
+                    },
+                    "nomeFantasia": {
+                      "type": "string"
+                    },
+                    "numero": {
+                      "type": "string"
+                    },
+                    "razaoSocial": {
+                      "type": "string"
+                    },
+                    "site": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "telefone": {
+                      "type": "string"
+                    },
+                    "uf": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "razaoSocial",
+                    "nomeFantasia",
+                    "cnpj",
+                    "email",
+                    "emailPendente",
+                    "telefone",
+                    "cep",
+                    "logradouro",
+                    "numero",
+                    "complemento",
+                    "bairro",
+                    "cidade",
+                    "uf",
+                    "site",
+                    "contato",
+                    "status",
+                    "logoArquivoId",
+                    "criadoEm"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Empresa atualizada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Empresa não encontrada"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Dados inválidos ou CNPJ imutável"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Armazenamento de arquivos indisponível"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Edita os dados cadastrais da empresa",
+        "tags": [
+          "empresas"
+        ]
+      }
+    },
+    "/empresas/me/email": {
+      "patch": {
+        "operationId": "CadastroEmpresaController_trocarEmail",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrocarEmail"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Link de confirmação enviado ao novo e-mail"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Empresa não encontrada"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "E-mail inválido"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Solicita a troca do e-mail de acesso",
+        "tags": [
+          "empresas"
+        ]
+      }
+    },
+    "/empresas/me/email/confirmacao": {
+      "post": {
+        "operationId": "CadastroEmpresaController_confirmarEmail",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmarEmail"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "E-mail trocado"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Link de confirmação inválido ou expirado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "E-mail já cadastrado"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Token ausente"
+          }
+        },
+        "summary": "Confirma a troca de e-mail pelo token do link",
+        "tags": [
+          "empresas"
+        ]
+      }
+    },
+    "/senha/recuperacao": {
+      "post": {
+        "operationId": "SenhaController_solicitar",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecuperacaoSenha"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "mensagem": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "mensagem"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Resposta neutra: igual para e-mail cadastrado ou não, sem revelar a existência da conta"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Dados inválidos"
+          }
+        },
+        "summary": "Solicita o link de redefinição de senha",
+        "tags": [
+          "senha"
+        ]
+      }
+    },
+    "/senha/redefinicao": {
+      "post": {
+        "operationId": "SenhaController_redefinir",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedefinicaoSenha"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Senha redefinida"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Link de redefinição inválido ou expirado"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Dados inválidos ou senha fraca"
+          }
+        },
+        "summary": "Redefine a senha com o token do link",
+        "tags": [
+          "senha"
+        ]
+      }
+    },
+    "/sessoes": {
+      "post": {
+        "operationId": "AutenticacaoController_entrar",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "papel": {
+                      "enum": [
+                        "ADMIN",
+                        "EMPRESA",
+                        "INSTITUICAO"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "papel"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Sessão aberta",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Cookie de sessão opaca (HttpOnly)",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Credenciais inválidas"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Dados inválidos"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Conta bloqueada por excesso de tentativas"
+          }
+        },
+        "summary": "Abre a sessão (login) e define o cookie",
+        "tags": [
+          "sessoes"
+        ]
+      }
+    },
+    "/sessoes/atual": {
+      "delete": {
+        "operationId": "AutenticacaoController_sair",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Sessão encerrada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Encerra a sessão atual (logout)",
+        "tags": [
+          "sessoes"
+        ]
+      }
+    }
+  },
+  "servers": [],
+  "tags": []
+}

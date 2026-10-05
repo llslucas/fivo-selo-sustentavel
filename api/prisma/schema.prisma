@@ -54,30 +54,31 @@ model Usuario {
 }
 
 model Empresa {
-  id                  String        @id
-  usuarioId           String?       @unique @map("usuario_id")
-  razaoSocial         String        @map("razao_social")
-  nomeFantasia        String        @map("nome_fantasia")
-  cnpj                String        @unique
-  telefone            String
-  cep                 String
-  logradouro          String
-  numero              String
-  complemento         String?
-  bairro              String
-  cidade              String
-  uf                  String        @db.Char(2)
-  site                String
-  contato             String
-  logoArquivoId       String?       @map("logo_arquivo_id")
-  status              EmpresaStatus
-  decididoPor         String?       @map("decidido_por")
-  decididoEm          DateTime?     @map("decidido_em")
-  motivoDecisao       String?       @map("motivo_decisao")
-  emailPendente       String?       @map("email_pendente")
-  tokenTrocaEmailHash String?       @map("token_troca_email_hash")
-  criadoEm            DateTime      @map("criado_em")
-  atualizadoEm        DateTime?     @map("atualizado_em")
+  id                      String        @id
+  usuarioId               String?       @unique @map("usuario_id")
+  razaoSocial             String        @map("razao_social")
+  nomeFantasia            String        @map("nome_fantasia")
+  cnpj                    String        @unique
+  telefone                String
+  cep                     String
+  logradouro              String
+  numero                  String
+  complemento             String?
+  bairro                  String
+  cidade                  String
+  uf                      String        @db.Char(2)
+  site                    String
+  contato                 String
+  logoArquivoId           String?       @map("logo_arquivo_id")
+  status                  EmpresaStatus
+  decididoPor             String?       @map("decidido_por")
+  decididoEm              DateTime?     @map("decidido_em")
+  motivoDecisao           String?       @map("motivo_decisao")
+  emailPendente           String?       @map("email_pendente")
+  tokenTrocaEmailHash     String?       @map("token_troca_email_hash")
+  tokenTrocaEmailExpiraEm DateTime?     @map("token_troca_email_expira_em")
+  criadoEm                DateTime      @map("criado_em")
+  atualizadoEm            DateTime?     @map("atualizado_em")
 
   usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   logo    Arquivo? @relation(fields: [logoArquivoId], references: [id])

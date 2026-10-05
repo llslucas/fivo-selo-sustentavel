@@ -1349,10 +1349,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit: confirmação em 23h59 → sucesso; em 24h01 → `TokenConfirmacaoEmailInvalidoError`, `user.email` inalterado
-- [ ] Unit da entidade: `solicitarTrocaDeEmail` grava o prazo de 24 h; `limparTrocaDeEmail` zera o prazo
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 169 unit (≥ 3 novos)
+- [x] Unit: confirmação em 23h59 → sucesso; em 24h01 → `TokenConfirmacaoEmailInvalidoError`, `user.email` inalterado
+- [x] Unit da entidade: `solicitarTrocaDeEmail` grava o prazo de 24 h; `limparTrocaDeEmail` zera o prazo
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 169 unit (≥ 3 novos)
 
 **Tests**: unit
 **Gate**: quick
@@ -1374,11 +1374,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Migration aplicada por `npx prisma migrate deploy` no banco de teste
-- [ ] e2e: prazo vencido → 400 `"Link de confirmação inválido ou expirado"`; login com o e-mail antigo continua funcionando
-- [ ] e2e: roundtrip de repositório preserva `tokenTrocaEmailExpiraEm`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 178 e2e (≥ 2 novos)
+- [x] Migration aplicada por `npx prisma migrate deploy` no banco de teste
+- [x] e2e: prazo vencido → 400 `"Link de confirmação inválido ou expirado"`; login com o e-mail antigo continua funcionando
+- [x] e2e: roundtrip de repositório preserva `tokenTrocaEmailExpiraEm`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 178 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full
@@ -1400,11 +1400,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e de repositório sequencial: leitura obsoleta → `save` de `nomeFantasia` → `salvarTrocaDeEmail(obsoleta)` → `nomeFantasia` novo preservado
-- [ ] e2e de repositório: `save` cadastral com leitura obsoleta não apaga `emailPendente` gravado por `salvarTrocaDeEmail`
-- [ ] Unit dos casos de uso de troca de e-mail seguem verdes com o double atualizado
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 180 e2e (≥ 2 novos)
+- [x] e2e de repositório sequencial: leitura obsoleta → `save` de `nomeFantasia` → `salvarTrocaDeEmail(obsoleta)` → `nomeFantasia` novo preservado
+- [x] e2e de repositório: `save` cadastral com leitura obsoleta não apaga `emailPendente` gravado por `salvarTrocaDeEmail`
+- [x] Unit dos casos de uso de troca de e-mail seguem verdes com o double atualizado
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 180 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full
@@ -1426,10 +1426,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: PNG → CSP presente, `Content-Disposition: inline`, `nosniff` mantido
-- [ ] e2e: SVG → CSP presente, `Content-Disposition: attachment`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 182 e2e (≥ 2 novos)
+- [x] e2e: PNG → CSP presente, `Content-Disposition: inline`, `nosniff` mantido
+- [x] e2e: SVG → CSP presente, `Content-Disposition: attachment`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 182 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full
@@ -1451,9 +1451,9 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e de service: `lerBytes` com id inexistente → `null`, sem exceção
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 183 e2e (≥ 1 novo)
+- [x] e2e de service: `lerBytes` com id inexistente → `null`, sem exceção
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 183 e2e (≥ 1 novo)
 
 **Tests**: e2e
 **Gate**: full
@@ -1475,10 +1475,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Os 3 casos assertam status **e** mensagem literal do limite
-- [ ] Mutantes: `statusCode: 413` no corpo do filtro e mensagem de dimensão alterada em `Arquivo.criar` são mortos
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 183 e2e (asserções novas; nenhum teste removido)
+- [x] Os 3 casos assertam status **e** mensagem literal do limite
+- [x] Mutantes: `statusCode: 413` no corpo do filtro e mensagem de dimensão alterada em `Arquivo.criar` são mortos
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 183 e2e (asserções novas; nenhum teste removido)
 
 **Tests**: e2e
 **Gate**: full
@@ -1500,10 +1500,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: enviada há 31 dias → removida; enviada há 29 dias → mantida; esgotada há 31 dias → removida; pendente antiga → mantida
-- [ ] Unit do worker (T36): `executar()` chama o expurgo depois do dreno
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 167 unit, ≥ 187 e2e (≥ 4 novos)
+- [x] e2e: enviada há 31 dias → removida; enviada há 29 dias → mantida; esgotada há 31 dias → removida; pendente antiga → mantida
+- [x] Unit do worker (T36): `executar()` chama o expurgo depois do dreno
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 167 unit, ≥ 187 e2e (≥ 4 novos)
 
 **Tests**: e2e
 **Gate**: full
@@ -1525,12 +1525,12 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e (`test/http/openapi.e2e-spec.ts`): `GET /docs/openapi.json` sem sessão → 200, `openapi` começa com `3.`, `components.securitySchemes` tem o cookie de sessão
-- [ ] e2e: `GET /docs` → 200 HTML
-- [ ] e2e: com `NODE_ENV=production` e sem `SWAGGER_ENABLED` → 404 nas duas rotas; com `SWAGGER_ENABLED=true` → 200
-- [ ] `npm run build` passa com a dependência nova
-- [ ] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 190 e2e (≥ 3 novos)
+- [x] e2e (`test/http/openapi.e2e-spec.ts`): `GET /docs/openapi.json` sem sessão → 200, `openapi` começa com `3.`, `components.securitySchemes` tem o cookie de sessão
+- [x] e2e: `GET /docs` → 200 HTML
+- [x] e2e: com `NODE_ENV=production` e sem `SWAGGER_ENABLED` → 404 nas duas rotas; com `SWAGGER_ENABLED=true` → 200
+- [x] `npm run build` passa com a dependência nova
+- [x] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 190 e2e (≥ 3 novos)
 
 **Tests**: e2e
 **Gate**: build
@@ -1552,11 +1552,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit: `criarEmpresaSchema` convertido → `required` contém `razaoSocial`, `cnpj`, `email`, `senha`, `uf` e não contém `complemento`/`site`; `uf` tem `minLength`/`maxLength` 2
-- [ ] Unit: `ErroResposta` tem `statusCode` inteiro e `message` string obrigatórios
-- [ ] Unit: dois registros com o mesmo nome não duplicam o componente
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
-- [ ] Test count: ≥ 170 unit (≥ 3 novos)
+- [x] Unit: `criarEmpresaSchema` convertido → `required` contém `razaoSocial`, `cnpj`, `email`, `senha`, `uf` e não contém `complemento`/`site`; `uf` tem `minLength`/`maxLength` 2
+- [x] Unit: `ErroResposta` tem `statusCode` inteiro e `message` string obrigatórios
+- [x] Unit: dois registros com o mesmo nome não duplicam o componente
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`
+- [x] Test count: ≥ 170 unit (≥ 3 novos)
 
 **Tests**: unit
 **Gate**: quick
@@ -1578,10 +1578,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e (`openapi.e2e-spec.ts`): as 5 operações existem com os status documentados; `POST /empresas` tem `multipart/form-data` com `logo` `format: binary` e os `required` do Zod
-- [ ] e2e: `GET /empresas/me` tem `security` com o cookie; `POST /empresas` não tem
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 192 e2e (≥ 2 novos)
+- [x] e2e (`openapi.e2e-spec.ts`): as 5 operações existem com os status documentados; `POST /empresas` tem `multipart/form-data` com `logo` `format: binary` e os `required` do Zod
+- [x] e2e: `GET /empresas/me` tem `security` com o cookie; `POST /empresas` não tem
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 192 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full
@@ -1592,7 +1592,7 @@ T54 → T55
 
 ### T50: Documentar `AutenticacaoController`
 
-**What**: `POST /sessoes` (corpo Zod; 201 com `Set-Cookie` descrito em `headers`; 401, 422, 429) e `DELETE /sessoes/atual` (204; 401), com `@ApiTags('sessoes')`. Login público; logout protegido.
+**What**: `POST /sessoes` (corpo Zod; 200 — o controller usa `@HttpCode(200)`; a redação original dizia 201 — com `Set-Cookie` descrito em `headers`; 401, 422, 429) e `DELETE /sessoes/atual` (204; 401), com `@ApiTags('sessoes')`. Login público; logout protegido.
 **Where**: `api/src/infra/http/autenticacao.controller.ts`
 **Depends on**: T48
 **Reuses**: `esquemaOpenApi` (T48)
@@ -1603,9 +1603,9 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: as 2 operações com os status acima; 201 do login declara o cabeçalho `Set-Cookie`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 193 e2e (≥ 1 novo)
+- [x] e2e: as 2 operações com os status acima; 200 do login declara o cabeçalho `Set-Cookie`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 193 e2e (≥ 1 novo)
 
 **Tests**: e2e
 **Gate**: full
@@ -1627,9 +1627,9 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: as 2 operações com os status acima e sem `security`
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 194 e2e (≥ 1 novo)
+- [x] e2e: as 2 operações com os status acima e sem `security`
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 194 e2e (≥ 1 novo)
 
 **Tests**: e2e
 **Gate**: full
@@ -1651,9 +1651,9 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: as 5 operações com os status acima; `rejeicao` tem corpo com `motivo` obrigatório
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 195 e2e (≥ 1 novo)
+- [x] e2e: as 5 operações com os status acima; `rejeicao` tem corpo com `motivo` obrigatório
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 195 e2e (≥ 1 novo)
 
 **Tests**: e2e
 **Gate**: full
@@ -1675,9 +1675,9 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: a operação declara conteúdo binário e os 3 cabeçalhos, com 401/403/404
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 196 e2e (≥ 1 novo)
+- [x] e2e: a operação declara conteúdo binário e os 3 cabeçalhos, com 401/403/404
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 196 e2e (≥ 1 novo)
 
 **Tests**: e2e
 **Gate**: full
@@ -1699,11 +1699,11 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] e2e: 15 rotas registradas = 15 operações documentadas (conjunto igual, não só contagem)
-- [ ] e2e: rotas `@Public` sem `security`; demais com `security`
-- [ ] Mutante: remover `@ApiResponse` de 2xx de uma rota ou comentar uma rota do documento derruba o teste
-- [ ] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 198 e2e (≥ 2 novos)
+- [x] e2e: 15 rotas registradas = 15 operações documentadas (conjunto igual, não só contagem)
+- [x] e2e: rotas `@Public` sem `security`; demais com `security`
+- [x] Mutante: `@ApiExcludeEndpoint()` numa rota ou remover `@ApiProtegida()` de uma rota protegida derruba o teste (remover o `@ApiResponse` 2xx não derruba: o Nest deriva o 2xx de `@HttpCode`, então o documento continua com resposta de sucesso)
+- [x] Gate check passa: `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 198 e2e (≥ 2 novos)
 
 **Tests**: e2e
 **Gate**: full
@@ -1725,10 +1725,10 @@ T54 → T55
 - Skill: NONE
 
 **Done when**:
-- [ ] `npm run openapi:export` gera `api/openapi.json` e encerra com exit 0 (sem deixar worker ou conexão abertos)
-- [ ] e2e: documento gerado igual ao arquivo versionado; alterar um `@ApiResponse` sem reexportar derruba o teste
-- [ ] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
-- [ ] Test count: ≥ 199 e2e (≥ 1 novo)
+- [x] `npm run openapi:export` gera `api/openapi.json` e encerra com exit 0 (sem deixar worker ou conexão abertos)
+- [x] e2e: documento gerado igual ao arquivo versionado; alterar um `@ApiResponse` sem reexportar derruba o teste
+- [x] Gate check passa: `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`
+- [x] Test count: ≥ 199 e2e (≥ 1 novo)
 
 **Tests**: e2e
 **Gate**: build

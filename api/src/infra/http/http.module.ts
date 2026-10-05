@@ -17,12 +17,12 @@ import { AuthModule } from '@infra/auth/auth.module';
 import { CryptographyModule } from '@infra/cryptography/cryptography.module';
 import { MailModule } from '@infra/mail/mail.module';
 
-import { AdminEmpresasController } from './admin-empresas.controller';
-import { ArquivoController } from './arquivo.controller';
-import { AutenticacaoController } from './autenticacao.controller';
-import { CadastroEmpresaController } from './cadastro-empresa.controller';
+import { AdminEmpresasController } from './controllers/admin-empresas.controller';
+import { ArquivoController } from './controllers/arquivo.controller';
+import { AutenticacaoController } from './controllers/autenticacao.controller';
+import { CadastroEmpresaController } from './controllers/cadastro-empresa.controller';
 import { DomainExceptionFilter } from './domain-exception.filter';
-import { SenhaController } from './senha.controller';
+import { SenhaController } from './controllers/senha.controller';
 
 @Module({
   imports: [ArquivoModule, AuthModule, CryptographyModule, MailModule],

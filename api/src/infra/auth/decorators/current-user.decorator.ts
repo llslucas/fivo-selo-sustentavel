@@ -3,7 +3,7 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import {
   RequisicaoAutenticada,
   UsuarioAutenticado,
-} from './usuario-autenticado';
+} from '../usuario-autenticado';
 
 export const CurrentUser = createParamDecorator(
   (

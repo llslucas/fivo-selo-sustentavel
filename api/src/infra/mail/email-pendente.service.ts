@@ -13,6 +13,7 @@ import { TransporteEmail } from './transporte-email';
 
 export const MAX_TENTATIVAS = 5;
 const BACKOFF_BASE_MS = 60_000;
+const RETENCAO_MS = 30 * 24 * 60 * 60 * 1000;
 
 export function atrasoDoBackoff(tentativa: number): number {
   return BACKOFF_BASE_MS * 2 ** (tentativa - 1);
@@ -103,5 +104,17 @@ export class EmailPendenteService {
     }
 
     return entregues;
+  }
+
+  /** Remove linhas enviadas ou esgotadas há mais de 30 dias; pendentes ficam. */
+  async expurgar(agora: Date = new Date()): Promise<number> {
+    const limite = new Date(agora.getTime() - RETENCAO_MS);
+    const { count } = await this.prisma.emailPendente.deleteMany({
+      where: {
+        OR: [{ enviadoEm: { lt: limite } }, { esgotadoEm: { lt: limite } }],
+      },
+    });
+
+    return count;
   }
 }
