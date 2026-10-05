@@ -82,7 +82,9 @@ export class InMemoryInstituicaoRepository implements InstituicaoRepository {
     ordem: OrdenacaoListaInstituicao,
   ): Promise<Instituicao[]> {
     const institucoes = this.items.filter(
-      (item) => item.causaId.toString() === causaId,
+      (item) =>
+        item.causaId.toString() === causaId &&
+        item.status === InstituicaoStatus.APROVADA,
     );
 
     const sorted = [...institucoes].sort((a, b) => {
