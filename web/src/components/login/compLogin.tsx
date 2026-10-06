@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import NextLink from "next/link";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -54,17 +55,27 @@ export default function CompLogin() {
     <Box
       sx={{
         backgroundColor: "#ffffff",
-        p: { xs: 3, md: 5 },
+        p: { xs: 3.5, sm: 4, md: 7 },
+        display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        height: "100%",
-        width: "50%"
+        width: { xs: "100%", md: "50%" },
+        flex: 1,
       }}
     >
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: "#333" }}>
+      <Typography
+        component="h2"
+        sx={{
+          fontWeight: 700,
+          fontSize: { xs: "1.35rem", md: "1.5rem" },
+          mb: 0.5,
+          color: "#1B1B19",
+          letterSpacing: "-0.01em",
+        }}
+      >
         Entrar na plataforma
       </Typography>
-      <Typography variant="body2" sx={{ color: "text.secondary", mb: 3 }}>
+      <Typography variant="body2" sx={{ color: "text.secondary", mb: 3.5 }}>
         Acesse a área da sua empresa
       </Typography>
 
@@ -75,19 +86,18 @@ export default function CompLogin() {
           e.preventDefault();
           void handleLogin();
         }}
-        sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+        sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
       >
         {erro && <Alert severity="error">{erro}</Alert>}
 
         <Box>
-          <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, color: "#1B1B19", mb: 0.75 }}>
             E-mail corporativo
           </Typography>
           <TextField
             fullWidth
             placeholder="nome@empresa.com.br"
             variant="outlined"
-            size="small"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -95,14 +105,28 @@ export default function CompLogin() {
             helperText={errosCampo.email}
             sx={{
               "& .MuiOutlinedInput-root": {
-                bgcolor: "#F9F9F9",
+                bgcolor: "#FFFFFF",
                 borderRadius: 2,
-              }
+                "& fieldset": {
+                  borderColor: "#E5E7EB",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#D1D5DB",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#116A4D",
+                },
+              },
+              "& .MuiOutlinedInput-input": {
+                py: 1.3,
+                fontSize: "0.95rem",
+              },
             }}
           />
         </Box>
+
         <Box>
-          <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, color: "#1B1B19", mb: 0.75, fontSize: "0.875rem" }}>
             Senha
           </Typography>
           <TextField
@@ -114,7 +138,6 @@ export default function CompLogin() {
             onChange={(e) => setSenha(e.target.value)}
             error={Boolean(errosCampo.senha)}
             helperText={errosCampo.senha}
-            size="small"
             slotProps={{
               input: {
                 endAdornment: (
@@ -137,22 +160,43 @@ export default function CompLogin() {
             }}
             sx={{
               "& .MuiOutlinedInput-root": {
-                bgcolor: "#F9F9F9",
+                bgcolor: "#FFFFFF",
                 borderRadius: 2,
-              }
+                "& fieldset": {
+                  borderColor: "#E5E7EB",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#D1D5DB",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#116A4D",
+                },
+              },
+              "& .MuiOutlinedInput-input": {
+                py: 1.3,
+                fontSize: "0.95rem",
+              },
             }}
           />
         </Box>
 
-
-        <Box sx={{ display: "flex", justifyContent: "flex-end", textAlign: "right" }}>
-          <Link href="/recuperar-senha" underline="none" sx={{ color: "#116A4D", fontSize: "0.875rem", fontWeight: 500, width: "100%" }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Link
+            component={NextLink}
+            href={APP_ROUTES.public.recuperarSenha}
+            underline="none"
+            sx={{
+              color: "#116A4D",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              "&:hover": { textDecoration: "underline" },
+            }}
+          >
             Esqueci minha senha
           </Link>
         </Box>
 
-
-        <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1.75 }}>
           <Button
             type="submit"
             variant="contained"
@@ -163,7 +207,10 @@ export default function CompLogin() {
               '&:hover': { bgcolor: "#0D533D" },
               textTransform: 'none',
               borderRadius: 2,
-              py: 1
+              py: 1.3,
+              fontSize: "0.95rem",
+              fontWeight: 600,
+              boxShadow: "none",
             }}
           >
             {loading ? <CircularProgress size={22} sx={{ color: "#fff" }} /> : "Entrar"}
@@ -172,21 +219,23 @@ export default function CompLogin() {
           <Button
             variant="outlined"
             fullWidth
-            LinkComponent={Link}
+            component={NextLink}
             href={APP_ROUTES.public.cadastro}
             sx={{
-              color: "#333",
-              borderColor: "#E0E0E0",
-              '&:hover': { borderColor: "#CCC", bgcolor: "#FAFAFA" },
+              color: "#1B1B19",
+              borderColor: "#E5E7EB",
+              bgcolor: "#ffffff",
+              '&:hover': { borderColor: "#D1D5DB", bgcolor: "#FAFAFA" },
               textTransform: 'none',
               borderRadius: 2,
-              py: 1
+              py: 1.3,
+              fontSize: "0.95rem",
+              fontWeight: 600,
             }}
           >
             Cadastrar minha empresa
           </Button>
         </Box>
-
       </Box>
     </Box>
   );

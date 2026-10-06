@@ -2,7 +2,7 @@ import { User, UserRole } from '@domain/fivo/entities/user';
 import { InstituicaoRepository } from '../ports/database/instituicao-repository';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
-import { InstituicaoStatus } from '@domain/fivo/entities/instituicao';
+import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
 
 export class AprovarInstituicaoUseCase {
   constructor(private readonly instituicaoRepository: InstituicaoRepository) {}
@@ -19,10 +19,20 @@ export class AprovarInstituicaoUseCase {
       throw new ResourceNotFoundError('Instituicao não encontrada');
     }
 
-    instituicao.status = InstituicaoStatus.APROVADA;
-    instituicao.decidido_por = user;
-    instituicao.decidido_em = new Date();
+    const statusAnterior = instituicao.status;
+    const resultado = instituicao.aprovar(user.id);
 
-    await this.instituicaoRepository.save(instituicao);
+    if (resultado.isLeft()) {
+      throw resultado.value;
+    }
+
+    const aplicada = await this.instituicaoRepository.salvarTransicao(
+      instituicao,
+      statusAnterior,
+    );
+
+    if (!aplicada) {
+      throw new TransicaoInvalidaError();
+    }
   }
 }
