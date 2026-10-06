@@ -9,6 +9,7 @@ import Grid from "@mui/material/Grid";
 import Chip from "@mui/material/Chip";
 import LinearProgress from "@mui/material/LinearProgress";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import PublicSimpleHeader from "@/components/layout/PublicSimpleHeader";
 import Footer from "@/components/layout/Footer";
@@ -20,9 +21,10 @@ interface PartnerProfileProps {
 
 export default function PartnerDetailPage({ params }: PartnerProfileProps) {
   const resolvedParams = use(params);
-  const empresa =
-    mockPartnerCompanies.find((p) => p.slug === resolvedParams.id || p.id === resolvedParams.id) ||
-    mockPartnerCompanies[0];
+  const empresa = mockPartnerCompanies.find(
+    (p) => p.slug === resolvedParams.id || p.id === resolvedParams.id
+  );
+  if (!empresa) notFound();
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat("pt-BR", {
