@@ -183,7 +183,7 @@ export default function CompLogin() {
         <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
           <Link
             component={NextLink}
-            href="/esqueci-minha-senha"
+            href={APP_ROUTES.public.recuperarSenha}
             underline="none"
             sx={{
               color: "#116A4D",

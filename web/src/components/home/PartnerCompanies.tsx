@@ -5,42 +5,34 @@ import Stack from "@mui/material/Stack";
 import Grid from "@mui/material/Grid";
 import Link from "next/link";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import { APP_ROUTES } from "@/lib/routes";
+import { mockPartnerCompanies } from "@/lib/mockPartners";
 
 type AvatarColor = "mint" | "peach" | "lavender";
 
-const companies: {
-  initials: string;
-  color: AvatarColor;
-  name: string;
-  location: string;
-  tags: string;
-  amount: string;
-}[] = [
-  {
-    initials: "SV",
-    color: "mint",
-    name: "Café Serra Verde",
-    location: "São João da Boa Vista, SP",
-    tags: "Café que alimenta · Casa do Bem",
-    amount: "R$ 6.800 doados",
-  },
-  {
-    initials: "PA",
-    color: "peach",
-    name: "Padaria Aurora",
-    location: "Campinas, SP",
-    tags: "Pão do bem · Lar São Vicente",
-    amount: "R$ 2.140 doados",
-  },
-  {
-    initials: "VN",
-    color: "lavender",
-    name: "Vinhos Nogueira",
-    location: "Poços de Caldas, MG",
-    tags: "Safra solidária · APAE regional",
-    amount: "R$ 4.390 doados",
-  },
+// Os cards vêm do mesmo mock da página de parceiros, para o card e o perfil
+// mostrarem sempre a mesma empresa.
+const destaques: { slug: string; color: AvatarColor }[] = [
+  { slug: "cafe-serra-verde", color: "mint" },
+  { slug: "padaria-nova-era", color: "peach" },
+  { slug: "loja-mundo-verde", color: "lavender" },
 ];
+
+const companies = destaques.flatMap(({ slug, color }) => {
+  const empresa = mockPartnerCompanies.find((p) => p.slug === slug);
+  if (!empresa) return [];
+  return [
+    {
+      slug,
+      color,
+      initials: empresa.initials,
+      name: empresa.name,
+      location: empresa.location,
+      tags: (empresa.campaigns ?? []).slice(0, 2).map((c) => c.nome).join(" · "),
+      amount: `${empresa.totalDonatedFormatted} doados`,
+    },
+  ];
+});
 
 export default function PartnerCompanies() {
   return (
@@ -53,7 +45,7 @@ export default function PartnerCompanies() {
           <Typography variant="h4" component="h2" sx={{ fontWeight: 700 }}>
             Empresas que já participam
           </Typography>
-          <Link href="#" style={{ color: "inherit", textDecoration: "none" }}>
+          <Link href={APP_ROUTES.public.parceiros} style={{ color: "inherit", textDecoration: "none" }}>
             <Stack
               direction="row"
               spacing={0.5}
@@ -82,9 +74,9 @@ export default function PartnerCompanies() {
 
         <Grid container spacing={3}>
           {companies.map((company) => (
-            <Grid key={company.name} size={{ xs: 12, sm: 6, md: 4 }}>
+            <Grid key={company.slug} size={{ xs: 12, sm: 6, md: 4 }}>
               <Link
-                href="#"
+                href={`${APP_ROUTES.public.parceiros}/${company.slug}`}
                 style={{ color: "inherit", textDecoration: "none", display: "block", height: "100%" }}
               >
                 <Box

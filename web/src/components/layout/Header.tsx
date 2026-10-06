@@ -17,7 +17,7 @@ import { APP_ROUTES } from "@/lib/routes";
 
 const navLinks = [
   { label: "Como funciona", href: "#como-funciona" },
-  { label: "Empresas parceiras", href: "#empresas-parceiras" },
+  { label: "Empresas parceiras", href: APP_ROUTES.public.parceiros },
   { label: "Instituições", href: "#" },
 ];
 

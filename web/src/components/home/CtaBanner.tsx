@@ -1,8 +1,11 @@
+"use client";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
+import Link from "next/link";
+import { APP_ROUTES } from "@/lib/routes";
 
 export default function CtaBanner() {
   return (
@@ -19,7 +22,13 @@ export default function CtaBanner() {
             O cadastro leva poucos minutos e a primeira campanha pode ser
             criada no mesmo dia.
           </Typography>
-          <Button variant="contained" size="large" sx={{ mt: 1 }}>
+          <Button
+            variant="contained"
+            size="large"
+            sx={{ mt: 1 }}
+            LinkComponent={Link}
+            href={APP_ROUTES.public.cadastro}
+          >
             Cadastrar minha empresa
           </Button>
         </Stack>
