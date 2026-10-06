@@ -19,15 +19,19 @@ export default function Hero() {
         bgcolor: "background.default",
         backgroundImage: "url(/images/banner-fivo.jpg)",
         backgroundSize: "cover",
+        // No mobile o recorte é mais estreito, então deslocamos o foco pra
+        // direita pra enquadrar a mulher em vez de mostrar só o espaço vazio.
         backgroundPosition: { xs: "70% center", md: "center" },
         backgroundRepeat: "no-repeat",
+        // fixed = efeito parallax; no mobile o Safari não lida bem com "fixed".
         backgroundAttachment: { xs: "scroll", md: "fixed" },
         minHeight: { xs: 480, md: 560 },
         display: "flex",
         alignItems: "center",
       }}
     >
-   
+      {/* Sobre a foto no mobile, um degradê claro por trás do texto garante
+          leitura sem esconder a imagem (ela continua sendo o fundo). */}
       <Box
         aria-hidden
         sx={{
@@ -85,29 +89,26 @@ export default function Hero() {
             spacing={2}
             sx={{ pt: 1, width: { xs: "100%", sm: "auto" } }}
           >
-            <Link href={APP_ROUTES.public.cadastro} style={{ textDecoration: "none" }}>
-              <Button variant="contained" size="large">
-                Cadastrar minha empresa
-              </Button>
-            </Link>
-            <Link href={APP_ROUTES.public.login} style={{ textDecoration: "none" }}>
-              <Button
-                variant="contained"
-                size="large"
-                color="inherit"
-                sx={{
-                  bgcolor: "common.white",
-                  color: "text.primary",
+            <Button variant="contained" size="large" LinkComponent={Link} href={APP_ROUTES.public.cadastro}>
+              Cadastrar minha empresa
+            </Button>
+            <Button
+              variant="contained"
+              size="large"
+              color="inherit"
+              LinkComponent={Link} href={APP_ROUTES.public.login}
+              sx={{
+                bgcolor: "common.white",
+                color: "text.primary",
+                boxShadow: "0 1px 6px rgba(0,0,0,0.15)",
+                "&:hover": {
+                  bgcolor: "grey.100",
                   boxShadow: "0 1px 6px rgba(0,0,0,0.15)",
-                  "&:hover": {
-                    bgcolor: "grey.100",
-                    boxShadow: "0 1px 6px rgba(0,0,0,0.15)",
-                  },
-                }}
-              >
-                Ver campanhas ativas
-              </Button>
-            </Link>
+                },
+              }}
+            >
+              Ver campanhas ativas
+            </Button>
           </Stack>
         </Stack>
       </Container>
