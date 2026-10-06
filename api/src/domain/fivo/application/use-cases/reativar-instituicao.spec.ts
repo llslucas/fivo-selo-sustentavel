@@ -7,25 +7,25 @@ import { UserFactory } from '@test/factories/user-factory';
 import { InMemoryInstituicaoRepository } from '@test/repositories/in-memory-instituicao-repository';
 import { InMemoryRegistroAuditoriaRepository } from '@test/repositories/in-memory-registro-auditoria-repository';
 import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
-import { SuspenderInstituicaoUseCase } from './suspender-instituicao';
+import { ReativarInstituicaoUseCase } from './reativar-instituicao';
 
-describe('SuspenderInstituicaoUseCase', () => {
+describe('ReativarInstituicaoUseCase', () => {
   let instituicaoRepository: InMemoryInstituicaoRepository;
   let registroAuditoriaRepository: InMemoryRegistroAuditoriaRepository;
-  let sut: SuspenderInstituicaoUseCase;
+  let sut: ReativarInstituicaoUseCase;
 
   beforeEach(() => {
     instituicaoRepository = new InMemoryInstituicaoRepository();
     registroAuditoriaRepository = new InMemoryRegistroAuditoriaRepository();
-    sut = new SuspenderInstituicaoUseCase(
+    sut = new ReativarInstituicaoUseCase(
       instituicaoRepository,
       registroAuditoriaRepository,
     );
   });
 
-  it('should suspend an APROVADA instituicao: set SUSPENSA and write one audit row', async () => {
+  it('should reactivate a SUSPENSA instituicao: set APROVADA and write one audit row', async () => {
     const instituicao = InstituicaoFactory.create({
-      status: InstituicaoStatus.APROVADA,
+      status: InstituicaoStatus.SUSPENSA,
     });
     await instituicaoRepository.create(instituicao);
     const admin = UserFactory.create({ role: UserRole.ADMIN });
@@ -37,14 +37,14 @@ describe('SuspenderInstituicaoUseCase', () => {
     const updated = await instituicaoRepository.findById(
       instituicao.id.toString(),
     );
-    expect(updated?.status).toBe(InstituicaoStatus.SUSPENSA);
+    expect(updated?.status).toBe(InstituicaoStatus.APROVADA);
     expect(updated?.decididoPor?.equals(admin.id)).toBe(true);
 
     expect(registroAuditoriaRepository.items).toHaveLength(1);
     expect(registroAuditoriaRepository.items[0].dados).toEqual(
       expect.objectContaining({
-        estadoAnterior: InstituicaoStatus.APROVADA,
-        estadoNovo: InstituicaoStatus.SUSPENSA,
+        estadoAnterior: InstituicaoStatus.SUSPENSA,
+        estadoNovo: InstituicaoStatus.APROVADA,
       }),
     );
   });
@@ -52,7 +52,7 @@ describe('SuspenderInstituicaoUseCase', () => {
   it.each([
     InstituicaoStatus.PENDENTE_APROVACAO,
     InstituicaoStatus.REJEITADA,
-    InstituicaoStatus.SUSPENSA,
+    InstituicaoStatus.APROVADA,
     InstituicaoStatus.INATIVA,
   ])(
     'should reject with TransicaoInvalidaError (409) when the instituicao is %s',
@@ -78,7 +78,7 @@ describe('SuspenderInstituicaoUseCase', () => {
 
   it('should reject with NotAllowedError (403) when the user is not an admin', async () => {
     const instituicao = InstituicaoFactory.create({
-      status: InstituicaoStatus.APROVADA,
+      status: InstituicaoStatus.SUSPENSA,
     });
     await instituicaoRepository.create(instituicao);
     const naoAdmin = UserFactory.create({ role: UserRole.EMPRESA });
@@ -104,7 +104,7 @@ describe('SuspenderInstituicaoUseCase', () => {
 
   it('should reject with TransicaoInvalidaError and leave no audit when salvarTransicao is not applied', async () => {
     const instituicao = InstituicaoFactory.create({
-      status: InstituicaoStatus.APROVADA,
+      status: InstituicaoStatus.SUSPENSA,
     });
     await instituicaoRepository.create(instituicao);
     const admin = UserFactory.create({ role: UserRole.ADMIN });
