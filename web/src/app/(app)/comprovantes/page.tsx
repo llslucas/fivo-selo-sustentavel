@@ -180,7 +180,7 @@ export default function ComprovantesPage() {
                   slotProps={{
                     select: {
                       displayEmpty: true,
-                      renderValue: (selected: any) => {
+                      renderValue: (selected: unknown) => {
                         if (!selected) {
                           return <span style={{ color: "#8E8E93" }}>Selecione a campanha</span>;
                         }
