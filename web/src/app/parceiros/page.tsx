@@ -12,6 +12,7 @@ import Link from "next/link";
 import PublicSimpleHeader from "@/components/layout/PublicSimpleHeader";
 import Footer from "@/components/layout/Footer";
 import { mockPartnerCompanies } from "@/lib/mockPartners";
+import { APP_ROUTES } from "@/lib/routes";
 
 export default function ParceirosPage() {
   const [busca, setBusca] = useState("");
@@ -142,7 +143,7 @@ export default function ParceirosPage() {
                   {/* Botão Ver perfil */}
                   <Button
                     component={Link}
-                    href={`/parceiros/${empresa.slug}`}
+                    href={`${APP_ROUTES.public.parceiros}/${empresa.slug}`}
                     variant="outlined"
                     fullWidth
                     sx={{

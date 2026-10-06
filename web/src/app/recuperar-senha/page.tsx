@@ -11,6 +11,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Link from "next/link";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
+import { APP_ROUTES } from "@/lib/routes";
 
 export default function RecuperarSenhaPage() {
   const [email, setEmail] = useState("");
@@ -154,7 +155,7 @@ export default function RecuperarSenhaPage() {
 
                 <Button
                   component={Link}
-                  href="/recuperar-senha/redefinir"
+                  href={APP_ROUTES.public.recuperarSenhaRedefinir}
                   variant="outlined"
                   fullWidth
                   sx={{
@@ -171,7 +172,7 @@ export default function RecuperarSenhaPage() {
                 </Button>
 
                 <Link
-                  href="/login"
+                  href={APP_ROUTES.public.login}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -227,7 +228,7 @@ export default function RecuperarSenhaPage() {
 
                 <Box sx={{ textAlign: "center", mt: 1 }}>
                   <Link
-                    href="/login"
+                    href={APP_ROUTES.public.login}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",

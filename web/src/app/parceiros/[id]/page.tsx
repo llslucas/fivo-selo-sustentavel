@@ -14,6 +14,7 @@ import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import PublicSimpleHeader from "@/components/layout/PublicSimpleHeader";
 import Footer from "@/components/layout/Footer";
 import { mockPartnerCompanies } from "@/lib/mockPartners";
+import { APP_ROUTES } from "@/lib/routes";
 
 interface PartnerProfileProps {
   params: Promise<{ id: string }>;
@@ -194,7 +195,7 @@ export default function PartnerDetailPage({ params }: PartnerProfileProps) {
 
                       {/* Link Ver campanha */}
                       <Link
-                        href={`/campanhas`}
+                        href={APP_ROUTES.private.campanhas}
                         style={{
                           textDecoration: "none",
                           display: "inline-flex",

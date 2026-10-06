@@ -15,6 +15,7 @@ import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
+import { APP_ROUTES } from "@/lib/routes";
 
 export default function RedefinirSenhaPage() {
   const [novaSenha, setNovaSenha] = useState("");
@@ -169,7 +170,7 @@ export default function RedefinirSenhaPage() {
                 </Alert>
                 <Button
                   component={Link}
-                  href="/login"
+                  href={APP_ROUTES.public.login}
                   variant="contained"
                   fullWidth
                   sx={{
@@ -327,7 +328,7 @@ export default function RedefinirSenhaPage() {
 
                 <Box sx={{ textAlign: "center", mt: 0.5 }}>
                   <Link
-                    href="/login"
+                    href={APP_ROUTES.public.login}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",

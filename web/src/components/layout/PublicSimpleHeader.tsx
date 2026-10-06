@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Link from "next/link";
 import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
+import { APP_ROUTES } from "@/lib/routes";
 
 export default function PublicSimpleHeader() {
   return (
@@ -21,7 +22,7 @@ export default function PublicSimpleHeader() {
       <Container maxWidth="lg">
         <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}>
           {/* Logo */}
-          <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>
+          <Link href={APP_ROUTES.public.landing} style={{ color: "inherit", textDecoration: "none" }}>
             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
               <Box
                 sx={{
@@ -45,12 +46,12 @@ export default function PublicSimpleHeader() {
 
           {/* Menus */}
           <Stack direction="row" spacing={3.5} sx={{ display: { xs: "none", md: "flex" }, alignItems: "center" }}>
-            <Link href="/home#como-funciona" style={{ textDecoration: "none" }}>
+            <Link href={`${APP_ROUTES.public.home}#como-funciona`} style={{ textDecoration: "none" }}>
               <Typography variant="body2" sx={{ color: "#5F5E5A", "&:hover": { color: "#1B1B19" } }}>
                 Como funciona
               </Typography>
             </Link>
-            <Link href="/parceiros" style={{ textDecoration: "none" }}>
+            <Link href={APP_ROUTES.public.parceiros} style={{ textDecoration: "none" }}>
               <Typography variant="body2" sx={{ color: "#1B1B19", fontWeight: 600 }}>
                 Empresas parceiras
               </Typography>
@@ -65,7 +66,7 @@ export default function PublicSimpleHeader() {
           {/* Botão Entrar */}
           <Button
             component={Link}
-            href="/login"
+            href={APP_ROUTES.public.login}
             variant="outlined"
             size="small"
             sx={{
