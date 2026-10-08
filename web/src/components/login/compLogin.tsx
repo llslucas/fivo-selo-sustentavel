@@ -15,10 +15,13 @@ import Link from "@mui/material/Link";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 import { APP_ROUTES } from "@/lib/routes";
-import { ApiError, login } from "@/lib/api";
+import { ApiError } from "@/services/api";
+import { login } from "@/services/auth";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function CompLogin() {
   const router = useRouter();
+  const { verificar } = useAuth();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -32,6 +35,10 @@ export default function CompLogin() {
     setLoading(true);
     try {
       await login(email, senha);
+      // O AuthContext buscou a sessão (ausente) uma vez, na raiz da app, antes
+      // de existir cookie — sem isso o AuthGuard do dashboard acharia que
+      // ainda não tem sessão e mandaria de volta pro login.
+      await verificar();
       router.push(APP_ROUTES.private.dashboard);
     } catch (e) {
       if (e instanceof ApiError) {
