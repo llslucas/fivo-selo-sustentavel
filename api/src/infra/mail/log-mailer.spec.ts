@@ -41,4 +41,41 @@ describe('LogMailer', () => {
 
     logSpy.mockRestore();
   });
+
+  it('logs the reset link with the token outside production', async () => {
+    const logSpy = jest.spyOn(Logger.prototype, 'log').mockImplementation();
+    const sut = new LogMailer();
+
+    await sut.enviar({
+      para: 'empresa@exemplo.com',
+      template: TemplateEmail.SENHA_REDEFINICAO,
+      dados: { token: 'token-bruto' },
+    });
+
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('/recuperar-senha/redefinir?token=token-bruto'),
+    );
+
+    logSpy.mockRestore();
+  });
+
+  it('does not log the token in production', async () => {
+    const nodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    const logSpy = jest.spyOn(Logger.prototype, 'log').mockImplementation();
+    const sut = new LogMailer();
+
+    await sut.enviar({
+      para: 'empresa@exemplo.com',
+      template: TemplateEmail.SENHA_REDEFINICAO,
+      dados: { token: 'token-bruto' },
+    });
+
+    expect(logSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('token-bruto'),
+    );
+
+    logSpy.mockRestore();
+    process.env.NODE_ENV = nodeEnv;
+  });
 });

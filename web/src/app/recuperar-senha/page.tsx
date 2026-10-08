@@ -12,6 +12,7 @@ import Link from "next/link";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
 import { APP_ROUTES } from "@/lib/routes";
+import { ApiError, solicitarRecuperacaoSenha } from "@/lib/api";
 
 export default function RecuperarSenhaPage() {
   const [email, setEmail] = useState("");
@@ -28,12 +29,18 @@ export default function RecuperarSenhaPage() {
 
     setErro(null);
     setLoading(true);
-
-    // Simulação do envio de e-mail de recuperação
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await solicitarRecuperacaoSenha(email);
       setEnviado(true);
-    }, 1200);
+    } catch (e) {
+      if (e instanceof ApiError) {
+        setErro(e.fieldErrors.email ?? e.message);
+      } else {
+        setErro("Não foi possível enviar o link. Tente novamente.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -150,26 +157,8 @@ export default function RecuperarSenhaPage() {
             {enviado ? (
               <Box sx={{ textAlign: "center", py: 2 }}>
                 <Alert severity="success" sx={{ mb: 3, borderRadius: 2, textAlign: "left" }}>
-                  Enviamos as instruções para <strong>{email}</strong>. Verifique sua caixa de entrada e spam.
+                  Se <strong>{email}</strong> estiver cadastrado, enviaremos um link de redefinição. Verifique sua caixa de entrada e spam.
                 </Alert>
-
-                <Button
-                  component={Link}
-                  href={APP_ROUTES.public.recuperarSenhaRedefinir}
-                  variant="outlined"
-                  fullWidth
-                  sx={{
-                    mb: 2,
-                    py: 1.2,
-                    borderRadius: 2,
-                    textTransform: "none",
-                    borderColor: "#0F6E56",
-                    color: "#0F6E56",
-                    fontWeight: 600,
-                  }}
-                >
-                  Simular abertura do link recebido
-                </Button>
 
                 <Link
                   href={APP_ROUTES.public.login}

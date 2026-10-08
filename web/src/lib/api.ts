@@ -71,6 +71,22 @@ export function logout(): Promise<void> {
   return request("/sessoes/atual", { method: "DELETE" });
 }
 
+export function solicitarRecuperacaoSenha(email: string): Promise<{ mensagem: string }> {
+  return request("/senha/recuperacao", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function redefinirSenha(token: string, novaSenha: string): Promise<void> {
+  return request("/senha/redefinicao", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, novaSenha }),
+  });
+}
+
 export type CriarEmpresaInput = {
   razaoSocial: string;
   nomeFantasia: string;

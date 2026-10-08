@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
@@ -16,8 +17,19 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
 import { APP_ROUTES } from "@/lib/routes";
+import { ApiError, redefinirSenha } from "@/lib/api";
 
+// useSearchParams exige um Suspense acima dele pra página poder ser pré-renderizada.
 export default function RedefinirSenhaPage() {
+  return (
+    <Suspense>
+      <RedefinirSenha />
+    </Suspense>
+  );
+}
+
+function RedefinirSenha() {
+  const token = useSearchParams().get("token");
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -27,13 +39,17 @@ export default function RedefinirSenhaPage() {
   const [erro, setErro] = useState<string | null>(null);
 
   // Critérios de validação
-  const temMin8 = novaSenha.length >= 8;
+  const temMin10 = novaSenha.length >= 10;
   const temMaiuscula = /[A-Z]/.test(novaSenha);
   const temNumero = /[0-9]/.test(novaSenha);
-  const todasValidas = temMin8 && temMaiuscula && temNumero;
+  const todasValidas = temMin10 && temMaiuscula && temNumero;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!token) {
+      setErro("Link de redefinição inválido ou expirado");
+      return;
+    }
     if (!todasValidas) {
       setErro("Por favor, atenda a todos os critérios de senha antes de continuar.");
       return;
@@ -45,11 +61,18 @@ export default function RedefinirSenhaPage() {
 
     setErro(null);
     setLoading(true);
-
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await redefinirSenha(token, novaSenha);
       setSucesso(true);
-    }, 1200);
+    } catch (e) {
+      if (e instanceof ApiError) {
+        setErro(e.fieldErrors.novaSenha ?? e.message);
+      } else {
+        setErro("Não foi possível redefinir a senha. Tente novamente.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -275,12 +298,12 @@ export default function RedefinirSenhaPage() {
                       display: "flex",
                       alignItems: "center",
                       gap: 1,
-                      color: temMin8 ? "#0F6E56" : "#71717A",
-                      fontWeight: temMin8 ? 600 : 400,
+                      color: temMin10 ? "#0F6E56" : "#71717A",
+                      fontWeight: temMin10 ? 600 : 400,
                       mb: 0.5,
                     }}
                   >
-                    • Mínimo de 8 caracteres
+                    • Mínimo de 10 caracteres
                   </Typography>
                   <Typography
                     variant="caption"
