@@ -17,7 +17,8 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
 import { APP_ROUTES } from "@/lib/routes";
-import { ApiError, redefinirSenha } from "@/lib/api";
+import ErrorMessage from "@/components/ui/ErrorMessage";
+import { ApiError, mensagemDeErro, redefinirSenha } from "@/lib/api";
 
 // useSearchParams exige um Suspense acima dele pra página poder ser pré-renderizada.
 export default function RedefinirSenhaPage() {
@@ -65,11 +66,8 @@ function RedefinirSenha() {
       await redefinirSenha(token, novaSenha);
       setSucesso(true);
     } catch (e) {
-      if (e instanceof ApiError) {
-        setErro(e.fieldErrors.novaSenha ?? e.message);
-      } else {
-        setErro("Não foi possível redefinir a senha. Tente novamente.");
-      }
+      const erroCampo = e instanceof ApiError ? e.fieldErrors.novaSenha : undefined;
+      setErro(erroCampo ?? mensagemDeErro(e));
     } finally {
       setLoading(false);
     }
@@ -180,11 +178,7 @@ function RedefinirSenha() {
               Defina uma nova senha para acessar sua conta Fivo.
             </Typography>
 
-            {erro && (
-              <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-                {erro}
-              </Alert>
-            )}
+            {erro && <ErrorMessage mensagem={erro} sx={{ mb: 2, borderRadius: 2 }} />}
 
             {sucesso ? (
               <Box sx={{ textAlign: "center", py: 2 }}>
@@ -222,6 +216,7 @@ function RedefinirSenha() {
                     placeholder="••••••••"
                     value={novaSenha}
                     onChange={(e) => setNovaSenha(e.target.value)}
+                    disabled={loading}
                     slotProps={{
                       input: {
                         endAdornment: (
@@ -262,6 +257,7 @@ function RedefinirSenha() {
                     placeholder="••••••••"
                     value={confirmarSenha}
                     onChange={(e) => setConfirmarSenha(e.target.value)}
+                    disabled={loading}
                     slotProps={{
                       input: {
                         endAdornment: (

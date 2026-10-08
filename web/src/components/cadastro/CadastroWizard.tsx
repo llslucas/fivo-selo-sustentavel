@@ -10,7 +10,6 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Chip from "@mui/material/Chip";
-import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import CircularProgress from "@mui/material/CircularProgress";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -20,7 +19,8 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 import { useRouter } from "next/navigation";
-import { ApiError, criarEmpresa } from "@/lib/api";
+import ErrorMessage from "@/components/ui/ErrorMessage";
+import { ApiError, criarEmpresa, mensagemDeErro } from "@/lib/api";
 import { formatarCnpj, formatarTelefone } from "@/lib/mascaras";
 import { APP_ROUTES } from "@/lib/routes";
 
@@ -218,9 +218,9 @@ export default function CadastroWizard() {
       });
       setConcluido(true);
     } catch (e) {
+      setErro(mensagemDeErro(e));
       if (e instanceof ApiError) {
         setErrosCampo(e.fieldErrors);
-        setErro(e.message);
         // Volta pra etapa onde o campo com erro está, pra pessoa conseguir corrigir.
         const camposComErro = Object.keys(e.fieldErrors);
         if (camposComErro.some((c) => CAMPOS_ETAPA_1.includes(c))) {
@@ -228,8 +228,6 @@ export default function CadastroWizard() {
         } else if (camposComErro.some((c) => CAMPOS_ETAPA_2.includes(c))) {
           setStep(2);
         }
-      } else {
-        setErro("Não foi possível enviar o cadastro. Tente novamente.");
       }
     } finally {
       setLoading(false);
@@ -343,11 +341,7 @@ export default function CadastroWizard() {
             )}
           </Box>
 
-          {erro && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {erro}
-            </Alert>
-          )}
+          {erro && <ErrorMessage mensagem={erro} sx={{ mb: 3 }} />}
 
           {step === 1 && (
             <Stack spacing={3}>

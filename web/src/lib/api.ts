@@ -19,6 +19,37 @@ export class ApiError extends Error {
   }
 }
 
+// Status em que a mensagem da API não serve pra mostrar ao usuário: genérica
+// demais ou em inglês (o 500 do Nest volta "Internal server error"). Nos
+// demais (400, 409, 422, 429) a API já responde em português.
+const MENSAGENS_POR_STATUS: Record<number, string> = {
+  401: "Sua sessão expirou. Entre novamente para continuar.",
+  403: "Você não tem permissão para acessar este conteúdo.",
+  404: "Não encontramos o que você procurava.",
+};
+const MENSAGEM_SERVIDOR = "O servidor está indisponível no momento. Tente novamente em instantes.";
+const MENSAGEM_INESPERADA = "Ocorreu um erro inesperado. Tente novamente.";
+
+// Converte qualquer erro de chamada da API na mensagem mostrada na tela.
+// `personalizadas` troca a mensagem de um status específico daquela tela
+// (ex.: no login, 401 é senha errada e não sessão expirada).
+export function mensagemDeErro(
+  erro: unknown,
+  personalizadas: Record<number, string> = {},
+): string {
+  if (!(erro instanceof ApiError)) return MENSAGEM_INESPERADA;
+  if (personalizadas[erro.status]) return personalizadas[erro.status];
+  if (erro.status === 0) return erro.message;
+  if (erro.status >= 500) return MENSAGEM_SERVIDOR;
+  return MENSAGENS_POR_STATUS[erro.status] ?? erro.message;
+}
+
+// Vale oferecer "Tentar novamente": sem conexão ou servidor fora do ar. Erros
+// de validação, permissão ou não encontrado dão o mesmo resultado se repetir.
+export function ehErroRecuperavel(erro: unknown): boolean {
+  return erro instanceof ApiError && (erro.status === 0 || erro.status >= 500);
+}
+
 type ErroResposta = {
   statusCode: number;
   message: string;

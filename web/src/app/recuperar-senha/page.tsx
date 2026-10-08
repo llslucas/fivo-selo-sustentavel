@@ -12,7 +12,8 @@ import Link from "next/link";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
 import { APP_ROUTES } from "@/lib/routes";
-import { ApiError, solicitarRecuperacaoSenha } from "@/lib/api";
+import ErrorMessage from "@/components/ui/ErrorMessage";
+import { ApiError, mensagemDeErro, solicitarRecuperacaoSenha } from "@/lib/api";
 
 export default function RecuperarSenhaPage() {
   const [email, setEmail] = useState("");
@@ -33,11 +34,8 @@ export default function RecuperarSenhaPage() {
       await solicitarRecuperacaoSenha(email);
       setEnviado(true);
     } catch (e) {
-      if (e instanceof ApiError) {
-        setErro(e.fieldErrors.email ?? e.message);
-      } else {
-        setErro("Não foi possível enviar o link. Tente novamente.");
-      }
+      const erroCampo = e instanceof ApiError ? e.fieldErrors.email : undefined;
+      setErro(erroCampo ?? mensagemDeErro(e));
     } finally {
       setLoading(false);
     }
@@ -148,11 +146,7 @@ export default function RecuperarSenhaPage() {
               Informe seu e-mail corporativo cadastrado.
             </Typography>
 
-            {erro && (
-              <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-                {erro}
-              </Alert>
-            )}
+            {erro && <ErrorMessage mensagem={erro} sx={{ mb: 2, borderRadius: 2 }} />}
 
             {enviado ? (
               <Box sx={{ textAlign: "center", py: 2 }}>
@@ -189,6 +183,7 @@ export default function RecuperarSenhaPage() {
                     placeholder="nome@empresa.com.br"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         borderRadius: 2,

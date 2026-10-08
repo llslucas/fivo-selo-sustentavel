@@ -9,13 +9,13 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
-import Alert from "@mui/material/Alert";
 import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 import { APP_ROUTES } from "@/lib/routes";
-import { ApiError, login } from "@/lib/api";
+import { ApiError, login, mensagemDeErro } from "@/lib/api";
 
 export default function CompLogin() {
   const router = useRouter();
@@ -34,18 +34,8 @@ export default function CompLogin() {
       await login(email, senha);
       router.push(APP_ROUTES.private.dashboard);
     } catch (e) {
-      if (e instanceof ApiError) {
-        setErrosCampo(e.fieldErrors);
-        setErro(
-          e.status === 401
-            ? "E-mail ou senha incorretos."
-            : e.status === 429
-              ? e.message
-              : e.message,
-        );
-      } else {
-        setErro("Não foi possível entrar. Tente novamente.");
-      }
+      if (e instanceof ApiError) setErrosCampo(e.fieldErrors);
+      setErro(mensagemDeErro(e, { 401: "E-mail ou senha incorretos." }));
     } finally {
       setLoading(false);
     }
@@ -88,7 +78,7 @@ export default function CompLogin() {
         }}
         sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
       >
-        {erro && <Alert severity="error">{erro}</Alert>}
+        {erro && <ErrorMessage mensagem={erro} />}
 
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 600, color: "#1B1B19", mb: 0.75 }}>
@@ -101,6 +91,7 @@ export default function CompLogin() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
             error={Boolean(errosCampo.email)}
             helperText={errosCampo.email}
             sx={{
@@ -136,6 +127,7 @@ export default function CompLogin() {
             variant="outlined"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
+            disabled={loading}
             error={Boolean(errosCampo.senha)}
             helperText={errosCampo.senha}
             slotProps={{
