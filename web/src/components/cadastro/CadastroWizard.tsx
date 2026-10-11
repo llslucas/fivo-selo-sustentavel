@@ -20,7 +20,8 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 import { useRouter } from "next/navigation";
-import { ApiError, criarEmpresa } from "@/lib/api";
+import { ApiError } from "@/services/api";
+import { criarEmpresa } from "@/services/empresas";
 import { formatarCnpj, formatarTelefone } from "@/lib/mascaras";
 import { APP_ROUTES } from "@/lib/routes";
 

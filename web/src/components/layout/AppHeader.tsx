@@ -23,8 +23,19 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
-import { mockEmpresaAtual } from "@/lib/campaign-wizard/types";
 import { APP_ROUTES } from "@/lib/routes";
+import { useAuth } from "@/hooks/useAuth";
+
+// Pega as 2 primeiras iniciais do nome da empresa pro avatar (ex: "Café
+// Serra Verde" -> "CS"). Sem nome ainda (estado inicial), cai pro "--".
+function iniciaisDoNome(nome: string): string {
+  const palavras = nome.trim().split(/\s+/).filter(Boolean);
+  if (palavras.length === 0) return "--";
+  return palavras
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
+}
 
 const navLinks = [
   { label: "Dashboard", href: APP_ROUTES.private.dashboard },
@@ -36,9 +47,15 @@ const navLinks = [
 export default function AppHeader() {
   const pathname = usePathname();
   const router = useRouter();
+  const { empresa, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const userMenuOpen = Boolean(anchorEl);
+
+  // AppHeader só renderiza dentro do AuthGuard (estado "autenticado"), então
+  // `empresa` já deveria estar preenchido aqui — o fallback é só segurança de tipo.
+  const nomeEmpresa = empresa?.nomeFantasia || empresa?.razaoSocial || "";
+  const iniciaisEmpresa = iniciaisDoNome(nomeEmpresa);
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -51,7 +68,9 @@ export default function AppHeader() {
   const handleLogout = () => {
     handleCloseUserMenu();
     setMobileOpen(false);
-    router.push(APP_ROUTES.public.login);
+    // logout() do contexto já chama DELETE /sessoes/atual e limpa o estado
+    // local mesmo se a chamada falhar — só falta navegar pro login.
+    void logout().then(() => router.push(APP_ROUTES.public.login));
   };
 
   return (
@@ -164,12 +183,12 @@ export default function AppHeader() {
                   fontSize: "0.875rem",
                 }}
               >
-                {mockEmpresaAtual.iniciais}
+                {iniciaisEmpresa}
               </Avatar>
 
               <Box sx={{ display: { xs: "none", md: "block" }, textAlign: "left" }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                  {mockEmpresaAtual.nome}
+                  {nomeEmpresa}
                 </Typography>
                 <Chip
                   label="Conta empresa"
@@ -218,7 +237,7 @@ export default function AppHeader() {
             >
               <Box sx={{ px: 2, py: 1.5 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                  {mockEmpresaAtual.nome}
+                  {nomeEmpresa}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Painel da Empresa
@@ -356,11 +375,11 @@ export default function AppHeader() {
                 fontSize: "0.9rem",
               }}
             >
-              {mockEmpresaAtual.iniciais}
+              {iniciaisEmpresa}
             </Avatar>
             <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                {mockEmpresaAtual.nome}
+                {nomeEmpresa}
               </Typography>
               <Chip
                 label="Conta empresa"
