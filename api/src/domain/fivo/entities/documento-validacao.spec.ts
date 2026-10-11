@@ -54,7 +54,7 @@ describe('DocumentoValidacao', () => {
     if (result.isLeft()) {
       expect(result.value.status).toBe(422);
       expect(result.value.message).toBe(
-        'Anexe um documento que comprove a existência da instituição.',
+        'Anexe um documento que comprove a existência da instituição',
       );
     }
   });
