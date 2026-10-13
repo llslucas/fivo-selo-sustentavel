@@ -1,9 +1,9 @@
 import { UseCaseError } from '@core/types/use-case-error';
 
-export class NomeCausaInvalidoError extends Error implements UseCaseError {
+export class BeneficiadaAmbiguaError extends Error implements UseCaseError {
   readonly status = 422;
 
   constructor() {
-    super('Nome de causa inválido');
+    super('Informe exatamente uma beneficiada: instituição ou causa');
   }
 }

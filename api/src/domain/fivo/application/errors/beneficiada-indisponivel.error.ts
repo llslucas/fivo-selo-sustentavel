@@ -7,6 +7,6 @@ export class BeneficiadaIndisponivelError
   readonly status = 422;
 
   constructor() {
-    super('Instituição ou causa indisponível.');
+    super('Instituição ou causa indisponível');
   }
 }

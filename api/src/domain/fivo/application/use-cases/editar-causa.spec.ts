@@ -6,7 +6,7 @@ import { UserFactory } from '@test/factories/user-factory';
 import { UserRole } from '@domain/fivo/entities/user';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { CausaJaExisteError } from '../errors/causa-ja-existe.error';
-import { NomeCausaInvalidoError } from '../errors/beneficiada-ambigua.error';
+import { NomeCausaInvalidoError } from '../errors/nome-causa-invalido.error';
 
 describe('EditarDadosCausaUseCase', () => {
   let causaRepository: InMemoryCausaRepository;

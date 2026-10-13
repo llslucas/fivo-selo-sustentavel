@@ -2,7 +2,7 @@ import { Entity } from '@core/types/entities/entity';
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { Optional } from '@core/types/optional';
 import { Either, left, right } from '@core/either';
-import { NomeCausaInvalidoError } from '../application/errors/beneficiada-ambigua.error';
+import { NomeCausaInvalidoError } from '../application/errors/nome-causa-invalido.error';
 import { TransicaoInvalidaError } from '../application/errors/transicao-invalida.error';
 
 export enum CausaStatus {

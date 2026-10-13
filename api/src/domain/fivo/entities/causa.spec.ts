@@ -1,4 +1,4 @@
-import { NomeCausaInvalidoError } from '../application/errors/beneficiada-ambigua.error';
+import { NomeCausaInvalidoError } from '../application/errors/nome-causa-invalido.error';
 import { TransicaoInvalidaError } from '../application/errors/transicao-invalida.error';
 import { Causa, CausaStatus } from './causa';
 
