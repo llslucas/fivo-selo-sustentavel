@@ -60,6 +60,8 @@ const TABELAS_EM_ORDEM_DE_FK = [
   'registro_auditoria',
   'email_pendente',
   'empresa',
+  'instituicao',
+  'causa',
   'usuario',
   'arquivo',
 ] as const;

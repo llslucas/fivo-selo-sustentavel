@@ -1303,11 +1303,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Todas as operações da porta implementadas; `nome_busca` gravado pelo mapper
-- [ ] `findByNome` encontra "Educação" buscando "educacao"; violação do índice único vira erro tratável
-- [ ] Registrado no `DatabaseModule`
-- [ ] `test/database/prisma-causa-repository.e2e-spec.ts` cobre roundtrip, busca normalizada, listagem de ativas e unicidade
-- [ ] Gate `full` passa
+- [x] Todas as operações da porta implementadas; `nome_busca` gravado pelo mapper
+- [x] `findByNome` encontra "Educação" buscando "educacao"; violação do índice único vira erro tratável
+- [x] Registrado no `DatabaseModule`
+- [x] `test/database/prisma-causa-repository.e2e-spec.ts` cobre roundtrip, busca normalizada, listagem de ativas e unicidade
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
