@@ -17,8 +17,11 @@ import {
 
 import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
 import { AprovarInstituicaoUseCase } from '@domain/fivo/application/use-cases/aprovar-instituicao';
+import { InativarInstituicaoUseCase } from '@domain/fivo/application/use-cases/inativar-instituicao';
 import { ListarFilaInstituicoesUseCase } from '@domain/fivo/application/use-cases/listar-fila-instituicoes';
+import { ReativarInstituicaoUseCase } from '@domain/fivo/application/use-cases/reativar-instituicao';
 import { RejeitarInstituicaoUseCase } from '@domain/fivo/application/use-cases/rejeitar-instituicao';
+import { SuspenderInstituicaoUseCase } from '@domain/fivo/application/use-cases/suspender-instituicao';
 import { User, UserRole } from '@domain/fivo/entities/user';
 import { CurrentUser } from '@infra/auth/decorators/current-user.decorator';
 import { Roles } from '@infra/auth/decorators/roles.decorator';
@@ -45,6 +48,9 @@ export class AdminInstituicoesController {
     private readonly listarFila: ListarFilaInstituicoesUseCase,
     private readonly aprovarInstituicao: AprovarInstituicaoUseCase,
     private readonly rejeitarInstituicao: RejeitarInstituicaoUseCase,
+    private readonly suspenderInstituicao: SuspenderInstituicaoUseCase,
+    private readonly reativarInstituicao: ReativarInstituicaoUseCase,
+    private readonly inativarInstituicao: InativarInstituicaoUseCase,
   ) {}
 
   @ApiOperation({
@@ -143,6 +149,69 @@ export class AdminInstituicoesController {
         id,
         await this.carregarAdmin(usuario),
         motivo,
+      ),
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Suspende a instituição aprovada (somente ADMIN)',
+  })
+  @ApiParam(PARAMETRO_ID)
+  @ApiResponse({ status: 204, description: 'Decisão registrada' })
+  @ApiErro(404, 'Instituição não encontrada')
+  @ApiErro(409, 'Transição de estado inválida para a situação atual')
+  @Post(':id/suspensao')
+  @HttpCode(204)
+  async suspender(
+    @Param('id') id: string,
+    @CurrentUser() usuario: UsuarioAutenticado,
+  ): Promise<void> {
+    desembrulhar(
+      await this.suspenderInstituicao.execute(
+        id,
+        await this.carregarAdmin(usuario),
+      ),
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Reativa a instituição suspensa (somente ADMIN)',
+  })
+  @ApiParam(PARAMETRO_ID)
+  @ApiResponse({ status: 204, description: 'Decisão registrada' })
+  @ApiErro(404, 'Instituição não encontrada')
+  @ApiErro(409, 'Transição de estado inválida para a situação atual')
+  @Post(':id/reativacao')
+  @HttpCode(204)
+  async reativar(
+    @Param('id') id: string,
+    @CurrentUser() usuario: UsuarioAutenticado,
+  ): Promise<void> {
+    desembrulhar(
+      await this.reativarInstituicao.execute(
+        id,
+        await this.carregarAdmin(usuario),
+      ),
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Inativa a instituição aprovada, sem excluir (somente ADMIN)',
+  })
+  @ApiParam(PARAMETRO_ID)
+  @ApiResponse({ status: 204, description: 'Decisão registrada' })
+  @ApiErro(404, 'Instituição não encontrada')
+  @ApiErro(409, 'Transição de estado inválida para a situação atual')
+  @Post(':id/inativacao')
+  @HttpCode(204)
+  async inativar(
+    @Param('id') id: string,
+    @CurrentUser() usuario: UsuarioAutenticado,
+  ): Promise<void> {
+    desembrulhar(
+      await this.inativarInstituicao.execute(
+        id,
+        await this.carregarAdmin(usuario),
       ),
     );
   }

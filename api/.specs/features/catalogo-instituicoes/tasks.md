@@ -1554,12 +1554,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `POST /admin/instituicoes/:id/{suspensao,reativacao,inativacao}` respondendo 204
-- [ ] Transição inválida → 409; não-admin → 403
-- [ ] Instituição suspensa ou inativada some de `GET /beneficiadas` (asserido no e2e)
-- [ ] Rotas documentadas no OpenAPI
-- [ ] `test/http/admin-instituicoes.e2e-spec.ts` estendido
-- [ ] Gate `full` passa
+- [x] `POST /admin/instituicoes/:id/{suspensao,reativacao,inativacao}` respondendo 204
+- [x] Transição inválida → 409; não-admin → 403
+- [x] Instituição suspensa ou inativada some de `GET /beneficiadas` (asserido no e2e)
+- [x] Rotas documentadas no OpenAPI
+- [x] `test/http/admin-instituicoes.e2e-spec.ts` estendido
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

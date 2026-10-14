@@ -6,6 +6,7 @@ import { InstituicaoRepository } from '@domain/fivo/application/ports/database/i
 import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
 import { Mailer, TemplateEmail } from '@domain/fivo/application/ports/mailer';
 import { Storage } from '@domain/fivo/application/ports/storage';
+import { ListarBeneficiadasUseCase } from '@domain/fivo/application/use-cases/listar-beneficiadas';
 import { Causa } from '@domain/fivo/entities/causa';
 import { DocumentoValidacao } from '@domain/fivo/entities/documento-validacao';
 import {
@@ -398,6 +399,144 @@ describe('AdminInstituicoesController (e2e)', () => {
     );
   });
 
+  describe('suspensão, reativação e inativação', () => {
+    it('APROVADA → suspensao 204 SUSPENSA → reativacao 204 APROVADA, com auditoria de cada mudança', async () => {
+      const instituicao = await criarInstituicao('dona@instituicao.test', {
+        status: InstituicaoStatus.APROVADA,
+      });
+      const id = instituicao.id.toString();
+
+      const suspensao = await comoAdmin(
+        api().post(`/admin/instituicoes/${id}/suspensao`),
+      );
+      expect(suspensao.status).toBe(204);
+      expect((await linhaNoBanco(instituicao)).status).toBe(
+        InstituicaoStatus.SUSPENSA,
+      );
+
+      const reativacao = await comoAdmin(
+        api().post(`/admin/instituicoes/${id}/reativacao`),
+      );
+      expect(reativacao.status).toBe(204);
+      expect((await linhaNoBanco(instituicao)).status).toBe(
+        InstituicaoStatus.APROVADA,
+      );
+
+      const registros = await contexto.prisma.registroAuditoria.findMany({
+        orderBy: { criadoEm: 'asc' },
+      });
+      expect(
+        registros.map(({ usuarioId, entidadeId, dados }) => ({
+          usuarioId,
+          entidadeId,
+          dados,
+        })),
+      ).toEqual([
+        {
+          usuarioId: admin.id.toString(),
+          entidadeId: id,
+          dados: { estadoAnterior: 'APROVADA', estadoNovo: 'SUSPENSA' },
+        },
+        {
+          usuarioId: admin.id.toString(),
+          entidadeId: id,
+          dados: { estadoAnterior: 'SUSPENSA', estadoNovo: 'APROVADA' },
+        },
+      ]);
+    });
+
+    it('APROVADA → inativacao 204 INATIVA, sem excluir o registro, com auditoria', async () => {
+      const instituicao = await criarInstituicao('dona@instituicao.test', {
+        status: InstituicaoStatus.APROVADA,
+      });
+
+      const resposta = await comoAdmin(
+        api().post(
+          `/admin/instituicoes/${instituicao.id.toString()}/inativacao`,
+        ),
+      );
+
+      expect(resposta.status).toBe(204);
+      expect((await linhaNoBanco(instituicao)).status).toBe(
+        InstituicaoStatus.INATIVA,
+      );
+      expect(await contexto.prisma.instituicao.count()).toBe(1);
+      const registro =
+        await contexto.prisma.registroAuditoria.findFirstOrThrow();
+      expect(registro).toMatchObject({
+        usuarioId: admin.id.toString(),
+        dados: { estadoAnterior: 'APROVADA', estadoNovo: 'INATIVA' },
+      });
+    });
+
+    it.each([
+      ['suspensao', InstituicaoStatus.PENDENTE_APROVACAO],
+      ['suspensao', InstituicaoStatus.SUSPENSA],
+      ['suspensao', InstituicaoStatus.INATIVA],
+      ['reativacao', InstituicaoStatus.APROVADA],
+      ['reativacao', InstituicaoStatus.INATIVA],
+      ['inativacao', InstituicaoStatus.PENDENTE_APROVACAO],
+      ['inativacao', InstituicaoStatus.SUSPENSA],
+      ['inativacao', InstituicaoStatus.REJEITADA],
+    ])(
+      '%s a partir de %s está fora do conjunto de transições → 409 sem alterar o estado',
+      async (acao, estadoInicial) => {
+        const instituicao = await criarInstituicao('dona@instituicao.test', {
+          status: estadoInicial,
+        });
+
+        const resposta = await comoAdmin(
+          api().post(
+            `/admin/instituicoes/${instituicao.id.toString()}/${acao}`,
+          ),
+        );
+
+        expect(resposta.status).toBe(409);
+        expect(resposta.body).toMatchObject({ message: TRANSICAO_INVALIDA });
+        expect((await linhaNoBanco(instituicao)).status).toBe(estadoInicial);
+        expect(await contexto.prisma.registroAuditoria.count()).toBe(0);
+      },
+    );
+
+    it.each(['suspensao', 'reativacao', 'inativacao'])(
+      '%s de instituição inexistente → 404',
+      async (acao) => {
+        const resposta = await comoAdmin(
+          api().post(`/admin/instituicoes/id-que-nao-existe/${acao}`),
+        );
+
+        expect(resposta.status).toBe(404);
+      },
+    );
+
+    it.each(['suspensao', 'inativacao'])(
+      'depois da %s a instituição some do catálogo de beneficiadas',
+      async (acao) => {
+        const instituicao = await criarInstituicao('dona@instituicao.test', {
+          nomeFantasia: 'Amigos do Bairro',
+          status: InstituicaoStatus.APROVADA,
+        });
+        // GET /beneficiadas chega na T32; aqui o catálogo é lido pelo mesmo
+        // caso de uso que a rota vai expor, sobre os repositórios reais.
+        const catalogo = new ListarBeneficiadasUseCase(
+          contexto.app.get(InstituicaoRepository),
+          contexto.app.get(CausaRepository),
+        );
+        const nomesNoCatalogo = async () =>
+          (await catalogo.execute()).map((beneficiada) => beneficiada.nome);
+        expect(await nomesNoCatalogo()).toContain('Amigos do Bairro');
+
+        await comoAdmin(
+          api().post(
+            `/admin/instituicoes/${instituicao.id.toString()}/${acao}`,
+          ),
+        ).expect(204);
+
+        expect(await nomesNoCatalogo()).not.toContain('Amigos do Bairro');
+      },
+    );
+  });
+
   describe('controle de acesso', () => {
     // Fábricas, não requisições: o supertest abre a conexão ao criar o Test.
     function rotas(id: string): Array<[string, () => request.Test]> {
@@ -435,10 +574,49 @@ describe('AdminInstituicoesController (e2e)', () => {
       },
     );
 
+    it.each([
+      [UserRole.EMPRESA, 'suspensao', InstituicaoStatus.APROVADA],
+      [UserRole.EMPRESA, 'reativacao', InstituicaoStatus.SUSPENSA],
+      [UserRole.EMPRESA, 'inativacao', InstituicaoStatus.APROVADA],
+      [UserRole.INSTITUICAO, 'suspensao', InstituicaoStatus.APROVADA],
+      [UserRole.INSTITUICAO, 'reativacao', InstituicaoStatus.SUSPENSA],
+      [UserRole.INSTITUICAO, 'inativacao', InstituicaoStatus.APROVADA],
+    ])(
+      '%s em %s de instituição %s (transição válida) → 403 e estado inalterado',
+      async (role, acao, estadoInicial) => {
+        const instituicao = await criarInstituicao('dona@instituicao.test', {
+          status: estadoInicial,
+        });
+        const token = await sessaoDe(
+          await criarUsuario(role, 'intruso@fivo.test'),
+        );
+
+        const resposta = await comCookieDeSessao(
+          api().post(
+            `/admin/instituicoes/${instituicao.id.toString()}/${acao}`,
+          ),
+          token,
+        );
+
+        expect(resposta.status).toBe(403);
+        expect((await linhaNoBanco(instituicao)).status).toBe(estadoInicial);
+        expect(await contexto.prisma.registroAuditoria.count()).toBe(0);
+      },
+    );
+
     it('sem sessão → 401 em todas as rotas', async () => {
       const instituicao = await criarInstituicao('dona@instituicao.test');
+      const id = instituicao.id.toString();
+      const posAprovacao: Array<[string, () => request.Test]> = [
+        'suspensao',
+        'reativacao',
+        'inativacao',
+      ].map((acao) => [
+        acao,
+        () => api().post(`/admin/instituicoes/${id}/${acao}`),
+      ]);
 
-      for (const [nome, requisicao] of rotas(instituicao.id.toString())) {
+      for (const [nome, requisicao] of [...rotas(id), ...posAprovacao]) {
         const resposta = await requisicao();
 
         expect([nome, resposta.status]).toEqual([nome, 401]);

@@ -11,15 +11,18 @@ import { CriarInstituicaoUseCase } from '@domain/fivo/application/use-cases/cria
 import { EditarCausaUseCase } from '@domain/fivo/application/use-cases/editar-causa';
 import { EditarDadosEmpresaUseCase } from '@domain/fivo/application/use-cases/editar-dados-empresa';
 import { InativarCausaUseCase } from '@domain/fivo/application/use-cases/inativar-causa';
+import { InativarInstituicaoUseCase } from '@domain/fivo/application/use-cases/inativar-instituicao';
 import { ListarCausasAtivasUseCase } from '@domain/fivo/application/use-cases/listar-causas-ativas';
 import { ListarFilaAprovacaoUseCase } from '@domain/fivo/application/use-cases/listar-fila-aprovacao';
 import { ListarFilaInstituicoesUseCase } from '@domain/fivo/application/use-cases/listar-fila-instituicoes';
 import { RedefinirSenhaUseCase } from '@domain/fivo/application/use-cases/redefinir-senha';
 import { ReativarEmpresaUseCase } from '@domain/fivo/application/use-cases/reativar-empresa';
+import { ReativarInstituicaoUseCase } from '@domain/fivo/application/use-cases/reativar-instituicao';
 import { RejeitarEmpresaUseCase } from '@domain/fivo/application/use-cases/rejeitar-empresa';
 import { RejeitarInstituicaoUseCase } from '@domain/fivo/application/use-cases/rejeitar-instituicao';
 import { SolicitarRecuperacaoSenhaUseCase } from '@domain/fivo/application/use-cases/solicitar-recuperacao-senha';
 import { SuspenderEmpresaUseCase } from '@domain/fivo/application/use-cases/suspender-empresa';
+import { SuspenderInstituicaoUseCase } from '@domain/fivo/application/use-cases/suspender-instituicao';
 import { ArquivoModule } from '@infra/arquivo/arquivo.module';
 import { AuthModule } from '@infra/auth/auth.module';
 import { CryptographyModule } from '@infra/cryptography/cryptography.module';
@@ -70,6 +73,9 @@ import { SenhaController } from './controllers/senha.controller';
     ListarFilaInstituicoesUseCase,
     AprovarInstituicaoUseCase,
     RejeitarInstituicaoUseCase,
+    SuspenderInstituicaoUseCase,
+    ReativarInstituicaoUseCase,
+    InativarInstituicaoUseCase,
   ],
 })
 export class HttpModule {}
