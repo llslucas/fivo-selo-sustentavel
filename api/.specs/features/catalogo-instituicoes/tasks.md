@@ -1051,11 +1051,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `expect(result.isLeft()).toBe(true)` incondicional antes de inspecionar `result.value`
-- [ ] Testes de: nome só de espaços → `NomeCausaInvalidoError`; `editar` feliz; `editar` com nome inválido; `editar` em `INATIVA` → `TransicaoInvalidaError`
-- [ ] `EditarCausa`: causa inexistente → `ResourceNotFoundError`; causa `INATIVA` → `TransicaoInvalidaError`
-- [ ] Mutantes #18, #19 e #20 (`causa.ts`) passam a ser mortos
-- [ ] Gate `quick` passa
+- [x] `expect(result.isLeft()).toBe(true)` incondicional antes de inspecionar `result.value`
+- [x] Testes de: nome só de espaços → `NomeCausaInvalidoError`; `editar` feliz; `editar` com nome inválido; `editar` em `INATIVA` → `TransicaoInvalidaError`
+- [x] `EditarCausa`: causa inexistente → `ResourceNotFoundError`; causa `INATIVA` → `TransicaoInvalidaError`
+- [x] Mutantes #18, #19 e #20 (`causa.ts`) passam a ser mortos
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

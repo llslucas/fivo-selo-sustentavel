@@ -5,6 +5,9 @@ import { CausaFactory } from '@test/factories/causa-factory';
 import { UserFactory } from '@test/factories/user-factory';
 import { UserRole } from '@domain/fivo/entities/user';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
+import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
+import { CausaStatus } from '@domain/fivo/entities/causa';
+import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
 import { CausaJaExisteError } from '../errors/causa-ja-existe.error';
 import { NomeCausaInvalidoError } from '../errors/nome-causa-invalido.error';
 
@@ -185,6 +188,39 @@ describe('EditarDadosCausaUseCase', () => {
 
     const persistedCausa = await causaRepository.findById(causa.id.toString());
     expect(persistedCausa?.nome).toBe('Saúde');
+  });
+
+  it('should return a ResourceNotFoundError when the Causa does not exist', async () => {
+    const response = await sut.execute({
+      causaId: 'causa-inexistente',
+      nome: 'Novo Nome',
+      user: UserFactory.create(),
+    });
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(ResourceNotFoundError);
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
+  });
+
+  it('should return a TransicaoInvalidaError and keep the data when the Causa is INATIVA', async () => {
+    const causa = CausaFactory.create({
+      nome: 'Causa Inativa',
+      status: CausaStatus.INATIVA,
+    });
+    await causaRepository.create(causa);
+
+    const response = await sut.execute({
+      causaId: causa.id.toString(),
+      nome: 'Novo Nome',
+      user: UserFactory.create(),
+    });
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(TransicaoInvalidaError);
+
+    const persistedCausa = await causaRepository.findById(causa.id.toString());
+    expect(persistedCausa?.nome).toBe('Causa Inativa');
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
   });
 
   it('should return a NomeCausaInvalidoError if the Causa name is invalid', async () => {
