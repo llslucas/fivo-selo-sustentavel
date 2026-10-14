@@ -1708,10 +1708,10 @@ T33 → T53
 
 **Done when**:
 
-- [ ] A resposta da fila traz `documentoDisponivel` por item, documentado no OpenAPI
-- [ ] e2e: documento ilegível → item listado com `documentoDisponivel: false`; documento legível → `true`
-- [ ] `openapi.json` regenerado; paridade e exportação verdes
-- [ ] Gate `full` passa
+- [x] A resposta da fila traz `documentoDisponivel` por item, documentado no OpenAPI
+- [x] e2e: documento ilegível → item listado com `documentoDisponivel: false`; documento legível → `true`
+- [x] `openapi.json` regenerado; paridade e exportação verdes
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

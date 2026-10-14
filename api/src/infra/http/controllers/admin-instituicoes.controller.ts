@@ -74,6 +74,7 @@ export class AdminInstituicoesController {
           'email',
           'documentoArquivoId',
           'cnpjCoincideComEmpresa',
+          'documentoDisponivel',
           'criadoEm',
         ],
         properties: {
@@ -88,6 +89,11 @@ export class AdminInstituicoesController {
           cnpjCoincideComEmpresa: {
             type: 'boolean',
             description: 'Já existe empresa cadastrada com o mesmo CNPJ',
+          },
+          documentoDisponivel: {
+            type: 'boolean',
+            description:
+              'O documento de validação está legível no armazenamento. `false` = temporariamente indisponível; a aprovação responde 503 até ele voltar',
           },
           criadoEm: { type: 'string', format: 'date-time' },
         },

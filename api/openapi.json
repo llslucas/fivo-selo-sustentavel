@@ -1150,6 +1150,10 @@
                       "documentoArquivoId": {
                         "type": "string"
                       },
+                      "documentoDisponivel": {
+                        "description": "O documento de validação está legível no armazenamento. `false` = temporariamente indisponível; a aprovação responde 503 até ele voltar",
+                        "type": "boolean"
+                      },
                       "email": {
                         "type": "string"
                       },
@@ -1173,6 +1177,7 @@
                       "email",
                       "documentoArquivoId",
                       "cnpjCoincideComEmpresa",
+                      "documentoDisponivel",
                       "criadoEm"
                     ],
                     "type": "object"

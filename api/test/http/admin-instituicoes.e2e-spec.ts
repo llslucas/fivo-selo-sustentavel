@@ -182,6 +182,7 @@ describe('AdminInstituicoesController (e2e)', () => {
           email: 'antiga@instituicao.test',
           documentoArquivoId: maisAntiga.documento.arquivoId.toString(),
           cnpjCoincideComEmpresa: true,
+          documentoDisponivel: true,
           criadoEm: '2026-10-01T10:00:00.000Z',
         },
         {
@@ -194,9 +195,54 @@ describe('AdminInstituicoesController (e2e)', () => {
           email: 'nova@instituicao.test',
           documentoArquivoId: maisNova.documento.arquivoId.toString(),
           cnpjCoincideComEmpresa: false,
+          documentoDisponivel: true,
           criadoEm: '2026-10-03T10:00:00.000Z',
         },
       ]);
+    });
+
+    it('documento ilegível no storage → item continua na fila com documentoDisponivel false, e a aprovação dele responde 503', async () => {
+      const legivel = await criarInstituicao('legivel@instituicao.test', {
+        createdAt: new Date('2026-10-01T10:00:00Z'),
+      });
+      const ilegivel = await criarInstituicao('ilegivel@instituicao.test', {
+        createdAt: new Date('2026-10-02T10:00:00Z'),
+      });
+      // Só o objeto do documento da segunda some do armazenamento.
+      const { chaveStorage } = await contexto.prisma.arquivo.findUniqueOrThrow({
+        where: { id: ilegivel.documento.arquivoId.toString() },
+      });
+      storage.arquivos.delete(chaveStorage);
+
+      const fila = await comoAdmin(api().get('/admin/instituicoes'));
+
+      expect(fila.status).toBe(200);
+      expect(fila.body).toEqual([
+        expect.objectContaining({
+          id: legivel.id.toString(),
+          email: 'legivel@instituicao.test',
+          documentoArquivoId: legivel.documento.arquivoId.toString(),
+          documentoDisponivel: true,
+        }),
+        expect.objectContaining({
+          id: ilegivel.id.toString(),
+          email: 'ilegivel@instituicao.test',
+          documentoArquivoId: ilegivel.documento.arquivoId.toString(),
+          documentoDisponivel: false,
+        }),
+      ]);
+
+      const aprovacao = await comoAdmin(
+        api().post(`/admin/instituicoes/${ilegivel.id.toString()}/aprovacao`),
+      );
+
+      expect(aprovacao.status).toBe(503);
+      expect(aprovacao.body).toMatchObject({
+        message: 'Documento temporariamente indisponível',
+      });
+      expect((await linhaNoBanco(ilegivel)).status).toBe(
+        InstituicaoStatus.PENDENTE_APROVACAO,
+      );
     });
 
     it('a referência do documento abre o arquivo para o admin', async () => {
