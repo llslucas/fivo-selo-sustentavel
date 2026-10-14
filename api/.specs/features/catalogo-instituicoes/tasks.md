@@ -1331,12 +1331,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `salvarTransicao` devolve `false` quando o estado persistido já mudou (asserido com duas decisões concorrentes)
-- [ ] `save` não altera `status`, `decididoPor`, `decididoEm`, `motivoDecisao`
-- [ ] `listarPorEstado` ordena por `criado_em`
-- [ ] Registrado no `DatabaseModule`
-- [ ] `test/database/prisma-instituicao-repository.e2e-spec.ts` cobre roundtrip, CAS, unicidade de CNPJ e o `save` conservador
-- [ ] Gate `full` passa
+- [x] `salvarTransicao` devolve `false` quando o estado persistido já mudou (asserido com duas decisões concorrentes)
+- [x] `save` não altera `status`, `decididoPor`, `decididoEm`, `motivoDecisao`
+- [x] `listarPorEstado` ordena por `criado_em`
+- [x] Registrado no `DatabaseModule`
+- [x] `test/database/prisma-instituicao-repository.e2e-spec.ts` cobre roundtrip, CAS, unicidade de CNPJ e o `save` conservador
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
