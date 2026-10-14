@@ -934,10 +934,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] O teste confere `causa` igual ao **nome** de uma causa criada no próprio teste (não o id)
-- [ ] O item expõe `documentoArquivoId`
-- [ ] `cnpjCoincideComEmpresa` é `true` quando há empresa com o mesmo CNPJ e `false` quando não há, cada caso com seu teste
-- [ ] Gate `quick` passa
+- [x] O teste confere `causa` igual ao **nome** de uma causa criada no próprio teste (não o id)
+- [x] O item expõe `documentoArquivoId`
+- [x] `cnpjCoincideComEmpresa` é `true` quando há empresa com o mesmo CNPJ e `false` quando não há, cada caso com seu teste
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

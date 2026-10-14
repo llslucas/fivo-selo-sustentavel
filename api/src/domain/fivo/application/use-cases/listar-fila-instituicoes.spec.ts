@@ -9,21 +9,30 @@ import { ListarFilaInstituicoesUseCase } from './listar-fila-instituicoes';
 import { InMemoryEmpresaRepository } from '@test/repositories/in-memory-empresa-repository';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
+import { InMemoryCausaRepository } from '@test/repositories/in-memory-causa-repository';
+import { CausaFactory } from '@test/factories/causa-factory';
+import { Causa } from '@domain/fivo/entities/causa';
 
 describe('ListarFilaInstituicoesUseCase', () => {
   let instituicaoRepository: InMemoryInstituicaoRepository;
   let empresaRepository: InMemoryEmpresaRepository;
   let userRepository: InMemoryUserRepository;
+  let causaRepository: InMemoryCausaRepository;
+  let causa: Causa;
   let sut: ListarFilaInstituicoesUseCase;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     instituicaoRepository = new InMemoryInstituicaoRepository();
     empresaRepository = new InMemoryEmpresaRepository();
     userRepository = new InMemoryUserRepository();
+    causaRepository = new InMemoryCausaRepository();
+    causa = CausaFactory.create({ nome: 'Meio Ambiente' });
+    await causaRepository.create(causa);
     sut = new ListarFilaInstituicoesUseCase(
       instituicaoRepository,
       empresaRepository,
       userRepository,
+      causaRepository,
     );
   });
 
@@ -57,6 +66,7 @@ describe('ListarFilaInstituicoesUseCase', () => {
       razaoSocial: 'Instituicao Mais Antiga LTDA',
       cnpj: Cnpj.create('12345678000195').value as Cnpj,
       usuarioId: userMaisAntigo.id,
+      causaId: causa.id,
       status: InstituicaoStatus.PENDENTE_APROVACAO,
       createdAt: new Date('2026-01-01T10:00:00Z'),
     });
@@ -65,6 +75,7 @@ describe('ListarFilaInstituicoesUseCase', () => {
       razaoSocial: 'Instituicao Mais Nova LTDA',
       cnpj: Cnpj.create('11444777000161').value as Cnpj,
       usuarioId: userMaisNovo.id,
+      causaId: causa.id,
       status: InstituicaoStatus.PENDENTE_APROVACAO,
       createdAt: new Date('2026-01-02T10:00:00Z'),
     });
@@ -99,12 +110,12 @@ describe('ListarFilaInstituicoesUseCase', () => {
       id: instituicaoMaisAntiga.id.toString(),
       razaoSocial: 'Instituicao Mais Antiga LTDA',
       cnpj: '12345678000195',
-      causa: instituicaoMaisAntiga.causaId.toString(),
+      causa: 'Meio Ambiente',
       cidade: instituicaoMaisAntiga.cidade,
       uf: instituicaoMaisAntiga.uf,
       email: 'antigo@example.com',
-      documentArquivoId: instituicaoMaisAntiga.documento.arquivoId.toString(),
-      cnpjCoincideComEmpresa: null,
+      documentoArquivoId: instituicaoMaisAntiga.documento.arquivoId.toString(),
+      cnpjCoincideComEmpresa: false,
       createdAt: instituicaoMaisAntiga.createdAt,
     });
   });
@@ -125,6 +136,7 @@ describe('ListarFilaInstituicoesUseCase', () => {
       razaoSocial: 'Instituicao Mais Antiga LTDA',
       cnpj: Cnpj.create('12345678000195').value as Cnpj,
       usuarioId: userInstituicao.id,
+      causaId: causa.id,
       status: InstituicaoStatus.PENDENTE_APROVACAO,
       createdAt: new Date('2026-01-01T10:00:00Z'),
     });
@@ -153,6 +165,7 @@ describe('ListarFilaInstituicoesUseCase', () => {
       razaoSocial: 'Instituicao Mais Antiga LTDA',
       cnpj: Cnpj.create('12345678000195').value as Cnpj,
       usuarioId: userInstituicao.id,
+      causaId: causa.id,
       status: InstituicaoStatus.PENDENTE_APROVACAO,
       createdAt: new Date('2026-01-01T10:00:00Z'),
     });
@@ -181,12 +194,12 @@ describe('ListarFilaInstituicoesUseCase', () => {
       id: instituicao.id.toString(),
       razaoSocial: 'Instituicao Mais Antiga LTDA',
       cnpj: '12345678000195',
-      causa: instituicao.causaId.toString(),
+      causa: 'Meio Ambiente',
       cidade: instituicao.cidade,
       uf: instituicao.uf,
       email: 'antigo@example.com',
-      documentArquivoId: instituicao.documento.arquivoId.toString(),
-      cnpjCoincideComEmpresa: empresa.id.toString(),
+      documentoArquivoId: instituicao.documento.arquivoId.toString(),
+      cnpjCoincideComEmpresa: true,
       createdAt: instituicao.createdAt,
     });
   });
