@@ -848,9 +848,9 @@ T33 → T34
 
 **Done when**:
 
-- [ ] O e2e do filtro espera 409 para `instituicao-ja-existe` (a mensagem segue conferida contra a do próprio erro, `CNPJ ou e-mail já cadastrado`)
-- [ ] Suíte e2e 205/205
-- [ ] Gate `full` passa, exceto o eslint da T35, que é humano
+- [x] O e2e do filtro espera 409 para `instituicao-ja-existe` (a mensagem segue conferida contra a do próprio erro, `CNPJ ou e-mail já cadastrado`)
+- [x] Suíte e2e 205/205
+- [x] Gate `full` passa, exceto o eslint da T35, que é humano
 
 **Tests**: e2e
 **Gate**: full
