@@ -1415,10 +1415,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `estaLegivel` devolve `false` quando o registro sumiu ou o storage falha na leitura, e `true` no caminho feliz
-- [ ] Provider registrado para a porta `VerificadorDeDocumento`
-- [ ] `test/arquivo/verificador-de-documento.e2e-spec.ts` cobre os três casos
-- [ ] Gate `full` passa
+- [x] `estaLegivel` devolve `false` quando o registro sumiu ou o storage falha na leitura, e `true` no caminho feliz
+- [x] Provider registrado para a porta `VerificadorDeDocumento`
+- [x] `test/arquivo/verificador-de-documento.e2e-spec.ts` cobre os três casos
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
