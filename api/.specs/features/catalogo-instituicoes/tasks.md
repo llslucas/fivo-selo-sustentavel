@@ -822,8 +822,8 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `npx eslint "{src,test}/**/*.ts"` sai com 0
-- [ ] Gate `quick` passa
+- [x] `npx eslint "{src,test}/**/*.ts"` sai com 0
+- [x] Gate `quick` passa
 
 **Tests**: none
 **Gate**: quick
