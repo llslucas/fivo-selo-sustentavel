@@ -1583,12 +1583,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `GET /beneficiadas?busca=` exige empresa autenticada e aprovada (empresa pendente → 403)
-- [ ] Resposta nunca traz documento, e-mail, telefone, CNPJ ou dados de decisão — asserido por inspeção do payload
-- [ ] Busca com acento/sem acento devolve o mesmo resultado; catálogo vazio devolve `[]`
-- [ ] Rota documentada no OpenAPI
-- [ ] `test/http/beneficiadas.e2e-spec.ts` cobre os casos acima
-- [ ] Gate `full` passa
+- [x] `GET /beneficiadas?busca=` exige empresa autenticada e aprovada (empresa pendente → 403)
+- [x] Resposta nunca traz documento, e-mail, telefone, CNPJ ou dados de decisão — asserido por inspeção do payload
+- [x] Busca com acento/sem acento devolve o mesmo resultado; catálogo vazio devolve `[]`
+- [x] Rota documentada no OpenAPI
+- [x] `test/http/beneficiadas.e2e-spec.ts` cobre os casos acima
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

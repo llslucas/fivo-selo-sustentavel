@@ -3,6 +3,7 @@ import { APP_FILTER } from '@nestjs/core';
 
 import { AprovarEmpresaUseCase } from '@domain/fivo/application/use-cases/aprovar-empresa';
 import { AprovarInstituicaoUseCase } from '@domain/fivo/application/use-cases/aprovar-instituicao';
+import { AssegurarEmpresaAprovadaUseCase } from '@domain/fivo/application/use-cases/assegurar-empresa-aprovada';
 import { AutenticarUsuarioUseCase } from '@domain/fivo/application/use-cases/autenticar-usuario';
 import { ConfirmarTrocaEmailUseCase } from '@domain/fivo/application/use-cases/confirmar-troca-email';
 import { CriarCausaUseCase } from '@domain/fivo/application/use-cases/criar-causa';
@@ -12,6 +13,7 @@ import { EditarCausaUseCase } from '@domain/fivo/application/use-cases/editar-ca
 import { EditarDadosEmpresaUseCase } from '@domain/fivo/application/use-cases/editar-dados-empresa';
 import { InativarCausaUseCase } from '@domain/fivo/application/use-cases/inativar-causa';
 import { InativarInstituicaoUseCase } from '@domain/fivo/application/use-cases/inativar-instituicao';
+import { ListarBeneficiadasUseCase } from '@domain/fivo/application/use-cases/listar-beneficiadas';
 import { ListarCausasAtivasUseCase } from '@domain/fivo/application/use-cases/listar-causas-ativas';
 import { ListarFilaAprovacaoUseCase } from '@domain/fivo/application/use-cases/listar-fila-aprovacao';
 import { ListarFilaInstituicoesUseCase } from '@domain/fivo/application/use-cases/listar-fila-instituicoes';
@@ -33,6 +35,7 @@ import { AdminEmpresasController } from './controllers/admin-empresas.controller
 import { AdminInstituicoesController } from './controllers/admin-instituicoes.controller';
 import { ArquivoController } from './controllers/arquivo.controller';
 import { AutenticacaoController } from './controllers/autenticacao.controller';
+import { BeneficiadasController } from './controllers/beneficiadas.controller';
 import { CadastroEmpresaController } from './controllers/cadastro-empresa.controller';
 import { CadastroInstituicaoController } from './controllers/cadastro-instituicao.controller';
 import { CausasController } from './controllers/causas.controller';
@@ -49,6 +52,7 @@ import { SenhaController } from './controllers/senha.controller';
     CausasController,
     CadastroInstituicaoController,
     AdminInstituicoesController,
+    BeneficiadasController,
     ArquivoController,
     SenhaController,
   ],
@@ -76,6 +80,8 @@ import { SenhaController } from './controllers/senha.controller';
     SuspenderInstituicaoUseCase,
     ReativarInstituicaoUseCase,
     InativarInstituicaoUseCase,
+    AssegurarEmpresaAprovadaUseCase,
+    ListarBeneficiadasUseCase,
   ],
 })
 export class HttpModule {}

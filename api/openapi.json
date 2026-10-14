@@ -1701,6 +1701,124 @@
         ]
       }
     },
+    "/beneficiadas": {
+      "get": {
+        "operationId": "BeneficiadasController_listar",
+        "parameters": [
+          {
+            "description": "Trecho do nome, sem distinção de acento ou caixa; filtra a partir de 2 caracteres",
+            "in": "query",
+            "name": "busca",
+            "required": false,
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "properties": {
+                      "causa": {
+                        "description": "Causa da instituição",
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "cidade": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "logoArquivoId": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "nome": {
+                        "type": "string"
+                      },
+                      "site": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "tipo": {
+                        "enum": [
+                          "INSTITUICAO",
+                          "CAUSA"
+                        ],
+                        "type": "string"
+                      },
+                      "uf": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "tipo",
+                      "id",
+                      "nome",
+                      "causa",
+                      "cidade",
+                      "uf",
+                      "descricao",
+                      "site",
+                      "logoArquivoId"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Beneficiadas em ordem alfabética de nome; lista vazia quando nada está disponível"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Empresa não encontrada"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Catálogo de beneficiadas: instituições aprovadas e causas ativas (empresa aprovada)",
+        "tags": [
+          "beneficiadas"
+        ]
+      }
+    },
     "/causas": {
       "get": {
         "operationId": "CausasController_listar",
