@@ -13,6 +13,7 @@ import { DocumentoIndisponivelError } from '../errors/documento-indisponivel.err
 import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
 import { TemplateEmail } from '../ports/mailer';
 import { AprovarInstituicaoUseCase } from './aprovar-instituicao';
+import { RejeitarInstituicaoUseCase } from './rejeitar-instituicao';
 
 describe('AprovarInstituicaoUseCase', () => {
   let instituicaoRepository: InMemoryInstituicaoRepository;
@@ -194,6 +195,44 @@ describe('AprovarInstituicaoUseCase', () => {
     expect(consoleErrorSpy).toHaveBeenCalled();
 
     consoleErrorSpy.mockRestore();
+  });
+
+  it('should apply only one of two concurrent decisions and answer the other with TransicaoInvalidaError', async () => {
+    const instituicao = await criarInstituicao();
+    const admin = UserFactory.create({ role: UserRole.ADMIN });
+    const rejeitar = new RejeitarInstituicaoUseCase(
+      instituicaoRepository,
+      userRepository,
+      registroAuditoriaRepository,
+      mailer,
+    );
+
+    const [aprovacao, rejeicao] = await Promise.all([
+      sut.execute(instituicao.id.toString(), admin),
+      rejeitar.execute(
+        instituicao.id.toString(),
+        admin,
+        'Documentação incompleta para validar o CNPJ informado.',
+      ),
+    ]);
+
+    const resultados = [aprovacao, rejeicao];
+    expect(resultados.filter((r) => r.isRight())).toHaveLength(1);
+    const perdedora = resultados.find((r) => r.isLeft());
+    expect(perdedora?.value).toBeInstanceOf(TransicaoInvalidaError);
+
+    const estadoVencedor = aprovacao.isRight()
+      ? InstituicaoStatus.APROVADA
+      : InstituicaoStatus.REJEITADA;
+    const persistida = await instituicaoRepository.findById(
+      instituicao.id.toString(),
+    );
+    expect(persistida?.status).toBe(estadoVencedor);
+
+    expect(registroAuditoriaRepository.items).toHaveLength(1);
+    expect(registroAuditoriaRepository.items[0].dados).toEqual(
+      expect.objectContaining({ estadoNovo: estadoVencedor }),
+    );
   });
 
   it('should reject with TransicaoInvalidaError and leave no audit or e-mail when salvarTransicao is not applied', async () => {

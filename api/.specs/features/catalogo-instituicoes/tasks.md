@@ -1021,10 +1021,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Exatamente um resultado `right` e um `TransicaoInvalidaError`
-- [ ] O estado final é o do vencedor, e há uma única linha de auditoria de decisão
-- [ ] Mutante #3 (`in-memory-instituicao-repository.ts`, comparação do estado esperado) passa a ser morto
-- [ ] Gate `quick` passa
+- [x] Exatamente um resultado `right` e um `TransicaoInvalidaError`
+- [x] O estado final é o do vencedor, e há uma única linha de auditoria de decisão
+- [x] Mutante #3 (`in-memory-instituicao-repository.ts`, comparação do estado esperado) passa a ser morto
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
