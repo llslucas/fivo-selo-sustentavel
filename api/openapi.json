@@ -1112,6 +1112,47 @@
         ]
       }
     },
+    "/causas": {
+      "get": {
+        "operationId": "CausasController_listar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "properties": {
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "nome": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "nome",
+                      "descricao"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Causas ATIVA em ordem alfabética de nome"
+          }
+        },
+        "summary": "Causas ativas, para o autocadastro e a seleção de beneficiada",
+        "tags": [
+          "causas"
+        ]
+      }
+    },
     "/empresas": {
       "post": {
         "operationId": "CadastroEmpresaController_criar",

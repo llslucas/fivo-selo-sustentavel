@@ -9,6 +9,7 @@ import { CriarEmpresaUseCase } from '@domain/fivo/application/use-cases/criar-em
 import { EditarCausaUseCase } from '@domain/fivo/application/use-cases/editar-causa';
 import { EditarDadosEmpresaUseCase } from '@domain/fivo/application/use-cases/editar-dados-empresa';
 import { InativarCausaUseCase } from '@domain/fivo/application/use-cases/inativar-causa';
+import { ListarCausasAtivasUseCase } from '@domain/fivo/application/use-cases/listar-causas-ativas';
 import { ListarFilaAprovacaoUseCase } from '@domain/fivo/application/use-cases/listar-fila-aprovacao';
 import { RedefinirSenhaUseCase } from '@domain/fivo/application/use-cases/redefinir-senha';
 import { ReativarEmpresaUseCase } from '@domain/fivo/application/use-cases/reativar-empresa';
@@ -25,6 +26,7 @@ import { AdminEmpresasController } from './controllers/admin-empresas.controller
 import { ArquivoController } from './controllers/arquivo.controller';
 import { AutenticacaoController } from './controllers/autenticacao.controller';
 import { CadastroEmpresaController } from './controllers/cadastro-empresa.controller';
+import { CausasController } from './controllers/causas.controller';
 import { DomainExceptionFilter } from './domain-exception.filter';
 import { SenhaController } from './controllers/senha.controller';
 
@@ -35,6 +37,7 @@ import { SenhaController } from './controllers/senha.controller';
     AutenticacaoController,
     AdminEmpresasController,
     AdminCausasController,
+    CausasController,
     ArquivoController,
     SenhaController,
   ],
@@ -54,6 +57,7 @@ import { SenhaController } from './controllers/senha.controller';
     CriarCausaUseCase,
     EditarCausaUseCase,
     InativarCausaUseCase,
+    ListarCausasAtivasUseCase,
   ],
 })
 export class HttpModule {}

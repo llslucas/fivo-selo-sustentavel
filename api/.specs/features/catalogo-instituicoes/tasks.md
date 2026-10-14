@@ -1470,11 +1470,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `GET /causas` público devolve apenas causas ativas, ordenadas, com `id`, `nome`, `descricao`
-- [ ] Causa inativada some da resposta
-- [ ] Rota documentada no OpenAPI
-- [ ] `test/http/causas.e2e-spec.ts` cobre os dois casos
-- [ ] Gate `full` passa
+- [x] `GET /causas` público devolve apenas causas ativas, ordenadas, com `id`, `nome`, `descricao`
+- [x] Causa inativada some da resposta
+- [x] Rota documentada no OpenAPI
+- [x] `test/http/causas.e2e-spec.ts` cobre os dois casos
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
