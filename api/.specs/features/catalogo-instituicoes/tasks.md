@@ -906,12 +906,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] A porta declara `create(causa: Causa): Promise<void>`
-- [ ] Gate `quick` passa
+- [x] A porta declara `create(causa: Causa): Promise<void>`
+- [x] Gate `quick` passa
 
 **Tests**: none
 **Gate**: quick
-**Commit**: `fix(api): CausaRepository.create recebe a entidade Causa`
+**Commit**: `fix(api): porta de causa recebe a entidade no create`
 
 ---
 
