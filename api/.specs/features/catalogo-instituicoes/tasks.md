@@ -133,6 +133,7 @@ Aberta pela verificação de handoff de 2026-10-13 (`validation-dominio.md`, ver
 
 ```
 T46 → T47
+T47 → T50
 ```
 
 > **⛔ Gate de handoff — domínio → infra.** Depois de T20 **e da Fase 5b**: gate `build` verde, nova verificação independente do agente (`validation-dominio.md`) em PASS, e só então a Fase 6 começa.
@@ -797,7 +798,7 @@ T33 → T34
 >
 > Antes de T21: (1) gate `build` verde; (2) o agente roda verificação independente sobre `src/domain/**` (checagem ancorada na spec + sensor de discriminação) e escreve `.specs/features/catalogo-instituicoes/validation-dominio.md`; (3) lacunas viram tasks de correção na Fase 5b (T35–T48) e são fechadas antes da Fase 6.
 >
-> **Rodada 1 (2026-10-13): FAIL** → Fase 5b abaixo. Rodada 2 após a Fase 5b; limite de 3 rodadas antes de escalar ao usuário.
+> **Rodada 1 (2026-10-13): FAIL** → Fase 5b abaixo (T35–T48). **Rodada 2 (2026-10-13): FAIL** por uma lacuna só de teste (P1-Causas AC6, mutantes N28/N29) → T49, T50. A rodada 3 é a última antes de escalar ao usuário.
 
 ---
 
@@ -1198,6 +1199,63 @@ T33 → T34
 **Tests**: unit
 **Gate**: quick
 **Commit**: `test(api): confere mensagens e ausência de escrita nos erros do catálogo`
+
+---
+
+### T49: Não-admin em editar e inativar causa não altera dados
+
+**What**: O AC6 de Causas pede 403 **sem alterar nenhum dado**. Os testes de não-admin de `EditarCausa` e `InativarCausa` conferem só a classe do erro, e os mutantes N28 e N29 (escrita no ramo negado) sobreviveram na rodada 2. A T48 cobriu suspender, reativar, inativar instituição e criar causa, mas deixou de fora estes dois ramos.
+**Where**: `src/domain/fivo/application/use-cases/editar-causa.spec.ts`, `inativar-causa.spec.ts`
+**Depends on**: None
+**Reuses**: asserções de T48
+**Requirement**: INST-07
+**Autor**: 🤖 agente (autorização de 2026-10-13, ver AD-020)
+**Severidade**: Major (bloqueia o PASS)
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos** (P1-Causas): AC6.
+
+**Done when**:
+
+- [ ] Não-admin em `EditarCausa`: nome e descrição persistidos inalterados e auditoria vazia
+- [ ] Não-admin em `InativarCausa`: status persistido `ATIVA` e auditoria vazia
+- [ ] Mutantes N28 (`editar-causa.ts`) e N29 (`inativar-causa.ts`) passam a ser mortos
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): não-admin em editar e inativar causa não altera dados`
+
+---
+
+### T50: Resíduos de texto da T47 e justificativa da T37
+
+**What**: Limpar dois resíduos. Primeiro, `design.md` (tabela de componentes de infra) e o What da T23 ainda dizem que o adaptador de instituição faz busca sem acento. Segundo, a Done-when da T37 justifica a comparação por id com um argumento falso: a comparação por nome também aceitaria `"Saude"` → `"Saúde"`. A comparação por id é robustez (mutante N6 equivalente), não correção.
+**Where**: `.specs/features/catalogo-instituicoes/design.md`, `.specs/features/catalogo-instituicoes/tasks.md`
+**Depends on**: T47
+**Reuses**: —
+**Requirement**: INST-07, INST-08
+**Autor**: 🤖 agente
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] `design.md` e T23 não atribuem busca ao adaptador de instituição
+- [ ] A Done-when da T37 descreve a comparação por id como robustez
+- [ ] `validate_tasks.py` sai com 0 erros
+
+**Tests**: none
+**Gate**: quick
+**Commit**: `docs(specs): remove resíduos da busca no repositório de instituição`
 
 ---
 

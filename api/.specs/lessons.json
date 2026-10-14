@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 12,
+  "next_id": 15,
   "lessons": [
     {
       "id": "L-001",
@@ -202,6 +202,60 @@
       ],
       "created": "2026-10-14T00:27:01Z",
       "last_seen": "2026-10-14T00:27:01Z"
+    },
+    {
+      "id": "L-012",
+      "key": "surviving_mutant::a fix task for a conjunctive ac must list every operation the ac names not only the ones in the previous gap list",
+      "text": "A fix task for a conjunctive AC must list every operation the AC names, not only the ones in the previous gap list",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md rodada 2, mutantes N28 N29, P1-Causas AC6 (domain-tests)"
+      ],
+      "created": "2026-10-14T01:02:45Z",
+      "last_seen": "2026-10-14T01:02:45Z"
+    },
+    {
+      "id": "L-013",
+      "key": "spec_deviation::when a change is justified by otherwise x breaks add a test that fails under x or label the change as robustness",
+      "text": "When a change is justified by 'otherwise X breaks', add a test that fails under X or label the change as robustness",
+      "signal": "spec_deviation",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tasks.md T37 Done-when, mutante N6 equivalente (specs)"
+      ],
+      "created": "2026-10-14T01:02:45Z",
+      "last_seen": "2026-10-14T01:02:45Z"
+    },
+    {
+      "id": "L-014",
+      "key": "ac_gap::a design amendment must sweep component tables and task what lines not only done when bullets",
+      "text": "A design amendment must sweep component tables and task What lines, not only Done-when bullets",
+      "signal": "ac_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md rodada 2, T47 residuos design.md:221 e tasks.md:1262 (specs)"
+      ],
+      "created": "2026-10-14T01:02:45Z",
+      "last_seen": "2026-10-14T01:02:45Z"
     }
   ]
 }
