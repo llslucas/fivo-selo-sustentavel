@@ -43,9 +43,18 @@ describe('Casa Entity', () => {
       descricao: 'Descrição Teste',
     });
 
-    if (causaOrError.isLeft()) {
-      expect(causaOrError.value).toBeInstanceOf(NomeCausaInvalidoError);
-    }
+    expect(causaOrError.isLeft()).toBe(true);
+    expect(causaOrError.value).toBeInstanceOf(NomeCausaInvalidoError);
+  });
+
+  it('Causa.criar() deve recusar nome só com espaços', () => {
+    const causaOrError = Causa.create({
+      nome: '   ',
+      descricao: 'Descrição Teste',
+    });
+
+    expect(causaOrError.isLeft()).toBe(true);
+    expect(causaOrError.value).toBeInstanceOf(NomeCausaInvalidoError);
   });
 
   it('Causa.inativar() deve inativar uma causa já ativa', () => {
@@ -80,8 +89,50 @@ describe('Casa Entity', () => {
 
     const result = causa.inativar();
 
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
-    }
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
+  });
+
+  function criarCausa(status = CausaStatus.ATIVA): Causa {
+    return Causa.create({
+      nome: 'Causa Teste',
+      descricao: 'Descrição Teste',
+      status,
+    }).value as Causa;
+  }
+
+  it('Causa.editar() deve trocar nome e descrição de uma causa ativa', () => {
+    const causa = criarCausa();
+
+    const result = causa.editar('Novo Nome', 'Nova descrição');
+
+    expect(result.isRight()).toBe(true);
+    expect(causa.nome).toBe('Novo Nome');
+    expect(causa.descricao).toBe('Nova descrição');
+  });
+
+  it.each([
+    ['vazio', ''],
+    ['só com espaços', '   '],
+    ['com 81 caracteres', 'a'.repeat(81)],
+  ])('Causa.editar() deve recusar nome %s e manter os dados', (_caso, nome) => {
+    const causa = criarCausa();
+
+    const result = causa.editar(nome, 'Nova descrição');
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(NomeCausaInvalidoError);
+    expect(causa.nome).toBe('Causa Teste');
+    expect(causa.descricao).toBe('Descrição Teste');
+  });
+
+  it('Causa.editar() deve recusar causa inativa e manter os dados', () => {
+    const causa = criarCausa(CausaStatus.INATIVA);
+
+    const result = causa.editar('Novo Nome', 'Nova descrição');
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
+    expect(causa.nome).toBe('Causa Teste');
   });
 });

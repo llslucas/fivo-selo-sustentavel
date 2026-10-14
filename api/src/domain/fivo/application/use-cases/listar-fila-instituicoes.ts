@@ -6,6 +6,7 @@ import { User, UserRole } from '@domain/fivo/entities/user';
 import { Either, left, right } from '@core/either';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { EmpresaRepository } from '../ports/database/empresa-repository';
+import { CausaRepository } from '../ports/database/causa-repository';
 
 export interface ItemFilaInstituicoes {
   id: string;
@@ -15,8 +16,8 @@ export interface ItemFilaInstituicoes {
   cidade: string;
   uf: string;
   email: string;
-  documentArquivoId: string;
-  cnpjCoincideComEmpresa: string | null;
+  documentoArquivoId: string;
+  cnpjCoincideComEmpresa: boolean;
   createdAt: Date;
 }
 
@@ -32,6 +33,7 @@ export class ListarFilaInstituicoesUseCase {
     private readonly instituicaoRepository: InstituicaoRepository,
     private readonly empresaRepository: EmpresaRepository,
     private readonly userRepository: UserRepository,
+    private readonly causaRepository: CausaRepository,
   ) {}
 
   async execute({
@@ -59,16 +61,20 @@ export class ListarFilaInstituicoesUseCase {
             instituicao.cnpj.valor,
           );
 
+          const causa = await this.causaRepository.findById(
+            instituicao.causaId.toString(),
+          );
+
           return {
             id: instituicao.id.toString(),
             razaoSocial: instituicao.razaoSocial,
             cnpj: instituicao.cnpj.valor,
-            causa: instituicao.causaId.toString(),
+            causa: causa?.nome ?? '',
             cidade: instituicao.cidade,
             uf: instituicao.uf,
             email: instituicaoUser?.email ?? '',
-            documentArquivoId: instituicao.documento.arquivoId.toString(),
-            cnpjCoincideComEmpresa: empresaExistente?.id.toString() ?? null,
+            documentoArquivoId: instituicao.documento.arquivoId.toString(),
+            cnpjCoincideComEmpresa: empresaExistente !== null,
             createdAt: instituicao.createdAt,
           };
         }),

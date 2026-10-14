@@ -96,18 +96,6 @@ export class InMemoryInstituicaoRepository implements InstituicaoRepository {
     return Promise.resolve(sorted.map((item) => copiar(item)));
   }
 
-  buscarDisponiveis(nome: string): Promise<Instituicao[]> {
-    const nomeNormalizado = nome.normalize('NFD');
-
-    const institucoes = this.items.filter(
-      (item) =>
-        item.nomeFantasia === nomeNormalizado &&
-        item.status === InstituicaoStatus.APROVADA,
-    );
-
-    return Promise.resolve(institucoes);
-  }
-
   create(instituicao: Instituicao): Promise<void> {
     this.items.push(instituicao);
     return Promise.resolve();

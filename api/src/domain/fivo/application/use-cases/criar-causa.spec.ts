@@ -47,6 +47,13 @@ describe('CriarCausaUseCase', () => {
 
     expect(registroAuditoria).not.toBeNull();
     expect(registroAuditoria.tipo).toBe('CAUSA_CRIADA');
+    expect(registroAuditoriaRepository.items[0]).toEqual(
+      expect.objectContaining({
+        usuarioId: creator.id.toString(),
+        entidadeId: causaId,
+      }),
+    );
+    expect(registroAuditoriaRepository.items[0].criadoEm).toBeInstanceOf(Date);
   });
 
   it('should return a NotAllowedError if the users is not an admin', async () => {
@@ -64,6 +71,8 @@ describe('CriarCausaUseCase', () => {
     if (response.isRight()) return;
 
     expect(response.value).toBeInstanceOf(NotAllowedError);
+    expect(causaRepository.items).toHaveLength(0);
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
   });
 
   it('should return a CausaJaExiste Error when the Causa alredy exists.', async () => {
@@ -84,6 +93,27 @@ describe('CriarCausaUseCase', () => {
 
     expect(response.value).toBeInstanceOf(CausaJaExisteError);
   });
+
+  it.each(['educacao', 'Educação', 'EDUCAÇÃO'])(
+    'should return a CausaJaExisteError for "%s" when "Educação" already exists',
+    async (nome) => {
+      await causaRepository.create(CausaFactory.create({ nome: 'Educação' }));
+
+      const response = await sut.execute({
+        nome,
+        descricao: 'Descrição qualquer',
+        user: UserFactory.create(),
+      });
+
+      expect(response.isLeft()).toBe(true);
+      expect(response.value).toBeInstanceOf(CausaJaExisteError);
+      expect(response.value).toMatchObject({
+        status: 409,
+        message: 'Causa já cadastrada',
+      });
+      expect(causaRepository.items).toHaveLength(1);
+    },
+  );
 
   it('should return a NomeCausaInvalidoError if the Causa name is invalid', async () => {
     const newCausa = CausaFactory.create();

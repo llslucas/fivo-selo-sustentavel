@@ -1,6 +1,13 @@
 import { CausaRepository } from '@domain/fivo/application/ports/database/causa-repository';
 import { Causa, CausaStatus } from '@domain/fivo/entities/causa';
 
+function normalizar(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
 function copiar(causa: Causa): Causa {
   return Causa.create(
     {
@@ -23,8 +30,10 @@ export class InMemoryCausaRepository implements CausaRepository {
   }
 
   findByNome(nome: string): Promise<Causa | null> {
-    const normalizedName = nome.normalize('NFD');
-    const causa = this.items.find((item) => item.nome === normalizedName);
+    const nomeNormalizado = normalizar(nome);
+    const causa = this.items.find(
+      (item) => normalizar(item.nome) === nomeNormalizado,
+    );
     return Promise.resolve(causa ? copiar(causa) : null);
   }
 

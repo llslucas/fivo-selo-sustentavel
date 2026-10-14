@@ -41,6 +41,13 @@ describe('InativarInstituicaoUseCase', () => {
     expect(updated?.decididoPor?.equals(admin.id)).toBe(true);
 
     expect(registroAuditoriaRepository.items).toHaveLength(1);
+    expect(registroAuditoriaRepository.items[0]).toEqual(
+      expect.objectContaining({
+        usuarioId: admin.id.toString(),
+        entidadeId: instituicao.id.toString(),
+      }),
+    );
+    expect(registroAuditoriaRepository.items[0].criadoEm).toBeInstanceOf(Date);
     expect(registroAuditoriaRepository.items[0].dados).toEqual(
       expect.objectContaining({
         estadoAnterior: InstituicaoStatus.APROVADA,
@@ -105,9 +112,13 @@ describe('InativarInstituicaoUseCase', () => {
     const response = await sut.execute(instituicao.id.toString(), naoAdmin);
 
     expect(response.isLeft()).toBe(true);
-    if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(NotAllowedError);
-    }
+    expect(response.value).toBeInstanceOf(NotAllowedError);
+
+    const persistida = await instituicaoRepository.findById(
+      instituicao.id.toString(),
+    );
+    expect(persistida?.status).toBe(InstituicaoStatus.APROVADA);
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
   });
 
   it('should reject with ResourceNotFoundError (404) when the instituicao does not exist', async () => {

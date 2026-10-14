@@ -30,7 +30,7 @@ describe('InativarCausaUseCase', () => {
     );
   });
 
-  it('should return NotAllowedError if the user is not an admin', async () => {
+  it('should return NotAllowedError and change nothing if the user is not an admin', async () => {
     const causa = CausaFactory.create();
     await causaRepository.create(causa);
 
@@ -42,10 +42,11 @@ describe('InativarCausaUseCase', () => {
     });
 
     expect(response.isLeft()).toBe(true);
-
-    if (response.isRight()) return;
-
     expect(response.value).toBeInstanceOf(NotAllowedError);
+
+    const persistedCausa = await causaRepository.findById(causa.id.toString());
+    expect(persistedCausa?.status).toBe(CausaStatus.ATIVA);
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
   });
 
   it('should return ResourceNotFoundError if the causa does not exist', async () => {
@@ -121,6 +122,13 @@ describe('InativarCausaUseCase', () => {
     expect(response.value).toBeInstanceOf(CausaComInstituicoesAprovadasError);
     expect(response.value.message).toContain('Instituição Esperança');
     expect(response.value.message).toContain('Instituição Alegria');
+
+    const erro = response.value as CausaComInstituicoesAprovadasError;
+    expect(erro.status).toBe(409);
+    expect([...erro.instituicoes].sort()).toEqual([
+      'Instituição Alegria',
+      'Instituição Esperança',
+    ]);
   });
 
   it.each([
@@ -190,6 +198,13 @@ describe('InativarCausaUseCase', () => {
     expect(registroAuditoriaRepository.items).toHaveLength(1);
     expect(registroAuditoria.tipo).toBe('CAUSA_INATIVADA');
     expect(registroAuditoria.entidadeId).toBe(causa.id.toString());
+    expect(registroAuditoriaRepository.items[0]).toEqual(
+      expect.objectContaining({
+        usuarioId: autor.id.toString(),
+        entidadeId: causa.id.toString(),
+      }),
+    );
+    expect(registroAuditoriaRepository.items[0].criadoEm).toBeInstanceOf(Date);
   });
 
   it('should return TransicaoInvalidaError if the causa is already inactive', async () => {

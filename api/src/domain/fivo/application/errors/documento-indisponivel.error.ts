@@ -4,6 +4,6 @@ export class DocumentoIndisponivelError extends Error implements UseCaseError {
   readonly status = 503;
 
   constructor() {
-    super('Documento indisponível. Tente novamente mais tarde.');
+    super('Documento temporariamente indisponível');
   }
 }

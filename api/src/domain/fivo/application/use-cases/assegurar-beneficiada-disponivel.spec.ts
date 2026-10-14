@@ -105,10 +105,11 @@ describe('AssegurarBeneficiadaDisponivelUseCase', () => {
       });
 
       expect(response.isLeft()).toBe(true);
-      if (response.isLeft()) {
-        expect(response.value).toBeInstanceOf(BeneficiadaIndisponivelError);
-        expect(response.value.status).toBe(422);
-      }
+      expect(response.value).toBeInstanceOf(BeneficiadaIndisponivelError);
+      expect(response.value).toMatchObject({
+        status: 422,
+        message: 'Instituição ou causa indisponível',
+      });
     },
   );
 
@@ -116,9 +117,11 @@ describe('AssegurarBeneficiadaDisponivelUseCase', () => {
     const response = await sut.execute({ instituicaoId: 'non-existent-id' });
 
     expect(response.isLeft()).toBe(true);
-    if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(BeneficiadaIndisponivelError);
-    }
+    expect(response.value).toBeInstanceOf(BeneficiadaIndisponivelError);
+    expect(response.value).toMatchObject({
+      status: 422,
+      message: 'Instituição ou causa indisponível',
+    });
   });
 
   it('should reject with BeneficiadaIndisponivelError when the causa is INATIVA', async () => {
@@ -127,17 +130,21 @@ describe('AssegurarBeneficiadaDisponivelUseCase', () => {
     const response = await sut.execute({ causaId: causa.id.toString() });
 
     expect(response.isLeft()).toBe(true);
-    if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(BeneficiadaIndisponivelError);
-    }
+    expect(response.value).toBeInstanceOf(BeneficiadaIndisponivelError);
+    expect(response.value).toMatchObject({
+      status: 422,
+      message: 'Instituição ou causa indisponível',
+    });
   });
 
   it('should reject with BeneficiadaIndisponivelError when the causa does not exist', async () => {
     const response = await sut.execute({ causaId: 'non-existent-id' });
 
     expect(response.isLeft()).toBe(true);
-    if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(BeneficiadaIndisponivelError);
-    }
+    expect(response.value).toBeInstanceOf(BeneficiadaIndisponivelError);
+    expect(response.value).toMatchObject({
+      status: 422,
+      message: 'Instituição ou causa indisponível',
+    });
   });
 });

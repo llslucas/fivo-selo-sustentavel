@@ -13,6 +13,7 @@ import { DocumentoIndisponivelError } from '../errors/documento-indisponivel.err
 import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
 import { TemplateEmail } from '../ports/mailer';
 import { AprovarInstituicaoUseCase } from './aprovar-instituicao';
+import { RejeitarInstituicaoUseCase } from './rejeitar-instituicao';
 
 describe('AprovarInstituicaoUseCase', () => {
   let instituicaoRepository: InMemoryInstituicaoRepository;
@@ -100,6 +101,13 @@ describe('AprovarInstituicaoUseCase', () => {
     expect(aprovada?.decididoPor?.equals(admin.id)).toBe(true);
 
     expect(registroAuditoriaRepository.items).toHaveLength(1);
+    expect(registroAuditoriaRepository.items[0]).toEqual(
+      expect.objectContaining({
+        usuarioId: admin.id.toString(),
+        entidadeId: instituicao.id.toString(),
+      }),
+    );
+    expect(registroAuditoriaRepository.items[0].criadoEm).toBeInstanceOf(Date);
     expect(registroAuditoriaRepository.items[0].dados).toEqual(
       expect.objectContaining({
         estadoAnterior: InstituicaoStatus.PENDENTE_APROVACAO,
@@ -153,12 +161,11 @@ describe('AprovarInstituicaoUseCase', () => {
     const response = await sut.execute(instituicao.id.toString(), admin);
 
     expect(response.isLeft()).toBe(true);
-    if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(DocumentoIndisponivelError);
-      if (response.value instanceof DocumentoIndisponivelError) {
-        expect(response.value.status).toBe(503);
-      }
-    }
+    expect(response.value).toBeInstanceOf(DocumentoIndisponivelError);
+    expect(response.value).toMatchObject({
+      status: 503,
+      message: 'Documento temporariamente indisponível',
+    });
 
     const inalterada = await instituicaoRepository.findById(
       instituicao.id.toString(),
@@ -187,6 +194,44 @@ describe('AprovarInstituicaoUseCase', () => {
     expect(consoleErrorSpy).toHaveBeenCalled();
 
     consoleErrorSpy.mockRestore();
+  });
+
+  it('should apply only one of two concurrent decisions and answer the other with TransicaoInvalidaError', async () => {
+    const instituicao = await criarInstituicao();
+    const admin = UserFactory.create({ role: UserRole.ADMIN });
+    const rejeitar = new RejeitarInstituicaoUseCase(
+      instituicaoRepository,
+      userRepository,
+      registroAuditoriaRepository,
+      mailer,
+    );
+
+    const [aprovacao, rejeicao] = await Promise.all([
+      sut.execute(instituicao.id.toString(), admin),
+      rejeitar.execute(
+        instituicao.id.toString(),
+        admin,
+        'Documentação incompleta para validar o CNPJ informado.',
+      ),
+    ]);
+
+    const resultados = [aprovacao, rejeicao];
+    expect(resultados.filter((r) => r.isRight())).toHaveLength(1);
+    const perdedora = resultados.find((r) => r.isLeft());
+    expect(perdedora?.value).toBeInstanceOf(TransicaoInvalidaError);
+
+    const estadoVencedor = aprovacao.isRight()
+      ? InstituicaoStatus.APROVADA
+      : InstituicaoStatus.REJEITADA;
+    const persistida = await instituicaoRepository.findById(
+      instituicao.id.toString(),
+    );
+    expect(persistida?.status).toBe(estadoVencedor);
+
+    expect(registroAuditoriaRepository.items).toHaveLength(1);
+    expect(registroAuditoriaRepository.items[0].dados).toEqual(
+      expect.objectContaining({ estadoNovo: estadoVencedor }),
+    );
   });
 
   it('should reject with TransicaoInvalidaError and leave no audit or e-mail when salvarTransicao is not applied', async () => {

@@ -162,8 +162,22 @@
 - **Date**: 2026-09-20
 - **Status**: active
 - **Exceção de autoria (2026-09-30)**: usuário autorizou explicitamente o agente a assumir a T5 de `catalogo-instituicoes` (`Instituicao`), incluindo testes e ajustes mecânicos necessários. A exigência de ativar `tlc-spec-driven` foi dispensada pelo usuário para esta execução.
+- **Exceção de autoria (2026-10-13)**: usuário autorizou explicitamente o agente a aplicar as tasks de hardening do domínio de `catalogo-instituicoes` (Fase 5b: T35, T37–T46, T48), incluindo código em `src/domain/**` e `test/repositories/**` e os testes correspondentes. As tasks T1–T20 continuam de autoria humana.
+- **Extensão (2026-10-13)**: o pedido do usuário ("pode aplicar as correções") cobre o ciclo de correção e reverificação do hardening. Com isso, inclui as tasks abertas pela rodada 2 da verificação (T49, T50).
 
 ## Handoff
+
+### Handoff — verificação do domínio de `catalogo-instituicoes` (2026-10-13)
+
+- **Feature**: `catalogo-instituicoes` (`.specs/features/catalogo-instituicoes/`)
+- **Phase / Task**: domínio T1–T20 verificado. O gate de handoff do AD-020 deu **PASS** na rodada 3 (`validation-dominio.md`, diff `7b0e9e7..074a914`). A rodada 1 deu FAIL e abriu a Fase 5b (T35–T48). A rodada 2 deu FAIL por uma lacuna de teste (T49, T50). O hardening foi todo aplicado pelo agente, com autorização do usuário registrada no AD-020.
+- **Gate**: build, tsc e eslint verdes; unit 332/332; e2e 205/205. Sensor com 40 mutantes no total: 39 mortos, 1 equivalente.
+- **Next step**: Fase 6 (T21, schema Prisma e migration), que cabe ao agente pelo AD-020.
+- **Follow-ups** (não bloqueiam): 3 spec-precision gaps (Autocadastro AC8 sem texto definido, Aprovação AC1 "nome", Causas AC4); `tasks.md:44` não diz que a busca normalizada no adaptador é a de causa.
+- **Lições**: L-005…L-014 registradas como candidatas.
+- **Branch**: `fix/catalogo-dominio-hardening` (local, não enviada ao remoto)
+
+### Handoff — `cadastro-empresa` (2026-09-20)
 
 - **Feature**: `cadastro-empresa` (`.specs/features/cadastro-empresa/`)
 - **Phase / Task**: Fases 1–9 completas (T1–T55). Fase 9 (T47–T55, OpenAPI/Swagger) implementada e verificada em 2026-09-20 na branch `feat/cadastro-empresa-fase9` (local, não enviada ao remoto). `validation.md` consolidado escrito.
