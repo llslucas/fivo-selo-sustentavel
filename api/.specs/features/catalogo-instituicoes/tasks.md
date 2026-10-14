@@ -1135,8 +1135,8 @@ T33 → T34
 
 **Done when**:
 
-- [ ] A porta não tem método sem chamador
-- [ ] Gate `quick` passa
+- [x] A porta não tem método sem chamador
+- [x] Gate `quick` passa
 
 **Tests**: none
 **Gate**: quick

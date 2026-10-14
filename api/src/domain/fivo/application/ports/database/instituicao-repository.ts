@@ -22,8 +22,6 @@ export abstract class InstituicaoRepository {
     ordem: OrdenacaoListaInstituicao,
   ): Promise<Instituicao[]>;
 
-  abstract buscarDisponiveis(nome: string): Promise<Instituicao[]>;
-
   abstract create(instituicao: Instituicao): Promise<void>;
 
   /** Salva apenas dados cadastrais, não afeta o status da institução */
