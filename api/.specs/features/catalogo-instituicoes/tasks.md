@@ -1221,10 +1221,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Não-admin em `EditarCausa`: nome e descrição persistidos inalterados e auditoria vazia
-- [ ] Não-admin em `InativarCausa`: status persistido `ATIVA` e auditoria vazia
-- [ ] Mutantes N28 (`editar-causa.ts`) e N29 (`inativar-causa.ts`) passam a ser mortos
-- [ ] Gate `quick` passa
+- [x] Não-admin em `EditarCausa`: nome e descrição persistidos inalterados e auditoria vazia
+- [x] Não-admin em `InativarCausa`: status persistido `ATIVA` e auditoria vazia
+- [x] Mutantes N28 (`editar-causa.ts`) e N29 (`inativar-causa.ts`) passam a ser mortos
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

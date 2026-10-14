@@ -76,8 +76,11 @@ describe('EditarDadosCausaUseCase', () => {
     });
   });
 
-  it('should return a NotAllowedError if the user is not an admin', async () => {
-    const causa = CausaFactory.create();
+  it('should return a NotAllowedError and change nothing if the user is not an admin', async () => {
+    const causa = CausaFactory.create({
+      nome: 'Causa Original',
+      descricao: 'Descrição original',
+    });
     await causaRepository.create(causa);
 
     const autor = UserFactory.create({ role: UserRole.EMPRESA });
@@ -90,10 +93,12 @@ describe('EditarDadosCausaUseCase', () => {
     });
 
     expect(response.isLeft()).toBe(true);
-
-    if (response.isRight()) return;
-
     expect(response.value).toBeInstanceOf(NotAllowedError);
+
+    const persistedCausa = await causaRepository.findById(causa.id.toString());
+    expect(persistedCausa?.nome).toBe('Causa Original');
+    expect(persistedCausa?.descricao).toBe('Descrição original');
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
   });
 
   it('should return a CausaJaExiste Error when the Causa alredy exists.', async () => {

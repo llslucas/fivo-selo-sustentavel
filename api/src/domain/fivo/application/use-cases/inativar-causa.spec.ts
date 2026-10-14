@@ -30,7 +30,7 @@ describe('InativarCausaUseCase', () => {
     );
   });
 
-  it('should return NotAllowedError if the user is not an admin', async () => {
+  it('should return NotAllowedError and change nothing if the user is not an admin', async () => {
     const causa = CausaFactory.create();
     await causaRepository.create(causa);
 
@@ -42,10 +42,11 @@ describe('InativarCausaUseCase', () => {
     });
 
     expect(response.isLeft()).toBe(true);
-
-    if (response.isRight()) return;
-
     expect(response.value).toBeInstanceOf(NotAllowedError);
+
+    const persistedCausa = await causaRepository.findById(causa.id.toString());
+    expect(persistedCausa?.status).toBe(CausaStatus.ATIVA);
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
   });
 
   it('should return ResourceNotFoundError if the causa does not exist', async () => {
