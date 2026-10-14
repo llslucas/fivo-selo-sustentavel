@@ -1275,11 +1275,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `enum InstituicaoStatus` (com `INATIVA`), `enum CausaStatus`, e `TipoArquivo` com `LOGO_INSTITUICAO` e `DOCUMENTO_INSTITUICAO`
-- [ ] `instituicao`: `usuario_id` único, `cnpj` único, FKs de causa, logo e documento, colunas de decisão (sem coluna de busca: a busca do catálogo fica no caso de uso, T47)
-- [ ] `causa`: `nome_busca` com índice único (unicidade sem acento/caixa)
-- [ ] Migration criada com `prisma migrate dev` e aplicada; nenhuma migration existente editada
-- [ ] Gate `build` passa
+- [x] `enum InstituicaoStatus` (com `INATIVA`), `enum CausaStatus`, e `TipoArquivo` com `LOGO_INSTITUICAO` e `DOCUMENTO_INSTITUICAO`
+- [x] `instituicao`: `usuario_id` único, `cnpj` único, FKs de causa, logo e documento, colunas de decisão (sem coluna de busca: a busca do catálogo fica no caso de uso, T47)
+- [x] `causa`: `nome_busca` com índice único (unicidade sem acento/caixa)
+- [x] Migration criada com `prisma migrate dev` e aplicada; nenhuma migration existente editada
+- [x] Gate `build` passa
 
 **Tests**: none (schema — build gate)
 **Gate**: build
