@@ -161,12 +161,11 @@ describe('AprovarInstituicaoUseCase', () => {
     const response = await sut.execute(instituicao.id.toString(), admin);
 
     expect(response.isLeft()).toBe(true);
-    if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(DocumentoIndisponivelError);
-      if (response.value instanceof DocumentoIndisponivelError) {
-        expect(response.value.status).toBe(503);
-      }
-    }
+    expect(response.value).toBeInstanceOf(DocumentoIndisponivelError);
+    expect(response.value).toMatchObject({
+      status: 503,
+      message: 'Documento temporariamente indisponível',
+    });
 
     const inalterada = await instituicaoRepository.findById(
       instituicao.id.toString(),

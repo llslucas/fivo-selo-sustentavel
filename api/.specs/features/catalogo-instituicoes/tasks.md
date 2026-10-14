@@ -1109,8 +1109,8 @@ T33 → T34
 
 **Done when**:
 
-- [ ] A mensagem bate com `design.md` §Erros, e o teste confere a string e o status 503
-- [ ] Gate `quick` passa
+- [x] A mensagem bate com `design.md` §Erros, e o teste confere a string e o status 503
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
