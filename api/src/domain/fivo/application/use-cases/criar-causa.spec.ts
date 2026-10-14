@@ -7,7 +7,7 @@ import { InMemoryCausaRepository } from '@test/repositories/in-memory-causa-repo
 import { InMemoryRegistroAuditoriaRepository } from '@test/repositories/in-memory-registro-auditoria-repository';
 import { CriarCausaUseCase } from './criar-causa';
 import { CausaJaExisteError } from '../errors/causa-ja-existe.error';
-import { NomeCausaInvalidoError } from '../errors/beneficiada-ambigua.error';
+import { NomeCausaInvalidoError } from '../errors/nome-causa-invalido.error';
 
 describe('CriarCausaUseCase', () => {
   let causaRepository: InMemoryCausaRepository;
