@@ -1442,11 +1442,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `POST /admin/causas` (201), `PATCH /admin/causas/:id` (200), `POST /admin/causas/:id/inativacao` (204)
-- [ ] Nome duplicado → 409; não-admin → 403; inativação com instituições aprovadas → 409 listando os nomes
-- [ ] Rotas documentadas no OpenAPI (o teste de paridade falha se faltar)
-- [ ] `test/http/admin-causas.e2e-spec.ts` cobre happy path e cada erro acima
-- [ ] Gate `full` passa
+- [x] `POST /admin/causas` (201), `PATCH /admin/causas/:id` (200), `POST /admin/causas/:id/inativacao` (204)
+- [x] Nome duplicado → 409; não-admin → 403; inativação com instituições aprovadas → 409 listando os nomes
+- [x] Rotas documentadas no OpenAPI (o teste de paridade falha se faltar)
+- [x] `test/http/admin-causas.e2e-spec.ts` cobre happy path e cada erro acima
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

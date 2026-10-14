@@ -4,8 +4,11 @@ import { APP_FILTER } from '@nestjs/core';
 import { AprovarEmpresaUseCase } from '@domain/fivo/application/use-cases/aprovar-empresa';
 import { AutenticarUsuarioUseCase } from '@domain/fivo/application/use-cases/autenticar-usuario';
 import { ConfirmarTrocaEmailUseCase } from '@domain/fivo/application/use-cases/confirmar-troca-email';
+import { CriarCausaUseCase } from '@domain/fivo/application/use-cases/criar-causa';
 import { CriarEmpresaUseCase } from '@domain/fivo/application/use-cases/criar-empresa';
+import { EditarCausaUseCase } from '@domain/fivo/application/use-cases/editar-causa';
 import { EditarDadosEmpresaUseCase } from '@domain/fivo/application/use-cases/editar-dados-empresa';
+import { InativarCausaUseCase } from '@domain/fivo/application/use-cases/inativar-causa';
 import { ListarFilaAprovacaoUseCase } from '@domain/fivo/application/use-cases/listar-fila-aprovacao';
 import { RedefinirSenhaUseCase } from '@domain/fivo/application/use-cases/redefinir-senha';
 import { ReativarEmpresaUseCase } from '@domain/fivo/application/use-cases/reativar-empresa';
@@ -17,6 +20,7 @@ import { AuthModule } from '@infra/auth/auth.module';
 import { CryptographyModule } from '@infra/cryptography/cryptography.module';
 import { MailModule } from '@infra/mail/mail.module';
 
+import { AdminCausasController } from './controllers/admin-causas.controller';
 import { AdminEmpresasController } from './controllers/admin-empresas.controller';
 import { ArquivoController } from './controllers/arquivo.controller';
 import { AutenticacaoController } from './controllers/autenticacao.controller';
@@ -30,6 +34,7 @@ import { SenhaController } from './controllers/senha.controller';
     CadastroEmpresaController,
     AutenticacaoController,
     AdminEmpresasController,
+    AdminCausasController,
     ArquivoController,
     SenhaController,
   ],
@@ -46,6 +51,9 @@ import { SenhaController } from './controllers/senha.controller';
     ConfirmarTrocaEmailUseCase,
     SolicitarRecuperacaoSenhaUseCase,
     RedefinirSenhaUseCase,
+    CriarCausaUseCase,
+    EditarCausaUseCase,
+    InativarCausaUseCase,
   ],
 })
 export class HttpModule {}

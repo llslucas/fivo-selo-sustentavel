@@ -13,6 +13,21 @@
         ],
         "type": "object"
       },
+      "CriarCausa": {
+        "properties": {
+          "descricao": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "nome",
+          "descricao"
+        ],
+        "type": "object"
+      },
       "CriarEmpresa": {
         "properties": {
           "bairro": {
@@ -93,6 +108,17 @@
         ],
         "type": "object"
       },
+      "EditarCausa": {
+        "properties": {
+          "descricao": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "EditarEmpresa": {
         "properties": {
           "bairro": {
@@ -148,6 +174,47 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "ErroInativacaoCausa": {
+        "properties": {
+          "errors": {
+            "items": {
+              "properties": {
+                "campo": {
+                  "type": "string"
+                },
+                "mensagem": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "campo",
+                "mensagem"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "instituicoes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusCode": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message"
+        ],
         "type": "object"
       },
       "ErroResposta": {
@@ -266,6 +333,282 @@
   },
   "openapi": "3.0.0",
   "paths": {
+    "/admin/causas": {
+      "post": {
+        "operationId": "AdminCausasController_criar",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CriarCausa"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Causa criada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Causa já cadastrada"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Dados inválidos"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Cria uma causa ATIVA (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/causas/{id}": {
+      "patch": {
+        "operationId": "AdminCausasController_editar",
+        "parameters": [
+          {
+            "description": "Id da causa",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditarCausa"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "descricao": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "nome": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "ATIVA",
+                        "INATIVA"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "nome",
+                    "descricao",
+                    "status"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Causa atualizada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Causa não encontrada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Causa já cadastrada, ou causa inativa"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Dados inválidos"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Edita nome e descrição da causa (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/causas/{id}/inativacao": {
+      "post": {
+        "operationId": "AdminCausasController_inativar",
+        "parameters": [
+          {
+            "description": "Id da causa",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Causa inativada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Causa não encontrada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroInativacaoCausa"
+                }
+              }
+            },
+            "description": "Causa já inativa, ou com instituições aprovadas vinculadas (listadas em `instituicoes`)"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Inativa a causa (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/admin/empresas": {
       "get": {
         "operationId": "AdminEmpresasController_listar",
