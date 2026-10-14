@@ -1721,7 +1721,7 @@ T33 → T53
 
 ### T53: Guards de papel testados com corpo válido
 
-**What**: Os mutantes M26 e M27 sobreviveram: tirar `@Roles(UserRole.ADMIN)` de `admin-causas.controller.ts` ou `admin-instituicoes.controller.ts` deixa os testes verdes, porque o sweep de 403 manda corpo inválido e o 422 da validação mascara a falta do guard. P1-Causas AC6 e P1-Aprovação AC8 exigem 403.
+**What**: Os mutantes M26 e M27 sobreviveram: tirar `@Roles(UserRole.ADMIN)` de `admin-causas.controller.ts` ou `admin-instituicoes.controller.ts` deixa os testes verdes, porque o sweep de 403 só manda corpo válido, e sem o guard o próprio caso de uso devolve 403. O sweep passa a rodar também com `{}`: nas rotas com corpo obrigatório, só o guard responde 403 antes da validação (422). P1-Causas AC6 e P1-Aprovação AC8 exigem 403. (Texto corrigido depois da execução; a primeira versão descrevia a causa ao contrário.)
 **Where**: `test/http/catalogo-concorrencia.e2e-spec.ts`
 **Depends on**: T33
 **Reuses**: sweep orientado pelo OpenAPI já existente no arquivo
