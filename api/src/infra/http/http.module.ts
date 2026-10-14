@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 
 import { AprovarEmpresaUseCase } from '@domain/fivo/application/use-cases/aprovar-empresa';
+import { AprovarInstituicaoUseCase } from '@domain/fivo/application/use-cases/aprovar-instituicao';
 import { AutenticarUsuarioUseCase } from '@domain/fivo/application/use-cases/autenticar-usuario';
 import { ConfirmarTrocaEmailUseCase } from '@domain/fivo/application/use-cases/confirmar-troca-email';
 import { CriarCausaUseCase } from '@domain/fivo/application/use-cases/criar-causa';
@@ -12,9 +13,11 @@ import { EditarDadosEmpresaUseCase } from '@domain/fivo/application/use-cases/ed
 import { InativarCausaUseCase } from '@domain/fivo/application/use-cases/inativar-causa';
 import { ListarCausasAtivasUseCase } from '@domain/fivo/application/use-cases/listar-causas-ativas';
 import { ListarFilaAprovacaoUseCase } from '@domain/fivo/application/use-cases/listar-fila-aprovacao';
+import { ListarFilaInstituicoesUseCase } from '@domain/fivo/application/use-cases/listar-fila-instituicoes';
 import { RedefinirSenhaUseCase } from '@domain/fivo/application/use-cases/redefinir-senha';
 import { ReativarEmpresaUseCase } from '@domain/fivo/application/use-cases/reativar-empresa';
 import { RejeitarEmpresaUseCase } from '@domain/fivo/application/use-cases/rejeitar-empresa';
+import { RejeitarInstituicaoUseCase } from '@domain/fivo/application/use-cases/rejeitar-instituicao';
 import { SolicitarRecuperacaoSenhaUseCase } from '@domain/fivo/application/use-cases/solicitar-recuperacao-senha';
 import { SuspenderEmpresaUseCase } from '@domain/fivo/application/use-cases/suspender-empresa';
 import { ArquivoModule } from '@infra/arquivo/arquivo.module';
@@ -24,6 +27,7 @@ import { MailModule } from '@infra/mail/mail.module';
 
 import { AdminCausasController } from './controllers/admin-causas.controller';
 import { AdminEmpresasController } from './controllers/admin-empresas.controller';
+import { AdminInstituicoesController } from './controllers/admin-instituicoes.controller';
 import { ArquivoController } from './controllers/arquivo.controller';
 import { AutenticacaoController } from './controllers/autenticacao.controller';
 import { CadastroEmpresaController } from './controllers/cadastro-empresa.controller';
@@ -41,6 +45,7 @@ import { SenhaController } from './controllers/senha.controller';
     AdminCausasController,
     CausasController,
     CadastroInstituicaoController,
+    AdminInstituicoesController,
     ArquivoController,
     SenhaController,
   ],
@@ -62,6 +67,9 @@ import { SenhaController } from './controllers/senha.controller';
     InativarCausaUseCase,
     ListarCausasAtivasUseCase,
     CriarInstituicaoUseCase,
+    ListarFilaInstituicoesUseCase,
+    AprovarInstituicaoUseCase,
+    RejeitarInstituicaoUseCase,
   ],
 })
 export class HttpModule {}

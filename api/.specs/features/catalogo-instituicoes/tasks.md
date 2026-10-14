@@ -1526,11 +1526,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `GET /admin/instituicoes` (fila ordenada, com referência do documento e sinal de CNPJ coincidente) e `POST /admin/instituicoes/:id/{aprovacao,rejeicao}`
-- [ ] Rejeição sem motivo suficiente → 422; documento ilegível → 503; decisão repetida → 409; não-admin → 403
-- [ ] Rotas documentadas no OpenAPI
-- [ ] `test/http/admin-instituicoes.e2e-spec.ts` cobre happy path e cada erro acima
-- [ ] Gate `full` passa
+- [x] `GET /admin/instituicoes` (fila ordenada, com referência do documento e sinal de CNPJ coincidente) e `POST /admin/instituicoes/:id/{aprovacao,rejeicao}`
+- [x] Rejeição sem motivo suficiente → 422; documento ilegível → 503; decisão repetida → 409; não-admin → 403
+- [x] Rotas documentadas no OpenAPI
+- [x] `test/http/admin-instituicoes.e2e-spec.ts` cobre happy path e cada erro acima
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

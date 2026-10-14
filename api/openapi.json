@@ -406,6 +406,17 @@
         ],
         "type": "object"
       },
+      "RejeicaoInstituicao": {
+        "properties": {
+          "motivo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "motivo"
+        ],
+        "type": "object"
+      },
       "TrocarEmail": {
         "properties": {
           "novoEmail": {
@@ -1102,6 +1113,273 @@
           }
         ],
         "summary": "Suspende a empresa (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/instituicoes": {
+      "get": {
+        "operationId": "AdminInstituicoesController_listar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "properties": {
+                      "causa": {
+                        "description": "Nome da causa",
+                        "type": "string"
+                      },
+                      "cidade": {
+                        "type": "string"
+                      },
+                      "cnpj": {
+                        "type": "string"
+                      },
+                      "cnpjCoincideComEmpresa": {
+                        "description": "Já existe empresa cadastrada com o mesmo CNPJ",
+                        "type": "boolean"
+                      },
+                      "criadoEm": {
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "documentoArquivoId": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "razaoSocial": {
+                        "type": "string"
+                      },
+                      "uf": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "razaoSocial",
+                      "cnpj",
+                      "causa",
+                      "cidade",
+                      "uf",
+                      "email",
+                      "documentoArquivoId",
+                      "cnpjCoincideComEmpresa",
+                      "criadoEm"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Instituições pendentes, da mais antiga para a mais recente. O documento é baixado em `GET /arquivos/{documentoArquivoId}`"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Fila de instituições pendentes de aprovação (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/instituicoes/{id}/aprovacao": {
+      "post": {
+        "operationId": "AdminInstituicoesController_aprovar",
+        "parameters": [
+          {
+            "description": "Id da instituição",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Decisão registrada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Instituição não encontrada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Transição de estado inválida para a situação atual"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Documento de validação temporariamente indisponível"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Aprova a instituição (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/instituicoes/{id}/rejeicao": {
+      "post": {
+        "operationId": "AdminInstituicoesController_rejeitar",
+        "parameters": [
+          {
+            "description": "Id da instituição",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejeicaoInstituicao"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Decisão registrada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Instituição não encontrada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Transição de estado inválida para a situação atual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Motivo ausente ou insuficiente"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Rejeita a instituição com motivo (somente ADMIN)",
         "tags": [
           "admin"
         ]
