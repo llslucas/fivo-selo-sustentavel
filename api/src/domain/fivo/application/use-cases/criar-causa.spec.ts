@@ -85,6 +85,27 @@ describe('CriarCausaUseCase', () => {
     expect(response.value).toBeInstanceOf(CausaJaExisteError);
   });
 
+  it.each(['educacao', 'Educação', 'EDUCAÇÃO'])(
+    'should return a CausaJaExisteError for "%s" when "Educação" already exists',
+    async (nome) => {
+      await causaRepository.create(CausaFactory.create({ nome: 'Educação' }));
+
+      const response = await sut.execute({
+        nome,
+        descricao: 'Descrição qualquer',
+        user: UserFactory.create(),
+      });
+
+      expect(response.isLeft()).toBe(true);
+      expect(response.value).toBeInstanceOf(CausaJaExisteError);
+      expect(response.value).toMatchObject({
+        status: 409,
+        message: 'Causa já cadastrada',
+      });
+      expect(causaRepository.items).toHaveLength(1);
+    },
+  );
+
   it('should return a NomeCausaInvalidoError if the Causa name is invalid', async () => {
     const newCausa = CausaFactory.create();
     const creator = UserFactory.create();

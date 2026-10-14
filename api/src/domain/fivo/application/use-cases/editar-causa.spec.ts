@@ -113,6 +113,44 @@ describe('EditarDadosCausaUseCase', () => {
     expect(registroAuditoria.entidadeId).toBe(causa.id.toString());
   });
 
+  it('should return a CausaJaExisteError when renaming to a name that differs from another Causa only by case and accent', async () => {
+    const causa = CausaFactory.create({ nome: 'Educação' });
+    await causaRepository.create(causa);
+    await causaRepository.create(CausaFactory.create({ nome: 'Saude' }));
+
+    const response = await sut.execute({
+      causaId: causa.id.toString(),
+      nome: 'SAÚDE',
+      user: UserFactory.create(),
+    });
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(CausaJaExisteError);
+    expect(response.value).toMatchObject({
+      status: 409,
+      message: 'Causa já cadastrada',
+    });
+
+    const persistedCausa = await causaRepository.findById(causa.id.toString());
+    expect(persistedCausa?.nome).toBe('Educação');
+  });
+
+  it('should allow changing only the case and accents of its own name', async () => {
+    const causa = CausaFactory.create({ nome: 'Saude' });
+    await causaRepository.create(causa);
+
+    const response = await sut.execute({
+      causaId: causa.id.toString(),
+      nome: 'Saúde',
+      user: UserFactory.create(),
+    });
+
+    expect(response.isRight()).toBe(true);
+
+    const persistedCausa = await causaRepository.findById(causa.id.toString());
+    expect(persistedCausa?.nome).toBe('Saúde');
+  });
+
   it('should return a NomeCausaInvalidoError if the Causa name is invalid', async () => {
     const causa = CausaFactory.create();
     await causaRepository.create(causa);

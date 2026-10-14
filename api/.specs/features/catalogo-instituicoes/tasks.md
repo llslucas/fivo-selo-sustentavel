@@ -861,7 +861,7 @@ T33 → T34
 ### T37: Unicidade de causa ignora caixa e acento no double
 
 **What**: `InMemoryCausaRepository.findByNome` hoje normaliza só a entrada (`NFD`) e compara com o nome armazenado sem normalizar. Por isso não encontra nem `"Educação"` exato, e `CriarCausa` aceita a duplicata. A correção normaliza os dois lados (NFD, sem diacríticos, minúscula) e documenta o contrato na porta.
-**Where**: `test/repositories/in-memory-causa-repository.ts`, `src/domain/fivo/application/ports/database/causa-repository.ts`, `src/domain/fivo/application/use-cases/criar-causa.spec.ts`, `editar-causa.spec.ts`
+**Where**: `test/repositories/in-memory-causa-repository.ts`, `src/domain/fivo/application/ports/database/causa-repository.ts`, `src/domain/fivo/application/use-cases/editar-causa.ts`, `criar-causa.spec.ts`, `editar-causa.spec.ts`
 **Depends on**: None
 **Reuses**: normalização de `listar-beneficiadas.ts`
 **Requirement**: INST-07
@@ -877,10 +877,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Com `"Educação"` cadastrada, criar `"educacao"` e criar `"Educação"` devolvem `CausaJaExisteError` (status 409, mensagem `Causa já cadastrada`)
-- [ ] Renomear uma causa para `"SAÚDE"` quando existe outra `"Saude"` devolve `CausaJaExisteError`
-- [ ] JSDoc da porta diz que `findByNome` ignora caixa e acento
-- [ ] Gate `quick` passa
+- [x] Com `"Educação"` cadastrada, criar `"educacao"` e criar `"Educação"` devolvem `CausaJaExisteError` (status 409, mensagem `Causa já cadastrada`)
+- [x] Renomear uma causa para `"SAÚDE"` quando existe outra `"Saude"` devolve `CausaJaExisteError`
+- [x] Mudar só caixa/acento do próprio nome (`"Saude"` → `"Saúde"`) continua permitido: `EditarCausa` passa a comparar a causa encontrada por **id**, não por nome (com a busca normalizada, a comparação por nome recusaria a própria causa)
+- [x] JSDoc da porta diz que `findByNome` ignora caixa e acento
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

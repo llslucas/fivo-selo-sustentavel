@@ -51,7 +51,7 @@ export class EditarCausaUseCase {
     if (nome) {
       const causaExistente = await this.causaRepository.findByNome(nome);
 
-      if (causaExistente && causaExistente.nome !== causa.nome) {
+      if (causaExistente && !causaExistente.id.equals(causa.id)) {
         return left(new CausaJaExisteError());
       }
     }
