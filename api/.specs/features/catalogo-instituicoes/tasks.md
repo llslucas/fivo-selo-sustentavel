@@ -1640,9 +1640,9 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `npm run openapi:export` rodado e `openapi.json` commitado; teste de paridade verde
-- [ ] README do `api` lista as rotas novas e explica que o admin precisa criar causas antes de divulgar o autocadastro
-- [ ] Gate `build` passa
+- [x] `npm run openapi:export` rodado e `openapi.json` commitado; teste de paridade verde
+- [x] README do `api` lista as rotas novas e explica que o admin precisa criar causas antes de divulgar o autocadastro
+- [x] Gate `build` passa
 - [ ] `validation.md` consolidado da feature escrito pelo Verifier (exigido por `validate_state.py`)
 
 **Tests**: e2e
