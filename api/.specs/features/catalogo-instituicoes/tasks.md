@@ -390,7 +390,7 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Porta com `findById`, `findByCnpj`, `findByUsuarioId`, `listarPorEstado(estado, ordem)`, `listarAprovadasPorCausa(causaId)`, `buscarDisponiveis(termo?)`, `create`, `save`, `salvarTransicao(instituicao, estadoEsperado): Promise<boolean>`
+- [ ] Porta com `findById`, `findByCnpj`, `findByUsuarioId`, `listarPorEstado(estado, ordem)`, `listarAprovadasPorCausa(causaId)`, `buscarDisponiveis(termo?)`, `create`, `save`, `salvarTransicao(instituicao, estadoEsperado): Promise<boolean>` (`buscarDisponiveis` removido depois, na T46)
 - [ ] Documentado no contrato que `save` **não** grava `status`, `decididoPor`, `decididoEm` nem `motivoDecisao` (mesma armadilha resolvida em `EmpresaRepository`)
 - [ ] `test/repositories/in-memory-instituicao-repository.ts` reescrito: `salvarTransicao` devolve `false` quando o estado persistido difere do esperado; `buscarDisponiveis` filtra `APROVADA` e compara sem acento/caixa; `listarPorEstado` ordena por `createdAt`
 - [ ] Gate `quick` passa
@@ -1161,9 +1161,9 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `design.md` não cita `buscarDisponiveis`, e `nome_busca` aparece só para causa
-- [ ] T21 e T23 não pedem coluna nem método sem uso
-- [ ] `validate_tasks.py` sai com 0 erros
+- [x] `design.md` não cita `buscarDisponiveis`, e `nome_busca` aparece só para causa
+- [x] T21 e T23 não pedem coluna nem método sem uso
+- [x] `validate_tasks.py` sai com 0 erros
 
 **Tests**: none
 **Gate**: quick
@@ -1218,7 +1218,7 @@ T33 → T34
 **Done when**:
 
 - [ ] `enum InstituicaoStatus` (com `INATIVA`), `enum CausaStatus`, e `TipoArquivo` com `LOGO_INSTITUICAO` e `DOCUMENTO_INSTITUICAO`
-- [ ] `instituicao`: `usuario_id` único, `cnpj` único, FKs de causa, logo e documento, colunas de decisão, `nome_busca` indexada
+- [ ] `instituicao`: `usuario_id` único, `cnpj` único, FKs de causa, logo e documento, colunas de decisão (sem coluna de busca: a busca do catálogo fica no caso de uso, T47)
 - [ ] `causa`: `nome_busca` com índice único (unicidade sem acento/caixa)
 - [ ] Migration criada com `prisma migrate dev` e aplicada; nenhuma migration existente editada
 - [ ] Gate `build` passa
@@ -1275,9 +1275,9 @@ T33 → T34
 
 - [ ] `salvarTransicao` devolve `false` quando o estado persistido já mudou (asserido com duas decisões concorrentes)
 - [ ] `save` não altera `status`, `decididoPor`, `decididoEm`, `motivoDecisao`
-- [ ] `buscarDisponiveis` usa `nome_busca`; `listarPorEstado` ordena por `criado_em`
+- [ ] `listarPorEstado` ordena por `criado_em`
 - [ ] Registrado no `DatabaseModule`
-- [ ] `test/database/prisma-instituicao-repository.e2e-spec.ts` cobre roundtrip, CAS, unicidade de CNPJ, busca sem acento e o `save` conservador
+- [ ] `test/database/prisma-instituicao-repository.e2e-spec.ts` cobre roundtrip, CAS, unicidade de CNPJ e o `save` conservador
 - [ ] Gate `full` passa
 
 **Tests**: e2e
