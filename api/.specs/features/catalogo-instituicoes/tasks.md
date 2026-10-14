@@ -1388,10 +1388,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `buscarAcesso` considera o `usuarioId` da instituição dona (logo e documento)
-- [ ] Admin e dono recebem 200; outra instituição, empresa e anônimo recebem 403/401
-- [ ] `test/http/arquivo.e2e-spec.ts` estendido com esses casos
-- [ ] Gate `full` passa
+- [x] `buscarAcesso` considera o `usuarioId` da instituição dona (logo e documento)
+- [x] Admin e dono recebem 200; outra instituição, empresa e anônimo recebem 403/401
+- [x] `test/http/arquivo.e2e-spec.ts` estendido com esses casos
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

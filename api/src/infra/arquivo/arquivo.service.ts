@@ -120,14 +120,25 @@ export class ArquivoService {
   ): Promise<{ donoUsuarioId: string | null } | null> {
     const registro = await this.prisma.arquivo.findUnique({
       where: { id },
-      select: { empresas: { select: { usuarioId: true } } },
+      select: {
+        empresas: { select: { usuarioId: true } },
+        logosDeInstituicao: { select: { usuarioId: true } },
+        documentosDeInstituicao: { select: { usuarioId: true } },
+      },
     });
 
     if (!registro) {
       return null;
     }
 
-    return { donoUsuarioId: registro.empresas[0]?.usuarioId ?? null };
+    // Dono é o usuário da empresa ou da instituição que referencia o arquivo
+    // (logo ou documento de validação). Sem vínculo, só o ADMIN acessa.
+    const dono =
+      registro.empresas[0] ??
+      registro.logosDeInstituicao[0] ??
+      registro.documentosDeInstituicao[0];
+
+    return { donoUsuarioId: dono?.usuarioId ?? null };
   }
 
   async remover(id: string): Promise<void> {
