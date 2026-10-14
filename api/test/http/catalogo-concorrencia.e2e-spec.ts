@@ -258,9 +258,24 @@ describe('Concorrência e autorização do catálogo de instituições (e2e)', (
         );
     }
 
-    it.each([UserRole.EMPRESA, UserRole.INSTITUICAO])(
-      'toda rota responde 403 para %s autenticada, sem alterar estado',
-      async (role) => {
+    /** Passaria na validação de toda rota que exige corpo. */
+    const CORPO_VALIDO = {
+      nome: 'Trocada',
+      descricao: 'x',
+      motivo: MOTIVO_VALIDO,
+    };
+
+    // Com corpo vazio, POST /admin/causas e a rejeição falham na validação.
+    // Só o guard de papel, que roda antes do pipe, devolve 403 aqui; sem ele
+    // a resposta seria 422 (mutantes M26/M27).
+    it.each([
+      [UserRole.EMPRESA, 'corpo válido', CORPO_VALIDO],
+      [UserRole.INSTITUICAO, 'corpo válido', CORPO_VALIDO],
+      [UserRole.EMPRESA, 'corpo vazio', {}],
+      [UserRole.INSTITUICAO, 'corpo vazio', {}],
+    ])(
+      'toda rota responde 403 para %s autenticada com %s, sem alterar estado',
+      async (role, _rotulo, corpo) => {
         const instituicao = await criarPendente('dona@instituicao.test');
         const token = await sessaoDe(
           await criarUsuario(role, 'intruso@fivo.test'),
@@ -273,9 +288,7 @@ describe('Concorrência e autorização do catálogo de instituições (e2e)', (
             ? causa.id.toString()
             : instituicao.id.toString();
           const resposta = await comCookieDeSessao(
-            api()
-              [metodo](caminho.replace('{id}', id))
-              .send({ nome: 'Trocada', descricao: 'x', motivo: MOTIVO_VALIDO }),
+            api()[metodo](caminho.replace('{id}', id)).send(corpo),
             token,
           );
 

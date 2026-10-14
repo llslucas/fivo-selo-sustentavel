@@ -1736,9 +1736,9 @@ T33 → T53
 
 **Done when**:
 
-- [ ] Para cada rota administrativa do catálogo, EMPRESA e INSTITUICAO recebem 403 com um corpo que passaria na validação (ou `{}` onde a rota não exige corpo), e nada é alterado
-- [ ] Mutantes M26 e M27 (remover `@Roles` em cada controller) passam a ser mortos
-- [ ] Gate `build` passa
+- [x] Para cada rota administrativa do catálogo, EMPRESA e INSTITUICAO recebem 403 com um corpo que passaria na validação (ou `{}` onde a rota não exige corpo), e nada é alterado
+- [x] Mutantes M26 e M27 (remover `@Roles` em cada controller) passam a ser mortos
+- [x] Gate `build` passa
 
 **Tests**: e2e
 **Gate**: build
