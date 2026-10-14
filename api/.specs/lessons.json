@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 20,
+  "next_id": 21,
   "lessons": [
     {
       "id": "L-001",
@@ -346,6 +346,24 @@
       ],
       "created": "2026-10-14T02:32:16Z",
       "last_seen": "2026-10-14T02:32:16Z"
+    },
+    {
+      "id": "L-020",
+      "key": "gate_fail::give a task the full gate when it changes a use case response that a route returns because e2e tests assert route payloads with exact toequal",
+      "text": "Give a task the full gate when it changes a use-case response that a route returns, because e2e tests assert route payloads with exact toEqual",
+      "signal": "gate_fail",
+      "scope": "tasks",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "c46080b: test/http/admin-instituicoes.e2e-spec.ts:174 red until 2a123fb (validation.md, Rodada 2 Gate Check) (tasks)"
+      ],
+      "created": "2026-10-14T09:02:31Z",
+      "last_seen": "2026-10-14T09:02:31Z"
     }
   ]
 }

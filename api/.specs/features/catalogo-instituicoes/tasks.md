@@ -22,7 +22,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/catalogo-instituicoes/design.md`
-**Status**: Draft
+**Status**: Done — P1 do `api` verificado (`validation.md`, PASS na rodada 2, 2026-10-14)
 
 > **Escopo desta rodada: P1 (MVP) do `api`.** P2 (área logada da instituição, notas internas de curadoria) e as telas do `web` são rodadas separadas. Arquitetura de **AD-017** (hexagonal completa, contexto único `src/domain/fivo/`, rich domain model): regra de estado → método na entidade; valor restrito → value object; regra entre registros → caso de uso.
 >
@@ -1655,7 +1655,7 @@ T33 → T53
 - [x] `npm run openapi:export` rodado e `openapi.json` commitado; teste de paridade verde
 - [x] README do `api` lista as rotas novas e explica que o admin precisa criar causas antes de divulgar o autocadastro
 - [x] Gate `build` passa
-- [ ] `validation.md` consolidado da feature escrito pelo Verifier (exigido por `validate_state.py`)
+- [x] `validation.md` consolidado da feature escrito pelo Verifier (exigido por `validate_state.py`)
 
 **Tests**: e2e
 **Gate**: build
@@ -1917,14 +1917,14 @@ Nenhuma task difere testes para outra: toda task que cria código com tipo de te
 
 | Requirement | Tasks | Status |
 | ----------- | ----- | ------ |
-| INST-01 | T1, T5, T13, T21, T29, T34 | Pending |
-| INST-02 | T1, T3, T4, T13, T24, T29 | Pending |
-| INST-03 | T1, T5, T13, T29 | Pending |
-| INST-04 | T7, T14, T15, T16, T23, T30, T33, T34 | Pending |
-| INST-05 | T5, T7, T15, T16, T17, T18, T21, T23, T30, T31, T33 | Pending |
-| INST-06 | T8, T15, T25, T26, T30 | Pending |
-| INST-07 | T1, T2, T6, T9, T10, T11, T12, T21, T22, T27, T28, T34 | Pending |
-| INST-08 | T7, T12, T19, T23, T28, T32, T34 | Pending |
-| INST-09 | T1, T20 | Pending |
-| INST-10 | T19, T32 | Pending |
+| INST-01 | T1, T5, T13, T21, T29, T34 | Verified |
+| INST-02 | T1, T3, T4, T13, T24, T29 | Verified |
+| INST-03 | T1, T5, T13, T29 | Verified |
+| INST-04 | T7, T14, T15, T16, T23, T30, T33, T34, T51, T52, T53 | Verified |
+| INST-05 | T5, T7, T15, T16, T17, T18, T21, T23, T30, T31, T33 | Verified |
+| INST-06 | T8, T15, T25, T26, T30, T51, T52 | Verified |
+| INST-07 | T1, T2, T6, T9, T10, T11, T12, T21, T22, T27, T28, T34, T53 | Verified |
+| INST-08 | T7, T12, T19, T23, T28, T32, T34 | Verified |
+| INST-09 | T1, T20 | Verified |
+| INST-10 | T19, T32 | Verified |
 | INST-11, INST-12, INST-13 | — (P2, fora desta rodada) | Deferred |

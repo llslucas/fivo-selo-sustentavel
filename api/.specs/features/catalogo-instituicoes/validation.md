@@ -1,4 +1,141 @@
-# Validation: catalogo-instituicoes (feature consolidada, infra T21–T34) — FAIL
+# Validation: catalogo-instituicoes (feature consolidada, infra T21–T34 + correções T51–T53) — PASS
+
+**Veredito**: ✅ **PASS** na rodada 2 de 3. As duas lacunas da rodada 1 foram fechadas com evidência:
+
+1. **Edge case "documento inacessível durante a análise"** (`spec.md:196`): a fila agora traz `documentoDisponivel` por item. O item com documento ilegível continua na fila com `false`, e a aprovação dele responde 503 sem mudar o estado. Isso foi provado em unit e por HTTP, e documentado no OpenAPI.
+2. **Guardas de papel** (M26 e M27): os dois mutantes, reaplicados, agora morrem no sweep com corpo vazio, que recebe 422 em vez de 403.
+
+O gate `build` está todo verde (build, tsc, eslint, unit 333/333, e2e 337/337). Na rodada 2 o sensor rodou 15 mutantes: 14 foram mortos e 1 sobreviveu, e esse 1 é equivalente pela saída da spec. Não resta nenhum AC falho nem mutante vivo não equivalente. Os 7 spec-precision gaps da rodada 1 continuam sinalizados e não bloqueiam. Há uma observação sem efeito no veredito: o commit intermediário `c46080b` deixa 1 e2e vermelho até `2a123fb`.
+
+**Data**: 2026-10-14 (rodada 2) · 2026-10-13 (rodada 1)
+**Spec**: `.specs/features/catalogo-instituicoes/spec.md`
+**Diff range consolidado**: `cb28127..03a2879`. A rodada 1 cobriu `cb28127..a5af170` (T21–T34). A rodada 2 cobre `a5af170..03a2879`: `c46080b` T51, `2a123fb` T52, `43fb974` T53, mais os commits de docs `5f5846c` e `03a2879`. A metade de domínio (T1–T20 + 5b) passou em `validation-dominio.md` (rodada 3, PASS). No range da rodada 2, `src/domain/**` mudou apenas em `listar-fila-instituicoes.ts` e no `.spec.ts` dele, por exceção de autoria registrada no `STATE.md` (2026-10-14, T51).
+**Verifier**: sub-agente independente (autor ≠ verificador), rodada 2. Leu `src/` e `test/` sem alterar nada. Os mutantes rodaram só num `git worktree` descartável. Este arquivo é o único que ele escreve.
+**Escopo**: P1 apenas (INST-01…INST-10). P2 (INST-11…13) fica para outra rodada. Sem UAT (backend).
+
+---
+
+## Rodada 2 (2026-10-14, `a5af170..03a2879`)
+
+### Gate Check
+
+- **Gate command** (`tasks.md`, Build): `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`. Cada etapa rodou em separado, com a saída redirecionada para arquivo e o exit code registrado, sem `tail`. Pré-requisitos: `docker compose -f docker-compose.test.yml up -d --wait` deu exit 0 (`fivo-postgres-test` :5433) e `npx prisma migrate deploy` deu exit 0. O `custos-obras-db` não foi tocado.
+
+| Etapa | Exit | Resultado |
+| ----- | ---- | --------- |
+| `npm run build` | 0 | ok |
+| `tsc --noEmit` | 0 | ok |
+| `eslint` | 0 | saída vazia |
+| `jest` (unit) | 0 | 43 suites, **333/333**, 0 skip |
+| `jest e2e` | 0 | 30 suites, **337/337**, 0 skip |
+
+- **Contagem**: unit 332 → 333 (+1, o teste por item da T51). e2e 334 → 337 (+1 da T52; +2 linhas `corpo vazio` no `it.each` do sweep da T53). Bate com o que o autor reportou (unit 333, e2e 337).
+- **Integridade**: nenhum `.skip`, `.only`, `xit` ou `xdescribe` em `src/` ou `test/`. Nenhum `// SPEC_DEVIATION`. Duas asserções pré-existentes mudaram, e as duas ficaram mais fortes: (i) o `toEqual` exato da fila (`test/http/admin-instituicoes.e2e-spec.ts:174-200`) ganhou `documentoDisponivel: true` nas linhas `:185` e `:198`; (ii) o sweep (`test/http/catalogo-concorrencia.e2e-spec.ts:271-311`) manteve as linhas de corpo válido e ganhou as de corpo vazio. Nenhuma asserção foi afrouxada.
+- **Commit intermediário `c46080b`** (T51, gate `quick`): ali, `admin-instituicoes.e2e-spec.ts` fica com 1 teste vermelho (35/36). O `toEqual` exato da fila recebe `documentoDisponivel: true`, que o teste ainda não esperava. Isso foi reproduzido no worktree descartável: `jest --config ./test/jest-e2e.json test/http/admin-instituicoes.e2e-spec.ts` deu exit 1, e `tsc` deu 0. `2a123fb` (T52) corrige. **Julgamento: não afeta o veredito.** O HEAD está verde, e nenhum AC nem mutante depende do estado intermediário. O custo é real, porém: um commit do branch não passa no gate `full`, o que atrapalha `git bisect` e um CI por commit. A causa é a T51 ter recebido o gate `quick` mesmo mudando um payload que um e2e afirma por igualdade exata. Isso foi registrado como lição (ver abaixo).
+
+### Task Completion (T51–T53)
+
+| Task | Status | Notas |
+| ---- | ------ | ----- |
+| T51 Fila sinaliza documento indisponível | ✅ | `listar-fila-instituicoes.ts:71-76` consulta `VerificadorDeDocumento.estaLegivel` por item, e `:88` expõe o resultado. Um teste com duas instituições na mesma fila. N1–N3, N5 e N6 mortos. Gate `quick` passou no commit, mas o `full` não passaria (ver acima) |
+| T52 `documentoDisponivel` na rota da fila | ✅ | `admin-instituicoes.controller.ts:77` (`required`) e `:93-97` (propriedade); `openapi.json:1153-1156`, `:1180`; e2e `admin-instituicoes.e2e-spec.ts:204-245`. N4 morto |
+| T53 Guards de papel no sweep | ✅ | `catalogo-concorrencia.e2e-spec.ts:274-275` (linhas `{}`). M26, M27, N7 e N8 mortos. Ressalva de texto: o título da task e o commit dizem "corpo válido", mas são as linhas de corpo **vazio** que matam os mutantes. A 1ª Done-when ("…com um corpo que passaria na validação (ou `{}` onde a rota não exige corpo)") também não descreve o `{}` nas rotas com corpo obrigatório. O "What" já foi corrigido em `03a2879`. É cosmético |
+
+### Lacuna 1: fechada (edge case `spec.md:196`, metade "exibir")
+
+Saída que a spec define: "SHALL exibir ao administrador o item como temporariamente indisponível **e** SHALL bloquear a aprovação com HTTP 503 até que o arquivo volte a ser legível". Por conjunção, o mesmo item tem que (a) continuar na fila, (b) vir marcado como indisponível e (c) ter a aprovação recusada com 503, sem mudar de estado.
+
+| Parte do edge case | `file:line` + asserção | Result |
+| ------------------ | ---------------------- | ------ |
+| Sinal **por item**, e o item ilegível continua na fila com os demais campos (unit) | `src/domain/fivo/application/use-cases/listar-fila-instituicoes.spec.ts:259-262` (só o `arquivoId` da **segunda** instituição falha no fake); `:272-299` `expect(fila.value).toEqual([{…legível, documentoDisponivel: true}, {…ilegível, documentoDisponivel: false}])`, com os 11 campos exatos de cada item (`:283`, `:296`) | ✅ |
+| Caminho feliz `true` (unit) | `listar-fila-instituicoes.spec.ts:124`, `:209` (`toEqual` exato com `documentoDisponivel: true`) | ✅ |
+| Por HTTP: objeto real removido do storage de um só documento → o item continua listado com `false`, e o outro vem `true` | `test/http/admin-instituicoes.e2e-spec.ts:215` `storage.arquivos.delete(chaveStorage)` (só o da segunda); `:219` `fila.status).toBe(200)`; `:220-233` `fila.body).toEqual([objectContaining({id: legivel…, documentoDisponivel: true}), objectContaining({id: ilegivel…, documentoDisponivel: false})])`. O array tem 2 itens, então o ilegível não saiu da fila | ✅ |
+| Aprovação **desse** item → 503, e o estado não muda | `admin-instituicoes.e2e-spec.ts:235-245`: `aprovacao.status).toBe(503)`, `message: 'Documento temporariamente indisponível'`, `status).toBe(PENDENTE_APROVACAO)`. Para auditoria 0 e nenhum e-mail no 503: `:294-313` (`registroAuditoria.count()).toBe(0)`, `mailer.mensagens).toEqual([])`) | ✅ |
+| Payload exato da rota com o campo | `admin-instituicoes.e2e-spec.ts:174-200` `body).toEqual([...])` exato, com `documentoDisponivel: true` (`:185`, `:198`) | ✅ |
+| Contrato OpenAPI | `src/infra/http/controllers/admin-instituicoes.controller.ts:77` (em `required`), `:93-97` (`type: 'boolean'`, descrição "`false` = temporariamente indisponível; a aprovação responde 503…"); `openapi.json:1153-1156`, `:1180`. `openapi-exportacao` e `openapi-paridade` verdes no gate | ✅ |
+
+**Regra de payload/conjunção**: atendida. O valor do campo é conferido nos dois sentidos (`true`/`false`), no item certo, sem tirar o item da fila e junto com o 503 da aprovação. O e2e da linha ilegível usa `objectContaining`, mas a conjunção com os demais campos está no unit `:272` (exato), e o controller só repassa `...item` (`admin-instituicoes.controller.ts:111-114`), cujo formato exato é conferido em `:174-200`. A representação `documentoDisponivel: boolean`, com o texto "temporariamente indisponível" renderizado no `web`, segue o mesmo padrão já aceito para `cnpjCoincideComEmpresa`, o edge case vizinho em `spec.md:195`.
+
+### Lacuna 2: fechada (M26 e M27 mortos)
+
+Saída que a spec define: P1-Causas AC6 ("IF um usuário sem papel de administrador chamar endpoints de escrita de causa THEN 403") e P1-Aprovação AC8 ("…qualquer endpoint de aprovação, rejeição… THEN 403 e nenhum estado alterado"), sem condição sobre o corpo.
+
+| AC | `file:line` + asserção | Result |
+| -- | ---------------------- | ------ |
+| P1-Causas AC6 e P1-Aprovação AC8 (403 com qualquer corpo, para EMPRESA e INSTITUICAO, nas 9 rotas lidas do OpenAPI) | `test/http/catalogo-concorrencia.e2e-spec.ts:271-276` `it.each` com `CORPO_VALIDO` e `{}` para cada papel; `:284` `rotas).toHaveLength(9)`; `:294-298` `[metodo, caminho, resposta.status]).toEqual([metodo, caminho, 403])`; `:301-309` causa intacta, instituição `PENDENTE_APROVACAO`, `registroAuditoria.count()).toBe(0)` | ✅. A guarda agora é discriminada |
+
+Morte medida no worktree (os logs apontam a asserção, não erro de compilação):
+- **M26** (`@Roles(UserRole.ADMIN)` removido de `admin-causas.controller.ts:65`): 2 falhas, `toda rota responde 403 para EMPRESA|INSTITUICAO autenticada com corpo vazio`, com diff `["post", "/admin/causas", 403 → 422]`.
+- **M27** (`@Roles(UserRole.ADMIN)` removido de `admin-instituicoes.controller.ts:43`): 2 falhas nos mesmos testes, com diff `["post", "/admin/instituicoes/{id}/rejeicao", 403 → 422]`.
+
+**Sobre a linha `{}` nas rotas sem corpo obrigatório**: nas 7 rotas sem corpo obrigatório, a linha `{}` não acrescenta discriminação. Aprovação, suspensão, reativação e inativação não têm corpo, a fila é um GET e a inativação de causa também não tem corpo. Nelas o caso de uso também nega com 403. O sonda N9 mostra isso: liberar EMPRESA na guarda da suspensão sobrevive. Mesmo assim, é **equivalente pela saída da spec**, porque a resposta continua 403 e o estado continua intacto, conferidos pelo próprio sweep. Nas rotas com corpo obrigatório (POST de causa e rejeição), a linha `{}` discrimina por papel e por rota: N7 (só a rejeição aceita EMPRESA) e N8 (só o POST de causa aceita INSTITUICAO) morrem cada um numa única linha `corpo vazio`. Não há vacuidade que esconda uma regressão observável.
+
+### Discrimination Sensor (rodada 2)
+
+**Profundidade**: expandida (P0: autorização e o 503 de documento sensível). Mutantes num `git worktree add --detach <scratchpad>/verify-wt2 03a2879`, com `node_modules` como link simbólico e `.env` copiado. Um script (`mutantes2.py` no scratchpad) aplicava cada mutação com âncora de ocorrência única, rodava os specs afetados (unit e/ou e2e, em sequência, no mesmo banco de teste) e restaurava o arquivo com `git checkout --` no worktree. Nenhuma morte veio de erro de compilação: os logs não têm `error TS` nem `Test suite failed to run`. No fim, o link foi apagado e o worktree removido com `git worktree remove --force` e `git worktree prune`. **Isolamento**: `git status --porcelain` da árvore real vazio antes e vazio depois (`diff` idêntico). `git stash list` vazio, `git stash` não usado.
+
+| # | File:line (`03a2879`) | Mutação | Killed? (teste que matou) |
+| - | --------------------- | ------- | ------------------------- |
+| N1 | `src/domain/fivo/application/use-cases/listar-fila-instituicoes.ts:74-76` | `documentoDisponivel` fixo em `true` | ✅ unit `:214` (por item); e2e `admin-instituicoes.e2e-spec.ts:204` |
+| N2 | `listar-fila-instituicoes.ts:74` | `!estaLegivel(...)` (negação) | ✅ 3 unit; 2 e2e (`:174`, `:204`) |
+| N3 | `listar-fila-instituicoes.ts:75` | `instituicoes[0].documento` (o sinal do primeiro item vale para todos) | ✅ unit `:214`; e2e `:204` |
+| N4 | `src/infra/http/controllers/admin-instituicoes.controller.ts:111-114` | controller descarta o campo (`documentoDisponivel: undefined`) | ✅ e2e `:174`, `:204` |
+| N5 | `listar-fila-instituicoes.ts:49-52` | item com documento ilegível sai da fila | ✅ unit `:214`; e2e `:204` |
+| N6 | `listar-fila-instituicoes.ts:74-76` | `documentoDisponivel` fixo em `false` | ✅ 3 unit; 2 e2e |
+| M26 | `src/infra/http/controllers/admin-causas.controller.ts:65` | `@Roles(ADMIN)` removido (reaplicado da rodada 1) | ✅ `catalogo-concorrencia` corpo vazio ×2 (`/admin/causas` 403→422) |
+| M27 | `admin-instituicoes.controller.ts:43` | `@Roles(ADMIN)` removido (reaplicado da rodada 1) | ✅ `catalogo-concorrencia` corpo vazio ×2 (rejeição 403→422) |
+| N7 | `admin-instituicoes.controller.ts:146` | `@Roles(ADMIN, EMPRESA)` só na rejeição | ✅ `catalogo-concorrencia` EMPRESA + corpo vazio |
+| N8 | `admin-causas.controller.ts:89` | `@Roles(ADMIN, INSTITUICAO)` só no POST de causa | ✅ `catalogo-concorrencia` INSTITUICAO + corpo vazio |
+| N9 | `admin-instituicoes.controller.ts:169` | `@Roles(ADMIN, EMPRESA)` só na suspensão (rota sem corpo) | ⚪ Sobreviveu, **equivalente**: o caso de uso nega com 403, e o estado e a auditoria ficam intactos, conferidos pelo próprio sweep (`:294-309`). A saída da spec é a mesma |
+| R-M1 | `src/infra/database/prisma/prisma-instituicao-repository.ts:134` | CAS removido (amostra da rodada 1) | ✅ repo ×2 + `catalogo-concorrencia` concorrência |
+| R-M8 | `src/infra/arquivo/verificador-de-documento-prisma.ts:18` | verificador devolve `true` com o storage falhando (amostra da rodada 1) | ✅ `verificador-de-documento` ×2; `admin-instituicoes` `:204` (fila) e `:294` (503) |
+| R-M23 | `prisma-instituicao-repository.ts:66` | `listarPorEstado` com ordem invertida (amostra da rodada 1) | ✅ repo; `admin-instituicoes` `:174`, `:204` |
+| R-M25 | `admin-instituicoes.controller.ts:113` | fila sem renomear `createdAt` → `criadoEm` (amostra da rodada 1) | ✅ `admin-instituicoes` `:174` |
+
+**Sensor (rodada 2)**: 15 injetados, 14 mortos, 1 sobrevivente equivalente (N9), 0 vivos não equivalentes. ✅ Nenhuma regressão nos 4 mutantes da rodada 1 reamostrados.
+
+### Code Quality (diff `a5af170..03a2879`)
+
+| Princípio | Status | Nota |
+| --------- | ------ | ---- |
+| Código mínimo / sem scope creep | ✅ | Um campo no read model, uma dependência nova no caso de uso, o schema OpenAPI e os testes nomeados nas tasks |
+| Mudanças cirúrgicas | ✅ | `src/domain/**` só nos 2 arquivos que o `STATE.md` (2026-10-14) autoriza. A injeção funciona porque `ArquivoModule` exporta `VerificadorDeDocumento` (`src/infra/arquivo/arquivo.module.ts:14-18`) |
+| Segue padrões existentes | ✅ | Espelha `cnpjCoincideComEmpresa` e o `FakeVerificadorDeDocumentos` existente (`failOnIds` + `forceFailure`) |
+| Spec-anchored outcome check | ✅ | 503 com a mensagem literal, estado e auditoria; 403 nas 9 rotas |
+| Cobertura por camada | ✅ | Unit 1:1 para o sinal por item; rota com happy (`true`), edge (`false` + 503) e erro de papel |
+| Todo teste mapeia para AC / edge / Done-when | ✅ | — |
+| Senior engineer aprovaria? | ✅ com ressalvas | Ressalvas sem task: (i) `VerificadorDeDocumentoPrisma.estaLegivel` lê os **bytes inteiros** (`ArquivoService.lerBytes`, até 10 MB) de cada pendente a cada `GET` da fila, e cabe trocar por uma checagem de existência quando a fila crescer; (ii) `design.md:213` e `:311` ainda descrevem a porta como "usada pela aprovação", e não registram o uso na fila (a decisão está só no `STATE.md` e em `tasks.md`); (iii) o título e a Done-when da T53 (acima) |
+
+### Requirement Traceability Update (proposto, `spec.md` não editado)
+
+| Requirement | Status após a rodada 1 | Status proposto |
+| ----------- | ---------------------- | --------------- |
+| INST-01, INST-02, INST-03 | ✅ Verified | ✅ Verified (domínio + infra) |
+| INST-04 | ⚠️ Needs Fix (Fix 1 + Fix 2) | ✅ Verified |
+| INST-05 | ⚠️ Needs Fix Minor (M27) | ✅ Verified |
+| INST-06 | ✅ Verified (exibição na fila no Fix 1) | ✅ Verified (acesso + 503 + `documentoDisponivel` na fila) |
+| INST-07 | ⚠️ Needs Fix Minor (M26) | ✅ Verified |
+| INST-08, INST-10 | ✅ Verified | ✅ Verified |
+| INST-09 | ✅ Domínio · consumo em `campanhas` | ✅ Domínio verificado · consumo na feature `campanhas` |
+| INST-11…13 | Deferred | Deferred (P2) |
+
+### Summary (rodada 2)
+
+**Overall**: ✅ Ready. P1 do catálogo de instituições (domínio + infra) verificado.
+
+**Spec-anchored check**: 40/40 ACs P1 com evidência que bate com a saída da spec. P1-Causas AC6 e P1-Aprovação AC8 agora discriminam a guarda. Os 5 edge cases de escopo P1 foram atendidos, com a lacuna 1 fechada. Seguem os 7 spec-precision gaps (SP1–SP7, rodada 1), sem bloquear.
+**Sensor**: rodada 2 com 14/15 mortos e 1 equivalente; rodada 1 com 25/27, e os 2 vivos (M26 e M27) foram mortos na rodada 2.
+**Gate**: build 0 · tsc 0 · eslint 0 · unit 333/333 · e2e 337/337.
+
+### Lições (rodada 2)
+
+- **L-020** (candidate, `gate_fail`, escopo `tasks`): dar o gate `full` a uma task que muda a resposta de um caso de uso devolvida por uma rota, porque os e2e afirmam o payload da rota com `toEqual` exato. A origem é o `c46080b` (`test/http/admin-instituicoes.e2e-spec.ts:174` vermelho até `2a123fb`). As lacunas da rodada 1 já tinham virado L-015 e L-016, e a rodada 2 não as repete.
+
+---
+
+## Rodada 1 (2026-10-13, histórico, `cb28127..a5af170`, veredito da época: FAIL)
+
+> Mantida como histórico. As citações `file:line` desta seção referem-se a `a5af170`. Em `03a2879`, `test/http/admin-instituicoes.e2e-spec.ts` desloca +46 linhas a partir de `:200`, e `test/http/catalogo-concorrencia.e2e-spec.ts` desloca +15 a partir de `:262`. As lacunas 1 e 2 e os Fix 1 e Fix 2 abaixo foram fechados na rodada 2 (T51–T53).
 
 **Veredito**: ❌ **FAIL**, com duas lacunas estreitas. O gate `build` está todo verde (build, tsc, eslint, unit 332/332, e2e 334/334). Os 4 stories P1 (40 ACs) têm evidência que bate com a saída da spec. O sensor rodou 27 mutantes: 25 foram mortos e 2 sobreviveram, sem nenhum equivalente. As lacunas são estas:
 
@@ -15,7 +152,7 @@ Restam 7 spec-precision gaps sinalizados. Eles não bloqueiam.
 
 ---
 
-## Gate Check
+### Gate Check
 
 - **Gate command** (`tasks.md`, Build): `cd api && npm run build && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest && npx jest --config ./test/jest-e2e.json`. Cada etapa rodou em separado, com a saída redirecionada para arquivo no scratchpad e o exit code registrado, sem `tail`. Postgres de teste `fivo-postgres-test` (:5433): `docker compose -f docker-compose.test.yml up -d --wait` deu exit 0 e `npx prisma migrate deploy` deu exit 0.
 
@@ -32,7 +169,7 @@ Restam 7 spec-precision gaps sinalizados. Eles não bloqueiam.
 
 ---
 
-## Task Completion (T21–T34)
+### Task Completion (T21–T34)
 
 | Task | Status | Notas |
 | ---- | ------ | ----- |
@@ -53,11 +190,11 @@ Restam 7 spec-precision gaps sinalizados. Eles não bloqueiam.
 
 ---
 
-## Spec-Anchored Acceptance Criteria
+### Spec-Anchored Acceptance Criteria
 
 Para cada AC vale a evidência mais forte: e2e HTTP quando existe, unit de domínio quando o AC é só domínio. As citações `src/domain/...spec.ts` vêm de `validation-dominio.md`, com arquivos idênticos em `a5af170`.
 
-### P1: Autocadastro da instituição (INST-01/02/03)
+#### P1: Autocadastro da instituição (INST-01/02/03)
 
 | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --------- | -------------------- | ----------------------- | ------ |
@@ -74,7 +211,7 @@ Para cada AC vale a evidência mais forte: e2e HTTP quando existe, unit de domí
 | AC11 e-mail em análise | e-mail ao endereço cadastrado | `:213-218` `mensagens).toEqual([{para: 'contato@amigosdobairro.org', template: CADASTRO_RECEBIDO}])` | ✅ |
 | AC12 storage fora | 503 + mensagem literal, sem instituição | `:401-405` `status 503`, `message: 'Não foi possível enviar o documento, tente novamente'`, `NADA_PERSISTIDO` | ✅ |
 
-### P1: Aprovação pelo administrador (INST-04/05/06)
+#### P1: Aprovação pelo administrador (INST-04/05/06)
 
 | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --------- | -------------------- | ----------------------- | ------ |
@@ -89,7 +226,7 @@ Para cada AC vale a evidência mais forte: e2e HTTP quando existe, unit de domí
 | AC9 auditoria | autor, anterior, novo, motivo, data-hora | HTTP: `admin-instituicoes.e2e-spec.ts:241-245`, `:302-310` (inclui `motivo`), `:428-445`, `:466-469` (autor + estados). Data-hora: `src/domain/fivo/application/use-cases/aprovar-instituicao.spec.ts:104-116` (N27 morto). A coluna `criado_em` do registro é gravada pelo adaptador pré-existente | ✅ |
 | AC10 concorrência | só a primeira vale; a segunda recebe 409 | HTTP, 8 rodadas: `catalogo-concorrencia.e2e-spec.ts:203` `[...].sort()).toEqual([204, 409])`, `:207-213` (estado da vencedora, 1 auditoria, 1 e-mail). CAS real no Postgres: `test/database/prisma-instituicao-repository.e2e-spec.ts:353-358`, `:380` | ✅ (M1, M2 mortos) |
 
-### P1: Manutenção de causas (INST-07)
+#### P1: Manutenção de causas (INST-07)
 
 | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --------- | -------------------- | ----------------------- | ------ |
@@ -101,7 +238,7 @@ Para cada AC vale a evidência mais forte: e2e HTTP quando existe, unit de domí
 | AC6 não-admin | 403 **e** nenhum dado alterado | `admin-causas.e2e-spec.ts:347-368` (403 em criar, editar e inativar, causa intacta, auditoria 0) | ✅ na saída. ❌ discriminação da guarda (M26, lacuna 2) |
 | AC7 auditoria | autor e data-hora em criar, editar e inativar | `:394-413` (tipos `CAUSA_CRIADA/EDITADA/INATIVADA`, `usuarioId === admin`, `criadoEm` < 60 s) | ✅ |
 
-### P1: Seleção da beneficiada (INST-08/09/10)
+#### P1: Seleção da beneficiada (INST-08/09/10)
 
 | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --------- | -------------------- | ----------------------- | ------ |
@@ -116,7 +253,7 @@ Para cada AC vale a evidência mais forte: e2e HTTP quando existe, unit de domí
 
 ---
 
-## Edge Cases
+### Edge Cases
 
 - [x] CNPJ simultâneo → um 201, um 409, um registro: `catalogo-concorrencia.e2e-spec.ts:173-180`, apoiado pelo índice único (M21 morto).
 - [x] Empresa e instituição com o mesmo CNPJ coexistem e a fila sinaliza: `catalogo-concorrencia.e2e-spec.ts:221-238` (`cnpjCoincideComEmpresa: true`); `prisma-instituicao-repository.e2e-spec.ts:426-437`.
@@ -129,7 +266,7 @@ Para cada AC vale a evidência mais forte: e2e HTTP quando existe, unit de domí
 
 ---
 
-## Discrimination Sensor
+### Discrimination Sensor
 
 **Profundidade**: expandida (P0: CAS, autorização, controle de acesso a documento sensível, limites de upload). Os mutantes rodaram num `git worktree add --detach <scratchpad>/verify-wt a5af170`, com `node_modules` como link simbólico para o da árvore real e cópia do `.env`. Um script (`scripts/mutantes.py` no scratchpad) fez cada mutação com âncora de ocorrência única, rodou os specs e2e afetados (sequencialmente, no mesmo banco de teste) e restaurou o arquivo com `git checkout --` dentro do worktree antes do próximo. Nenhuma morte veio de erro de compilação: todas apontam a asserção ou o teste que falhou. No fim, o link foi apagado, o worktree removido com `git worktree remove --force` e `git worktree prune`. **Isolamento**: o `git status --porcelain` da árvore real estava vazio antes e continuou vazio depois (`diff` idêntico). `git stash` não foi usado.
 
@@ -176,7 +313,7 @@ A spec diz "IF um usuário sem papel de administrador chamar endpoints de escrit
 
 ---
 
-## Code Quality (diff `cb28127..a5af170`)
+### Code Quality (diff `cb28127..a5af170`)
 
 | Princípio | Status | Nota |
 | --------- | ------ | ---- |
@@ -191,7 +328,7 @@ A spec diz "IF um usuário sem papel de administrador chamar endpoints de escrit
 
 ---
 
-## Spec-precision gaps (sinalizados, não bloqueiam)
+### Spec-precision gaps (sinalizados, não bloqueiam)
 
 | # | AC | O que a spec deixa aberto | O que a implementação faz |
 | - | -- | ------------------------- | ------------------------- |
@@ -205,9 +342,9 @@ A spec diz "IF um usuário sem papel de administrador chamar endpoints de escrit
 
 ---
 
-## Fix Plans
+### Fix Plans
 
-### Fix 1 (Major): fila sinaliza documento temporariamente indisponível
+#### Fix 1 (Major): fila sinaliza documento temporariamente indisponível
 
 - **Causa raiz**: o edge case `spec.md:196` tem duas metades. O design (`design.md:213`, `:311`) e a T30 (`tasks.md:1529`) só levaram a do 503.
 - **Fix task** (duas opções, quem decide é o dono da spec):
@@ -215,7 +352,7 @@ A spec diz "IF um usuário sem papel de administrador chamar endpoints de escrit
   - (b) **Adiar explicitamente**: registrar em `design.md` ("Fora desta rodada") e no `STATE.md` que a exibição fica no `web`, com o contrato que ele vai usar (`GET /arquivos/:id` → 503 quando ilegível). Mais um e2e provando esse 503 para o documento com o objeto ausente.
 - **Done when**: a metade "exibir" do edge case tem evidência `file:line`, ou um adiamento registrado com o contrato de API testado.
 
-### Fix 2 (Minor): discriminar a guarda de papel das rotas admin do catálogo
+#### Fix 2 (Minor): discriminar a guarda de papel das rotas admin do catálogo
 
 - **Causa raiz**: os testes de não-admin mandam sempre corpo válido. Assim, a negação do caso de uso mascara a remoção de `@Roles(ADMIN)`.
 - **Fix task**: em `test/http/catalogo-concorrencia.e2e-spec.ts` (sweep lido do OpenAPI), repetir o laço de `:271-287` com corpo **vazio** (`send({})`) e esperar 403 em todas as 9 rotas, para EMPRESA e INSTITUICAO.
@@ -223,7 +360,7 @@ A spec diz "IF um usuário sem papel de administrador chamar endpoints de escrit
 
 ---
 
-## Requirement Traceability Update
+### Requirement Traceability Update
 
 `spec.md` não foi editado. Status proposto (`spec.md:205-217`):
 
@@ -240,7 +377,7 @@ A spec diz "IF um usuário sem papel de administrador chamar endpoints de escrit
 
 ---
 
-## Summary
+### Summary
 
 **Overall**: ❌ Not Ready, mas perto. Duas tasks de correção pequenas.
 

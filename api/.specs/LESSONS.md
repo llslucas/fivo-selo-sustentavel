@@ -128,6 +128,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md SP3/SP6, Aprovação AC1 nome/link, Autocadastro AC1 site ou canal (specs)
 - last seen: 2026-10-14T02:32:16Z
 
+### L-020 - Give a task the full gate when it changes a use-case response that a route returns, because e2e tests assert route payloads with exact toEqual
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `tasks` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: c46080b: test/http/admin-instituicoes.e2e-spec.ts:174 red until 2a123fb (validation.md, Rodada 2 Gate Check) (tasks)
+- last seen: 2026-10-14T09:02:31Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
