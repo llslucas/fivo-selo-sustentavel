@@ -1680,10 +1680,10 @@ T33 → T53
 
 **Done when**:
 
-- [ ] Cada item da fila traz `documentoDisponivel: boolean`
-- [ ] Documento legível → `true`; documento marcado ilegível no fake → `false`, e o item continua na fila com os demais campos
-- [ ] Um teste por caso, com duas instituições na mesma fila (uma legível, outra não) para provar que o sinal é por item
-- [ ] Gate `quick` passa
+- [x] Cada item da fila traz `documentoDisponivel: boolean`
+- [x] Documento legível → `true`; documento marcado ilegível no fake → `false`, e o item continua na fila com os demais campos
+- [x] Um teste por caso, com duas instituições na mesma fila (uma legível, outra não) para provar que o sinal é por item
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

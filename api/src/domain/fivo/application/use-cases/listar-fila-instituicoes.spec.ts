@@ -12,12 +12,15 @@ import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { InMemoryCausaRepository } from '@test/repositories/in-memory-causa-repository';
 import { CausaFactory } from '@test/factories/causa-factory';
 import { Causa } from '@domain/fivo/entities/causa';
+import { FakeVerificadorDeDocumentos } from '@test/arquivo/fake-verificador-de-documento';
+import { DocumentoValidacao } from '@domain/fivo/entities/documento-validacao';
 
 describe('ListarFilaInstituicoesUseCase', () => {
   let instituicaoRepository: InMemoryInstituicaoRepository;
   let empresaRepository: InMemoryEmpresaRepository;
   let userRepository: InMemoryUserRepository;
   let causaRepository: InMemoryCausaRepository;
+  let verificador: FakeVerificadorDeDocumentos;
   let causa: Causa;
   let sut: ListarFilaInstituicoesUseCase;
 
@@ -26,6 +29,7 @@ describe('ListarFilaInstituicoesUseCase', () => {
     empresaRepository = new InMemoryEmpresaRepository();
     userRepository = new InMemoryUserRepository();
     causaRepository = new InMemoryCausaRepository();
+    verificador = new FakeVerificadorDeDocumentos();
     causa = CausaFactory.create({ nome: 'Meio Ambiente' });
     await causaRepository.create(causa);
     sut = new ListarFilaInstituicoesUseCase(
@@ -33,6 +37,7 @@ describe('ListarFilaInstituicoesUseCase', () => {
       empresaRepository,
       userRepository,
       causaRepository,
+      verificador,
     );
   });
 
@@ -116,6 +121,7 @@ describe('ListarFilaInstituicoesUseCase', () => {
       email: 'antigo@example.com',
       documentoArquivoId: instituicaoMaisAntiga.documento.arquivoId.toString(),
       cnpjCoincideComEmpresa: false,
+      documentoDisponivel: true,
       createdAt: instituicaoMaisAntiga.createdAt,
     });
   });
@@ -200,7 +206,96 @@ describe('ListarFilaInstituicoesUseCase', () => {
       email: 'antigo@example.com',
       documentoArquivoId: instituicao.documento.arquivoId.toString(),
       cnpjCoincideComEmpresa: true,
+      documentoDisponivel: true,
       createdAt: instituicao.createdAt,
     });
+  });
+
+  it('should flag per item whether the documento is readable, keeping unreadable items in the queue', async () => {
+    const user = UserFactory.create({
+      role: UserRole.ADMIN,
+    });
+
+    const userLegivel = UserFactory.create({
+      email: 'legivel@example.com',
+      role: UserRole.INSTITUICAO,
+    });
+
+    await userRepository.create(userLegivel);
+
+    const userIlegivel = UserFactory.create({
+      email: 'ilegivel@example.com',
+      role: UserRole.INSTITUICAO,
+    });
+
+    await userRepository.create(userIlegivel);
+
+    const instituicaoLegivel = InstituicaoFactory.create({
+      razaoSocial: 'Instituicao Documento Legivel LTDA',
+      documento: DocumentoValidacao.criar('arquivo-documento-legivel')
+        .value as DocumentoValidacao,
+      cnpj: Cnpj.create('12345678000195').value as Cnpj,
+      usuarioId: userLegivel.id,
+      causaId: causa.id,
+      status: InstituicaoStatus.PENDENTE_APROVACAO,
+      createdAt: new Date('2026-01-01T10:00:00Z'),
+    });
+
+    const instituicaoIlegivel = InstituicaoFactory.create({
+      razaoSocial: 'Instituicao Documento Ilegivel LTDA',
+      documento: DocumentoValidacao.criar('arquivo-documento-ilegivel')
+        .value as DocumentoValidacao,
+      cnpj: Cnpj.create('11444777000161').value as Cnpj,
+      usuarioId: userIlegivel.id,
+      causaId: causa.id,
+      status: InstituicaoStatus.PENDENTE_APROVACAO,
+      createdAt: new Date('2026-01-02T10:00:00Z'),
+    });
+
+    await instituicaoRepository.create(instituicaoLegivel);
+    await instituicaoRepository.create(instituicaoIlegivel);
+
+    // Só o documento da segunda some do armazenamento.
+    verificador.failOnIds = [
+      instituicaoIlegivel.documento.arquivoId.toString(),
+    ];
+    verificador.forceFailure();
+
+    const fila = await sut.execute({ user });
+
+    expect(fila.isRight()).toBe(true);
+
+    if (fila.isLeft()) {
+      throw new Error();
+    }
+
+    expect(fila.value).toEqual([
+      {
+        id: instituicaoLegivel.id.toString(),
+        razaoSocial: 'Instituicao Documento Legivel LTDA',
+        cnpj: '12345678000195',
+        causa: 'Meio Ambiente',
+        cidade: instituicaoLegivel.cidade,
+        uf: instituicaoLegivel.uf,
+        email: 'legivel@example.com',
+        documentoArquivoId: instituicaoLegivel.documento.arquivoId.toString(),
+        cnpjCoincideComEmpresa: false,
+        documentoDisponivel: true,
+        createdAt: instituicaoLegivel.createdAt,
+      },
+      {
+        id: instituicaoIlegivel.id.toString(),
+        razaoSocial: 'Instituicao Documento Ilegivel LTDA',
+        cnpj: '11444777000161',
+        causa: 'Meio Ambiente',
+        cidade: instituicaoIlegivel.cidade,
+        uf: instituicaoIlegivel.uf,
+        email: 'ilegivel@example.com',
+        documentoArquivoId: instituicaoIlegivel.documento.arquivoId.toString(),
+        cnpjCoincideComEmpresa: false,
+        documentoDisponivel: false,
+        createdAt: instituicaoIlegivel.createdAt,
+      },
+    ]);
   });
 });

@@ -7,6 +7,7 @@ import { Either, left, right } from '@core/either';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { EmpresaRepository } from '../ports/database/empresa-repository';
 import { CausaRepository } from '../ports/database/causa-repository';
+import { VerificadorDeDocumento } from '../ports/verificador-de-documento';
 
 export interface ItemFilaInstituicoes {
   id: string;
@@ -18,6 +19,7 @@ export interface ItemFilaInstituicoes {
   email: string;
   documentoArquivoId: string;
   cnpjCoincideComEmpresa: boolean;
+  documentoDisponivel: boolean;
   createdAt: Date;
 }
 
@@ -34,6 +36,7 @@ export class ListarFilaInstituicoesUseCase {
     private readonly empresaRepository: EmpresaRepository,
     private readonly userRepository: UserRepository,
     private readonly causaRepository: CausaRepository,
+    private readonly verificadorDeDocumento: VerificadorDeDocumento,
   ) {}
 
   async execute({
@@ -65,6 +68,13 @@ export class ListarFilaInstituicoesUseCase {
             instituicao.causaId.toString(),
           );
 
+          // Documento ilegível não tira o item da fila: o admin o vê como
+          // temporariamente indisponível (spec, Edge cases).
+          const documentoDisponivel =
+            await this.verificadorDeDocumento.estaLegivel(
+              instituicao.documento.arquivoId.toString(),
+            );
+
           return {
             id: instituicao.id.toString(),
             razaoSocial: instituicao.razaoSocial,
@@ -75,6 +85,7 @@ export class ListarFilaInstituicoesUseCase {
             email: instituicaoUser?.email ?? '',
             documentoArquivoId: instituicao.documento.arquivoId.toString(),
             cnpjCoincideComEmpresa: empresaExistente !== null,
+            documentoDisponivel,
             createdAt: instituicao.createdAt,
           };
         }),
