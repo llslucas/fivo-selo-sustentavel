@@ -1082,9 +1082,9 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Termo de 2 caracteres filtra; termo de 1 caractere devolve a lista completa
-- [ ] Mutante #9 passa a ser morto
-- [ ] Gate `quick` passa
+- [x] Termo de 2 caracteres filtra; termo de 1 caractere devolve a lista completa
+- [x] Mutante #9 passa a ser morto
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

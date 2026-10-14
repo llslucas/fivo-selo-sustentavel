@@ -149,6 +149,15 @@ describe('ListarBeneficiadasUseCase', () => {
     expect(semTermo).toHaveLength(2);
   });
 
+  it('should filter with a search term of exactly 2 characters', async () => {
+    const causa = await criarCausa('Educação');
+    await criarInstituicao('Escola Viva', causa);
+
+    const resultado = await sut.execute('es');
+
+    expect(resultado.map((item) => item.nome)).toEqual(['Escola Viva']);
+  });
+
   it('should return an empty list when the search matches nothing', async () => {
     const causa = await criarCausa('Educação');
     await criarInstituicao('Escola Viva', causa);
