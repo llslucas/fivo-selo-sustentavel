@@ -93,9 +93,13 @@ describe('SuspenderInstituicaoUseCase', () => {
     const response = await sut.execute(instituicao.id.toString(), naoAdmin);
 
     expect(response.isLeft()).toBe(true);
-    if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(NotAllowedError);
-    }
+    expect(response.value).toBeInstanceOf(NotAllowedError);
+
+    const persistida = await instituicaoRepository.findById(
+      instituicao.id.toString(),
+    );
+    expect(persistida?.status).toBe(InstituicaoStatus.APROVADA);
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
   });
 
   it('should reject with ResourceNotFoundError (404) when the instituicao does not exist', async () => {

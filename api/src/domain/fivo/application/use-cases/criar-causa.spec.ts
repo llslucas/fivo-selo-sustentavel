@@ -71,6 +71,8 @@ describe('CriarCausaUseCase', () => {
     if (response.isRight()) return;
 
     expect(response.value).toBeInstanceOf(NotAllowedError);
+    expect(causaRepository.items).toHaveLength(0);
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
   });
 
   it('should return a CausaJaExiste Error when the Causa alredy exists.', async () => {

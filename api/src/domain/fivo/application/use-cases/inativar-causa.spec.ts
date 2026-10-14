@@ -121,6 +121,13 @@ describe('InativarCausaUseCase', () => {
     expect(response.value).toBeInstanceOf(CausaComInstituicoesAprovadasError);
     expect(response.value.message).toContain('Instituição Esperança');
     expect(response.value.message).toContain('Instituição Alegria');
+
+    const erro = response.value as CausaComInstituicoesAprovadasError;
+    expect(erro.status).toBe(409);
+    expect([...erro.instituicoes].sort()).toEqual([
+      'Instituição Alegria',
+      'Instituição Esperança',
+    ]);
   });
 
   it.each([

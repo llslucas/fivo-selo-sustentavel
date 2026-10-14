@@ -1190,10 +1190,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `BeneficiadaIndisponivelError` com a mensagem `Instituição ou causa indisponível`
-- [ ] `CausaComInstituicoesAprovadasError` com status 409 e `instituicoes` igual ao array de nomes esperado
-- [ ] Ramos não-admin de suspender, reativar, inativar e criar causa conferem que o repositório não mudou
-- [ ] Gate `quick` passa
+- [x] `BeneficiadaIndisponivelError` com a mensagem `Instituição ou causa indisponível`
+- [x] `CausaComInstituicoesAprovadasError` com status 409 e `instituicoes` igual ao array de nomes esperado
+- [x] Ramos não-admin de suspender, reativar, inativar e criar causa conferem que o repositório não mudou
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
