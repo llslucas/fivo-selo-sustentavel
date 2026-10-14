@@ -162,6 +162,7 @@
 - **Date**: 2026-09-20
 - **Status**: active
 - **Exceção de autoria (2026-09-30)**: usuário autorizou explicitamente o agente a assumir a T5 de `catalogo-instituicoes` (`Instituicao`), incluindo testes e ajustes mecânicos necessários. A exigência de ativar `tlc-spec-driven` foi dispensada pelo usuário para esta execução.
+- **Exceção de autoria (2026-10-13)**: usuário autorizou explicitamente o agente a aplicar as tasks de hardening do domínio de `catalogo-instituicoes` (Fase 5b: T35, T37–T46, T48), incluindo código em `src/domain/**` e `test/repositories/**` e os testes correspondentes. As tasks T1–T20 continuam de autoria humana.
 
 ## Handoff
 
