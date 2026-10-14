@@ -195,6 +195,18 @@ T32 → T34
 T33 → T34
 ```
 
+### Phase 9b: Correções da verificação da infra 🤖
+
+Aberta pela rodada 1 da verificação da infra (`validation.md`, 2026-10-14, veredito FAIL): edge case da fila sem o sinal de documento indisponível e mutantes M26/M27 (guards de papel) vivos.
+
+```
+T14 → T51
+T26 → T51
+T30 → T52
+T51 → T52
+T33 → T53
+```
+
 ---
 
 ## Task Breakdown
@@ -1651,6 +1663,89 @@ T33 → T34
 
 ---
 
+### T51: Fila sinaliza documento indisponível
+
+**What**: O edge case "documento inacessível durante a análise" (`spec.md:196`) manda exibir ao administrador o item como temporariamente indisponível. Hoje só a metade do 503 na aprovação existe. `ListarFilaInstituicoesUseCase` passa a consultar `VerificadorDeDocumento.estaLegivel` por item e expor `documentoDisponivel: boolean`, sem tirar o item da fila.
+**Where**: `src/domain/fivo/application/use-cases/listar-fila-instituicoes.ts`, `listar-fila-instituicoes.spec.ts`
+**Depends on**: T14, T26
+**Reuses**: `FakeVerificadorDeDocumento` (`test/arquivo/fake-verificador-de-documento.ts`), padrão de `cnpjCoincideComEmpresa`
+**Requirement**: INST-04, INST-06
+**Autor**: 🤖 agente (autorização de 2026-10-14, ver AD-020)
+**Severidade**: Major (bloqueia o PASS)
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] Cada item da fila traz `documentoDisponivel: boolean`
+- [ ] Documento legível → `true`; documento marcado ilegível no fake → `false`, e o item continua na fila com os demais campos
+- [ ] Um teste por caso, com duas instituições na mesma fila (uma legível, outra não) para provar que o sinal é por item
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `feat(api): fila de instituições sinaliza documento indisponível`
+
+---
+
+### T52: `documentoDisponivel` na rota da fila
+
+**What**: Expor o campo novo da T51 em `GET` da fila do admin (presenter + OpenAPI) e provar, com o armazenamento falhando para um documento, que o item aparece com `documentoDisponivel: false` enquanto a aprovação dele devolve 503.
+**Where**: `src/infra/http/controllers/admin-instituicoes.controller.ts`, `test/http/admin-instituicoes.e2e-spec.ts`
+**Depends on**: T30, T51
+**Reuses**: teste de 503 existente (`admin-instituicoes.e2e-spec.ts`), `npm run openapi:export`
+**Requirement**: INST-04, INST-06
+**Autor**: 🤖 agente
+**Severidade**: Major (bloqueia o PASS)
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] A resposta da fila traz `documentoDisponivel` por item, documentado no OpenAPI
+- [ ] e2e: documento ilegível → item listado com `documentoDisponivel: false`; documento legível → `true`
+- [ ] `openapi.json` regenerado; paridade e exportação verdes
+- [ ] Gate `full` passa
+
+**Tests**: e2e
+**Gate**: full
+**Commit**: `feat(api): rota da fila expõe documento indisponível`
+
+---
+
+### T53: Guards de papel testados com corpo válido
+
+**What**: Os mutantes M26 e M27 sobreviveram: tirar `@Roles(UserRole.ADMIN)` de `admin-causas.controller.ts` ou `admin-instituicoes.controller.ts` deixa os testes verdes, porque o sweep de 403 manda corpo inválido e o 422 da validação mascara a falta do guard. P1-Causas AC6 e P1-Aprovação AC8 exigem 403.
+**Where**: `test/http/catalogo-concorrencia.e2e-spec.ts`
+**Depends on**: T33
+**Reuses**: sweep orientado pelo OpenAPI já existente no arquivo
+**Requirement**: INST-04, INST-07
+**Autor**: 🤖 agente
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] Para cada rota administrativa do catálogo, EMPRESA e INSTITUICAO recebem 403 com um corpo que passaria na validação (ou `{}` onde a rota não exige corpo), e nada é alterado
+- [ ] Mutantes M26 e M27 (remover `@Roles` em cada controller) passam a ser mortos
+- [ ] Gate `build` passa
+
+**Tests**: e2e
+**Gate**: build
+**Commit**: `test(api): guards de papel do catálogo testados com corpo válido`
+
+---
+
 ## Phase Execution Map
 
 Grafo completo de dependências (`origem → alvo`), união das arestas dos blocos por fase:
@@ -1726,9 +1821,14 @@ T27 → T34
 T28 → T34
 T32 → T34
 T33 → T34
+T14 → T51
+T26 → T51
+T30 → T52
+T51 → T52
+T33 → T53
 ```
 
-Ordem de execução (prosa): Fase 1 `T1 … T5` · Fase 2 `T6 … T8` · Fase 3 `T9 … T12` · Fase 4 `T13 … T18` · Fase 5 `T19 → T20` · **gate de handoff** · Fase 6 `T21 → T22 → T23` · Fase 7 `T24 → T25 → T26` · Fase 8 `T27 … T32` · Fase 9 `T33 → T34`.
+Ordem de execução (prosa): Fase 1 `T1 … T5` · Fase 2 `T6 … T8` · Fase 3 `T9 … T12` · Fase 4 `T13 … T18` · Fase 5 `T19 → T20` · **gate de handoff** · Fase 6 `T21 → T22 → T23` · Fase 7 `T24 → T25 → T26` · Fase 8 `T27 … T32` · Fase 9 `T33 → T34` · Fase 9b `T51 → T52 → T53`.
 
 Execução estritamente sequencial — sem paralelismo intra-fase.
 
@@ -1786,6 +1886,9 @@ Execução estritamente sequencial — sem paralelismo intra-fase.
 | T32 | T19, T23 | idem | ✅ Match |
 | T33 | T29, T30, T31 | idem | ✅ Match |
 | T34 | T27, T28, T32, T33 | idem | ✅ Match |
+| T51 | T14, T26 | idem | ✅ Match |
+| T52 | T30, T51 | idem | ✅ Match |
+| T53 | T33 | idem | ✅ Match |
 
 Nenhuma dependência aponta para uma fase posterior.
 

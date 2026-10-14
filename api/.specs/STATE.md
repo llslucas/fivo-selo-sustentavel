@@ -164,6 +164,7 @@
 - **Exceção de autoria (2026-09-30)**: usuário autorizou explicitamente o agente a assumir a T5 de `catalogo-instituicoes` (`Instituicao`), incluindo testes e ajustes mecânicos necessários. A exigência de ativar `tlc-spec-driven` foi dispensada pelo usuário para esta execução.
 - **Exceção de autoria (2026-10-13)**: usuário autorizou explicitamente o agente a aplicar as tasks de hardening do domínio de `catalogo-instituicoes` (Fase 5b: T35, T37–T46, T48), incluindo código em `src/domain/**` e `test/repositories/**` e os testes correspondentes. As tasks T1–T20 continuam de autoria humana.
 - **Extensão (2026-10-13)**: o pedido do usuário ("pode aplicar as correções") cobre o ciclo de correção e reverificação do hardening. Com isso, inclui as tasks abertas pela rodada 2 da verificação (T49, T50).
+- **Exceção de autoria (2026-10-14)**: depois do FAIL da verificação da infra (`validation.md`, rodada 1), o usuário escolheu fechar o edge case "documento inacessível durante a análise" com um campo na API e autorizou o agente a editar `ListarFilaInstituicoesUseCase` e o teste dele (`src/domain/fivo/application/use-cases/listar-fila-instituicoes.ts` e `.spec.ts`) — task T51. O restante de `src/domain/**` continua de autoria humana.
 
 ## Handoff
 
