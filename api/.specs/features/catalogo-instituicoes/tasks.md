@@ -1498,11 +1498,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `POST /instituicoes` público, 201 com o id; limite de upload coerente com 10 MB do documento
-- [ ] Erros mapeados: 422 (CNPJ, senha, documento ausente, descrição longa, formato/limite, causa inválida), 409 (CNPJ ou e-mail), 503 (storage fora do ar, sem criar instituição)
-- [ ] Rota documentada no OpenAPI, incluindo o corpo multipart
-- [ ] `test/http/cadastro-instituicao.e2e-spec.ts` cobre happy path e cada erro acima
-- [ ] Gate `full` passa
+- [x] `POST /instituicoes` público, 201 com o id; limite de upload coerente com 10 MB do documento
+- [x] Erros mapeados: 422 (CNPJ, senha, documento ausente, descrição longa, formato/limite, causa inválida), 409 (CNPJ ou e-mail), 503 (storage fora do ar, sem criar instituição)
+- [x] Rota documentada no OpenAPI, incluindo o corpo multipart
+- [x] `test/http/cadastro-instituicao.e2e-spec.ts` cobre happy path e cada erro acima
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

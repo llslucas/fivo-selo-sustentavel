@@ -108,6 +108,107 @@
         ],
         "type": "object"
       },
+      "CriarInstituicao": {
+        "properties": {
+          "bairro": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "causaId": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "cep": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "cidade": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "cnpj": {
+            "type": "string"
+          },
+          "complemento": {
+            "type": "string"
+          },
+          "contato": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "descricao": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "descricaoDocumento": {
+            "type": "string"
+          },
+          "documento": {
+            "description": "Obrigatório. PDF, JPG ou PNG de até 10 MB",
+            "format": "binary",
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "logo": {
+            "description": "Opcional. PNG, JPG ou SVG de até 5 MB; raster ≥ 512×512",
+            "format": "binary",
+            "type": "string"
+          },
+          "logradouro": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "nomeFantasia": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "numero": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "razaoSocial": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "senha": {
+            "type": "string"
+          },
+          "site": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "telefone": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "uf": {
+            "maxLength": 2,
+            "minLength": 2,
+            "type": "string"
+          }
+        },
+        "required": [
+          "razaoSocial",
+          "nomeFantasia",
+          "cnpj",
+          "email",
+          "senha",
+          "telefone",
+          "cep",
+          "logradouro",
+          "numero",
+          "bairro",
+          "cidade",
+          "uf",
+          "site",
+          "contato",
+          "causaId",
+          "descricao"
+        ],
+        "type": "object"
+      },
       "EditarCausa": {
         "properties": {
           "descricao": {
@@ -1657,6 +1758,76 @@
         "summary": "Confirma a troca de e-mail pelo token do link",
         "tags": [
           "empresas"
+        ]
+      }
+    },
+    "/instituicoes": {
+      "post": {
+        "operationId": "CadastroInstituicaoController_criar",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/CriarInstituicao"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Instituição criada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "CNPJ ou e-mail já cadastrado"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Dados inválidos, documento ausente, arquivo fora do formato ou do limite, ou causa inválida ou inativa"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Armazenamento de arquivos indisponível"
+          }
+        },
+        "summary": "Cadastra uma instituição (fica pendente de aprovação)",
+        "tags": [
+          "instituicoes"
         ]
       }
     },
