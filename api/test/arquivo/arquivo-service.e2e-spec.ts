@@ -39,6 +39,14 @@ function jpegBuffer(largura: number, altura: number): Buffer {
   return jpeg.encode({ data: dados, width: largura, height: altura }, 80).data;
 }
 
+const DEZ_MB = 10 * 1024 * 1024;
+
+/** PDF mínimo (`%PDF-`) completado com zeros até `tamanho` bytes. */
+function pdfBuffer(tamanho = 1024): Buffer {
+  const cabecalho = Buffer.from('%PDF-1.7\n', 'ascii');
+  return Buffer.concat([cabecalho, Buffer.alloc(tamanho - cabecalho.length)]);
+}
+
 const SVG_VALIDO =
   '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>';
 const SVG_COM_SCRIPT =
@@ -235,5 +243,136 @@ describe('ArquivoService (e2e)', () => {
 
   it('lerBytes com id inexistente devolve null, sem exceção', async () => {
     await expect(service.lerBytes(randomUUID())).resolves.toBeNull();
+  });
+
+  it('documento em PDF é reconhecido pelos magic bytes e persistido como application/pdf', async () => {
+    const buffer = pdfBuffer();
+
+    const resultado = await service.uploadDocumento({
+      nomeOriginal: 'estatuto.pdf',
+      buffer,
+    });
+
+    expect(resultado.isRight()).toBe(true);
+    if (resultado.isLeft()) throw new Error('esperava Right');
+
+    const linha = await contexto.prisma.arquivo.findUnique({
+      where: { id: resultado.value.id },
+    });
+    expect(linha?.tipo).toBe('DOCUMENTO_INSTITUICAO');
+    expect(linha?.mime).toBe('application/pdf');
+    expect(linha?.bytes).toBe(buffer.length);
+
+    const lido = await service.lerBytes(resultado.value.id);
+    expect(lido?.buffer.equals(buffer)).toBe(true);
+  });
+
+  it('documento em JPG ou PNG é aceito, sem exigência de dimensão mínima', async () => {
+    const png = await service.uploadDocumento({
+      nomeOriginal: 'comprovante.png',
+      buffer: pngBuffer(100, 100),
+    });
+    const jpg = await service.uploadDocumento({
+      nomeOriginal: 'comprovante.jpg',
+      buffer: jpegBuffer(100, 100),
+    });
+
+    if (png.isLeft() || jpg.isLeft()) throw new Error('esperava Right');
+
+    const linhas = await contexto.prisma.arquivo.findMany({
+      where: { id: { in: [png.value.id, jpg.value.id] } },
+    });
+    expect(linhas.map((linha) => linha.mime).sort()).toEqual([
+      'image/jpeg',
+      'image/png',
+    ]);
+  });
+
+  it('sniff ignora o nome enviado: PNG chamado .pdf é gravado como image/png', async () => {
+    const resultado = await service.uploadDocumento({
+      nomeOriginal: 'documento.pdf',
+      buffer: pngBuffer(100, 100),
+    });
+
+    if (resultado.isLeft()) throw new Error('esperava Right');
+
+    const linha = await contexto.prisma.arquivo.findUnique({
+      where: { id: resultado.value.id },
+    });
+    expect(linha?.mime).toBe('image/png');
+  });
+
+  it('documento sem magic bytes de PDF, JPG ou PNG é rejeitado (422)', async () => {
+    const resultado = await service.uploadDocumento({
+      nomeOriginal: 'documento.pdf',
+      buffer: Buffer.from('texto qualquer fingindo ser pdf', 'utf-8'),
+    });
+
+    if (!resultado.isLeft()) throw new Error('esperava Left');
+    expect(resultado.value).toBeInstanceOf(ArquivoInvalidoError);
+    expect(resultado.value.status).toBe(422);
+    expect(resultado.value.message).toMatch(/application\/octet-stream/);
+    expect(await contexto.prisma.arquivo.count()).toBe(0);
+  });
+
+  it('PDF enviado como logo é rejeitado (422) informando o formato', async () => {
+    const resultado = await service.uploadImagem({
+      tipo: TipoArquivo.LOGO_INSTITUICAO,
+      nomeOriginal: 'logo.pdf',
+      buffer: pdfBuffer(),
+    });
+
+    if (!resultado.isLeft()) throw new Error('esperava Left');
+    expect(resultado.value).toBeInstanceOf(ArquivoInvalidoError);
+    expect(resultado.value.status).toBe(422);
+    expect(resultado.value.message).toMatch(/formato application\/pdf/);
+    expect(await contexto.prisma.arquivo.count()).toBe(0);
+  });
+
+  it('documento com exatamente 10 MB é aceito', async () => {
+    const resultado = await service.uploadDocumento({
+      nomeOriginal: 'documento-limite.pdf',
+      buffer: pdfBuffer(DEZ_MB),
+    });
+
+    if (resultado.isLeft()) throw new Error(resultado.value.message);
+
+    const linha = await contexto.prisma.arquivo.findUnique({
+      where: { id: resultado.value.id },
+    });
+    expect(linha?.bytes).toBe(DEZ_MB);
+  });
+
+  it('documento com 10 MB + 1 byte é rejeitado com a mensagem do limite de 10 MB', async () => {
+    const resultado = await service.uploadDocumento({
+      nomeOriginal: 'documento-grande.pdf',
+      buffer: pdfBuffer(DEZ_MB + 1),
+    });
+
+    if (!resultado.isLeft()) throw new Error('esperava Left');
+    expect(resultado.value).toBeInstanceOf(ArquivoInvalidoError);
+    expect(resultado.value.status).toBe(422);
+    expect(resultado.value.message).toBe(
+      `Arquivo inválido: tamanho excede o limite de 10 MB (${DEZ_MB + 1} bytes).`,
+    );
+    expect(await contexto.prisma.arquivo.count()).toBe(0);
+  });
+
+  it('falha de storage no upload de documento vira StorageIndisponivelError, sem linha órfã', async () => {
+    const arquivoNoLugarDoDiretorio = join(baseDir, 'bloqueado');
+    await writeFile(arquivoNoLugarDoDiretorio, 'nao-e-diretorio');
+    const serviceComStorageQuebrado = new ArquivoService(
+      contexto.prisma,
+      new LocalDiskStorage(arquivoNoLugarDoDiretorio),
+    );
+
+    await expect(
+      serviceComStorageQuebrado.uploadDocumento({
+        nomeOriginal: 'estatuto.pdf',
+        buffer: pdfBuffer(),
+      }),
+    ).rejects.toBeInstanceOf(StorageIndisponivelError);
+
+    expect(await contexto.prisma.arquivo.count()).toBe(0);
   });
 });

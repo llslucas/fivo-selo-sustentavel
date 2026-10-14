@@ -1360,11 +1360,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `%PDF-` reconhecido como `application/pdf`; sniff continua ignorando o `Content-Type` do cliente
-- [ ] Upload de documento aceita PDF/JPG/PNG até 10 MB e rejeita acima disso com a mensagem do domínio
-- [ ] Falha do storage continua virando `StorageIndisponivelError`
-- [ ] `test/arquivo/arquivo-service.e2e-spec.ts` estendido: PDF aceito, PDF rejeitado como logo, limite de 10 MB nas duas bordas
-- [ ] Gate `full` passa
+- [x] `%PDF-` reconhecido como `application/pdf`; sniff continua ignorando o `Content-Type` do cliente
+- [x] Upload de documento aceita PDF/JPG/PNG até 10 MB e rejeita acima disso com a mensagem do domínio
+- [x] Falha do storage continua virando `StorageIndisponivelError`
+- [x] `test/arquivo/arquivo-service.e2e-spec.ts` estendido: PDF aceito, PDF rejeitado como logo, limite de 10 MB nas duas bordas
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
