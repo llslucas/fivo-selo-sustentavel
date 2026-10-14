@@ -964,9 +964,9 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Cada teste de sucesso confere `usuarioId === admin.id.toString()`, `entidadeId` e `criadoEm` como `Date`
-- [ ] Mutantes #16 (`aprovar-instituicao.ts`, autor da auditoria) e #26 (`criar-causa.ts`, autor da auditoria) passam a ser mortos
-- [ ] Gate `quick` passa
+- [x] Cada teste de sucesso confere `usuarioId === admin.id.toString()`, `entidadeId` e `criadoEm` como `Date`
+- [x] Mutantes #16 (`aprovar-instituicao.ts`, autor da auditoria) e #26 (`criar-causa.ts`, autor da auditoria) passam a ser mortos
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

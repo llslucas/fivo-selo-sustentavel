@@ -47,6 +47,13 @@ describe('CriarCausaUseCase', () => {
 
     expect(registroAuditoria).not.toBeNull();
     expect(registroAuditoria.tipo).toBe('CAUSA_CRIADA');
+    expect(registroAuditoriaRepository.items[0]).toEqual(
+      expect.objectContaining({
+        usuarioId: creator.id.toString(),
+        entidadeId: causaId,
+      }),
+    );
+    expect(registroAuditoriaRepository.items[0].criadoEm).toBeInstanceOf(Date);
   });
 
   it('should return a NotAllowedError if the users is not an admin', async () => {

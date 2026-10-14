@@ -42,6 +42,13 @@ describe('EditarDadosCausaUseCase', () => {
 
     expect(registroAuditoria).not.toBeNull();
     expect(registroAuditoria.entidadeId).toBe(causa.id.toString());
+    expect(registroAuditoriaRepository.items[0]).toEqual(
+      expect.objectContaining({
+        usuarioId: autor.id.toString(),
+        entidadeId: causa.id.toString(),
+      }),
+    );
+    expect(registroAuditoriaRepository.items[0].criadoEm).toBeInstanceOf(Date);
   });
 
   it('should return a NotAllowedError if the user is not an admin', async () => {
@@ -111,6 +118,13 @@ describe('EditarDadosCausaUseCase', () => {
 
     expect(registroAuditoria).not.toBeNull();
     expect(registroAuditoria.entidadeId).toBe(causa.id.toString());
+    expect(registroAuditoriaRepository.items[0]).toEqual(
+      expect.objectContaining({
+        usuarioId: creator.id.toString(),
+        entidadeId: causa.id.toString(),
+      }),
+    );
+    expect(registroAuditoriaRepository.items[0].criadoEm).toBeInstanceOf(Date);
   });
 
   it('should return a CausaJaExisteError when renaming to a name that differs from another Causa only by case and accent', async () => {

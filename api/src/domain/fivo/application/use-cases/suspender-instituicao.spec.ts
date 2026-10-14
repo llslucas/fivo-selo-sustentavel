@@ -41,6 +41,13 @@ describe('SuspenderInstituicaoUseCase', () => {
     expect(updated?.decididoPor?.equals(admin.id)).toBe(true);
 
     expect(registroAuditoriaRepository.items).toHaveLength(1);
+    expect(registroAuditoriaRepository.items[0]).toEqual(
+      expect.objectContaining({
+        usuarioId: admin.id.toString(),
+        entidadeId: instituicao.id.toString(),
+      }),
+    );
+    expect(registroAuditoriaRepository.items[0].criadoEm).toBeInstanceOf(Date);
     expect(registroAuditoriaRepository.items[0].dados).toEqual(
       expect.objectContaining({
         estadoAnterior: InstituicaoStatus.APROVADA,

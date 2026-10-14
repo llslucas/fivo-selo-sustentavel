@@ -190,6 +190,13 @@ describe('InativarCausaUseCase', () => {
     expect(registroAuditoriaRepository.items).toHaveLength(1);
     expect(registroAuditoria.tipo).toBe('CAUSA_INATIVADA');
     expect(registroAuditoria.entidadeId).toBe(causa.id.toString());
+    expect(registroAuditoriaRepository.items[0]).toEqual(
+      expect.objectContaining({
+        usuarioId: autor.id.toString(),
+        entidadeId: causa.id.toString(),
+      }),
+    );
+    expect(registroAuditoriaRepository.items[0].criadoEm).toBeInstanceOf(Date);
   });
 
   it('should return TransicaoInvalidaError if the causa is already inactive', async () => {
