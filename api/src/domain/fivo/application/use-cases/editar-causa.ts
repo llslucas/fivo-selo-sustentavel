@@ -1,7 +1,6 @@
 import { Either, left, right } from '@core/either';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
-import { Causa } from '@domain/fivo/entities/causa';
 import { User, UserRole } from '@domain/fivo/entities/user';
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
@@ -56,7 +55,7 @@ export class EditarCausaUseCase {
       }
     }
 
-    const causaAntiga = Causa.create(causa, causa.id);
+    const antes = { nome: causa.nome, descricao: causa.descricao };
 
     const result = causa.editar(
       nome ?? causa.nome,
@@ -74,7 +73,10 @@ export class EditarCausaUseCase {
       descricao: `Causa ${causa.nome} foi editada`,
       usuarioId: user.id.toString(),
       entidadeId: causa.id.toString(),
-      dados: { causa_antiga: causaAntiga, nova_causa: causa },
+      dados: {
+        antes,
+        depois: { nome: causa.nome, descricao: causa.descricao },
+      },
       criadoEm: new Date(),
     });
 

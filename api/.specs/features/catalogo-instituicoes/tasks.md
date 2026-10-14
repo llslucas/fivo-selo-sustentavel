@@ -993,8 +993,8 @@ T33 → T34
 
 **Done when**:
 
-- [ ] O teste confere `dados.antes.nome` igual ao nome original e `dados.depois.nome` igual ao novo
-- [ ] Gate `quick` passa
+- [x] O teste confere `dados.antes.nome` igual ao nome original e `dados.depois.nome` igual ao novo
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

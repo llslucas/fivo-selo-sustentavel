@@ -51,6 +51,28 @@ describe('EditarDadosCausaUseCase', () => {
     expect(registroAuditoriaRepository.items[0].criadoEm).toBeInstanceOf(Date);
   });
 
+  it('should record the previous and the new name and description in the audit', async () => {
+    const causa = CausaFactory.create({
+      nome: 'Causa Teste',
+      descricao: 'Descrição original',
+    });
+    await causaRepository.create(causa);
+
+    const result = await sut.execute({
+      causaId: causa.id.toString(),
+      nome: 'Novo Nome',
+      descricao: 'Descrição nova',
+      user: UserFactory.create(),
+    });
+
+    expect(result.isRight()).toBe(true);
+    expect(registroAuditoriaRepository.items).toHaveLength(1);
+    expect(registroAuditoriaRepository.items[0].dados).toEqual({
+      antes: { nome: 'Causa Teste', descricao: 'Descrição original' },
+      depois: { nome: 'Novo Nome', descricao: 'Descrição nova' },
+    });
+  });
+
   it('should return a NotAllowedError if the user is not an admin', async () => {
     const causa = CausaFactory.create();
     await causaRepository.create(causa);
