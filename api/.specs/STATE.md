@@ -170,10 +170,11 @@
 ### Handoff — verificação do domínio de `catalogo-instituicoes` (2026-10-13)
 
 - **Feature**: `catalogo-instituicoes` (`.specs/features/catalogo-instituicoes/`)
-- **Phase / Task**: T1–T20 (domínio) entregues pelo grupo via PRs #140–#153. O gate de handoff do AD-020, rodada 1, deu **FAIL** (`validation-dominio.md`, diff `7b0e9e7..891cdd5`). O que falhou: eslint (5 arquivos sem newline final), e2e 204/205, 7 de 28 mutantes vivos, lacunas em P1-Aprovação AC1/AC9/AC10 e P1-Causas AC2/AC7.
-- **Hardening**: a Fase 5b foi aberta em `tasks.md` com T35–T48. T36 🤖 está feita (e2e do filtro passou a esperar 409, suíte em 205/205). T47 🤖 depende de T46. As demais são 👤 humanas (AD-020).
-- **Next step**: o grupo fecha T35, T37–T46 e T48. O agente faz T47 e roda a rodada 2 da verificação. A Fase 6 só começa com PASS, e o limite é de 3 rodadas antes de escalar.
-- **Lições**: L-005…L-011 registradas como candidatas.
+- **Phase / Task**: domínio T1–T20 verificado. O gate de handoff do AD-020 deu **PASS** na rodada 3 (`validation-dominio.md`, diff `7b0e9e7..074a914`). A rodada 1 deu FAIL e abriu a Fase 5b (T35–T48). A rodada 2 deu FAIL por uma lacuna de teste (T49, T50). O hardening foi todo aplicado pelo agente, com autorização do usuário registrada no AD-020.
+- **Gate**: build, tsc e eslint verdes; unit 332/332; e2e 205/205. Sensor com 40 mutantes no total: 39 mortos, 1 equivalente.
+- **Next step**: Fase 6 (T21, schema Prisma e migration), que cabe ao agente pelo AD-020.
+- **Follow-ups** (não bloqueiam): 3 spec-precision gaps (Autocadastro AC8 sem texto definido, Aprovação AC1 "nome", Causas AC4); `tasks.md:44` não diz que a busca normalizada no adaptador é a de causa.
+- **Lições**: L-005…L-014 registradas como candidatas.
 - **Branch**: `fix/catalogo-dominio-hardening` (local, não enviada ao remoto)
 
 ### Handoff — `cadastro-empresa` (2026-09-20)

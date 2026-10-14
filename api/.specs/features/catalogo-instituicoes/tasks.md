@@ -798,7 +798,7 @@ T33 → T34
 >
 > Antes de T21: (1) gate `build` verde; (2) o agente roda verificação independente sobre `src/domain/**` (checagem ancorada na spec + sensor de discriminação) e escreve `.specs/features/catalogo-instituicoes/validation-dominio.md`; (3) lacunas viram tasks de correção na Fase 5b (T35–T48) e são fechadas antes da Fase 6.
 >
-> **Rodada 1 (2026-10-13): FAIL** → Fase 5b abaixo (T35–T48). **Rodada 2 (2026-10-13): FAIL** por uma lacuna só de teste (P1-Causas AC6, mutantes N28/N29) → T49, T50. A rodada 3 é a última antes de escalar ao usuário.
+> **Rodada 1 (2026-10-13): FAIL** → Fase 5b abaixo (T35–T48). **Rodada 2 (2026-10-13): FAIL** por uma lacuna só de teste (P1-Causas AC6, mutantes N28/N29) → T49, T50. **Rodada 3 (2026-10-13): PASS ✅**: gate `build` verde, 35/35 ACs P1 de domínio, 40 mutantes no total, 39 mortos e 1 equivalente (N6). A Fase 6 está liberada.
 
 ---
 
