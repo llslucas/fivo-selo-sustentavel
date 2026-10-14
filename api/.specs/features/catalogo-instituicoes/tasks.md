@@ -1612,11 +1612,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Dois autocadastros simultâneos com o mesmo CNPJ: um 201, um 409, um único registro no banco
-- [ ] Aprovação e rejeição simultâneas do mesmo cadastro: a primeira vence, a segunda recebe 409
-- [ ] Empresa e instituição com o mesmo CNPJ coexistem, e a fila do admin sinaliza a coincidência
-- [ ] Toda rota administrativa do catálogo responde 403 para empresa e instituição autenticadas
-- [ ] Gate `full` passa
+- [x] Dois autocadastros simultâneos com o mesmo CNPJ: um 201, um 409, um único registro no banco
+- [x] Aprovação e rejeição simultâneas do mesmo cadastro: a primeira vence, a segunda recebe 409
+- [x] Empresa e instituição com o mesmo CNPJ coexistem, e a fila do admin sinaliza a coincidência
+- [x] Toda rota administrativa do catálogo responde 403 para empresa e instituição autenticadas
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
