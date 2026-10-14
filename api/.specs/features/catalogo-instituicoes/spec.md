@@ -205,11 +205,11 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | INST-01 | P1: Autocadastro da instituição — dados cadastrais e validações | Tasks | In Tasks (T1, T5, T13, T21, T29, T34) |
 | INST-02 | P1: Autocadastro da instituição — documento de validação obrigatório | Tasks | In Tasks (T1, T3, T4, T13, T24, T29) |
 | INST-03 | P1: Autocadastro da instituição — credencial e vínculo com causa | Tasks | In Tasks (T1, T5, T13, T29) |
-| INST-04 | P1: Aprovação pelo administrador — fila, decisão e comunicação | Tasks | In Tasks (T7, T14, T15, T16, T23, T30, T33, T34) |
-| INST-05 | P1: Aprovação pelo administrador — máquina de estados e auditoria | Tasks | In Tasks (T5, T7, T15-T18, T21, T23, T30, T31, T33) |
+| INST-04 | P1: Aprovação pelo administrador — fila, decisão e comunicação | Tasks | Domínio: Needs Fix (T39) · In Tasks (T7, T14, T15, T16, T23, T30, T33, T34) |
+| INST-05 | P1: Aprovação pelo administrador — máquina de estados e auditoria | Tasks | Domínio: Needs Fix (T40, T42, T48) · In Tasks (T5, T7, T15-T18, T21, T23, T30, T31, T33) |
 | INST-06 | P1: Aprovação pelo administrador — acesso restrito ao documento | Tasks | In Tasks (T8, T15, T25, T26, T30) |
-| INST-07 | P1: Manutenção de causas pelo administrador | Tasks | In Tasks (T1, T2, T6, T9-T12, T21, T22, T27, T28, T34) |
-| INST-08 | P1: Seleção da beneficiada — listagem e busca | Tasks | In Tasks (T7, T12, T19, T23, T28, T32, T34) |
+| INST-07 | P1: Manutenção de causas pelo administrador | Tasks | Domínio: Needs Fix (T37, T38, T40, T41, T43, T48) · In Tasks (T1, T2, T6, T9-T12, T21, T22, T27, T28, T34) |
+| INST-08 | P1: Seleção da beneficiada — listagem e busca | Tasks | Domínio: Needs Fix minor (T35, T44, T46, T47) · In Tasks (T7, T12, T19, T23, T28, T32, T34) |
 | INST-09 | P1: Seleção da beneficiada — vínculo exclusivo e validação | Tasks | In Tasks (T1, T20); o consumo em campanha fica na feature `campanhas` |
 | INST-10 | P1: Seleção da beneficiada — exposição pública de dados | Tasks | In Tasks (T19, T32) |
 | INST-11 | P2: Área logada da instituição — autenticação e isolamento | - | Deferred (rodada P2) |

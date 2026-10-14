@@ -127,7 +127,15 @@ T6 → T20
 T7 → T20
 ```
 
-> **⛔ Gate de handoff — domínio → infra.** Depois de T20: gate `build` verde, verificação independente do agente (`validation-dominio.md`) em PASS, e só então a Fase 6 começa.
+### Phase 5b: Hardening do domínio 👤 (+ T36, T47 🤖)
+
+Aberta pela verificação de handoff de 2026-10-13 (`validation-dominio.md`, veredito FAIL: eslint e e2e vermelhos, 7 de 28 mutantes vivos, lacunas em P1-Aprovação AC1/AC9/AC10 e P1-Causas AC2/AC7). Ordem sugerida: T35 e T36 primeiro (devolvem o gate ao verde), depois os Major (T37–T43), depois os Minor (T44–T48). T37, T41 e T43 mexem em `editar-causa.spec.ts`; feitas em sequência, não conflitam.
+
+```
+T46 → T47
+```
+
+> **⛔ Gate de handoff — domínio → infra.** Depois de T20 **e da Fase 5b**: gate `build` verde, nova verificação independente do agente (`validation-dominio.md`) em PASS, e só então a Fase 6 começa.
 
 ### Phase 6: Persistência (Prisma / PostgreSQL) 🤖
 
@@ -787,7 +795,408 @@ T33 → T34
 
 > ### ⛔ Gate de handoff — domínio → infra
 >
-> Antes de T21: (1) gate `build` verde; (2) o agente roda verificação independente sobre `src/domain/**` (checagem ancorada na spec + sensor de discriminação) e escreve `.specs/features/catalogo-instituicoes/validation-dominio.md`; (3) lacunas viram tasks humanas de correção (T20a, T20b…) e são fechadas antes da Fase 6.
+> Antes de T21: (1) gate `build` verde; (2) o agente roda verificação independente sobre `src/domain/**` (checagem ancorada na spec + sensor de discriminação) e escreve `.specs/features/catalogo-instituicoes/validation-dominio.md`; (3) lacunas viram tasks de correção na Fase 5b (T35–T48) e são fechadas antes da Fase 6.
+>
+> **Rodada 1 (2026-10-13): FAIL** → Fase 5b abaixo. Rodada 2 após a Fase 5b; limite de 3 rodadas antes de escalar ao usuário.
+
+---
+
+### Hardening do domínio (Fase 5b)
+
+> Origem de cada task: `validation-dominio.md` §Fix Plans (mutantes e ACs citados lá). Dono pela regra de caminho do AD-020: `src/domain/**`, `src/core/**`, `test/repositories/**`, `test/factories/**` → 👤 humano; o resto → 🤖 agente.
+
+### T35: Quebra de linha final nos arquivos do catálogo
+
+**What**: Acrescentar a quebra de linha final exigida pelo prettier, devolvendo o `eslint` do gate ao verde.
+**Where**: `src/domain/fivo/application/errors/beneficiada-ambigua.error.ts`, `src/domain/fivo/application/use-cases/assegurar-beneficiada-disponivel.ts`, `assegurar-beneficiada-disponivel.spec.ts`, `listar-beneficiadas.ts`, `listar-beneficiadas.spec.ts`
+**Depends on**: None
+**Reuses**: `npx eslint --fix`
+**Requirement**: INST-08, INST-09
+**Autor**: 👤 humano
+**Severidade**: Blocker
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] `npx eslint "{src,test}/**/*.ts"` sai com 0
+- [ ] Gate `quick` passa
+
+**Tests**: none
+**Gate**: quick
+**Commit**: `style(api): adiciona quebra de linha final nos arquivos do catálogo`
+
+---
+
+### T36: Status de `InstituicaoAlreadyExistsError` no e2e do filtro
+
+**What**: Alinhar `STATUS_ESPERADO['instituicao-ja-existe']` a 409. A T1 moveu o erro para 409 por exigência da spec (P1-Autocadastro AC3), e o e2e do filtro ficou desatualizado.
+**Where**: `test/http/domain-exception-filter.e2e-spec.ts`
+**Depends on**: None
+**Reuses**: entrada `empresa-ja-existe` da mesma tabela
+**Requirement**: INST-01
+**Autor**: 🤖 agente (arquivo de infra; não toca `src/domain/**`)
+**Severidade**: Blocker
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] O e2e do filtro espera 409 para `instituicao-ja-existe` (a mensagem segue conferida contra a do próprio erro, `CNPJ ou e-mail já cadastrado`)
+- [ ] Suíte e2e 205/205
+- [ ] Gate `full` passa, exceto o eslint da T35, que é humano
+
+**Tests**: e2e
+**Gate**: full
+**Commit**: `test(api): alinha status de InstituicaoAlreadyExistsError a 409 no e2e do filtro`
+
+---
+
+### T37: Unicidade de causa ignora caixa e acento no double
+
+**What**: `InMemoryCausaRepository.findByNome` hoje normaliza só a entrada (`NFD`) e compara com o nome armazenado sem normalizar. Por isso não encontra nem `"Educação"` exato, e `CriarCausa` aceita a duplicata. A correção normaliza os dois lados (NFD, sem diacríticos, minúscula) e documenta o contrato na porta.
+**Where**: `test/repositories/in-memory-causa-repository.ts`, `src/domain/fivo/application/ports/database/causa-repository.ts`, `src/domain/fivo/application/use-cases/criar-causa.spec.ts`, `editar-causa.spec.ts`
+**Depends on**: None
+**Reuses**: normalização de `listar-beneficiadas.ts`
+**Requirement**: INST-07
+**Autor**: 👤 humano
+**Severidade**: Major
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos** (P1-Causas): AC2.
+
+**Done when**:
+
+- [ ] Com `"Educação"` cadastrada, criar `"educacao"` e criar `"Educação"` devolvem `CausaJaExisteError` (status 409, mensagem `Causa já cadastrada`)
+- [ ] Renomear uma causa para `"SAÚDE"` quando existe outra `"Saude"` devolve `CausaJaExisteError`
+- [ ] JSDoc da porta diz que `findByNome` ignora caixa e acento
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(api): unicidade de causa ignora caixa e acento no double em memória`
+
+---
+
+### T38: `CausaRepository.create` recebe a entidade
+
+**What**: Trocar `create(props: CausaProps)` por `create(causa: Causa)`. Do jeito atual, o adaptador Prisma (T22) recebe props sem `id`. O double já recebe a entidade na prática.
+**Where**: `src/domain/fivo/application/ports/database/causa-repository.ts`
+**Depends on**: None
+**Reuses**: `InstituicaoRepository.create`
+**Requirement**: INST-07
+**Autor**: 👤 humano
+**Severidade**: Major (contrato de handoff com T22)
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] A porta declara `create(causa: Causa): Promise<void>`
+- [ ] Gate `quick` passa
+
+**Tests**: none
+**Gate**: quick
+**Commit**: `fix(api): CausaRepository.create recebe a entidade Causa`
+
+---
+
+### T39: Fila de instituições exibe o nome da causa
+
+**What**: Hoje `ListarFilaInstituicoesUseCase` devolve o id da causa no campo `causa`, e o teste fixa esse comportamento. A correção injeta `CausaRepository` e devolve o nome da causa. Também renomeia `documentArquivoId` → `documentoArquivoId` e torna `cnpjCoincideComEmpresa` um `boolean`, como pede a T14.
+**Where**: `src/domain/fivo/application/use-cases/listar-fila-instituicoes.ts`, `listar-fila-instituicoes.spec.ts`
+**Depends on**: None
+**Reuses**: T14
+**Requirement**: INST-04
+**Autor**: 👤 humano
+**Severidade**: Major
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos** (P1-Aprovação): AC1.
+
+**Done when**:
+
+- [ ] O teste confere `causa` igual ao **nome** de uma causa criada no próprio teste (não o id)
+- [ ] O item expõe `documentoArquivoId`
+- [ ] `cnpjCoincideComEmpresa` é `true` quando há empresa com o mesmo CNPJ e `false` quando não há, cada caso com seu teste
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(api): fila de instituições exibe o nome da causa`
+
+---
+
+### T40: Autor e data-hora conferidos em toda auditoria
+
+**What**: Nenhum teste confere o autor (`usuarioId`) nem a data-hora (`criadoEm`) do registro de auditoria. Por isso os mutantes #16 e #26 sobreviveram. A correção acrescenta essas asserções em todo teste de sucesso que grava auditoria.
+**Where**: `src/domain/fivo/application/use-cases/{aprovar,rejeitar,suspender,reativar,inativar}-instituicao.spec.ts`, `{criar,editar,inativar}-causa.spec.ts`
+**Depends on**: None
+**Reuses**: asserções de auditoria de `aprovar-empresa.spec.ts`
+**Requirement**: INST-05, INST-07
+**Autor**: 👤 humano
+**Severidade**: Major
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos**: P1-Aprovação AC9, P1-Causas AC7.
+
+**Done when**:
+
+- [ ] Cada teste de sucesso confere `usuarioId === admin.id.toString()`, `entidadeId` e `criadoEm` como `Date`
+- [ ] Mutantes #16 (`aprovar-instituicao.ts`, autor da auditoria) e #26 (`criar-causa.ts`, autor da auditoria) passam a ser mortos
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): confere autor e data-hora nos registros de auditoria do catálogo`
+
+---
+
+### T41: Auditoria da edição de causa registra o estado anterior
+
+**What**: Em `editar-causa.ts`, `causaAntiga = Causa.create(causa, causa.id)` produz um `Either` montado sobre a entidade que `editar()` vai mutar em seguida. A auditoria acaba gravando o nome novo como "antigo". A correção captura `{ nome, descricao }` em objeto simples antes de `editar()` e grava `dados: { antes, depois }`, sem entidade e sem `Either`.
+**Where**: `src/domain/fivo/application/use-cases/editar-causa.ts`, `editar-causa.spec.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: INST-07
+**Autor**: 👤 humano
+**Severidade**: Major
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos** (P1-Causas): AC7.
+
+**Done when**:
+
+- [ ] O teste confere `dados.antes.nome` igual ao nome original e `dados.depois.nome` igual ao novo
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(api): auditoria da edição de causa registra o estado anterior`
+
+---
+
+### T42: Decisão concorrente exercitada contra o CAS do double
+
+**What**: O CAS só é testado com spy (`salvarTransicao → false`). Desligar a comparação de estado no double mantém a suíte verde (mutante #3). A correção acrescenta um teste que dispara `aprovar` e `rejeitar` na mesma instituição pendente com `Promise.all`, usando o `InMemoryInstituicaoRepository` real, sem spy.
+**Where**: `src/domain/fivo/application/use-cases/aprovar-instituicao.spec.ts`
+**Depends on**: None
+**Reuses**: teste equivalente de `cadastro-empresa`, se houver
+**Requirement**: INST-05
+**Autor**: 👤 humano
+**Severidade**: Major
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos** (P1-Aprovação): AC10.
+
+**Done when**:
+
+- [ ] Exatamente um resultado `right` e um `TransicaoInvalidaError`
+- [ ] O estado final é o do vencedor, e há uma única linha de auditoria de decisão
+- [ ] Mutante #3 (`in-memory-instituicao-repository.ts`, comparação do estado esperado) passa a ser morto
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): decisão concorrente de instituição aplica só a primeira`
+
+---
+
+### T43: Testes efetivos da entidade `Causa` e de `EditarCausa`
+
+**What**: Em `causa.spec.ts`, os `expect` dentro de `if (result.isLeft())` passam sem rodar nenhuma asserção (linhas 46 e 83). Faltam também teste de `editar()`, de nome só com espaços e de edição de causa `INATIVA`. Em `editar-causa.spec.ts`, faltam os ramos de causa inexistente e causa `INATIVA`.
+**Where**: `src/domain/fivo/entities/causa.spec.ts`, `src/domain/fivo/application/use-cases/editar-causa.spec.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: INST-07
+**Autor**: 👤 humano
+**Severidade**: Major
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos**: Done-when de T2 e T10.
+
+**Done when**:
+
+- [ ] `expect(result.isLeft()).toBe(true)` incondicional antes de inspecionar `result.value`
+- [ ] Testes de: nome só de espaços → `NomeCausaInvalidoError`; `editar` feliz; `editar` com nome inválido; `editar` em `INATIVA` → `TransicaoInvalidaError`
+- [ ] `EditarCausa`: causa inexistente → `ResourceNotFoundError`; causa `INATIVA` → `TransicaoInvalidaError`
+- [ ] Mutantes #18, #19 e #20 (`causa.ts`) passam a ser mortos
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): cobre limites e edição da entidade Causa`
+
+---
+
+### T44: Limite de 2 caracteres na busca de beneficiadas
+
+**What**: Acrescentar teste com termo de exatamente 2 caracteres, que precisa filtrar. O mutante #9 (`< 2` → `<= 2`) sobreviveu.
+**Where**: `src/domain/fivo/application/use-cases/listar-beneficiadas.spec.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: INST-08
+**Autor**: 👤 humano
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos** (P1-Seleção): AC2.
+
+**Done when**:
+
+- [ ] Termo de 2 caracteres filtra; termo de 1 caractere devolve a lista completa
+- [ ] Mutante #9 passa a ser morto
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): busca de beneficiadas filtra a partir de 2 caracteres`
+
+---
+
+### T45: Mensagem de `DocumentoIndisponivelError` conforme o design
+
+**What**: Trocar a mensagem `Documento indisponível. Tente novamente mais tarde.` pela da tabela de erros do design, `Documento temporariamente indisponível`, e conferir a string no teste.
+**Where**: `src/domain/fivo/application/errors/documento-indisponivel.error.ts`, `src/domain/fivo/application/use-cases/aprovar-instituicao.spec.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: INST-06
+**Autor**: 👤 humano
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] A mensagem bate com `design.md` §Erros, e o teste confere a string e o status 503
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(api): mensagem de documento indisponível conforme o design`
+
+---
+
+### T46: Remover `buscarDisponiveis` sem chamador
+
+**What**: A busca do catálogo é feita por `ListarBeneficiadasUseCase`, em memória, junto com as causas. `InstituicaoRepository.buscarDisponiveis` não tem chamador, e o double compara por igualdade exata. A correção remove o método da porta e do double.
+**Where**: `src/domain/fivo/application/ports/database/instituicao-repository.ts`, `test/repositories/in-memory-instituicao-repository.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: INST-08
+**Autor**: 👤 humano
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] A porta não tem método sem chamador
+- [ ] Gate `quick` passa
+
+**Tests**: none
+**Gate**: quick
+**Commit**: `refactor(api): remove buscarDisponiveis sem chamador da porta de instituição`
+
+---
+
+### T47: Design e T21/T23 sem busca no repositório de instituição
+
+**What**: Emendar o design para a busca do catálogo em memória no caso de uso. Sai `buscarDisponiveis` da tabela de portas e da rastreabilidade de INST-08. A coluna `nome_busca` sai de instituição e continua em causa, por causa do índice único de nome. T21 e T23 se ajustam a isso.
+**Where**: `.specs/features/catalogo-instituicoes/design.md`, `.specs/features/catalogo-instituicoes/tasks.md` (T21, T23)
+**Depends on**: T46
+**Reuses**: —
+**Requirement**: INST-08
+**Autor**: 🤖 agente
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] `design.md` não cita `buscarDisponiveis`, e `nome_busca` aparece só para causa
+- [ ] T21 e T23 não pedem coluna nem método sem uso
+- [ ] `validate_tasks.py` sai com 0 erros
+
+**Tests**: none
+**Gate**: quick
+**Commit**: `docs(specs): busca do catálogo de beneficiadas fica no caso de uso`
+
+---
+
+### T48: Mensagens e ausência de escrita nos erros do catálogo
+
+**What**: Conferir `message` e `status` onde a spec define texto, e conferir "sem escrita" nos ramos negados.
+**Where**: `src/domain/fivo/application/use-cases/assegurar-beneficiada-disponivel.spec.ts`, `inativar-causa.spec.ts`, `criar-causa.spec.ts`, `{suspender,reativar,inativar}-instituicao.spec.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: INST-05, INST-07, INST-09
+**Autor**: 👤 humano
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos**: P1-Seleção AC4, P1-Causas AC4, P1-Aprovação AC8.
+
+**Done when**:
+
+- [ ] `BeneficiadaIndisponivelError` com a mensagem `Instituição ou causa indisponível`
+- [ ] `CausaComInstituicoesAprovadasError` com status 409 e `instituicoes` igual ao array de nomes esperado
+- [ ] Ramos não-admin de suspender, reativar, inativar e criar causa conferem que o repositório não mudou
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): confere mensagens e ausência de escrita nos erros do catálogo`
 
 ---
 

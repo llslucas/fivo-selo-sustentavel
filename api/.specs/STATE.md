@@ -165,6 +165,17 @@
 
 ## Handoff
 
+### Handoff — verificação do domínio de `catalogo-instituicoes` (2026-10-13)
+
+- **Feature**: `catalogo-instituicoes` (`.specs/features/catalogo-instituicoes/`)
+- **Phase / Task**: T1–T20 (domínio) entregues pelo grupo via PRs #140–#153. O gate de handoff do AD-020, rodada 1, deu **FAIL** (`validation-dominio.md`, diff `7b0e9e7..891cdd5`). O que falhou: eslint (5 arquivos sem newline final), e2e 204/205, 7 de 28 mutantes vivos, lacunas em P1-Aprovação AC1/AC9/AC10 e P1-Causas AC2/AC7.
+- **Hardening**: a Fase 5b foi aberta em `tasks.md` com T35–T48. T36 🤖 está feita (e2e do filtro passou a esperar 409, suíte em 205/205). T47 🤖 depende de T46. As demais são 👤 humanas (AD-020).
+- **Next step**: o grupo fecha T35, T37–T46 e T48. O agente faz T47 e roda a rodada 2 da verificação. A Fase 6 só começa com PASS, e o limite é de 3 rodadas antes de escalar.
+- **Lições**: L-005…L-011 registradas como candidatas.
+- **Branch**: `fix/catalogo-dominio-hardening` (local, não enviada ao remoto)
+
+### Handoff — `cadastro-empresa` (2026-09-20)
+
 - **Feature**: `cadastro-empresa` (`.specs/features/cadastro-empresa/`)
 - **Phase / Task**: Fases 1–9 completas (T1–T55). Fase 9 (T47–T55, OpenAPI/Swagger) implementada e verificada em 2026-09-20 na branch `feat/cadastro-empresa-fase9` (local, não enviada ao remoto). `validation.md` consolidado escrito.
 - **Completed**: T1–T55. Fase 9 verificada em `validation-fase9.md` (PASS; 25/26 mutantes mortos, o sobrevivente `SWAGGER_ENABLED` ≠ `true` foi coberto depois); gate: 174 unit, 205 e2e.

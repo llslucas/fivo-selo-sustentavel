@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 5,
+  "next_id": 12,
   "lessons": [
     {
       "id": "L-001",
@@ -76,6 +76,132 @@
       ],
       "created": "2026-09-18T15:12:11Z",
       "last_seen": "2026-09-18T15:12:11Z"
+    },
+    {
+      "id": "L-005",
+      "key": "surviving_mutant::assert result isleft unconditionally before inspecting the error never put expects inside an if on the either",
+      "text": "Assert result.isLeft() unconditionally before inspecting the error; never put expects inside an if on the Either",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md mutantes #18 #19 (causa.spec.ts:46,83) (domain-tests)"
+      ],
+      "created": "2026-10-14T00:26:50Z",
+      "last_seen": "2026-10-14T00:26:50Z"
+    },
+    {
+      "id": "L-006",
+      "key": "surviving_mutant::test optimistic concurrency by interleaving real calls against the in memory double not only by stubbing the cas to return false",
+      "text": "Test optimistic concurrency by interleaving real calls against the in-memory double, not only by stubbing the CAS to return false",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md mutante #3, P1-Aprovação AC10 (domain-tests)"
+      ],
+      "created": "2026-10-14T00:26:50Z",
+      "last_seen": "2026-10-14T00:26:50Z"
+    },
+    {
+      "id": "L-007",
+      "key": "ac_gap::audit assertions must check author and timestamp not just event type and states",
+      "text": "Audit assertions must check author and timestamp, not just event type and states",
+      "signal": "ac_gap",
+      "scope": "audit",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md mutantes #16 #26, P1-Aprovação AC9, P1-Causas AC7 (audit)"
+      ],
+      "created": "2026-10-14T00:26:51Z",
+      "last_seen": "2026-10-14T00:26:51Z"
+    },
+    {
+      "id": "L-008",
+      "key": "ac_gap::when a port promises normalized matching cover it with an accented and mixed case input in a use case test",
+      "text": "When a port promises normalized matching, cover it with an accented and mixed-case input in a use-case test",
+      "signal": "ac_gap",
+      "scope": "repo-doubles",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md P1-Causas AC2 (in-memory-causa-repository.ts findByNome) (repo-doubles)"
+      ],
+      "created": "2026-10-14T00:26:51Z",
+      "last_seen": "2026-10-14T00:26:51Z"
+    },
+    {
+      "id": "L-009",
+      "key": "surviving_mutant::boundary tests must hit the exact limit value on both sides",
+      "text": "Boundary tests must hit the exact limit value on both sides",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md mutante #9 (listar-beneficiadas.ts < 2) (domain-tests)"
+      ],
+      "created": "2026-10-14T00:26:51Z",
+      "last_seen": "2026-10-14T00:26:51Z"
+    },
+    {
+      "id": "L-010",
+      "key": "gate_fail::when a domain error changes status or message update the exception filter e2e table in the same commit",
+      "text": "When a domain error changes status or message, update the exception-filter e2e table in the same commit",
+      "signal": "gate_fail",
+      "scope": "error-mapping",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "test/http/domain-exception-filter.e2e-spec.ts:65 (422 vs 409 after T1) (error-mapping)"
+      ],
+      "created": "2026-10-14T00:26:51Z",
+      "last_seen": "2026-10-14T00:26:51Z"
+    },
+    {
+      "id": "L-011",
+      "key": "spec_precision_gap::every validation ac in a spec must state the exact user facing error text or tests fall back to tocontain fragments",
+      "text": "Every validation AC in a spec must state the exact user-facing error text, or tests fall back to toContain fragments",
+      "signal": "spec_precision_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md P1-Autocadastro AC8 (arquivo.spec.ts:247 toContain) (specs)"
+      ],
+      "created": "2026-10-14T00:27:01Z",
+      "last_seen": "2026-10-14T00:27:01Z"
     }
   ]
 }
