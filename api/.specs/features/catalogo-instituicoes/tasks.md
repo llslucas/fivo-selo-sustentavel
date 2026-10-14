@@ -880,7 +880,7 @@ T33 → T34
 
 - [x] Com `"Educação"` cadastrada, criar `"educacao"` e criar `"Educação"` devolvem `CausaJaExisteError` (status 409, mensagem `Causa já cadastrada`)
 - [x] Renomear uma causa para `"SAÚDE"` quando existe outra `"Saude"` devolve `CausaJaExisteError`
-- [x] Mudar só caixa/acento do próprio nome (`"Saude"` → `"Saúde"`) continua permitido: `EditarCausa` passa a comparar a causa encontrada por **id**, não por nome (com a busca normalizada, a comparação por nome recusaria a própria causa)
+- [x] Mudar só caixa/acento do próprio nome (`"Saude"` → `"Saúde"`) continua permitido: `EditarCausa` passa a comparar a causa encontrada por **id**, não por nome. É robustez, não correção: com nomes únicos, a comparação por nome dá o mesmo resultado (mutante N6 equivalente, rodada 2)
 - [x] JSDoc da porta diz que `findByNome` ignora caixa e acento
 - [x] Gate `quick` passa
 
@@ -1249,9 +1249,9 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `design.md` e T23 não atribuem busca ao adaptador de instituição
-- [ ] A Done-when da T37 descreve a comparação por id como robustez
-- [ ] `validate_tasks.py` sai com 0 erros
+- [x] `design.md` e T23 não atribuem busca ao adaptador de instituição
+- [x] A Done-when da T37 descreve a comparação por id como robustez
+- [x] `validate_tasks.py` sai com 0 erros
 
 **Tests**: none
 **Gate**: quick
@@ -1317,7 +1317,7 @@ T33 → T34
 
 ### T23: `PrismaInstituicaoRepository` e mapper
 
-**What**: Implementar o adaptador Prisma da instituição, incluindo o CAS de `salvarTransicao`, a busca sem acento e o `save` que não regrava colunas de decisão.
+**What**: Implementar o adaptador Prisma da instituição, incluindo o CAS de `salvarTransicao` e o `save` que não regrava colunas de decisão.
 **Where**: `src/infra/database/prisma/prisma-instituicao-repository.ts`
 **Depends on**: T7, T21
 **Reuses**: `prisma-empresa-repository.ts` (CAS com `updateMany` + `count`)

@@ -218,7 +218,7 @@ Além disso, `InstituicaoAlreadyExistsError` muda de `status 422` para **409** e
 | ---------- | ----- | ----- |
 | Schema + migration | `prisma/schema.prisma` | Modelos `Causa` e `Instituicao`, enums `InstituicaoStatus`/`CausaStatus`, novos valores de `TipoArquivo`, relação `Arquivo → instituicoes` |
 | `PrismaCausaRepository` + mapper | `src/infra/database/prisma/` | Busca por nome normalizado; unicidade por índice |
-| `PrismaInstituicaoRepository` + mapper | `src/infra/database/prisma/` | CAS em `salvarTransicao` (`updateMany` com `status: estadoEsperado`), busca sem acento, `save` que não regrava colunas de decisão |
+| `PrismaInstituicaoRepository` + mapper | `src/infra/database/prisma/` | CAS em `salvarTransicao` (`updateMany` com `status: estadoEsperado`), `save` que não regrava colunas de decisão |
 | `ArquivoService` (modificar) | `src/infra/arquivo/arquivo.service.ts` | Magic bytes de PDF (`%PDF-`), `uploadDocumento`, limite por tipo, `buscarAcesso` considerando o dono instituição, `VerificadorDeDocumentoPrisma` |
 | `CadastroInstituicaoController` | `src/infra/http/controllers/` | `POST /instituicoes` (multipart: logo + documento), `GET /causas` (público, ativas) |
 | `AdminInstituicoesController` | `src/infra/http/controllers/` | `GET /admin/instituicoes`, `POST /admin/instituicoes/:id/{aprovacao,rejeicao,suspensao,reativacao,inativacao}` |
