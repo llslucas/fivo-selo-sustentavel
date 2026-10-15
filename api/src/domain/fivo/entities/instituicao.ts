@@ -2,13 +2,17 @@ import { Entity } from '@core/types/entities/entity';
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { Optional } from '@core/types/optional';
 import { Cnpj } from './cnpj';
-import { User } from './user';
+import { Either, left, right } from '@core/either';
+import { DocumentoValidacao } from './documento-validacao';
+import { TransicaoInvalidaError } from '../application/errors/transicao-invalida.error';
+import { MotivoInsuficienteError } from '../application/errors/motivo-insuficiente.error';
 
 export enum InstituicaoStatus {
   PENDENTE_APROVACAO = 'PENDENTE_APROVACAO',
   APROVADA = 'APROVADA',
   REJEITADA = 'REJEITADA',
   SUSPENSA = 'SUSPENSA',
+  INATIVA = 'INATIVA',
 }
 
 export interface InstituicaoProps {
@@ -18,27 +22,31 @@ export interface InstituicaoProps {
   telefone: string;
   cep: string;
   logradouro: string;
-  numero: number;
+  numero: string;
   complemento?: string;
   bairro: string;
   cidade: string;
   uf: string;
   site: string;
-  email: string;
   contato: string;
   status: InstituicaoStatus;
-  decidido_por?: User | null;
-  decidido_em?: Date | null;
-  motivo_decisao?: string | null;
+  decididoPor?: UniqueEntityId | null;
+  decididoEm?: Date | null;
+  motivoDecisao?: string | null;
   createdAt: Date;
   updatedAt?: Date | null;
+  usuarioId?: UniqueEntityId | null;
+  causaId: UniqueEntityId;
+  descricao: string;
+  logoArquivoId?: UniqueEntityId | null;
+  documento: DocumentoValidacao;
 }
 
 export class Instituicao extends Entity<InstituicaoProps> {
   static create(
     props: Optional<
       InstituicaoProps,
-      'createdAt' | 'status' | 'decidido_por' | 'decidido_em' | 'motivo_decisao'
+      'createdAt' | 'status' | 'decididoPor' | 'decididoEm' | 'motivoDecisao'
     >,
     id?: UniqueEntityId,
   ): Instituicao {
@@ -77,7 +85,7 @@ export class Instituicao extends Entity<InstituicaoProps> {
     return this._props.logradouro;
   }
 
-  get numero(): number {
+  get numero(): string {
     return this._props.numero;
   }
 
@@ -101,40 +109,44 @@ export class Instituicao extends Entity<InstituicaoProps> {
     return this._props.site;
   }
 
-  get email(): string {
-    return this._props.email;
-  }
-
   get contato(): string {
     return this._props.contato;
+  }
+
+  get usuarioId(): UniqueEntityId | null | undefined {
+    return this._props.usuarioId;
+  }
+
+  get causaId(): UniqueEntityId {
+    return this._props.causaId;
+  }
+
+  get descricao(): string {
+    return this._props.descricao;
+  }
+
+  get logoArquivoId(): UniqueEntityId | null | undefined {
+    return this._props.logoArquivoId;
+  }
+
+  get documento(): DocumentoValidacao {
+    return this._props.documento;
   }
 
   get status(): InstituicaoStatus {
     return this._props.status;
   }
-  set status(status: InstituicaoStatus) {
-    this._props.status = status;
+
+  get decididoPor(): UniqueEntityId | null | undefined {
+    return this._props.decididoPor;
   }
 
-  get decidido_por(): User | null | undefined {
-    return this._props.decidido_por;
-  }
-  set decidido_por(user: User) {
-    this._props.decidido_por = user;
+  get decididoEm(): Date | null | undefined {
+    return this._props.decididoEm;
   }
 
-  get decidido_em(): Date | null | undefined {
-    return this._props.decidido_em;
-  }
-  set decidido_em(date: Date) {
-    this._props.decidido_em = date;
-  }
-
-  get motivo_decisao(): string | null | undefined {
-    return this._props.motivo_decisao;
-  }
-  set motivo_decisao(motivo: string) {
-    this._props.motivo_decisao = motivo;
+  get motivoDecisao(): string | null | undefined {
+    return this._props.motivoDecisao;
   }
 
   get createdAt(): Date {
@@ -143,5 +155,87 @@ export class Instituicao extends Entity<InstituicaoProps> {
 
   get updatedAt(): Date | null | undefined {
     return this._props.updatedAt;
+  }
+
+  aprovar(adminId: UniqueEntityId): Either<TransicaoInvalidaError, void> {
+    if (this._props.status !== InstituicaoStatus.PENDENTE_APROVACAO) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    this._props.status = InstituicaoStatus.APROVADA;
+    this._props.decididoPor = adminId;
+    this._props.decididoEm = new Date();
+
+    return right(void 0);
+  }
+
+  rejeitar(
+    adminId: UniqueEntityId,
+    motivo: string,
+  ): Either<TransicaoInvalidaError | MotivoInsuficienteError, void> {
+    if (this._props.status !== InstituicaoStatus.PENDENTE_APROVACAO) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    if (!motivo || motivo.trim().length < 20) {
+      return left(new MotivoInsuficienteError());
+    }
+
+    this._props.status = InstituicaoStatus.REJEITADA;
+    this._props.decididoPor = adminId;
+    this._props.decididoEm = new Date();
+    this._props.motivoDecisao = motivo;
+
+    return right(void 0);
+  }
+
+  suspender(adminId: UniqueEntityId): Either<TransicaoInvalidaError, void> {
+    if (this._props.status !== InstituicaoStatus.APROVADA) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    this._props.status = InstituicaoStatus.SUSPENSA;
+    this._props.decididoPor = adminId;
+    this._props.decididoEm = new Date();
+
+    return right(void 0);
+  }
+
+  reativar(adminId: UniqueEntityId): Either<TransicaoInvalidaError, void> {
+    if (this._props.status !== InstituicaoStatus.SUSPENSA) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    this._props.status = InstituicaoStatus.APROVADA;
+    this._props.decididoPor = adminId;
+    this._props.decididoEm = new Date();
+
+    return right(void 0);
+  }
+
+  inativar(adminId: UniqueEntityId): Either<TransicaoInvalidaError, void> {
+    if (this._props.status !== InstituicaoStatus.APROVADA) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    this._props.status = InstituicaoStatus.INATIVA;
+    this._props.decididoPor = adminId;
+    this._props.decididoEm = new Date();
+
+    return right(void 0);
+  }
+
+  reenviarParaAnalise(): Either<TransicaoInvalidaError, void> {
+    if (this._props.status !== InstituicaoStatus.REJEITADA) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    this._props.status = InstituicaoStatus.PENDENTE_APROVACAO;
+
+    return right(void 0);
+  }
+
+  estaDisponivelParaSelecao(): boolean {
+    return this._props.status === InstituicaoStatus.APROVADA;
   }
 }

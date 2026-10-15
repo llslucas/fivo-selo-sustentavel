@@ -38,6 +38,102 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: EMP-01 AC1 / src/domain/fivo/application/use-cases/criar-empresa.ts:150-151 (domain/fivo/application/use-cases)
 - last seen: 2026-09-18T15:12:11Z
 
+### L-005 - Assert result.isLeft() unconditionally before inspecting the error; never put expects inside an if on the Either
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain-tests` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation-dominio.md mutantes #18 #19 (causa.spec.ts:46,83) (domain-tests)
+- last seen: 2026-10-14T00:26:50Z
+
+### L-006 - Test optimistic concurrency by interleaving real calls against the in-memory double, not only by stubbing the CAS to return false
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain-tests` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation-dominio.md mutante #3, P1-Aprovação AC10 (domain-tests)
+- last seen: 2026-10-14T00:26:50Z
+
+### L-007 - Audit assertions must check author and timestamp, not just event type and states
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `audit` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation-dominio.md mutantes #16 #26, P1-Aprovação AC9, P1-Causas AC7 (audit)
+- last seen: 2026-10-14T00:26:51Z
+
+### L-008 - When a port promises normalized matching, cover it with an accented and mixed-case input in a use-case test
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `repo-doubles` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation-dominio.md P1-Causas AC2 (in-memory-causa-repository.ts findByNome) (repo-doubles)
+- last seen: 2026-10-14T00:26:51Z
+
+### L-009 - Boundary tests must hit the exact limit value on both sides
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain-tests` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation-dominio.md mutante #9 (listar-beneficiadas.ts < 2) (domain-tests)
+- last seen: 2026-10-14T00:26:51Z
+
+### L-010 - When a domain error changes status or message, update the exception-filter e2e table in the same commit
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `error-mapping` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: test/http/domain-exception-filter.e2e-spec.ts:65 (422 vs 409 after T1) (error-mapping)
+- last seen: 2026-10-14T00:26:51Z
+
+### L-011 - Every validation AC in a spec must state the exact user-facing error text, or tests fall back to toContain fragments
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation-dominio.md P1-Autocadastro AC8 (arquivo.spec.ts:247 toContain) (specs)
+- last seen: 2026-10-14T00:27:01Z
+
+### L-012 - A fix task for a conjunctive AC must list every operation the AC names, not only the ones in the previous gap list
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain-tests` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation-dominio.md rodada 2, mutantes N28 N29, P1-Causas AC6 (domain-tests)
+- last seen: 2026-10-14T01:02:45Z
+
+### L-013 - When a change is justified by 'otherwise X breaks', add a test that fails under X or label the change as robustness
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: tasks.md T37 Done-when, mutante N6 equivalente (specs)
+- last seen: 2026-10-14T01:02:45Z
+
+### L-014 - A design amendment must sweep component tables and task What lines, not only Done-when bullets
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation-dominio.md rodada 2, T47 residuos design.md:221 e tasks.md:1262 (specs)
+- last seen: 2026-10-14T01:02:45Z
+
+### L-015 - Cover each role guard with a wrong-role request whose body is also invalid, so the guard's 403 stays distinguishable from a use-case denial or a validation 422
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation.md M26 admin-causas.controller.ts:65, M27 admin-instituicoes.controller.ts:43 (routes)
+- last seen: 2026-10-14T02:32:16Z
+
+### L-016 - When a spec edge case requires showing an item state to a user, add an explicit field to the list response or record the UI deferral in the design
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: spec.md:196 edge case documento inacessível; design.md:311; tasks.md:1529 (design)
+- last seen: 2026-10-14T02:32:16Z
+
+### L-017 - Every quantity limit in a spec, such as exactly one file, must state the status and message returned when it is exceeded
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation.md SP2, Autocadastro AC7 (exatamente um arquivo -> 400 Unexpected field) (specs)
+- last seen: 2026-10-14T02:32:16Z
+
+### L-018 - Access-control ACs must state the response for unauthenticated callers separately from authenticated non-owners
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation.md SP5, Aprovação AC7 (anônimo 401 vs 403) (specs)
+- last seen: 2026-10-14T02:32:16Z
+
+### L-019 - When an AC lists fields to show or collect, name the exact attribute instead of an umbrella term like nome, link or site ou canal
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation.md SP3/SP6, Aprovação AC1 nome/link, Autocadastro AC1 site ou canal (specs)
+- last seen: 2026-10-14T02:32:16Z
+
+### L-020 - Give a task the full gate when it changes a use-case response that a route returns, because e2e tests assert route payloads with exact toEqual
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `tasks` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: c46080b: test/http/admin-instituicoes.e2e-spec.ts:174 red until 2a123fb (validation.md, Rodada 2 Gate Check) (tasks)
+- last seen: 2026-10-14T09:02:31Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

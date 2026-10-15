@@ -2,7 +2,7 @@ import { Entity } from '@core/types/entities/entity';
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { Optional } from '@core/types/optional';
 import { Either, left, right } from '@core/either';
-import { NomeCausaInvalidoError } from '../application/errors/beneficiada-ambigua.error';
+import { NomeCausaInvalidoError } from '../application/errors/nome-causa-invalido.error';
 import { TransicaoInvalidaError } from '../application/errors/transicao-invalida.error';
 
 export enum CausaStatus {
@@ -71,7 +71,7 @@ export class Causa extends Entity<CausaProps> {
     return true;
   }
 
-  inativar() {
+  inativar(): Either<TransicaoInvalidaError, void> {
     if (this._props.status === CausaStatus.INATIVA) {
       return left(new TransicaoInvalidaError());
     }
@@ -81,7 +81,10 @@ export class Causa extends Entity<CausaProps> {
     return right(void 0);
   }
 
-  editar(nome: string, descricao: string) {
+  editar(
+    nome: string,
+    descricao: string,
+  ): Either<NomeCausaInvalidoError | TransicaoInvalidaError, void> {
     if (!Causa.nomeValido(nome)) {
       return left(new NomeCausaInvalidoError());
     }
@@ -92,6 +95,8 @@ export class Causa extends Entity<CausaProps> {
 
     this._props.nome = nome;
     this._props.descricao = descricao;
+
+    return right(void 0);
   }
 
   estaAtiva() {

@@ -4,6 +4,6 @@ export class NomeCausaInvalidoError extends Error implements UseCaseError {
   readonly status = 422;
 
   constructor() {
-    super(`Instituição ou causa indisponível`);
+    super(`Nome da causa inválido`);
   }
 }

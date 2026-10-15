@@ -7,31 +7,71 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
 import Chip from "@mui/material/Chip";
+import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Drawer from "@mui/material/Drawer";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
+import Divider from "@mui/material/Divider";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
-import { mockEmpresaAtual } from "@/lib/campaign-wizard/types";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
+import { APP_ROUTES } from "@/lib/routes";
+import { useAuth } from "@/hooks/useAuth";
+
+// Pega as 2 primeiras iniciais do nome da empresa pro avatar (ex: "Café
+// Serra Verde" -> "CS"). Sem nome ainda (estado inicial), cai pro "--".
+function iniciaisDoNome(nome: string): string {
+  const palavras = nome.trim().split(/\s+/).filter(Boolean);
+  if (palavras.length === 0) return "--";
+  return palavras
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
+}
 
 const navLinks = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Campanhas", href: "/campanhas" },
-  { label: "Selos", href: "/selos" },
-  { label: "Comprovantes", href: "/comprovantes" },
+  { label: "Dashboard", href: APP_ROUTES.private.dashboard },
+  { label: "Campanhas", href: APP_ROUTES.private.campanhas },
+  { label: "Selos", href: APP_ROUTES.private.selos },
+  { label: "Comprovantes", href: APP_ROUTES.private.comprovantes },
 ];
 
 export default function AppHeader() {
   const pathname = usePathname();
-  const [menuAberto, setMenuAberto] = useState(false);
+  const router = useRouter();
+  const { empresa, logout } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const userMenuOpen = Boolean(anchorEl);
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
+  // AppHeader só renderiza dentro do AuthGuard (estado "autenticado"), então
+  // `empresa` já deveria estar preenchido aqui — o fallback é só segurança de tipo.
+  const nomeEmpresa = empresa?.nomeFantasia || empresa?.razaoSocial || "";
+  const iniciaisEmpresa = iniciaisDoNome(nomeEmpresa);
+
+  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseUserMenu = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    handleCloseUserMenu();
+    setMobileOpen(false);
+    // logout() do contexto já chama DELETE /sessoes/atual e limpa o estado
+    // local mesmo se a chamada falhar — só falta navegar pro login.
+    void logout().then(() => router.push(APP_ROUTES.public.login));
+  };
 
   return (
     <Box
@@ -48,23 +88,245 @@ export default function AppHeader() {
       <Container maxWidth="lg">
         <Stack
           direction="row"
-          sx={{ py: 2, alignItems: "center", justifyContent: "space-between" }}
+          sx={{ py: 1.75, alignItems: "center", justifyContent: "space-between" }}
         >
-          {/* Botão de menu (mobile) */}
-          <IconButton
-            aria-label="Abrir menu de navegação"
-            aria-expanded={menuAberto}
-            onClick={() => setMenuAberto(true)}
-            sx={{ display: { xs: "inline-flex", md: "none" }, mr: 1 }}
-          >
-            <MenuRoundedIcon />
-          </IconButton>
 
-          {/* Logo */}
           <Link
-            href="/"
-            aria-label="Fivo — ir para início"
+            href={APP_ROUTES.private.dashboard}
+            aria-label="Fivo — ir para o dashboard"
             style={{ color: "inherit", textDecoration: "none", flexShrink: 0 }}
+          >
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+              <Box
+                aria-hidden="true"
+                sx={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: "10px",
+                  bgcolor: "primary.main",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "primary.contrastText",
+                }}
+              >
+                <GrassRoundedIcon sx={{ fontSize: 20 }} />
+              </Box>
+              <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
+                Fivo
+              </Typography>
+            </Stack>
+          </Link>
+
+          <Stack
+            component="nav"
+            aria-label="Navegação principal"
+            direction="row"
+            spacing={4}
+            sx={{ display: { xs: "none", md: "flex" } }}
+          >
+            {navLinks.map((link) => {
+              const active = pathname === link.href || pathname.startsWith(link.href + "/");
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  aria-current={active ? "page" : undefined}
+                  style={{ textDecoration: "none" }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      position: "relative",
+                      py: 0.5,
+                      fontWeight: active ? 700 : 500,
+                      color: active ? "text.primary" : "text.secondary",
+                      transition: "color 0.15s ease",
+                      "&:hover": { color: "text.primary" },
+                      "&::after": {
+                        content: '""',
+                        position: "absolute",
+                        left: 0,
+                        right: active ? 0 : "100%",
+                        bottom: -4,
+                        height: "2px",
+                        bgcolor: "primary.main",
+                        transition: "right 0.2s ease",
+                      },
+                      "&:hover::after": { right: 0 },
+                    }}
+                  >
+                    {link.label}
+                  </Typography>
+                </Link>
+              );
+            })}
+          </Stack>
+
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", flexShrink: 0 }}>
+       
+            <Button
+              onClick={handleOpenUserMenu}
+              aria-label="Abrir menu da conta"
+              aria-haspopup="menu"
+              aria-expanded={userMenuOpen}
+              sx={{
+                p: 0.5,
+                borderRadius: 2,
+                color: "text.primary",
+                textTransform: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 1.25,
+                "&:hover": { bgcolor: "action.hover" },
+              }}
+            >
+              <Avatar
+                sx={{
+                  width: 36,
+                  height: 36,
+                  bgcolor: "primary.main",
+                  color: "primary.contrastText",
+                  fontWeight: 700,
+                  fontSize: "0.875rem",
+                }}
+              >
+                {iniciaisEmpresa}
+              </Avatar>
+
+              <Box sx={{ display: { xs: "none", md: "block" }, textAlign: "left" }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                  {nomeEmpresa}
+                </Typography>
+                <Chip
+                  label="Conta empresa"
+                  size="small"
+                  sx={{
+                    height: 18,
+                    fontSize: "0.625rem",
+                    fontWeight: 600,
+                    bgcolor: "primary.light",
+                    color: "primary.main",
+                    mt: 0.25,
+                    "& .MuiChip-label": { px: 0.75 },
+                  }}
+                />
+              </Box>
+
+              <KeyboardArrowDownRoundedIcon
+                sx={{
+                  fontSize: 18,
+                  color: "text.secondary",
+                  display: { xs: "none", md: "block" },
+                }}
+              />
+            </Button>
+
+
+            <Menu
+              anchorEl={anchorEl}
+              open={userMenuOpen}
+              onClose={handleCloseUserMenu}
+              transformOrigin={{ horizontal: "right", vertical: "top" }}
+              anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+              slotProps={{
+                paper: {
+                  sx: {
+                    mt: 1,
+                    minWidth: 200,
+                    borderRadius: 2,
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                    border: 1,
+                    borderColor: "divider",
+                    p: 0.5,
+                  },
+                },
+              }}
+            >
+              <Box sx={{ px: 2, py: 1.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  {nomeEmpresa}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Painel da Empresa
+                </Typography>
+              </Box>
+              <Divider sx={{ my: 0.5 }} />
+              <MenuItem
+                component={Link}
+                href={APP_ROUTES.private.dashboard}
+                onClick={handleCloseUserMenu}
+              >
+                Dashboard
+              </MenuItem>
+              <MenuItem
+                component={Link}
+                href={APP_ROUTES.private.campanhas}
+                onClick={handleCloseUserMenu}
+              >
+                Campanhas
+              </MenuItem>
+              <Divider sx={{ my: 0.5 }} />
+              <MenuItem onClick={handleLogout} sx={{ color: "error.main" }}>
+                <ListItemIcon sx={{ color: "error.main", minWidth: 32 }}>
+                  <LogoutRoundedIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Sair da conta" />
+              </MenuItem>
+            </Menu>
+
+            <IconButton
+              onClick={() => setMobileOpen(true)}
+              aria-label="abrir menu de navegação"
+              aria-expanded={mobileOpen}
+              sx={{
+                display: { xs: "flex", md: "none" },
+                p: 1,
+                borderRadius: "10px",
+                border: 1,
+                borderColor: "divider",
+                bgcolor: "background.default",
+                color: "text.primary",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+                "&:hover": {
+                  bgcolor: "action.hover",
+                },
+              }}
+            >
+              <MenuRoundedIcon sx={{ fontSize: 24, color: "#1B1B19" }} />
+            </IconButton>
+          </Stack>
+        </Stack>
+      </Container>
+
+   
+      <Drawer
+        anchor="right"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        slotProps={{
+          paper: {
+            sx: {
+              width: "82%",
+              maxWidth: 320,
+              bgcolor: "background.default",
+              p: 2.5,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            },
+          },
+        }}
+      >
+        <Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 2.5,
+            }}
           >
             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
               <Box
@@ -82,76 +344,53 @@ export default function AppHeader() {
               >
                 <GrassRoundedIcon sx={{ fontSize: 20 }} />
               </Box>
-              <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: "text.primary" }}>
                 Fivo
               </Typography>
             </Stack>
-          </Link>
 
-          {/* Nav links (desktop) */}
-          <Stack
-            component="nav"
-            aria-label="Navegação principal"
-            direction="row"
-            spacing={4}
-            sx={{ display: { xs: "none", md: "flex" } }}
+            <IconButton
+              onClick={() => setMobileOpen(false)}
+              aria-label="fechar menu"
+              sx={{
+                borderRadius: "10px",
+                border: 1,
+                borderColor: "divider",
+                color: "text.primary",
+                p: 0.75,
+              }}
+            >
+              <CloseRoundedIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Box>
+
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: 2,
+              bgcolor: "action.hover",
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              mb: 2,
+            }}
           >
-            {navLinks.map((link) => {
-              const active = isActive(link.href);
-              return (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  aria-current={active ? "page" : undefined}
-                  style={{ textDecoration: "none" }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      position: "relative",
-                      py: 0.5,
-                      fontWeight: active ? 700 : 400,
-                      color: active ? "text.primary" : "text.secondary",
-                      transition: "color 0.15s ease",
-                      "&:hover": { color: "text.primary" },
-                      "&::after": {
-                        content: '""',
-                        position: "absolute",
-                        left: 0,
-                        right: active ? 0 : "100%",
-                        bottom: 0,
-                        height: "2px",
-                        bgcolor: "primary.main",
-                        transition: "right 0.2s ease",
-                      },
-                      "&:hover::after": { right: 0 },
-                    }}
-                  >
-                    {link.label}
-                  </Typography>
-                </Link>
-              );
-            })}
-          </Stack>
-
-          {/* Company avatar */}
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", flexShrink: 0 }}>
             <Avatar
               aria-hidden="true"
               sx={{
-                width: 36,
-                height: 36,
+                width: 40,
+                height: 40,
                 bgcolor: "primary.main",
                 color: "primary.contrastText",
                 fontWeight: 700,
-                fontSize: "0.875rem",
+                fontSize: "0.9rem",
               }}
             >
-              {mockEmpresaAtual.iniciais}
+              {iniciaisEmpresa}
             </Avatar>
-            <Box sx={{ display: { xs: "none", md: "block" } }}>
+            <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                {mockEmpresaAtual.nome}
+                {nomeEmpresa}
               </Typography>
               <Chip
                 label="Conta empresa"
@@ -162,51 +401,93 @@ export default function AppHeader() {
                   fontWeight: 600,
                   bgcolor: "primary.light",
                   color: "primary.main",
-                  mt: 0.25,
+                  mt: 0.5,
                   "& .MuiChip-label": { px: 0.75 },
                 }}
               />
             </Box>
-          </Stack>
-        </Stack>
-      </Container>
+          </Box>
 
-      {/* Navegação mobile em drawer */}
-      <Drawer
-        anchor="left"
-        open={menuAberto}
-        onClose={() => setMenuAberto(false)}
-        slotProps={{ paper: { sx: { width: 260 } } }}
-      >
-        <Box
-          component="nav"
-          aria-label="Navegação principal"
-          sx={{ pt: 2 }}
-        >
-          <Typography variant="h6" component="span" sx={{ fontWeight: 700, px: 2 }}>
-            Fivo
-          </Typography>
-          <List sx={{ mt: 1 }}>
+          <Button
+            component={Link}
+            href="/campanhas/nova"
+            variant="contained"
+            fullWidth
+            startIcon={<AddRoundedIcon />}
+            onClick={() => setMobileOpen(false)}
+            sx={{
+              bgcolor: "primary.main",
+              color: "#ffffff",
+              py: 1.2,
+              borderRadius: 2,
+              fontWeight: 600,
+              textTransform: "none",
+              fontSize: "0.95rem",
+              boxShadow: "none",
+              mb: 2.5,
+              "&:hover": {
+                bgcolor: "#0D533D",
+              },
+            }}
+          >
+            Nova campanha
+          </Button>
+
+          <Divider sx={{ mb: 2 }} />
+
+          <Stack component="nav" aria-label="Navegação principal" spacing={0.75}>
             {navLinks.map((link) => {
-              const active = isActive(link.href);
+              const active = pathname === link.href || pathname.startsWith(link.href + "/");
               return (
-                <ListItem key={link.label} disablePadding>
-                  <ListItemButton
-                    component={Link}
-                    href={link.href}
-                    aria-current={active ? "page" : undefined}
-                    onClick={() => setMenuAberto(false)}
-                    selected={active}
-                  >
-                    <ListItemText
-                      primary={link.label}
-                      slotProps={{ primary: { sx: { fontWeight: active ? 700 : 400 } } }}
-                    />
-                  </ListItemButton>
-                </ListItem>
+                <Button
+                  key={link.label}
+                  component={Link}
+                  href={link.href}
+                  aria-current={active ? "page" : undefined}
+                  onClick={() => setMobileOpen(false)}
+                  sx={{
+                    justifyContent: "flex-start",
+                    py: 1.2,
+                    px: 1.5,
+                    borderRadius: 2,
+                    color: active ? "primary.main" : "text.primary",
+                    bgcolor: active ? "primary.light" : "transparent",
+                    fontSize: "0.95rem",
+                    fontWeight: active ? 700 : 500,
+                    textTransform: "none",
+                    "&:hover": {
+                      bgcolor: active ? "primary.light" : "action.hover",
+                    },
+                  }}
+                >
+                  {link.label}
+                </Button>
               );
             })}
-          </List>
+          </Stack>
+        </Box>
+
+        <Box sx={{ pt: 2, borderTop: 1, borderColor: "divider" }}>
+          <Button
+            onClick={handleLogout}
+            fullWidth
+            startIcon={<LogoutRoundedIcon />}
+            sx={{
+              justifyContent: "flex-start",
+              color: "error.main",
+              py: 1.2,
+              px: 1.5,
+              borderRadius: 2,
+              fontWeight: 600,
+              textTransform: "none",
+              fontSize: "0.95rem",
+              "&:hover": {
+                bgcolor: "action.hover",
+              },
+            }}
+          >
+            Sair da conta
+          </Button>
         </Box>
       </Drawer>
     </Box>

@@ -1,23 +1,6 @@
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import Hero from "@/components/home/Hero";
-import HowItWorks from "@/components/home/HowItWorks";
-import WhyTransparency from "@/components/home/WhyTransparency";
-import PartnerCompanies from "@/components/home/PartnerCompanies";
-import CtaBanner from "@/components/home/CtaBanner";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  return (
-    <>
-      <Header />
-      <main>
-        <Hero />
-        <HowItWorks />
-        <WhyTransparency />
-        <PartnerCompanies />
-        <CtaBanner />
-      </main>
-      <Footer />
-    </>
-  );
+// A landing mora em /home; a raiz só redireciona para não quebrar os links para "/".
+export default function Root() {
+  redirect("/home");
 }

@@ -1,0 +1,761 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Adicionar dependências de teste e script `test` em `web/package.json`": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088417887
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088428698
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089092481
+      }
+    ],
+    "1.2 Criar `web/vitest.config.ts`": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088418264
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089096916
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089180008
+      }
+    ],
+    "1.3 Documentar o comando de teste na documentação de `web/`": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088418336
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089100393
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089180951
+      }
+    ],
+    "2.1 Implementar setup global com guarda anti-rede e reset por teste": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088418457
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089185022
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089836748
+      }
+    ],
+    "3.1 Implementar `mockFetch.ts` (Mock_API)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088418543
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089844827
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090087209
+      }
+    ],
+    "3.2 Implementar `requestContract.ts` (asserção de Contrato_Requisicao)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088418613
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089846070
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090087991
+      }
+    ],
+    "3.3 Implementar `formData.ts` (utilitário de inspeção de FormData)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088418674
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089847485
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090088294
+      }
+    ],
+    "3.4 Implementar `authHarness.tsx` (harness de autenticação)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088418730
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090102320
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090270904
+      }
+    ],
+    "3.5 Implementar `viewport.ts` (viewport responsivo)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088418792
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089848866
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090089340
+      }
+    ],
+    "3.6 Implementar `moduleExists.ts` (detecção condicional)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088418849
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089849865
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090090419
+      }
+    ],
+    "4. Checkpoint - infraestrutura e helpers": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088418916
+      }
+    ],
+    "5.1 Property test: 204 retorna undefined sem parse": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088418981
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090279399
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090417443
+      }
+    ],
+    "5.2 Property test: round-trip de corpo JSON em 2xx": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419053
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090279486
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090418439
+      }
+    ],
+    "5.3 Property test: mapeamento de erros em ApiError": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419114
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090280569
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090419879
+      }
+    ],
+    "5.4 Property test: falha de rede vira ApiError com status 0": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419189
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090282022
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090420815
+      }
+    ],
+    "5.5 Property test: invariante de prefixo `/api` e `credentials`": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419256
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090282797
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090422026
+      }
+    ],
+    "6.1 Property test: login não toca armazenamento do frontend": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419323
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090428146
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090595188
+      }
+    ],
+    "6.2 Exemplos de contrato e resultados de `login`/`logout`": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419383
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090429512
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090596577
+      }
+    ],
+    "7.1 Property test: cadastro envia POST `/empresas` com FormData": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419448
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090430874
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090597854
+      }
+    ],
+    "7.2 Property test: campos obrigatórios sempre presentes no FormData": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419514
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090431882
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090599289
+      }
+    ],
+    "7.3 Property test: opcionais informados são incluídos no FormData": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419575
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090433290
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090600800
+      }
+    ],
+    "7.4 Property test: opcionais ausentes são omitidos do FormData": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419644
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090435182
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090601638
+      }
+    ],
+    "7.5 Property test: cadastro não define Content-Type manual": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419710
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090436093
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090603039
+      }
+    ],
+    "7.6 Exemplos de sucesso e edge de falha de `criarEmpresa`": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419767
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090436940
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090604090
+      }
+    ],
+    "8. Checkpoint - testes de unidade": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419823
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090626760
+      }
+    ],
+    "9.1 Property test: controles críticos têm papel e nome acessível": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088419913
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090650419
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091203341
+      }
+    ],
+    "9.2 Property test: campo em erro referencia programaticamente sua mensagem": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420013
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090651699
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091204640
+      }
+    ],
+    "9.3 Property test: controles críticos são operáveis por teclado": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420063
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090652520
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091206060
+      }
+    ],
+    "9.4 Exemplos responsivos de login e cadastro em 320px e 1280px": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420127
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090653994
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091207472
+      }
+    ],
+    "10.1 Exemplos de transições de estado do Contexto_Auth": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420183
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090655405
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091208401
+      }
+    ],
+    "10.2 Property test: área protegida oculta conteúdo privado em sessões inválidas": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420246
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090659049
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091209642
+      }
+    ],
+    "11.1 Verificar estados de carregamento, vazio, 401, validação, erro geral e rede": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420308
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091216675
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091635535
+      }
+    ],
+    "12. Checkpoint - componente e integração": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420372
+      }
+    ],
+    "13.1 Testes condicionais de `instituicoes.ts` e `campanhas.ts`": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420423
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091219422
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091636993
+      }
+    ],
+    "13.2 Testes condicionais de `selos.ts`": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420476
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091220935
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091638402
+      }
+    ],
+    "13.3 Testes condicionais de `comprovantes.ts`": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420541
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091221781
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091639770
+      }
+    ],
+    "13.4 Property test condicional: contrato de requisição dos serviços opcionais": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420605
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091218024
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091640797
+      }
+    ],
+    "14.1 Property test: guarda anti-rede bloqueia requisições não interceptadas": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420664
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091649745
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792092495317
+      }
+    ],
+    "14.2 Property test: independência de ordem de execução": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420776
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091651338
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792092496522
+      }
+    ],
+    "14.3 Verificação SMOKE de isolamento e fixtures inline": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420842
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091650714
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792092497652
+      }
+    ],
+    "15.1 Configurar `web/playwright.config.ts` e um percurso e2e mínimo": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420904
+      }
+    ],
+    "16. Checkpoint final - Ensure all tests pass": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792088420964
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792092603110
+      },
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792092636485
+      }
+    ],
+    "1. Configurar infraestrutura e runner de testes em `web/`": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089181018
+      }
+    ],
+    "2. Criar `web/tests/setup.ts` (bootstrap global da suíte)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792089836828
+      }
+    ],
+    "3. Implementar helpers de teste em `web/tests/helpers/`": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090270996
+      }
+    ],
+    "5. Testes de unidade do Cliente_HTTP (`web/tests/unit/api.test.ts`)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090422090
+      }
+    ],
+    "6. Testes de unidade do Servico_Auth (`web/tests/unit/auth.test.ts`)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090596688
+      }
+    ],
+    "7. Testes de unidade do Servico_Empresas (`web/tests/unit/empresas.test.ts`)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792090604147
+      }
+    ],
+    "9. Testes de componente de login e cadastro (`web/tests/component/`)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091207550
+      }
+    ],
+    "10. Testes de componente do Contexto_Auth e guarda de rota (`web/tests/component/auth.test.tsx`)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091209703
+      }
+    ],
+    "11. Testes de integração dos estados de UI (`web/tests/integration/ui-states.test.tsx`)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091635617
+      }
+    ],
+    "13. Testes condicionais de serviços opcionais (`web/tests/unit/*.conditional.test.ts`)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792091640880
+      }
+    ],
+    "14. Testes de isolamento da suíte (`web/tests/integration/isolation.test.ts`)": [
+      {
+        "executionId": "f7de1c9e-eb52-4f44-a57e-0e9e3d124c6b",
+        "chatSessionId": "sess_4dcae9bb-d837-4b0a-bec6-bacbc7ff10e5",
+        "timestamp": 1792092497730
+      }
+    ]
+  }
+}

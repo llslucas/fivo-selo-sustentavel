@@ -22,7 +22,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/catalogo-instituicoes/design.md`
-**Status**: Draft
+**Status**: Done — P1 do `api` verificado (`validation.md`, PASS na rodada 2, 2026-10-14)
 
 > **Escopo desta rodada: P1 (MVP) do `api`.** P2 (área logada da instituição, notas internas de curadoria) e as telas do `web` são rodadas separadas. Arquitetura de **AD-017** (hexagonal completa, contexto único `src/domain/fivo/`, rich domain model): regra de estado → método na entidade; valor restrito → value object; regra entre registros → caso de uso.
 >
@@ -127,7 +127,16 @@ T6 → T20
 T7 → T20
 ```
 
-> **⛔ Gate de handoff — domínio → infra.** Depois de T20: gate `build` verde, verificação independente do agente (`validation-dominio.md`) em PASS, e só então a Fase 6 começa.
+### Phase 5b: Hardening do domínio 👤 (+ T36, T47 🤖)
+
+Aberta pela verificação de handoff de 2026-10-13 (`validation-dominio.md`, veredito FAIL: eslint e e2e vermelhos, 7 de 28 mutantes vivos, lacunas em P1-Aprovação AC1/AC9/AC10 e P1-Causas AC2/AC7). Ordem sugerida: T35 e T36 primeiro (devolvem o gate ao verde), depois os Major (T37–T43), depois os Minor (T44–T48). T37, T41 e T43 mexem em `editar-causa.spec.ts`; feitas em sequência, não conflitam.
+
+```
+T46 → T47
+T47 → T50
+```
+
+> **⛔ Gate de handoff — domínio → infra.** Depois de T20 **e da Fase 5b**: gate `build` verde, nova verificação independente do agente (`validation-dominio.md`) em PASS, e só então a Fase 6 começa.
 
 ### Phase 6: Persistência (Prisma / PostgreSQL) 🤖
 
@@ -186,6 +195,18 @@ T32 → T34
 T33 → T34
 ```
 
+### Phase 9b: Correções da verificação da infra 🤖
+
+Aberta pela rodada 1 da verificação da infra (`validation.md`, 2026-10-14, veredito FAIL): edge case da fila sem o sinal de documento indisponível e mutantes M26/M27 (guards de papel) vivos.
+
+```
+T14 → T51
+T26 → T51
+T30 → T52
+T51 → T52
+T33 → T53
+```
+
 ---
 
 ## Task Breakdown
@@ -206,10 +227,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Criados: `DocumentoObrigatorioError` (422), `DescricaoDocumentoInvalidaError` (422), `CausaIndisponivelError` (422), `CausaJaExisteError` (409), `CausaComInstituicoesAprovadasError` (409, expõe `instituicoes: string[]`), `NomeCausaInvalidoError` (422), `BeneficiadaIndisponivelError` (422), `BeneficiadaAmbiguaError` (422), `DocumentoIndisponivelError` (503)
-- [ ] Mensagens exatamente como na tabela do design (a spec cita o texto ao usuário)
-- [ ] `InstituicaoAlreadyExistsError` passa a `status = 409` e mensagem `CNPJ ou e-mail já cadastrado`
-- [ ] Gate `quick` passa
+- [x] Criados: `DocumentoObrigatorioError` (422), `DescricaoDocumentoInvalidaError` (422), `CausaIndisponivelError` (422), `CausaJaExisteError` (409), `CausaComInstituicoesAprovadasError` (409, expõe `instituicoes: string[]`), `NomeCausaInvalidoError` (422), `BeneficiadaIndisponivelError` (422), `BeneficiadaAmbiguaError` (422), `DocumentoIndisponivelError` (503)
+- [x] Mensagens exatamente como na tabela do design (a spec cita o texto ao usuário)
+- [x] `InstituicaoAlreadyExistsError` passa a `status = 409` e mensagem `CNPJ ou e-mail já cadastrado`
+- [x] Gate `quick` passa
 
 **Tests**: none (camada de erros — build gate, exercitada pelos casos de uso)
 **Gate**: quick
@@ -235,11 +256,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `Causa.criar` valida nome não vazio e ≤ 80 caracteres, devolvendo `Either<NomeCausaInvalidoError, Causa>`
-- [ ] Estado inicial `CausaStatus.ATIVA`; `inativar()` só a partir de `ATIVA`, senão `TransicaoInvalidaError`
-- [ ] `editar(nome, descricao)` revalida o nome e recusa causa `INATIVA`
-- [ ] `causa.spec.ts` cobre cada ramo acima (incluindo nome só de espaços e nome no limite de 80)
-- [ ] Gate `quick` passa
+- [x] `Causa.criar` valida nome não vazio e ≤ 80 caracteres, devolvendo `Either<NomeCausaInvalidoError, Causa>`
+- [x] Estado inicial `CausaStatus.ATIVA`; `inativar()` só a partir de `ATIVA`, senão `TransicaoInvalidaError`
+- [x] `editar(nome, descricao)` revalida o nome e recusa causa `INATIVA`
+- [x] `causa.spec.ts` cobre cada ramo acima (incluindo nome só de espaços e nome no limite de 80)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -265,11 +286,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `DocumentoValidacao.criar(arquivoId, descricao?)` devolve `DocumentoObrigatorioError` quando `arquivoId` é ausente, vazio ou só espaços
-- [ ] Devolve `DescricaoDocumentoInvalidaError` com descrição > 200 caracteres; aceita exatamente 200; aceita ausente/nula
-- [ ] Getters `arquivoId: UniqueEntityId` e `descricao: string | null`
-- [ ] `documento-validacao.spec.ts` cobre cada ramo, incluindo o limite exato
-- [ ] Gate `quick` passa
+- [x] `DocumentoValidacao.criar(arquivoId, descricao?)` devolve `DocumentoObrigatorioError` quando `arquivoId` é ausente, vazio ou só espaços
+- [x] Devolve `DescricaoDocumentoInvalidaError` com descrição > 200 caracteres; aceita exatamente 200; aceita ausente/nula
+- [x] Getters `arquivoId: UniqueEntityId` e `descricao: string | null`
+- [x] `documento-validacao.spec.ts` cobre cada ramo, incluindo o limite exato
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -295,11 +316,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `DOCUMENTO_INSTITUICAO` aceita `application/pdf`, `image/jpeg`, `image/png`, limite 10 MB, **sem** exigência de dimensão mínima
-- [ ] `LOGO_INSTITUICAO` replica as regras de `LOGO_EMPRESA` (PNG/JPG/SVG, 5 MB, 512×512 para raster, sanitização de SVG)
-- [ ] O limite citado na mensagem de erro corresponde ao tipo avaliado (não mais "5 MB" fixo)
-- [ ] `arquivo.spec.ts` cobre: PDF aceito como documento, PDF rejeitado como logo, 10 MB aceito / 10 MB + 1 byte rejeitado, raster 300×300 aceito como documento e rejeitado como logo
-- [ ] Gate `quick` passa
+- [x] `DOCUMENTO_INSTITUICAO` aceita `application/pdf`, `image/jpeg`, `image/png`, limite 10 MB, **sem** exigência de dimensão mínima
+- [x] `LOGO_INSTITUICAO` replica as regras de `LOGO_EMPRESA` (PNG/JPG/SVG, 5 MB, 512×512 para raster, sanitização de SVG)
+- [x] O limite citado na mensagem de erro corresponde ao tipo avaliado (não mais "5 MB" fixo)
+- [x] `arquivo.spec.ts` cobre: PDF aceito como documento, PDF rejeitado como logo, 10 MB aceito / 10 MB + 1 byte rejeitado, raster 300×300 aceito como documento e rejeitado como logo
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -325,13 +346,13 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Props alinhadas ao design: `numero: string`, sem `email`, `decididoPor: UniqueEntityId`, camelCase, mais `usuarioId`, `causaId`, `descricao`, `logoArquivoId`, `documento: DocumentoValidacao`
-- [ ] Nenhum setter público; todo acesso de escrita passa por método de transição
-- [ ] `InstituicaoStatus` ganha `INATIVA`; métodos `aprovar`, `rejeitar`, `suspender`, `reativar`, `inativar`, `reenviarParaAnalise` devolvem `Either`
-- [ ] `estaDisponivelParaSelecao()` só é `true` em `APROVADA`
-- [ ] `instituicao.spec.ts` cobre cada transição válida e pelo menos uma inválida por método, além de motivo curto na rejeição
-- [ ] `test/factories/instituicao-factory.ts`, `campanha-factory.ts` e `criar-campanha.spec.ts` continuam compilando e verdes (ajuste mecânico de props)
-- [ ] Gate `quick` passa
+- [x] Props alinhadas ao design: `numero: string`, sem `email`, `decididoPor: UniqueEntityId`, camelCase, mais `usuarioId`, `causaId`, `descricao`, `logoArquivoId`, `documento: DocumentoValidacao`
+- [x] Nenhum setter público; todo acesso de escrita passa por método de transição
+- [x] `InstituicaoStatus` ganha `INATIVA`; métodos `aprovar`, `rejeitar`, `suspender`, `reativar`, `inativar`, `reenviarParaAnalise` devolvem `Either`
+- [x] `estaDisponivelParaSelecao()` só é `true` em `APROVADA`
+- [x] `instituicao.spec.ts` cobre cada transição válida e pelo menos uma inválida por método, além de motivo curto na rejeição
+- [x] `test/factories/instituicao-factory.ts`, `campanha-factory.ts` e `criar-campanha.spec.ts` continuam compilando e verdes (ajuste mecânico de props)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -355,10 +376,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Porta com `findById`, `findByNome`, `listarAtivas`, `create`, `save`
-- [ ] `test/repositories/in-memory-causa-repository.ts` implementa a porta; `findByNome` ignora caixa e acento (`normalize('NFD')` + remoção de diacríticos), igual ao que o adaptador Prisma fará
-- [ ] `test/factories/causa-factory.ts` cria causa válida com override de props
-- [ ] Gate `quick` passa
+- [x] Porta com `findById`, `findByNome`, `listarAtivas`, `create`, `save`
+- [x] `test/repositories/in-memory-causa-repository.ts` implementa a porta; `findByNome` ignora caixa e acento (`normalize('NFD')` + remoção de diacríticos), igual ao que o adaptador Prisma fará
+- [x] `test/factories/causa-factory.ts` cria causa válida com override de props
+- [x] Gate `quick` passa
 
 **Tests**: none (porta + doubles — build gate; exercitados em T9–T12)
 **Gate**: quick
@@ -382,10 +403,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Porta com `findById`, `findByCnpj`, `findByUsuarioId`, `listarPorEstado(estado, ordem)`, `listarAprovadasPorCausa(causaId)`, `buscarDisponiveis(termo?)`, `create`, `save`, `salvarTransicao(instituicao, estadoEsperado): Promise<boolean>`
-- [ ] Documentado no contrato que `save` **não** grava `status`, `decididoPor`, `decididoEm` nem `motivoDecisao` (mesma armadilha resolvida em `EmpresaRepository`)
-- [ ] `test/repositories/in-memory-instituicao-repository.ts` reescrito: `salvarTransicao` devolve `false` quando o estado persistido difere do esperado; `buscarDisponiveis` filtra `APROVADA` e compara sem acento/caixa; `listarPorEstado` ordena por `createdAt`
-- [ ] Gate `quick` passa
+- [x] Porta com `findById`, `findByCnpj`, `findByUsuarioId`, `listarPorEstado(estado, ordem)`, `listarAprovadasPorCausa(causaId)`, `buscarDisponiveis(termo?)`, `create`, `save`, `salvarTransicao(instituicao, estadoEsperado): Promise<boolean>` (`buscarDisponiveis` removido depois, na T46)
+- [x] Documentado no contrato que `save` **não** grava `status`, `decididoPor`, `decididoEm` nem `motivoDecisao` (mesma armadilha resolvida em `EmpresaRepository`)
+- [x] `test/repositories/in-memory-instituicao-repository.ts` reescrito: `salvarTransicao` devolve `false` quando o estado persistido difere do esperado; `buscarDisponiveis` filtra `APROVADA` e compara sem acento/caixa; `listarPorEstado` ordena por `createdAt`
+- [x] Gate `quick` passa
 
 **Tests**: none (porta + double — build gate; exercitados em T13–T20)
 **Gate**: quick
@@ -409,9 +430,9 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `abstract estaLegivel(arquivoId: string): Promise<boolean>`
-- [ ] `test/arquivo/fake-verificador-de-documento.ts` permite marcar um arquivo como ilegível no teste
-- [ ] Gate `quick` passa
+- [x] `abstract estaLegivel(arquivoId: string): Promise<boolean>`
+- [x] `test/arquivo/fake-verificador-de-documento.ts` permite marcar um arquivo como ilegível no teste
+- [x] Gate `quick` passa
 
 **Tests**: none (porta + fake — build gate; exercitado em T15)
 **Gate**: quick
@@ -437,11 +458,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Usuário sem papel `ADMIN` → `NotAllowedError`, sem escrita
-- [ ] Nome já existente (ignorando caixa e acento) → `CausaJaExisteError`
-- [ ] Sucesso: causa `ATIVA` persistida e registro de auditoria com autor e data-hora
-- [ ] `criar-causa.spec.ts` cobre os três ramos + nome inválido vindo da entidade
-- [ ] Gate `quick` passa
+- [x] Usuário sem papel `ADMIN` → `NotAllowedError`, sem escrita
+- [x] Nome já existente (ignorando caixa e acento) → `CausaJaExisteError`
+- [x] Sucesso: causa `ATIVA` persistida e registro de auditoria com autor e data-hora
+- [x] `criar-causa.spec.ts` cobre os três ramos + nome inválido vindo da entidade
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -467,12 +488,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Não-admin → `NotAllowedError`; causa inexistente → `ResourceNotFoundError`
-- [ ] Renomear para um nome já usado por outra causa → `CausaJaExisteError`; manter o próprio nome é permitido
-- [ ] Causa `INATIVA` → `TransicaoInvalidaError` (vindo da entidade)
-- [ ] Sucesso persiste e registra auditoria
-- [ ] `editar-causa.spec.ts` cobre cada ramo
-- [ ] Gate `quick` passa
+- [x] Não-admin → `NotAllowedError`; causa inexistente → `ResourceNotFoundError`
+- [x] Renomear para um nome já usado por outra causa → `CausaJaExisteError`; manter o próprio nome é permitido
+- [x] Causa `INATIVA` → `TransicaoInvalidaError` (vindo da entidade)
+- [x] Sucesso persiste e registra auditoria
+- [x] `editar-causa.spec.ts` cobre cada ramo
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -498,12 +519,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Não-admin → `NotAllowedError`; causa inexistente → `ResourceNotFoundError`
-- [ ] Com instituições `APROVADA` vinculadas → `CausaComInstituicoesAprovadasError` contendo os nomes, sem alterar estado
-- [ ] Instituições em outros estados não bloqueiam a inativação
-- [ ] Sucesso: `INATIVA` persistida, registro preservado, auditoria gravada
-- [ ] `inativar-causa.spec.ts` cobre cada ramo
-- [ ] Gate `quick` passa
+- [x] Não-admin → `NotAllowedError`; causa inexistente → `ResourceNotFoundError`
+- [x] Com instituições `APROVADA` vinculadas → `CausaComInstituicoesAprovadasError` contendo os nomes, sem alterar estado
+- [x] Instituições em outros estados não bloqueiam a inativação
+- [x] Sucesso: `INATIVA` persistida, registro preservado, auditoria gravada
+- [x] `inativar-causa.spec.ts` cobre cada ramo
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -529,10 +550,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Devolve apenas causas `ATIVA`, ordenadas alfabeticamente por nome (sem distinção de acento/caixa)
-- [ ] Catálogo vazio devolve `[]`, não erro
-- [ ] `listar-causas-ativas.spec.ts` cobre ordenação, filtro por estado e lista vazia
-- [ ] Gate `quick` passa
+- [x] Devolve apenas causas `ATIVA`, ordenadas alfabeticamente por nome (sem distinção de acento/caixa)
+- [x] Catálogo vazio devolve `[]`, não erro
+- [x] `listar-causas-ativas.spec.ts` cobre ordenação, filtro por estado e lista vazia
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -558,12 +579,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Ordem de validação: `Senha` → `Cnpj` → `DocumentoValidacao` → causa ativa → unicidade (CNPJ na instituição, e-mail global em `usuario`)
-- [ ] Usuário e instituição criados dentro de `unitOfWork.executar`, com `usuarioId` vinculado e estado `PENDENTE_APROVACAO`
-- [ ] Senha persistida apenas como hash (`Hasher`), nunca em texto claro — asserido no teste
-- [ ] Falha no envio de e-mail não derruba o cadastro (mesmo tratamento de `criar-empresa`)
-- [ ] `criar-instituicao.spec.ts` cobre cada AC acima, um ramo por teste
-- [ ] Gate `quick` passa
+- [x] Ordem de validação: `Senha` → `Cnpj` → `DocumentoValidacao` → causa ativa → unicidade (CNPJ na instituição, e-mail global em `usuario`)
+- [x] Usuário e instituição criados dentro de `unitOfWork.executar`, com `usuarioId` vinculado e estado `PENDENTE_APROVACAO`
+- [x] Senha persistida apenas como hash (`Hasher`), nunca em texto claro — asserido no teste
+- [x] Falha no envio de e-mail não derruba o cadastro (mesmo tratamento de `criar-empresa`)
+- [x] `criar-instituicao.spec.ts` cobre cada AC acima, um ramo por teste
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -589,12 +610,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Devolve apenas `PENDENTE_APROVACAO`, ordem ascendente por `createdAt`
-- [ ] Cada item traz nome, CNPJ, nome da causa, cidade, UF, `createdAt`, `documentoArquivoId` e e-mail do usuário
-- [ ] Item traz `cnpjCoincideComEmpresa: boolean`
-- [ ] Não-admin → `NotAllowedError`
-- [ ] `listar-fila-instituicoes.spec.ts` cobre ordenação, filtro, sinal de coincidência e papel
-- [ ] Gate `quick` passa
+- [x] Devolve apenas `PENDENTE_APROVACAO`, ordem ascendente por `createdAt`
+- [x] Cada item traz nome, CNPJ, nome da causa, cidade, UF, `createdAt`, `documentoArquivoId` e e-mail do usuário
+- [x] Item traz `cnpjCoincideComEmpresa: boolean`
+- [x] Não-admin → `NotAllowedError`
+- [x] `listar-fila-instituicoes.spec.ts` cobre ordenação, filtro, sinal de coincidência e papel
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -620,12 +641,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Devolve `Either` (nunca `throw`): `NotAllowedError`, `ResourceNotFoundError`, `TransicaoInvalidaError`, `DocumentoIndisponivelError`
-- [ ] `VerificadorDeDocumento.estaLegivel` consultado antes da transição; `false` → `DocumentoIndisponivelError` e estado inalterado
-- [ ] `salvarTransicao` com o estado anterior; `false` → `TransicaoInvalidaError`
-- [ ] Auditoria com autor, estado anterior, estado novo e data-hora; e-mail de aprovação best-effort
-- [ ] `aprovar-instituicao.spec.ts` cobre cada ramo acima
-- [ ] Gate `quick` passa
+- [x] Devolve `Either` (nunca `throw`): `NotAllowedError`, `ResourceNotFoundError`, `TransicaoInvalidaError`, `DocumentoIndisponivelError`
+- [x] `VerificadorDeDocumento.estaLegivel` consultado antes da transição; `false` → `DocumentoIndisponivelError` e estado inalterado
+- [x] `salvarTransicao` com o estado anterior; `false` → `TransicaoInvalidaError`
+- [x] Auditoria com autor, estado anterior, estado novo e data-hora; e-mail de aprovação best-effort
+- [x] `aprovar-instituicao.spec.ts` cobre cada ramo acima
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -651,11 +672,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Motivo com menos de 20 caracteres → `MotivoInsuficienteError`, sem escrita
-- [ ] Estado `REJEITADA` com motivo persistido; e-mail leva o motivo em `dados`
-- [ ] Decisão concorrente → `TransicaoInvalidaError` via `salvarTransicao`
-- [ ] `rejeitar-instituicao.spec.ts` cobre cada ramo
-- [ ] Gate `quick` passa
+- [x] Motivo com menos de 20 caracteres → `MotivoInsuficienteError`, sem escrita
+- [x] Estado `REJEITADA` com motivo persistido; e-mail leva o motivo em `dados`
+- [x] Decisão concorrente → `TransicaoInvalidaError` via `salvarTransicao`
+- [x] `rejeitar-instituicao.spec.ts` cobre cada ramo
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -681,11 +702,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Ambos devolvem `Either`, exigem papel `ADMIN` e usam `salvarTransicao`
-- [ ] Suspender a partir de estado diferente de `APROVADA` → `TransicaoInvalidaError`; reativar a partir de estado diferente de `SUSPENSA` → idem
-- [ ] Auditoria gravada nos dois casos
-- [ ] `suspender-instituicao.spec.ts` e `reativar-instituicao.spec.ts` cobrem cada ramo
-- [ ] Gate `quick` passa
+- [x] Ambos devolvem `Either`, exigem papel `ADMIN` e usam `salvarTransicao`
+- [x] Suspender a partir de estado diferente de `APROVADA` → `TransicaoInvalidaError`; reativar a partir de estado diferente de `SUSPENSA` → idem
+- [x] Auditoria gravada nos dois casos
+- [x] `suspender-instituicao.spec.ts` e `reativar-instituicao.spec.ts` cobrem cada ramo
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -711,11 +732,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Só a partir de `APROVADA`; qualquer outro estado → `TransicaoInvalidaError`
-- [ ] Registro continua existindo e legível por `findById` após a inativação — asserido no teste
-- [ ] Auditoria gravada; não-admin → `NotAllowedError`
-- [ ] `inativar-instituicao.spec.ts` cobre cada ramo
-- [ ] Gate `quick` passa
+- [x] Só a partir de `APROVADA`; qualquer outro estado → `TransicaoInvalidaError`
+- [x] Registro continua existindo e legível por `findById` após a inativação — asserido no teste
+- [x] Auditoria gravada; não-admin → `NotAllowedError`
+- [x] `inativar-instituicao.spec.ts` cobre cada ramo
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -741,12 +762,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Devolve `BeneficiadaDisponivel[]` conforme o design — sem CNPJ, e-mail, telefone, endereço completo, documento ou dados de decisão
-- [ ] Instituições em `PENDENTE_APROVACAO`, `REJEITADA`, `SUSPENSA` e `INATIVA` ficam de fora (um teste por estado)
-- [ ] Termo com menos de 2 caracteres é ignorado (lista completa); busca casa "Fundacao" com "Fundação" e ignora caixa
-- [ ] Ordenação alfabética por nome, misturando instituições e causas
-- [ ] `listar-beneficiadas.spec.ts` cobre cada AC acima
-- [ ] Gate `quick` passa
+- [x] Devolve `BeneficiadaDisponivel[]` conforme o design — sem CNPJ, e-mail, telefone, endereço completo, documento ou dados de decisão
+- [x] Instituições em `PENDENTE_APROVACAO`, `REJEITADA`, `SUSPENSA` e `INATIVA` ficam de fora (um teste por estado)
+- [x] Termo com menos de 2 caracteres é ignorado (lista completa); busca casa "Fundacao" com "Fundação" e ignora caixa
+- [x] Ordenação alfabética por nome, misturando instituições e causas
+- [x] `listar-beneficiadas.spec.ts` cobre cada AC acima
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -772,12 +793,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Instituição e causa juntas, ou nenhuma das duas → `BeneficiadaAmbiguaError`
-- [ ] Instituição inexistente ou fora de `APROVADA` → `BeneficiadaIndisponivelError` (um teste por estado)
-- [ ] Causa inexistente ou `INATIVA` → `BeneficiadaIndisponivelError`
-- [ ] Caso feliz devolve `right` para cada um dos dois tipos de beneficiada
-- [ ] `assegurar-beneficiada-disponivel.spec.ts` cobre cada ramo
-- [ ] Gate `build` passa (fim da metade de domínio)
+- [x] Instituição e causa juntas, ou nenhuma das duas → `BeneficiadaAmbiguaError`
+- [x] Instituição inexistente ou fora de `APROVADA` → `BeneficiadaIndisponivelError` (um teste por estado)
+- [x] Causa inexistente ou `INATIVA` → `BeneficiadaIndisponivelError`
+- [x] Caso feliz devolve `right` para cada um dos dois tipos de beneficiada
+- [x] `assegurar-beneficiada-disponivel.spec.ts` cobre cada ramo
+- [x] Gate `build` passa (fim da metade de domínio)
 
 **Tests**: unit
 **Gate**: build
@@ -787,7 +808,466 @@ T33 → T34
 
 > ### ⛔ Gate de handoff — domínio → infra
 >
-> Antes de T21: (1) gate `build` verde; (2) o agente roda verificação independente sobre `src/domain/**` (checagem ancorada na spec + sensor de discriminação) e escreve `.specs/features/catalogo-instituicoes/validation-dominio.md`; (3) lacunas viram tasks humanas de correção (T20a, T20b…) e são fechadas antes da Fase 6.
+> Antes de T21: (1) gate `build` verde; (2) o agente roda verificação independente sobre `src/domain/**` (checagem ancorada na spec + sensor de discriminação) e escreve `.specs/features/catalogo-instituicoes/validation-dominio.md`; (3) lacunas viram tasks de correção na Fase 5b (T35–T48) e são fechadas antes da Fase 6.
+>
+> **Rodada 1 (2026-10-13): FAIL** → Fase 5b abaixo (T35–T48). **Rodada 2 (2026-10-13): FAIL** por uma lacuna só de teste (P1-Causas AC6, mutantes N28/N29) → T49, T50. **Rodada 3 (2026-10-13): PASS ✅**: gate `build` verde, 35/35 ACs P1 de domínio, 40 mutantes no total, 39 mortos e 1 equivalente (N6). A Fase 6 está liberada.
+
+---
+
+### Hardening do domínio (Fase 5b)
+
+> Origem de cada task: `validation-dominio.md` §Fix Plans (mutantes e ACs citados lá). Dono pela regra de caminho do AD-020: `src/domain/**`, `src/core/**`, `test/repositories/**`, `test/factories/**` → 👤 humano; o resto → 🤖 agente.
+
+### T35: Quebra de linha final nos arquivos do catálogo
+
+**What**: Acrescentar a quebra de linha final exigida pelo prettier, devolvendo o `eslint` do gate ao verde.
+**Where**: `src/domain/fivo/application/errors/beneficiada-ambigua.error.ts`, `src/domain/fivo/application/use-cases/assegurar-beneficiada-disponivel.ts`, `assegurar-beneficiada-disponivel.spec.ts`, `listar-beneficiadas.ts`, `listar-beneficiadas.spec.ts`
+**Depends on**: None
+**Reuses**: `npx eslint --fix`
+**Requirement**: INST-08, INST-09
+**Autor**: 👤 humano
+**Severidade**: Blocker
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] `npx eslint "{src,test}/**/*.ts"` sai com 0
+- [x] Gate `quick` passa
+
+**Tests**: none
+**Gate**: quick
+**Commit**: `style(api): adiciona quebra de linha final nos arquivos do catálogo`
+
+---
+
+### T36: Status de `InstituicaoAlreadyExistsError` no e2e do filtro
+
+**What**: Alinhar `STATUS_ESPERADO['instituicao-ja-existe']` a 409. A T1 moveu o erro para 409 por exigência da spec (P1-Autocadastro AC3), e o e2e do filtro ficou desatualizado.
+**Where**: `test/http/domain-exception-filter.e2e-spec.ts`
+**Depends on**: None
+**Reuses**: entrada `empresa-ja-existe` da mesma tabela
+**Requirement**: INST-01
+**Autor**: 🤖 agente (arquivo de infra; não toca `src/domain/**`)
+**Severidade**: Blocker
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] O e2e do filtro espera 409 para `instituicao-ja-existe` (a mensagem segue conferida contra a do próprio erro, `CNPJ ou e-mail já cadastrado`)
+- [x] Suíte e2e 205/205
+- [x] Gate `full` passa, exceto o eslint da T35, que é humano
+
+**Tests**: e2e
+**Gate**: full
+**Commit**: `test(api): alinha status de InstituicaoAlreadyExistsError a 409 no e2e do filtro`
+
+---
+
+### T37: Unicidade de causa ignora caixa e acento no double
+
+**What**: `InMemoryCausaRepository.findByNome` hoje normaliza só a entrada (`NFD`) e compara com o nome armazenado sem normalizar. Por isso não encontra nem `"Educação"` exato, e `CriarCausa` aceita a duplicata. A correção normaliza os dois lados (NFD, sem diacríticos, minúscula) e documenta o contrato na porta.
+**Where**: `test/repositories/in-memory-causa-repository.ts`, `src/domain/fivo/application/ports/database/causa-repository.ts`, `src/domain/fivo/application/use-cases/editar-causa.ts`, `criar-causa.spec.ts`, `editar-causa.spec.ts`
+**Depends on**: None
+**Reuses**: normalização de `listar-beneficiadas.ts`
+**Requirement**: INST-07
+**Autor**: 👤 humano
+**Severidade**: Major
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos** (P1-Causas): AC2.
+
+**Done when**:
+
+- [x] Com `"Educação"` cadastrada, criar `"educacao"` e criar `"Educação"` devolvem `CausaJaExisteError` (status 409, mensagem `Causa já cadastrada`)
+- [x] Renomear uma causa para `"SAÚDE"` quando existe outra `"Saude"` devolve `CausaJaExisteError`
+- [x] Mudar só caixa/acento do próprio nome (`"Saude"` → `"Saúde"`) continua permitido: `EditarCausa` passa a comparar a causa encontrada por **id**, não por nome. É robustez, não correção: com nomes únicos, a comparação por nome dá o mesmo resultado (mutante N6 equivalente, rodada 2)
+- [x] JSDoc da porta diz que `findByNome` ignora caixa e acento
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(api): unicidade de causa ignora caixa e acento no double em memória`
+
+---
+
+### T38: `CausaRepository.create` recebe a entidade
+
+**What**: Trocar `create(props: CausaProps)` por `create(causa: Causa)`. Do jeito atual, o adaptador Prisma (T22) recebe props sem `id`. O double já recebe a entidade na prática.
+**Where**: `src/domain/fivo/application/ports/database/causa-repository.ts`
+**Depends on**: None
+**Reuses**: `InstituicaoRepository.create`
+**Requirement**: INST-07
+**Autor**: 👤 humano
+**Severidade**: Major (contrato de handoff com T22)
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] A porta declara `create(causa: Causa): Promise<void>`
+- [x] Gate `quick` passa
+
+**Tests**: none
+**Gate**: quick
+**Commit**: `fix(api): porta de causa recebe a entidade no create`
+
+---
+
+### T39: Fila de instituições exibe o nome da causa
+
+**What**: Hoje `ListarFilaInstituicoesUseCase` devolve o id da causa no campo `causa`, e o teste fixa esse comportamento. A correção injeta `CausaRepository` e devolve o nome da causa. Também renomeia `documentArquivoId` → `documentoArquivoId` e torna `cnpjCoincideComEmpresa` um `boolean`, como pede a T14.
+**Where**: `src/domain/fivo/application/use-cases/listar-fila-instituicoes.ts`, `listar-fila-instituicoes.spec.ts`
+**Depends on**: None
+**Reuses**: T14
+**Requirement**: INST-04
+**Autor**: 👤 humano
+**Severidade**: Major
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos** (P1-Aprovação): AC1.
+
+**Done when**:
+
+- [x] O teste confere `causa` igual ao **nome** de uma causa criada no próprio teste (não o id)
+- [x] O item expõe `documentoArquivoId`
+- [x] `cnpjCoincideComEmpresa` é `true` quando há empresa com o mesmo CNPJ e `false` quando não há, cada caso com seu teste
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(api): fila de instituições exibe o nome da causa`
+
+---
+
+### T40: Autor e data-hora conferidos em toda auditoria
+
+**What**: Nenhum teste confere o autor (`usuarioId`) nem a data-hora (`criadoEm`) do registro de auditoria. Por isso os mutantes #16 e #26 sobreviveram. A correção acrescenta essas asserções em todo teste de sucesso que grava auditoria.
+**Where**: `src/domain/fivo/application/use-cases/{aprovar,rejeitar,suspender,reativar,inativar}-instituicao.spec.ts`, `{criar,editar,inativar}-causa.spec.ts`
+**Depends on**: None
+**Reuses**: asserções de auditoria de `aprovar-empresa.spec.ts`
+**Requirement**: INST-05, INST-07
+**Autor**: 👤 humano
+**Severidade**: Major
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos**: P1-Aprovação AC9, P1-Causas AC7.
+
+**Done when**:
+
+- [x] Cada teste de sucesso confere `usuarioId === admin.id.toString()`, `entidadeId` e `criadoEm` como `Date`
+- [x] Mutantes #16 (`aprovar-instituicao.ts`, autor da auditoria) e #26 (`criar-causa.ts`, autor da auditoria) passam a ser mortos
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): confere autor e data-hora nos registros de auditoria do catálogo`
+
+---
+
+### T41: Auditoria da edição de causa registra o estado anterior
+
+**What**: Em `editar-causa.ts`, `causaAntiga = Causa.create(causa, causa.id)` produz um `Either` montado sobre a entidade que `editar()` vai mutar em seguida. A auditoria acaba gravando o nome novo como "antigo". A correção captura `{ nome, descricao }` em objeto simples antes de `editar()` e grava `dados: { antes, depois }`, sem entidade e sem `Either`.
+**Where**: `src/domain/fivo/application/use-cases/editar-causa.ts`, `editar-causa.spec.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: INST-07
+**Autor**: 👤 humano
+**Severidade**: Major
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos** (P1-Causas): AC7.
+
+**Done when**:
+
+- [x] O teste confere `dados.antes.nome` igual ao nome original e `dados.depois.nome` igual ao novo
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(api): auditoria da edição de causa registra o estado anterior`
+
+---
+
+### T42: Decisão concorrente exercitada contra o CAS do double
+
+**What**: O CAS só é testado com spy (`salvarTransicao → false`). Desligar a comparação de estado no double mantém a suíte verde (mutante #3). A correção acrescenta um teste que dispara `aprovar` e `rejeitar` na mesma instituição pendente com `Promise.all`, usando o `InMemoryInstituicaoRepository` real, sem spy.
+**Where**: `src/domain/fivo/application/use-cases/aprovar-instituicao.spec.ts`
+**Depends on**: None
+**Reuses**: teste equivalente de `cadastro-empresa`, se houver
+**Requirement**: INST-05
+**Autor**: 👤 humano
+**Severidade**: Major
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos** (P1-Aprovação): AC10.
+
+**Done when**:
+
+- [x] Exatamente um resultado `right` e um `TransicaoInvalidaError`
+- [x] O estado final é o do vencedor, e há uma única linha de auditoria de decisão
+- [x] Mutante #3 (`in-memory-instituicao-repository.ts`, comparação do estado esperado) passa a ser morto
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): decisão concorrente de instituição aplica só a primeira`
+
+---
+
+### T43: Testes efetivos da entidade `Causa` e de `EditarCausa`
+
+**What**: Em `causa.spec.ts`, os `expect` dentro de `if (result.isLeft())` passam sem rodar nenhuma asserção (linhas 46 e 83). Faltam também teste de `editar()`, de nome só com espaços e de edição de causa `INATIVA`. Em `editar-causa.spec.ts`, faltam os ramos de causa inexistente e causa `INATIVA`.
+**Where**: `src/domain/fivo/entities/causa.spec.ts`, `src/domain/fivo/application/use-cases/editar-causa.spec.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: INST-07
+**Autor**: 👤 humano
+**Severidade**: Major
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos**: Done-when de T2 e T10.
+
+**Done when**:
+
+- [x] `expect(result.isLeft()).toBe(true)` incondicional antes de inspecionar `result.value`
+- [x] Testes de: nome só de espaços → `NomeCausaInvalidoError`; `editar` feliz; `editar` com nome inválido; `editar` em `INATIVA` → `TransicaoInvalidaError`
+- [x] `EditarCausa`: causa inexistente → `ResourceNotFoundError`; causa `INATIVA` → `TransicaoInvalidaError`
+- [x] Mutantes #18, #19 e #20 (`causa.ts`) passam a ser mortos
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): cobre limites e edição da entidade Causa`
+
+---
+
+### T44: Limite de 2 caracteres na busca de beneficiadas
+
+**What**: Acrescentar teste com termo de exatamente 2 caracteres, que precisa filtrar. O mutante #9 (`< 2` → `<= 2`) sobreviveu.
+**Where**: `src/domain/fivo/application/use-cases/listar-beneficiadas.spec.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: INST-08
+**Autor**: 👤 humano
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos** (P1-Seleção): AC2.
+
+**Done when**:
+
+- [x] Termo de 2 caracteres filtra; termo de 1 caractere devolve a lista completa
+- [x] Mutante #9 passa a ser morto
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): busca de beneficiadas filtra a partir de 2 caracteres`
+
+---
+
+### T45: Mensagem de `DocumentoIndisponivelError` conforme o design
+
+**What**: Trocar a mensagem `Documento indisponível. Tente novamente mais tarde.` pela da tabela de erros do design, `Documento temporariamente indisponível`, e conferir a string no teste.
+**Where**: `src/domain/fivo/application/errors/documento-indisponivel.error.ts`, `src/domain/fivo/application/use-cases/aprovar-instituicao.spec.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: INST-06
+**Autor**: 👤 humano
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] A mensagem bate com `design.md` §Erros, e o teste confere a string e o status 503
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(api): mensagem de documento indisponível conforme o design`
+
+---
+
+### T46: Remover `buscarDisponiveis` sem chamador
+
+**What**: A busca do catálogo é feita por `ListarBeneficiadasUseCase`, em memória, junto com as causas. `InstituicaoRepository.buscarDisponiveis` não tem chamador, e o double compara por igualdade exata. A correção remove o método da porta e do double.
+**Where**: `src/domain/fivo/application/ports/database/instituicao-repository.ts`, `test/repositories/in-memory-instituicao-repository.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: INST-08
+**Autor**: 👤 humano
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] A porta não tem método sem chamador
+- [x] Gate `quick` passa
+
+**Tests**: none
+**Gate**: quick
+**Commit**: `refactor(api): remove buscarDisponiveis sem chamador da porta de instituição`
+
+---
+
+### T47: Design e T21/T23 sem busca no repositório de instituição
+
+**What**: Emendar o design para a busca do catálogo em memória no caso de uso. Sai `buscarDisponiveis` da tabela de portas e da rastreabilidade de INST-08. A coluna `nome_busca` sai de instituição e continua em causa, por causa do índice único de nome. T21 e T23 se ajustam a isso.
+**Where**: `.specs/features/catalogo-instituicoes/design.md`, `.specs/features/catalogo-instituicoes/tasks.md` (T21, T23)
+**Depends on**: T46
+**Reuses**: —
+**Requirement**: INST-08
+**Autor**: 🤖 agente
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] `design.md` não cita `buscarDisponiveis`, e `nome_busca` aparece só para causa
+- [x] T21 e T23 não pedem coluna nem método sem uso
+- [x] `validate_tasks.py` sai com 0 erros
+
+**Tests**: none
+**Gate**: quick
+**Commit**: `docs(specs): busca do catálogo de beneficiadas fica no caso de uso`
+
+---
+
+### T48: Mensagens e ausência de escrita nos erros do catálogo
+
+**What**: Conferir `message` e `status` onde a spec define texto, e conferir "sem escrita" nos ramos negados.
+**Where**: `src/domain/fivo/application/use-cases/assegurar-beneficiada-disponivel.spec.ts`, `inativar-causa.spec.ts`, `criar-causa.spec.ts`, `{suspender,reativar,inativar}-instituicao.spec.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: INST-05, INST-07, INST-09
+**Autor**: 👤 humano
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos**: P1-Seleção AC4, P1-Causas AC4, P1-Aprovação AC8.
+
+**Done when**:
+
+- [x] `BeneficiadaIndisponivelError` com a mensagem `Instituição ou causa indisponível`
+- [x] `CausaComInstituicoesAprovadasError` com status 409 e `instituicoes` igual ao array de nomes esperado
+- [x] Ramos não-admin de suspender, reativar, inativar e criar causa conferem que o repositório não mudou
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): confere mensagens e ausência de escrita nos erros do catálogo`
+
+---
+
+### T49: Não-admin em editar e inativar causa não altera dados
+
+**What**: O AC6 de Causas pede 403 **sem alterar nenhum dado**. Os testes de não-admin de `EditarCausa` e `InativarCausa` conferem só a classe do erro, e os mutantes N28 e N29 (escrita no ramo negado) sobreviveram na rodada 2. A T48 cobriu suspender, reativar, inativar instituição e criar causa, mas deixou de fora estes dois ramos.
+**Where**: `src/domain/fivo/application/use-cases/editar-causa.spec.ts`, `inativar-causa.spec.ts`
+**Depends on**: None
+**Reuses**: asserções de T48
+**Requirement**: INST-07
+**Autor**: 🤖 agente (autorização de 2026-10-13, ver AD-020)
+**Severidade**: Major (bloqueia o PASS)
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**ACs cobertos** (P1-Causas): AC6.
+
+**Done when**:
+
+- [x] Não-admin em `EditarCausa`: nome e descrição persistidos inalterados e auditoria vazia
+- [x] Não-admin em `InativarCausa`: status persistido `ATIVA` e auditoria vazia
+- [x] Mutantes N28 (`editar-causa.ts`) e N29 (`inativar-causa.ts`) passam a ser mortos
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): não-admin em editar e inativar causa não altera dados`
+
+---
+
+### T50: Resíduos de texto da T47 e justificativa da T37
+
+**What**: Limpar dois resíduos. Primeiro, `design.md` (tabela de componentes de infra) e o What da T23 ainda dizem que o adaptador de instituição faz busca sem acento. Segundo, a Done-when da T37 justifica a comparação por id com um argumento falso: a comparação por nome também aceitaria `"Saude"` → `"Saúde"`. A comparação por id é robustez (mutante N6 equivalente), não correção.
+**Where**: `.specs/features/catalogo-instituicoes/design.md`, `.specs/features/catalogo-instituicoes/tasks.md`
+**Depends on**: T47
+**Reuses**: —
+**Requirement**: INST-07, INST-08
+**Autor**: 🤖 agente
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] `design.md` e T23 não atribuem busca ao adaptador de instituição
+- [x] A Done-when da T37 descreve a comparação por id como robustez
+- [x] `validate_tasks.py` sai com 0 erros
+
+**Tests**: none
+**Gate**: quick
+**Commit**: `docs(specs): remove resíduos da busca no repositório de instituição`
 
 ---
 
@@ -807,11 +1287,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `enum InstituicaoStatus` (com `INATIVA`), `enum CausaStatus`, e `TipoArquivo` com `LOGO_INSTITUICAO` e `DOCUMENTO_INSTITUICAO`
-- [ ] `instituicao`: `usuario_id` único, `cnpj` único, FKs de causa, logo e documento, colunas de decisão, `nome_busca` indexada
-- [ ] `causa`: `nome_busca` com índice único (unicidade sem acento/caixa)
-- [ ] Migration criada com `prisma migrate dev` e aplicada; nenhuma migration existente editada
-- [ ] Gate `build` passa
+- [x] `enum InstituicaoStatus` (com `INATIVA`), `enum CausaStatus`, e `TipoArquivo` com `LOGO_INSTITUICAO` e `DOCUMENTO_INSTITUICAO`
+- [x] `instituicao`: `usuario_id` único, `cnpj` único, FKs de causa, logo e documento, colunas de decisão (sem coluna de busca: a busca do catálogo fica no caso de uso, T47)
+- [x] `causa`: `nome_busca` com índice único (unicidade sem acento/caixa)
+- [x] Migration criada com `prisma migrate dev` e aplicada; nenhuma migration existente editada
+- [x] Gate `build` passa
 
 **Tests**: none (schema — build gate)
 **Gate**: build
@@ -835,11 +1315,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Todas as operações da porta implementadas; `nome_busca` gravado pelo mapper
-- [ ] `findByNome` encontra "Educação" buscando "educacao"; violação do índice único vira erro tratável
-- [ ] Registrado no `DatabaseModule`
-- [ ] `test/database/prisma-causa-repository.e2e-spec.ts` cobre roundtrip, busca normalizada, listagem de ativas e unicidade
-- [ ] Gate `full` passa
+- [x] Todas as operações da porta implementadas; `nome_busca` gravado pelo mapper
+- [x] `findByNome` encontra "Educação" buscando "educacao"; violação do índice único vira erro tratável
+- [x] Registrado no `DatabaseModule`
+- [x] `test/database/prisma-causa-repository.e2e-spec.ts` cobre roundtrip, busca normalizada, listagem de ativas e unicidade
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -849,7 +1329,7 @@ T33 → T34
 
 ### T23: `PrismaInstituicaoRepository` e mapper
 
-**What**: Implementar o adaptador Prisma da instituição, incluindo o CAS de `salvarTransicao`, a busca sem acento e o `save` que não regrava colunas de decisão.
+**What**: Implementar o adaptador Prisma da instituição, incluindo o CAS de `salvarTransicao` e o `save` que não regrava colunas de decisão.
 **Where**: `src/infra/database/prisma/prisma-instituicao-repository.ts`
 **Depends on**: T7, T21
 **Reuses**: `prisma-empresa-repository.ts` (CAS com `updateMany` + `count`)
@@ -863,12 +1343,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `salvarTransicao` devolve `false` quando o estado persistido já mudou (asserido com duas decisões concorrentes)
-- [ ] `save` não altera `status`, `decididoPor`, `decididoEm`, `motivoDecisao`
-- [ ] `buscarDisponiveis` usa `nome_busca`; `listarPorEstado` ordena por `criado_em`
-- [ ] Registrado no `DatabaseModule`
-- [ ] `test/database/prisma-instituicao-repository.e2e-spec.ts` cobre roundtrip, CAS, unicidade de CNPJ, busca sem acento e o `save` conservador
-- [ ] Gate `full` passa
+- [x] `salvarTransicao` devolve `false` quando o estado persistido já mudou (asserido com duas decisões concorrentes)
+- [x] `save` não altera `status`, `decididoPor`, `decididoEm`, `motivoDecisao`
+- [x] `listarPorEstado` ordena por `criado_em`
+- [x] Registrado no `DatabaseModule`
+- [x] `test/database/prisma-instituicao-repository.e2e-spec.ts` cobre roundtrip, CAS, unicidade de CNPJ e o `save` conservador
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -892,11 +1372,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `%PDF-` reconhecido como `application/pdf`; sniff continua ignorando o `Content-Type` do cliente
-- [ ] Upload de documento aceita PDF/JPG/PNG até 10 MB e rejeita acima disso com a mensagem do domínio
-- [ ] Falha do storage continua virando `StorageIndisponivelError`
-- [ ] `test/arquivo/arquivo-service.e2e-spec.ts` estendido: PDF aceito, PDF rejeitado como logo, limite de 10 MB nas duas bordas
-- [ ] Gate `full` passa
+- [x] `%PDF-` reconhecido como `application/pdf`; sniff continua ignorando o `Content-Type` do cliente
+- [x] Upload de documento aceita PDF/JPG/PNG até 10 MB e rejeita acima disso com a mensagem do domínio
+- [x] Falha do storage continua virando `StorageIndisponivelError`
+- [x] `test/arquivo/arquivo-service.e2e-spec.ts` estendido: PDF aceito, PDF rejeitado como logo, limite de 10 MB nas duas bordas
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -920,10 +1400,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `buscarAcesso` considera o `usuarioId` da instituição dona (logo e documento)
-- [ ] Admin e dono recebem 200; outra instituição, empresa e anônimo recebem 403/401
-- [ ] `test/http/arquivo.e2e-spec.ts` estendido com esses casos
-- [ ] Gate `full` passa
+- [x] `buscarAcesso` considera o `usuarioId` da instituição dona (logo e documento)
+- [x] Admin e dono recebem 200; outra instituição, empresa e anônimo recebem 403/401
+- [x] `test/http/arquivo.e2e-spec.ts` estendido com esses casos
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -947,10 +1427,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `estaLegivel` devolve `false` quando o registro sumiu ou o storage falha na leitura, e `true` no caminho feliz
-- [ ] Provider registrado para a porta `VerificadorDeDocumento`
-- [ ] `test/arquivo/verificador-de-documento.e2e-spec.ts` cobre os três casos
-- [ ] Gate `full` passa
+- [x] `estaLegivel` devolve `false` quando o registro sumiu ou o storage falha na leitura, e `true` no caminho feliz
+- [x] Provider registrado para a porta `VerificadorDeDocumento`
+- [x] `test/arquivo/verificador-de-documento.e2e-spec.ts` cobre os três casos
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -974,11 +1454,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `POST /admin/causas` (201), `PATCH /admin/causas/:id` (200), `POST /admin/causas/:id/inativacao` (204)
-- [ ] Nome duplicado → 409; não-admin → 403; inativação com instituições aprovadas → 409 listando os nomes
-- [ ] Rotas documentadas no OpenAPI (o teste de paridade falha se faltar)
-- [ ] `test/http/admin-causas.e2e-spec.ts` cobre happy path e cada erro acima
-- [ ] Gate `full` passa
+- [x] `POST /admin/causas` (201), `PATCH /admin/causas/:id` (200), `POST /admin/causas/:id/inativacao` (204)
+- [x] Nome duplicado → 409; não-admin → 403; inativação com instituições aprovadas → 409 listando os nomes
+- [x] Rotas documentadas no OpenAPI (o teste de paridade falha se faltar)
+- [x] `test/http/admin-causas.e2e-spec.ts` cobre happy path e cada erro acima
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1002,11 +1482,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `GET /causas` público devolve apenas causas ativas, ordenadas, com `id`, `nome`, `descricao`
-- [ ] Causa inativada some da resposta
-- [ ] Rota documentada no OpenAPI
-- [ ] `test/http/causas.e2e-spec.ts` cobre os dois casos
-- [ ] Gate `full` passa
+- [x] `GET /causas` público devolve apenas causas ativas, ordenadas, com `id`, `nome`, `descricao`
+- [x] Causa inativada some da resposta
+- [x] Rota documentada no OpenAPI
+- [x] `test/http/causas.e2e-spec.ts` cobre os dois casos
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1030,11 +1510,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `POST /instituicoes` público, 201 com o id; limite de upload coerente com 10 MB do documento
-- [ ] Erros mapeados: 422 (CNPJ, senha, documento ausente, descrição longa, formato/limite, causa inválida), 409 (CNPJ ou e-mail), 503 (storage fora do ar, sem criar instituição)
-- [ ] Rota documentada no OpenAPI, incluindo o corpo multipart
-- [ ] `test/http/cadastro-instituicao.e2e-spec.ts` cobre happy path e cada erro acima
-- [ ] Gate `full` passa
+- [x] `POST /instituicoes` público, 201 com o id; limite de upload coerente com 10 MB do documento
+- [x] Erros mapeados: 422 (CNPJ, senha, documento ausente, descrição longa, formato/limite, causa inválida), 409 (CNPJ ou e-mail), 503 (storage fora do ar, sem criar instituição)
+- [x] Rota documentada no OpenAPI, incluindo o corpo multipart
+- [x] `test/http/cadastro-instituicao.e2e-spec.ts` cobre happy path e cada erro acima
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1058,11 +1538,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `GET /admin/instituicoes` (fila ordenada, com referência do documento e sinal de CNPJ coincidente) e `POST /admin/instituicoes/:id/{aprovacao,rejeicao}`
-- [ ] Rejeição sem motivo suficiente → 422; documento ilegível → 503; decisão repetida → 409; não-admin → 403
-- [ ] Rotas documentadas no OpenAPI
-- [ ] `test/http/admin-instituicoes.e2e-spec.ts` cobre happy path e cada erro acima
-- [ ] Gate `full` passa
+- [x] `GET /admin/instituicoes` (fila ordenada, com referência do documento e sinal de CNPJ coincidente) e `POST /admin/instituicoes/:id/{aprovacao,rejeicao}`
+- [x] Rejeição sem motivo suficiente → 422; documento ilegível → 503; decisão repetida → 409; não-admin → 403
+- [x] Rotas documentadas no OpenAPI
+- [x] `test/http/admin-instituicoes.e2e-spec.ts` cobre happy path e cada erro acima
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1086,12 +1566,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `POST /admin/instituicoes/:id/{suspensao,reativacao,inativacao}` respondendo 204
-- [ ] Transição inválida → 409; não-admin → 403
-- [ ] Instituição suspensa ou inativada some de `GET /beneficiadas` (asserido no e2e)
-- [ ] Rotas documentadas no OpenAPI
-- [ ] `test/http/admin-instituicoes.e2e-spec.ts` estendido
-- [ ] Gate `full` passa
+- [x] `POST /admin/instituicoes/:id/{suspensao,reativacao,inativacao}` respondendo 204
+- [x] Transição inválida → 409; não-admin → 403
+- [x] Instituição suspensa ou inativada some de `GET /beneficiadas` (asserido no e2e)
+- [x] Rotas documentadas no OpenAPI
+- [x] `test/http/admin-instituicoes.e2e-spec.ts` estendido
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1115,12 +1595,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `GET /beneficiadas?busca=` exige empresa autenticada e aprovada (empresa pendente → 403)
-- [ ] Resposta nunca traz documento, e-mail, telefone, CNPJ ou dados de decisão — asserido por inspeção do payload
-- [ ] Busca com acento/sem acento devolve o mesmo resultado; catálogo vazio devolve `[]`
-- [ ] Rota documentada no OpenAPI
-- [ ] `test/http/beneficiadas.e2e-spec.ts` cobre os casos acima
-- [ ] Gate `full` passa
+- [x] `GET /beneficiadas?busca=` exige empresa autenticada e aprovada (empresa pendente → 403)
+- [x] Resposta nunca traz documento, e-mail, telefone, CNPJ ou dados de decisão — asserido por inspeção do payload
+- [x] Busca com acento/sem acento devolve o mesmo resultado; catálogo vazio devolve `[]`
+- [x] Rota documentada no OpenAPI
+- [x] `test/http/beneficiadas.e2e-spec.ts` cobre os casos acima
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1144,11 +1624,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Dois autocadastros simultâneos com o mesmo CNPJ: um 201, um 409, um único registro no banco
-- [ ] Aprovação e rejeição simultâneas do mesmo cadastro: a primeira vence, a segunda recebe 409
-- [ ] Empresa e instituição com o mesmo CNPJ coexistem, e a fila do admin sinaliza a coincidência
-- [ ] Toda rota administrativa do catálogo responde 403 para empresa e instituição autenticadas
-- [ ] Gate `full` passa
+- [x] Dois autocadastros simultâneos com o mesmo CNPJ: um 201, um 409, um único registro no banco
+- [x] Aprovação e rejeição simultâneas do mesmo cadastro: a primeira vence, a segunda recebe 409
+- [x] Empresa e instituição com o mesmo CNPJ coexistem, e a fila do admin sinaliza a coincidência
+- [x] Toda rota administrativa do catálogo responde 403 para empresa e instituição autenticadas
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1172,14 +1652,97 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `npm run openapi:export` rodado e `openapi.json` commitado; teste de paridade verde
-- [ ] README do `api` lista as rotas novas e explica que o admin precisa criar causas antes de divulgar o autocadastro
-- [ ] Gate `build` passa
-- [ ] `validation.md` consolidado da feature escrito pelo Verifier (exigido por `validate_state.py`)
+- [x] `npm run openapi:export` rodado e `openapi.json` commitado; teste de paridade verde
+- [x] README do `api` lista as rotas novas e explica que o admin precisa criar causas antes de divulgar o autocadastro
+- [x] Gate `build` passa
+- [x] `validation.md` consolidado da feature escrito pelo Verifier (exigido por `validate_state.py`)
 
 **Tests**: e2e
 **Gate**: build
 **Commit**: `docs(api): documenta o catálogo de instituições e exporta o openapi`
+
+---
+
+### T51: Fila sinaliza documento indisponível
+
+**What**: O edge case "documento inacessível durante a análise" (`spec.md:196`) manda exibir ao administrador o item como temporariamente indisponível. Hoje só a metade do 503 na aprovação existe. `ListarFilaInstituicoesUseCase` passa a consultar `VerificadorDeDocumento.estaLegivel` por item e expor `documentoDisponivel: boolean`, sem tirar o item da fila.
+**Where**: `src/domain/fivo/application/use-cases/listar-fila-instituicoes.ts`, `listar-fila-instituicoes.spec.ts`
+**Depends on**: T14, T26
+**Reuses**: `FakeVerificadorDeDocumento` (`test/arquivo/fake-verificador-de-documento.ts`), padrão de `cnpjCoincideComEmpresa`
+**Requirement**: INST-04, INST-06
+**Autor**: 🤖 agente (autorização de 2026-10-14, ver AD-020)
+**Severidade**: Major (bloqueia o PASS)
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] Cada item da fila traz `documentoDisponivel: boolean`
+- [x] Documento legível → `true`; documento marcado ilegível no fake → `false`, e o item continua na fila com os demais campos
+- [x] Um teste por caso, com duas instituições na mesma fila (uma legível, outra não) para provar que o sinal é por item
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `feat(api): fila de instituições sinaliza documento indisponível`
+
+---
+
+### T52: `documentoDisponivel` na rota da fila
+
+**What**: Expor o campo novo da T51 em `GET` da fila do admin (presenter + OpenAPI) e provar, com o armazenamento falhando para um documento, que o item aparece com `documentoDisponivel: false` enquanto a aprovação dele devolve 503.
+**Where**: `src/infra/http/controllers/admin-instituicoes.controller.ts`, `test/http/admin-instituicoes.e2e-spec.ts`
+**Depends on**: T30, T51
+**Reuses**: teste de 503 existente (`admin-instituicoes.e2e-spec.ts`), `npm run openapi:export`
+**Requirement**: INST-04, INST-06
+**Autor**: 🤖 agente
+**Severidade**: Major (bloqueia o PASS)
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] A resposta da fila traz `documentoDisponivel` por item, documentado no OpenAPI
+- [x] e2e: documento ilegível → item listado com `documentoDisponivel: false`; documento legível → `true`
+- [x] `openapi.json` regenerado; paridade e exportação verdes
+- [x] Gate `full` passa
+
+**Tests**: e2e
+**Gate**: full
+**Commit**: `feat(api): rota da fila expõe documento indisponível`
+
+---
+
+### T53: Guards de papel testados com corpo válido
+
+**What**: Os mutantes M26 e M27 sobreviveram: tirar `@Roles(UserRole.ADMIN)` de `admin-causas.controller.ts` ou `admin-instituicoes.controller.ts` deixa os testes verdes, porque o sweep de 403 só manda corpo válido, e sem o guard o próprio caso de uso devolve 403. O sweep passa a rodar também com `{}`: nas rotas com corpo obrigatório, só o guard responde 403 antes da validação (422). P1-Causas AC6 e P1-Aprovação AC8 exigem 403. (Texto corrigido depois da execução; a primeira versão descrevia a causa ao contrário.)
+**Where**: `test/http/catalogo-concorrencia.e2e-spec.ts`
+**Depends on**: T33
+**Reuses**: sweep orientado pelo OpenAPI já existente no arquivo
+**Requirement**: INST-04, INST-07
+**Autor**: 🤖 agente
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] Para cada rota administrativa do catálogo, EMPRESA e INSTITUICAO recebem 403 com um corpo que passaria na validação (ou `{}` onde a rota não exige corpo), e nada é alterado
+- [x] Mutantes M26 e M27 (remover `@Roles` em cada controller) passam a ser mortos
+- [x] Gate `build` passa
+
+**Tests**: e2e
+**Gate**: build
+**Commit**: `test(api): guards de papel do catálogo testados com corpo válido`
 
 ---
 
@@ -1258,9 +1821,14 @@ T27 → T34
 T28 → T34
 T32 → T34
 T33 → T34
+T14 → T51
+T26 → T51
+T30 → T52
+T51 → T52
+T33 → T53
 ```
 
-Ordem de execução (prosa): Fase 1 `T1 … T5` · Fase 2 `T6 … T8` · Fase 3 `T9 … T12` · Fase 4 `T13 … T18` · Fase 5 `T19 → T20` · **gate de handoff** · Fase 6 `T21 → T22 → T23` · Fase 7 `T24 → T25 → T26` · Fase 8 `T27 … T32` · Fase 9 `T33 → T34`.
+Ordem de execução (prosa): Fase 1 `T1 … T5` · Fase 2 `T6 … T8` · Fase 3 `T9 … T12` · Fase 4 `T13 … T18` · Fase 5 `T19 → T20` · **gate de handoff** · Fase 6 `T21 → T22 → T23` · Fase 7 `T24 → T25 → T26` · Fase 8 `T27 … T32` · Fase 9 `T33 → T34` · Fase 9b `T51 → T52 → T53`.
 
 Execução estritamente sequencial — sem paralelismo intra-fase.
 
@@ -1318,6 +1886,9 @@ Execução estritamente sequencial — sem paralelismo intra-fase.
 | T32 | T19, T23 | idem | ✅ Match |
 | T33 | T29, T30, T31 | idem | ✅ Match |
 | T34 | T27, T28, T32, T33 | idem | ✅ Match |
+| T51 | T14, T26 | idem | ✅ Match |
+| T52 | T30, T51 | idem | ✅ Match |
+| T53 | T33 | idem | ✅ Match |
 
 Nenhuma dependência aponta para uma fase posterior.
 
@@ -1346,14 +1917,14 @@ Nenhuma task difere testes para outra: toda task que cria código com tipo de te
 
 | Requirement | Tasks | Status |
 | ----------- | ----- | ------ |
-| INST-01 | T1, T5, T13, T21, T29, T34 | Pending |
-| INST-02 | T1, T3, T4, T13, T24, T29 | Pending |
-| INST-03 | T1, T5, T13, T29 | Pending |
-| INST-04 | T7, T14, T15, T16, T23, T30, T33, T34 | Pending |
-| INST-05 | T5, T7, T15, T16, T17, T18, T21, T23, T30, T31, T33 | Pending |
-| INST-06 | T8, T15, T25, T26, T30 | Pending |
-| INST-07 | T1, T2, T6, T9, T10, T11, T12, T21, T22, T27, T28, T34 | Pending |
-| INST-08 | T7, T12, T19, T23, T28, T32, T34 | Pending |
-| INST-09 | T1, T20 | Pending |
-| INST-10 | T19, T32 | Pending |
+| INST-01 | T1, T5, T13, T21, T29, T34 | Verified |
+| INST-02 | T1, T3, T4, T13, T24, T29 | Verified |
+| INST-03 | T1, T5, T13, T29 | Verified |
+| INST-04 | T7, T14, T15, T16, T23, T30, T33, T34, T51, T52, T53 | Verified |
+| INST-05 | T5, T7, T15, T16, T17, T18, T21, T23, T30, T31, T33 | Verified |
+| INST-06 | T8, T15, T25, T26, T30, T51, T52 | Verified |
+| INST-07 | T1, T2, T6, T9, T10, T11, T12, T21, T22, T27, T28, T34, T53 | Verified |
+| INST-08 | T7, T12, T19, T23, T28, T32, T34 | Verified |
+| INST-09 | T1, T20 | Verified |
+| INST-10 | T19, T32 | Verified |
 | INST-11, INST-12, INST-13 | — (P2, fora desta rodada) | Deferred |

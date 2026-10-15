@@ -4,6 +4,8 @@ import { ArquivoInvalidoError } from '../application/errors/arquivo-invalido-err
 
 export enum TipoArquivo {
   LOGO_EMPRESA = 'LOGO_EMPRESA',
+  LOGO_INSTITUICAO = 'LOGO_INSTITUICAO',
+  DOCUMENTO_INSTITUICAO = 'DOCUMENTO_INSTITUICAO',
   // FOTO_PERFIL = 'FOTO_PERFIL',
   // BANNER = 'BANNER',
   // DOCUMENTO = 'DOCUMENTO',
@@ -35,6 +37,28 @@ export class Arquivo extends Entity<ArquivoProps> {
   static criar(input: ArquivoInput): Either<ArquivoInvalidoError, Arquivo> {
     const formatosAceitosPorTipo: Record<TipoArquivo, string[]> = {
       [TipoArquivo.LOGO_EMPRESA]: ['image/png', 'image/jpeg', 'image/svg+xml'],
+      [TipoArquivo.LOGO_INSTITUICAO]: [
+        'image/png',
+        'image/jpeg',
+        'image/svg+xml',
+      ],
+      [TipoArquivo.DOCUMENTO_INSTITUICAO]: [
+        'application/pdf',
+        'image/jpeg',
+        'image/png',
+      ],
+    };
+
+    const limiteEmBytesPorTipo: Record<TipoArquivo, number> = {
+      [TipoArquivo.LOGO_EMPRESA]: 5 * 1024 * 1024,
+      [TipoArquivo.LOGO_INSTITUICAO]: 5 * 1024 * 1024,
+      [TipoArquivo.DOCUMENTO_INSTITUICAO]: 10 * 1024 * 1024,
+    };
+
+    const checagemDimensoesPorTipo: Record<TipoArquivo, boolean> = {
+      [TipoArquivo.LOGO_EMPRESA]: true,
+      [TipoArquivo.LOGO_INSTITUICAO]: true,
+      [TipoArquivo.DOCUMENTO_INSTITUICAO]: false,
     };
 
     const formatosAceitos = formatosAceitosPorTipo[input.tipo] ?? [];
@@ -47,11 +71,11 @@ export class Arquivo extends Entity<ArquivoProps> {
       );
     }
 
-    const limiteEmBytes = 5 * 1024 * 1024;
+    const limiteEmBytes = limiteEmBytesPorTipo[input.tipo];
     if (input.bytes > limiteEmBytes) {
       return left(
         new ArquivoInvalidoError(
-          `Arquivo inválido: tamanho excede o limite de 5 MB (${input.bytes} bytes).`,
+          `Arquivo inválido: tamanho excede o limite de ${limiteEmBytes / (1024 * 1024)} MB (${input.bytes} bytes).`,
         ),
       );
     }
@@ -80,12 +104,14 @@ export class Arquivo extends Entity<ArquivoProps> {
       const largura = Number(input.largura ?? 0);
       const altura = Number(input.altura ?? 0);
 
-      if (largura < 512 || altura < 512) {
-        return left(
-          new ArquivoInvalidoError(
-            'Arquivo inválido: dimensão mínima de 512x512 pixels para raster.',
-          ),
-        );
+      if (checagemDimensoesPorTipo[input.tipo]) {
+        if (largura < 512 || altura < 512) {
+          return left(
+            new ArquivoInvalidoError(
+              'Arquivo inválido: dimensão mínima de 512x512 pixels para raster.',
+            ),
+          );
+        }
       }
     }
 

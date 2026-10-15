@@ -10,10 +10,16 @@ import { PrismaService } from '../database/prisma/prisma.service';
 
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const JPEG_MAGIC = Buffer.from([0xff, 0xd8, 0xff]);
+const PDF_MAGIC = Buffer.from('%PDF-', 'ascii');
 const TAMANHO_AMOSTRA_SVG = 2048;
 
 export interface UploadImagemInput {
   tipo: TipoArquivo;
+  nomeOriginal: string;
+  buffer: Buffer;
+}
+
+export interface UploadDocumentoInput {
   nomeOriginal: string;
   buffer: Buffer;
 }
@@ -35,9 +41,23 @@ export class ArquivoService {
     private readonly storage: Storage,
   ) {}
 
-  async uploadImagem(
+  uploadImagem(
     input: UploadImagemInput,
   ): Promise<Either<ArquivoInvalidoError, UploadImagemResultado>> {
+    return this.enviar(input);
+  }
+
+  /** Documento de validação da instituição: PDF, JPG ou PNG de até 10 MB. */
+  uploadDocumento(
+    input: UploadDocumentoInput,
+  ): Promise<Either<ArquivoInvalidoError, UploadImagemResultado>> {
+    return this.enviar({ ...input, tipo: TipoArquivo.DOCUMENTO_INSTITUICAO });
+  }
+
+  private async enviar(
+    input: UploadImagemInput,
+  ): Promise<Either<ArquivoInvalidoError, UploadImagemResultado>> {
+    // Formato decidido pelos magic bytes; nome e Content-Type do cliente não contam.
     const mime = this.sniffarMime(input.buffer);
     const { largura, altura } = this.probarDimensao(mime, input.buffer);
     const svgConteudo =
@@ -100,14 +120,25 @@ export class ArquivoService {
   ): Promise<{ donoUsuarioId: string | null } | null> {
     const registro = await this.prisma.arquivo.findUnique({
       where: { id },
-      select: { empresas: { select: { usuarioId: true } } },
+      select: {
+        empresas: { select: { usuarioId: true } },
+        logosDeInstituicao: { select: { usuarioId: true } },
+        documentosDeInstituicao: { select: { usuarioId: true } },
+      },
     });
 
     if (!registro) {
       return null;
     }
 
-    return { donoUsuarioId: registro.empresas[0]?.usuarioId ?? null };
+    // Dono é o usuário da empresa ou da instituição que referencia o arquivo
+    // (logo ou documento de validação). Sem vínculo, só o ADMIN acessa.
+    const dono =
+      registro.empresas[0] ??
+      registro.logosDeInstituicao[0] ??
+      registro.documentosDeInstituicao[0];
+
+    return { donoUsuarioId: dono?.usuarioId ?? null };
   }
 
   async remover(id: string): Promise<void> {
@@ -128,6 +159,10 @@ export class ArquivoService {
 
     if (buffer.subarray(0, JPEG_MAGIC.length).equals(JPEG_MAGIC)) {
       return 'image/jpeg';
+    }
+
+    if (buffer.subarray(0, PDF_MAGIC.length).equals(PDF_MAGIC)) {
+      return 'application/pdf';
     }
 
     const amostra = buffer

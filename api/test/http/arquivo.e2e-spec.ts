@@ -2,16 +2,21 @@ import request from 'supertest';
 import { PNG } from 'pngjs';
 
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
+import { CausaRepository } from '@domain/fivo/application/ports/database/causa-repository';
 import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
+import { InstituicaoRepository } from '@domain/fivo/application/ports/database/instituicao-repository';
 import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
 import { Storage } from '@domain/fivo/application/ports/storage';
 import { TipoArquivo } from '@domain/fivo/entities/arquivo';
+import { DocumentoValidacao } from '@domain/fivo/entities/documento-validacao';
 import { User, UserRole } from '@domain/fivo/entities/user';
 import { ArquivoService } from '@infra/arquivo/arquivo.service';
 import { SessionService } from '@infra/auth/session.service';
 import { FakeStorage } from '@test/cryptography/fake-storage';
+import { CausaFactory } from '@test/factories/causa-factory';
 import { cnpjValido } from '@test/factories/cnpj-factory';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
+import { InstituicaoFactory } from '@test/factories/instituicao-factory';
 import { UserFactory } from '@test/factories/user-factory';
 import {
   AppDeTeste,
@@ -29,6 +34,11 @@ function pngBuffer(largura: number, altura: number): Buffer {
   }
   return PNG.sync.write(png);
 }
+
+const PDF = Buffer.concat([
+  Buffer.from('%PDF-1.7\n', 'ascii'),
+  Buffer.alloc(512),
+]);
 
 const SVG_VALIDO =
   '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>';
@@ -81,6 +91,46 @@ describe('GET /arquivos/:id (e2e)', () => {
       }),
     );
     return dono;
+  }
+
+  async function enviarDocumento(): Promise<string> {
+    const resultado = await contexto.app.get(ArquivoService).uploadDocumento({
+      nomeOriginal: 'estatuto.pdf',
+      buffer: PDF,
+    });
+
+    if (resultado.isLeft()) {
+      throw new Error(resultado.value.message);
+    }
+
+    return resultado.value.id;
+  }
+
+  /** Instituição cujo usuário é dono do documento (e do logo, se houver). */
+  async function criarInstituicao(
+    email: string,
+    documentoArquivoId: string,
+    logoArquivoId?: string,
+  ) {
+    const dona = await criarUsuario(UserRole.INSTITUICAO, email);
+    const causa = CausaFactory.create({ nome: `Causa de ${email}` });
+    await contexto.app.get(CausaRepository).create(causa);
+    const documento = DocumentoValidacao.criar(documentoArquivoId);
+
+    if (documento.isLeft()) {
+      throw documento.value;
+    }
+
+    await contexto.app.get(InstituicaoRepository).create(
+      InstituicaoFactory.create({
+        usuarioId: dona.id,
+        cnpj: cnpjValido(sequenciaCnpj++),
+        causaId: causa.id,
+        documento: documento.value,
+        logoArquivoId: logoArquivoId ? new UniqueEntityId(logoArquivoId) : null,
+      }),
+    );
+    return dona;
   }
 
   beforeAll(async () => {
@@ -253,5 +303,98 @@ describe('GET /arquivos/:id (e2e)', () => {
 
     expect(resposta.status).toBe(422);
     expect(await contexto.prisma.arquivo.count()).toBe(0);
+  });
+
+  describe('arquivos da instituição (INST-06, P1-Aprovação AC7)', () => {
+    it('instituição dona baixa o próprio documento de validação → 200 com application/pdf', async () => {
+      const documentoId = await enviarDocumento();
+      const dona = await criarInstituicao('dona@instituicao.test', documentoId);
+
+      const resposta = await comCookieDeSessao(
+        api().get(`/arquivos/${documentoId}`),
+        await sessaoDe(dona),
+      );
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.headers['content-type']).toBe('application/pdf');
+      expect(Buffer.compare(resposta.body as Buffer, PDF)).toBe(0);
+    });
+
+    it('instituição dona baixa o próprio logo → 200', async () => {
+      const documentoId = await enviarDocumento();
+      const png = pngBuffer(512, 512);
+      const logoId = await enviar(png, 'logo.png');
+      const dona = await criarInstituicao(
+        'dona@instituicao.test',
+        documentoId,
+        logoId,
+      );
+
+      const resposta = await comCookieDeSessao(
+        api().get(`/arquivos/${logoId}`),
+        await sessaoDe(dona),
+      );
+
+      expect(resposta.status).toBe(200);
+      expect(Buffer.compare(resposta.body as Buffer, png)).toBe(0);
+    });
+
+    it('ADMIN baixa o documento de validação de qualquer instituição → 200', async () => {
+      const documentoId = await enviarDocumento();
+      await criarInstituicao('dona@instituicao.test', documentoId);
+      const admin = await criarUsuario(UserRole.ADMIN, 'admin@fivo.test');
+
+      const resposta = await comCookieDeSessao(
+        api().get(`/arquivos/${documentoId}`),
+        await sessaoDe(admin),
+      );
+
+      expect(resposta.status).toBe(200);
+      expect(Buffer.compare(resposta.body as Buffer, PDF)).toBe(0);
+    });
+
+    it('outra instituição → 403 sem vazar o documento', async () => {
+      const documentoId = await enviarDocumento();
+      await criarInstituicao('dona@instituicao.test', documentoId);
+      const outra = await criarInstituicao(
+        'outra@instituicao.test',
+        await enviarDocumento(),
+      );
+
+      const resposta = await comCookieDeSessao(
+        api().get(`/arquivos/${documentoId}`),
+        await sessaoDe(outra),
+      );
+
+      expect(resposta.status).toBe(403);
+      expect(resposta.headers['content-type']).toMatch(/application\/json/);
+    });
+
+    it('empresa → 403 sem vazar o documento', async () => {
+      const documentoId = await enviarDocumento();
+      await criarInstituicao('dona@instituicao.test', documentoId);
+      const empresa = await criarUsuario(
+        UserRole.EMPRESA,
+        'curiosa@empresa.test',
+      );
+
+      const resposta = await comCookieDeSessao(
+        api().get(`/arquivos/${documentoId}`),
+        await sessaoDe(empresa),
+      );
+
+      expect(resposta.status).toBe(403);
+      expect(resposta.headers['content-type']).toMatch(/application\/json/);
+    });
+
+    it('anônimo → 401 no documento de validação', async () => {
+      const documentoId = await enviarDocumento();
+      await criarInstituicao('dona@instituicao.test', documentoId);
+
+      const resposta = await api().get(`/arquivos/${documentoId}`);
+
+      expect(resposta.status).toBe(401);
+      expect(resposta.headers['content-type']).toMatch(/application\/json/);
+    });
   });
 });

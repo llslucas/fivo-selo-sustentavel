@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
@@ -15,8 +16,22 @@ import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
+import { APP_ROUTES } from "@/lib/routes";
+import ErrorMessage from "@/components/ui/ErrorMessage";
+import { ApiError, mensagemDeErro } from "@/services/api";
+import { redefinirSenha } from "@/services/auth";
 
+// useSearchParams exige um Suspense acima dele pra página poder ser pré-renderizada.
 export default function RedefinirSenhaPage() {
+  return (
+    <Suspense>
+      <RedefinirSenha />
+    </Suspense>
+  );
+}
+
+function RedefinirSenha() {
+  const token = useSearchParams().get("token");
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -24,15 +39,19 @@ export default function RedefinirSenhaPage() {
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  // A API responde 400 quando o token não existe, expirou ou já foi usado.
+  const [tokenRecusado, setTokenRecusado] = useState(false);
+  const linkInvalido = !token || tokenRecusado;
 
   // Critérios de validação
-  const temMin8 = novaSenha.length >= 8;
+  const temMin10 = novaSenha.length >= 10;
   const temMaiuscula = /[A-Z]/.test(novaSenha);
   const temNumero = /[0-9]/.test(novaSenha);
-  const todasValidas = temMin8 && temMaiuscula && temNumero;
+  const todasValidas = temMin10 && temMaiuscula && temNumero;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!token) return;
     if (!todasValidas) {
       setErro("Por favor, atenda a todos os critérios de senha antes de continuar.");
       return;
@@ -44,11 +63,22 @@ export default function RedefinirSenhaPage() {
 
     setErro(null);
     setLoading(true);
-
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await redefinirSenha(token, novaSenha);
+      // A senha só vive no estado do formulário; limpa assim que não é mais necessária.
+      setNovaSenha("");
+      setConfirmarSenha("");
       setSucesso(true);
-    }, 1200);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 400) {
+        setTokenRecusado(true);
+        return;
+      }
+      const erroCampo = e instanceof ApiError ? e.fieldErrors.novaSenha : undefined;
+      setErro(erroCampo ?? mensagemDeErro(e));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -156,20 +186,55 @@ export default function RedefinirSenhaPage() {
               Defina uma nova senha para acessar sua conta Fivo.
             </Typography>
 
-            {erro && (
-              <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-                {erro}
-              </Alert>
-            )}
+            {erro && <ErrorMessage mensagem={erro} sx={{ mb: 2, borderRadius: 2 }} />}
 
-            {sucesso ? (
+            {linkInvalido ? (
+              <Box sx={{ textAlign: "center", py: 2 }}>
+                <ErrorMessage
+                  mensagem="Este link de redefinição é inválido, expirou ou já foi usado. Solicite um novo link para continuar."
+                  sx={{ mb: 3, borderRadius: 2, textAlign: "left" }}
+                />
+                <Button
+                  component={Link}
+                  href={APP_ROUTES.public.recuperarSenha}
+                  variant="contained"
+                  fullWidth
+                  sx={{
+                    bgcolor: "#0F6E56",
+                    "&:hover": { bgcolor: "#0B5240" },
+                    py: 1.3,
+                    mb: 2,
+                    borderRadius: 2,
+                    textTransform: "none",
+                    fontWeight: 600,
+                  }}
+                >
+                  Solicitar novo link
+                </Button>
+                <Link
+                  href={APP_ROUTES.public.login}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    color: "#B43428",
+                    textDecoration: "none",
+                    fontSize: "0.875rem",
+                    fontWeight: 500,
+                  }}
+                >
+                  <ArrowBackRoundedIcon sx={{ fontSize: 16 }} />
+                  Voltar para o login
+                </Link>
+              </Box>
+            ) : sucesso ? (
               <Box sx={{ textAlign: "center", py: 2 }}>
                 <Alert severity="success" sx={{ mb: 3, borderRadius: 2, textAlign: "left" }}>
                   Sua senha foi redefinida com sucesso! Você já pode entrar com suas novas credenciais.
                 </Alert>
                 <Button
                   component={Link}
-                  href="/login"
+                  href={APP_ROUTES.public.login}
                   variant="contained"
                   fullWidth
                   sx={{
@@ -198,6 +263,7 @@ export default function RedefinirSenhaPage() {
                     placeholder="••••••••"
                     value={novaSenha}
                     onChange={(e) => setNovaSenha(e.target.value)}
+                    disabled={loading}
                     slotProps={{
                       input: {
                         endAdornment: (
@@ -238,6 +304,7 @@ export default function RedefinirSenhaPage() {
                     placeholder="••••••••"
                     value={confirmarSenha}
                     onChange={(e) => setConfirmarSenha(e.target.value)}
+                    disabled={loading}
                     slotProps={{
                       input: {
                         endAdornment: (
@@ -274,12 +341,12 @@ export default function RedefinirSenhaPage() {
                       display: "flex",
                       alignItems: "center",
                       gap: 1,
-                      color: temMin8 ? "#0F6E56" : "#71717A",
-                      fontWeight: temMin8 ? 600 : 400,
+                      color: temMin10 ? "#0F6E56" : "#71717A",
+                      fontWeight: temMin10 ? 600 : 400,
                       mb: 0.5,
                     }}
                   >
-                    • Mínimo de 8 caracteres
+                    • Mínimo de 10 caracteres
                   </Typography>
                   <Typography
                     variant="caption"
@@ -327,7 +394,7 @@ export default function RedefinirSenhaPage() {
 
                 <Box sx={{ textAlign: "center", mt: 0.5 }}>
                   <Link
-                    href="/login"
+                    href={APP_ROUTES.public.login}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",

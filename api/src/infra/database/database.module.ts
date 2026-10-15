@@ -1,13 +1,17 @@
 import { Global, Module } from '@nestjs/common';
 
+import { CausaRepository } from '@domain/fivo/application/ports/database/causa-repository';
 import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
+import { InstituicaoRepository } from '@domain/fivo/application/ports/database/instituicao-repository';
 import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
 import { RegistroAuditoriaRepository } from '@domain/fivo/application/ports/registro-auditoria-repository';
 import { SessaoRepository } from '@domain/fivo/application/ports/sessao-repository';
 import { UnitOfWork } from '@domain/fivo/application/ports/unit-of-work';
 import { TokenSenhaRepository } from '@domain/fivo/application/ports/token-senha-repository';
 
+import { PrismaCausaRepository } from './prisma/prisma-causa-repository';
 import { PrismaEmpresaRepository } from './prisma/prisma-empresa-repository';
+import { PrismaInstituicaoRepository } from './prisma/prisma-instituicao-repository';
 import { PrismaRegistroAuditoriaRepository } from './prisma/prisma-registro-auditoria-repository';
 import { PrismaSessaoRepository } from './prisma/prisma-sessao-repository';
 import { PrismaService } from './prisma/prisma.service';
@@ -24,6 +28,8 @@ import { PrismaUserRepository } from './prisma/prisma-user-repository';
     PrismaTransactionContext,
     { provide: UnitOfWork, useClass: PrismaUnitOfWork },
     { provide: EmpresaRepository, useClass: PrismaEmpresaRepository },
+    { provide: CausaRepository, useClass: PrismaCausaRepository },
+    { provide: InstituicaoRepository, useClass: PrismaInstituicaoRepository },
     { provide: UserRepository, useClass: PrismaUserRepository },
     { provide: SessaoRepository, useClass: PrismaSessaoRepository },
     {
@@ -36,6 +42,8 @@ import { PrismaUserRepository } from './prisma/prisma-user-repository';
     PrismaService,
     UnitOfWork,
     EmpresaRepository,
+    CausaRepository,
+    InstituicaoRepository,
     UserRepository,
     SessaoRepository,
     RegistroAuditoriaRepository,

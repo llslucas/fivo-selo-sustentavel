@@ -6,7 +6,9 @@ export class CausaComInstituicoesAprovadasError
 {
   readonly status = 409;
 
-  constructor(instituicoesAprovadas: string[]) {
-    super(`CNPJ ou e-mail já cadastrado: ${instituicoesAprovadas.join(', ')}`);
+  constructor(readonly instituicoes: string[]) {
+    super(
+      `Causa possui instituições aprovadas vinculadas: ${instituicoes.join(', ')}`,
+    );
   }
 }

@@ -2,22 +2,26 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import NextLink from "next/link";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
-import Alert from "@mui/material/Alert";
 import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 import { APP_ROUTES } from "@/lib/routes";
-import { ApiError, login } from "@/lib/api";
+import { ApiError, mensagemDeErro } from "@/services/api";
+import { login } from "@/services/auth";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function CompLogin() {
   const router = useRouter();
+  const { verificar } = useAuth();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -31,20 +35,14 @@ export default function CompLogin() {
     setLoading(true);
     try {
       await login(email, senha);
+      // O AuthContext buscou a sessão (ausente) uma vez, na raiz da app, antes
+      // de existir cookie — sem isso o AuthGuard do dashboard acharia que
+      // ainda não tem sessão e mandaria de volta pro login.
+      await verificar();
       router.push(APP_ROUTES.private.dashboard);
     } catch (e) {
-      if (e instanceof ApiError) {
-        setErrosCampo(e.fieldErrors);
-        setErro(
-          e.status === 401
-            ? "E-mail ou senha incorretos."
-            : e.status === 429
-              ? e.message
-              : e.message,
-        );
-      } else {
-        setErro("Não foi possível entrar. Tente novamente.");
-      }
+      if (e instanceof ApiError) setErrosCampo(e.fieldErrors);
+      setErro(mensagemDeErro(e, { 401: "E-mail ou senha incorretos." }));
     } finally {
       setLoading(false);
     }
@@ -54,17 +52,27 @@ export default function CompLogin() {
     <Box
       sx={{
         backgroundColor: "#ffffff",
-        p: { xs: 3, md: 5 },
+        p: { xs: 3.5, sm: 4, md: 7 },
+        display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        height: "100%",
         width: { xs: "100%", md: "50%" },
+        flex: 1,
       }}
     >
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: "#333" }}>
+      <Typography
+        component="h2"
+        sx={{
+          fontWeight: 700,
+          fontSize: { xs: "1.35rem", md: "1.5rem" },
+          mb: 0.5,
+          color: "#1B1B19",
+          letterSpacing: "-0.01em",
+        }}
+      >
         Entrar na plataforma
       </Typography>
-      <Typography variant="body2" sx={{ color: "text.secondary", mb: 3 }}>
+      <Typography variant="body2" sx={{ color: "text.secondary", mb: 3.5 }}>
         Acesse a área da sua empresa
       </Typography>
 
@@ -75,43 +83,63 @@ export default function CompLogin() {
           e.preventDefault();
           void handleLogin();
         }}
-        sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+        sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
       >
-        {erro && <Alert severity="error">{erro}</Alert>}
+        {erro && <ErrorMessage mensagem={erro} />}
 
         <Box>
+          <Typography variant="body2" sx={{ fontWeight: 600, color: "#1B1B19", mb: 0.75 }}>
+            E-mail corporativo
+          </Typography>
           <TextField
             fullWidth
-            label="E-mail corporativo"
             placeholder="nome@empresa.com.br"
             variant="outlined"
-            size="small"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
             error={Boolean(errosCampo.email)}
             helperText={errosCampo.email}
+            slotProps={{ htmlInput: { "aria-label": "E-mail corporativo" } }}
             sx={{
               "& .MuiOutlinedInput-root": {
-                bgcolor: "#F9F9F9",
+                bgcolor: "#FFFFFF",
                 borderRadius: 2,
-              }
+                "& fieldset": {
+                  borderColor: "#E5E7EB",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#D1D5DB",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#116A4D",
+                },
+              },
+              "& .MuiOutlinedInput-input": {
+                py: 1.3,
+                fontSize: "0.95rem",
+              },
             }}
           />
         </Box>
+
         <Box>
+          <Typography variant="body2" sx={{ fontWeight: 600, color: "#1B1B19", mb: 0.75, fontSize: "0.875rem" }}>
+            Senha
+          </Typography>
           <TextField
             fullWidth
-            label="Senha"
             type={mostrarSenha ? "text" : "password"}
             placeholder="••••••••"
             variant="outlined"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
+            disabled={loading}
             error={Boolean(errosCampo.senha)}
             helperText={errosCampo.senha}
-            size="small"
             slotProps={{
+              htmlInput: { "aria-label": "Senha" },
               input: {
                 endAdornment: (
                   <InputAdornment position="end">
@@ -133,22 +161,43 @@ export default function CompLogin() {
             }}
             sx={{
               "& .MuiOutlinedInput-root": {
-                bgcolor: "#F9F9F9",
+                bgcolor: "#FFFFFF",
                 borderRadius: 2,
-              }
+                "& fieldset": {
+                  borderColor: "#E5E7EB",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#D1D5DB",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#116A4D",
+                },
+              },
+              "& .MuiOutlinedInput-input": {
+                py: 1.3,
+                fontSize: "0.95rem",
+              },
             }}
           />
         </Box>
 
-
-        <Box sx={{ display: "flex", justifyContent: "flex-end", textAlign: "right" }}>
-          <Link href="/recuperar-senha" underline="none" sx={{ color: "#116A4D", fontSize: "0.875rem", fontWeight: 500 }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Link
+            component={NextLink}
+            href={APP_ROUTES.public.recuperarSenha}
+            underline="none"
+            sx={{
+              color: "#116A4D",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              "&:hover": { textDecoration: "underline" },
+            }}
+          >
             Esqueci minha senha
           </Link>
         </Box>
 
-
-        <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1.75 }}>
           <Button
             type="submit"
             variant="contained"
@@ -159,7 +208,10 @@ export default function CompLogin() {
               '&:hover': { bgcolor: "#0D533D" },
               textTransform: 'none',
               borderRadius: 2,
-              py: 1
+              py: 1.3,
+              fontSize: "0.95rem",
+              fontWeight: 600,
+              boxShadow: "none",
             }}
           >
             {loading ? <CircularProgress size={22} sx={{ color: "#fff" }} /> : "Entrar"}
@@ -168,21 +220,23 @@ export default function CompLogin() {
           <Button
             variant="outlined"
             fullWidth
-            LinkComponent={Link}
+            component={NextLink}
             href={APP_ROUTES.public.cadastro}
             sx={{
-              color: "#333",
-              borderColor: "#E0E0E0",
-              '&:hover': { borderColor: "#CCC", bgcolor: "#FAFAFA" },
+              color: "#1B1B19",
+              borderColor: "#E5E7EB",
+              bgcolor: "#ffffff",
+              '&:hover': { borderColor: "#D1D5DB", bgcolor: "#FAFAFA" },
               textTransform: 'none',
               borderRadius: 2,
-              py: 1
+              py: 1.3,
+              fontSize: "0.95rem",
+              fontWeight: 600,
             }}
           >
             Cadastrar minha empresa
           </Button>
         </Box>
-
       </Box>
     </Box>
   );

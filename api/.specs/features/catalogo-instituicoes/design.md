@@ -208,7 +208,7 @@ Além disso, `InstituicaoAlreadyExistsError` muda de `status 422` para **409** e
 
 | Porta | Local | Operações |
 | ----- | ----- | --------- |
-| `InstituicaoRepository` (expandir) | `application/ports/database/instituicao-repository.ts` | `findById`, `findByCnpj`, `findByUsuarioId`, `listarPorEstado(estado, ordem)`, `listarAprovadasPorCausa(causaId)`, `buscarDisponiveis(termo?)`, `create`, `save`, `salvarTransicao(instituicao, estadoEsperado): Promise<boolean>` |
+| `InstituicaoRepository` (expandir) | `application/ports/database/instituicao-repository.ts` | `findById`, `findByCnpj`, `findByUsuarioId`, `listarPorEstado(estado, ordem)`, `listarAprovadasPorCausa(causaId)`, `create`, `save`, `salvarTransicao(instituicao, estadoEsperado): Promise<boolean>` |
 | `CausaRepository` (nova) | `application/ports/database/causa-repository.ts` | `findById`, `findByNome(nome)` (sem distinção de caixa/acento), `listarAtivas()`, `create`, `save` |
 | `VerificadorDeDocumento` (nova) | `application/ports/verificador-de-documento.ts` | `estaLegivel(arquivoId: string): Promise<boolean>` — usada pela aprovação para o Edge case do arquivo inacessível |
 
@@ -218,7 +218,7 @@ Além disso, `InstituicaoAlreadyExistsError` muda de `status 422` para **409** e
 | ---------- | ----- | ----- |
 | Schema + migration | `prisma/schema.prisma` | Modelos `Causa` e `Instituicao`, enums `InstituicaoStatus`/`CausaStatus`, novos valores de `TipoArquivo`, relação `Arquivo → instituicoes` |
 | `PrismaCausaRepository` + mapper | `src/infra/database/prisma/` | Busca por nome normalizado; unicidade por índice |
-| `PrismaInstituicaoRepository` + mapper | `src/infra/database/prisma/` | CAS em `salvarTransicao` (`updateMany` com `status: estadoEsperado`), busca sem acento, `save` que não regrava colunas de decisão |
+| `PrismaInstituicaoRepository` + mapper | `src/infra/database/prisma/` | CAS em `salvarTransicao` (`updateMany` com `status: estadoEsperado`), `save` que não regrava colunas de decisão |
 | `ArquivoService` (modificar) | `src/infra/arquivo/arquivo.service.ts` | Magic bytes de PDF (`%PDF-`), `uploadDocumento`, limite por tipo, `buscarAcesso` considerando o dono instituição, `VerificadorDeDocumentoPrisma` |
 | `CadastroInstituicaoController` | `src/infra/http/controllers/` | `POST /instituicoes` (multipart: logo + documento), `GET /causas` (público, ativas) |
 | `AdminInstituicoesController` | `src/infra/http/controllers/` | `GET /admin/instituicoes`, `POST /admin/instituicoes/:id/{aprovacao,rejeicao,suspensao,reativacao,inativacao}` |
@@ -325,7 +325,7 @@ export interface BeneficiadaDisponivel {
 | Rascunho do colega usa `throw` e setters públicos | `.../use-cases/aprovar-instituicao.ts:12`, `entities/instituicao.ts:110` | Fora do padrão de AD-017; `throw` de `NotAllowedError` vira 403 por acidente do filtro, não por contrato | Retrabalho no lugar, com `Either`, na Fase 4 |
 | `ArquivoService.sniffarMime` não reconhece PDF | `src/infra/arquivo/arquivo.service.ts:126` | Todo PDF cairia em `application/octet-stream` e seria rejeitado | Task de infra específica para magic bytes de PDF, com e2e de upload real |
 | Limite de 5 MB está fixo no multer e na mensagem do filtro | `src/infra/http/controllers/cadastro-empresa.controller.ts:57`, `domain-exception.filter.ts:36` | Documento de 10 MB seria cortado antes do domínio, com mensagem errada | Task de infra do controller de instituição define limite por rota e mensagem coerente; e2e cobre 10 MB aceito e 11 MB rejeitado |
-| Busca sem acento não é trivial em Postgres | novo `PrismaInstituicaoRepository` | AC2 da seleção falharia para "Fundação" vs "fundacao" | Coluna `nome_busca` (minúscula, sem acento) gravada pelo mapper + índice; o double em memória normaliza em código. Decisão registrada abaixo |
+| Busca sem acento não é trivial em Postgres | `ListarBeneficiadasUseCase` | AC2 da seleção falharia para "Fundação" vs "fundacao" | A busca normaliza em código, no caso de uso, sobre instituições `APROVADA` e causas `ATIVA` já carregadas. Nenhuma coluna de busca em instituição. Decisão registrada abaixo (emenda de 2026-10-13, T47) |
 | `TipoArquivo` é enum do Postgres | `prisma/schema.prisma:31` | Acrescentar valor exige migration própria | A migration da Fase 6 inclui os dois valores novos antes de qualquer upload |
 | Templates de e-mail são genéricos (`CADASTRO_APROVADO`) | `application/ports/mailer.ts:1` | Instituição receberia texto escrito para empresa | Reusar o template passando `dados: { papel: 'INSTITUICAO' }`; o texto por papel é problema do `web`/transporte real, não da v1 com `LogMailer` |
 | Nenhuma causa existe no banco novo | — | Autocadastro fica impossível até o admin criar a primeira causa | Documentar no README que o admin cria causas antes de divulgar o cadastro; sem seed automático |
@@ -336,8 +336,8 @@ export interface BeneficiadaDisponivel {
 
 | Decisão | Escolha | Racional |
 | ------- | ------- | -------- |
-| Busca sem acento/caixa | Coluna derivada `nome_busca` gravada pelo mapper (`normalize('NFD')` sem diacríticos, minúscula) + `contains` | Evita depender da extensão `unaccent` e mantém o double em memória equivalente ao Prisma |
-| Unicidade de nome de causa | Índice único sobre `nome_busca` | Torna "Educação" e "educacao" a mesma causa, como o usuário esperaria |
+| Busca sem acento/caixa no catálogo | Filtro em memória no `ListarBeneficiadasUseCase` (`normalize('NFD')` sem diacríticos, minúscula, `includes`), sem método de busca na porta de instituição | As causas já precisam ser filtradas em memória; o catálogo de aprovadas da v1 é pequeno; não depende de `unaccent`. Se o catálogo crescer, volta a coluna derivada no repositório. Emenda de 2026-10-13 (T46/T47), que substitui a coluna `nome_busca` em instituição |
+| Unicidade de nome de causa | Coluna derivada `nome_busca` em `causa` (gravada pelo mapper, minúscula, sem acento) com índice único; `findByNome` compara por ela | Torna "Educação" e "educacao" a mesma causa, como o usuário esperaria |
 | Documento no mesmo `arquivo` | Sem tabela separada | AD-006 (b); o controle de acesso é por dono, já implementado |
 | Legibilidade do documento na aprovação | Porta `VerificadorDeDocumento` no domínio | Mantém o Edge case do 503 testável sem Storage nem Prisma |
 | `ListarBeneficiadas` devolve read model, não entidades | `BeneficiadaDisponivel[]` | Garante INST-10 por construção e evita presenter esperto no controller |
@@ -358,7 +358,7 @@ export interface BeneficiadaDisponivel {
 | INST-05 | `Instituicao` (transições), `salvarTransicao`, `RegistroAuditoriaRepository`, `SuspenderInstituicaoUseCase`, `ReativarInstituicaoUseCase`, `InativarInstituicaoUseCase` |
 | INST-06 | `ArquivoService.buscarAcesso`, `ArquivoController`, `VerificadorDeDocumento` |
 | INST-07 | `Causa`, `CriarCausaUseCase`, `EditarCausaUseCase`, `InativarCausaUseCase`, `ListarCausasAtivasUseCase`, `AdminCausasController` |
-| INST-08 | `ListarBeneficiadasUseCase`, `InstituicaoRepository.buscarDisponiveis`, `BeneficiadasController` |
+| INST-08 | `ListarBeneficiadasUseCase`, `InstituicaoRepository.listarPorEstado`, `CausaRepository.listarAtivas`, `BeneficiadasController` |
 | INST-09 | `AssegurarBeneficiadaDisponivelUseCase` (consumido por `campanhas`) |
 | INST-10 | `BeneficiadaDisponivel` (read model) |
 | INST-11, INST-12, INST-13 | fora desta rodada (P2) |

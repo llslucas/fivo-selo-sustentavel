@@ -62,7 +62,7 @@ const STATUS_ESPERADO: Record<string, number> = {
   'cnpj-imutavel': 422,
   'conta-bloqueada': 429,
   'empresa-ja-existe': 409,
-  'instituicao-ja-existe': 422,
+  'instituicao-ja-existe': 409,
   'cnpj-invalido': 422,
   'regra-invalida': 422,
   'motivo-insuficiente': 422,

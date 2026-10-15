@@ -1,4 +1,6 @@
 import { Cnpj } from '@domain/fivo/entities/cnpj';
+import { DocumentoValidacao } from '@domain/fivo/entities/documento-validacao';
+import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import {
   Instituicao,
   InstituicaoProps,
@@ -12,6 +14,12 @@ export class InstituicaoFactory {
       throw new Error('Invalid CNPJ');
     }
 
+    const documento = DocumentoValidacao.criar('arquivo-documento-teste');
+
+    if (documento.isLeft()) {
+      throw documento.value;
+    }
+
     const instituicao = Instituicao.create({
       razaoSocial: 'Instituicao Teste LTDA',
       nomeFantasia: 'Instituicao Teste',
@@ -19,14 +27,17 @@ export class InstituicaoFactory {
       telefone: '11999999999',
       cep: '12345678',
       logradouro: 'Rua Teste',
-      numero: 123,
+      numero: '123',
       complemento: 'Apto 101',
       bairro: 'Bairro Teste',
       cidade: 'Cidade Teste',
       uf: 'SP',
       site: 'https://www.instituicaoteste.com.br',
-      email: 'contato@instituicaoteste.com.br',
       contato: 'João da Silva',
+      usuarioId: new UniqueEntityId(),
+      causaId: new UniqueEntityId(),
+      descricao: 'Descricao da instituicao de teste',
+      documento: documento.value,
       ...props,
     });
 

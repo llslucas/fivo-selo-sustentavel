@@ -187,4 +187,128 @@ describe('Arquivo', () => {
 
     expect(result.isRight()).toBe(true);
   });
+
+  it('should accept PDF as institution document', () => {
+    const result = Arquivo.criar({
+      tipo: TipoArquivo.DOCUMENTO_INSTITUICAO,
+      nomeOriginal: 'documento.pdf',
+      mime: 'application/pdf',
+      bytes: 1024,
+      chaveStorage: 'instituicao/documento.pdf',
+    });
+
+    expect(result.isRight()).toBe(true);
+  });
+
+  it('should reject PDF as institution logo', () => {
+    const result = Arquivo.criar({
+      tipo: TipoArquivo.LOGO_INSTITUICAO,
+      nomeOriginal: 'logo.pdf',
+      mime: 'application/pdf',
+      bytes: 1024,
+      chaveStorage: 'instituicao/logo.pdf',
+    });
+
+    expect(result.isLeft()).toBe(true);
+
+    if (result.isLeft()) {
+      expect(result.value.message.toLowerCase()).toContain('formato');
+    }
+  });
+
+  it('should accept institution document with exactly 10 MB', () => {
+    const result = Arquivo.criar({
+      tipo: TipoArquivo.DOCUMENTO_INSTITUICAO,
+      nomeOriginal: 'documento.png',
+      mime: 'image/png',
+      bytes: Buffer.alloc(10 * 1024 * 1024).length,
+      largura: 1024,
+      altura: 1024,
+      chaveStorage: 'instituicao/documento.png',
+    });
+
+    expect(result.isRight()).toBe(true);
+  });
+
+  it('should reject institution document above 10 MB', () => {
+    const result = Arquivo.criar({
+      tipo: TipoArquivo.DOCUMENTO_INSTITUICAO,
+      nomeOriginal: 'documento.png',
+      mime: 'image/png',
+      bytes: Buffer.alloc(10 * 1024 * 1024 + 1).length,
+      largura: 1024,
+      altura: 1024,
+      chaveStorage: 'instituicao/documento.png',
+    });
+
+    expect(result.isLeft()).toBe(true);
+
+    if (result.isLeft()) {
+      expect(result.value.message.toLowerCase()).toContain('10 mb');
+    }
+  });
+
+  it('should accept 300x300 image as institution document', () => {
+    const result = Arquivo.criar({
+      tipo: TipoArquivo.DOCUMENTO_INSTITUICAO,
+      nomeOriginal: 'documento.png',
+      mime: 'image/png',
+      bytes: 1024,
+      largura: 300,
+      altura: 300,
+      chaveStorage: 'instituicao/documento.png',
+    });
+
+    expect(result.isRight()).toBe(true);
+  });
+
+  it('should reject 300x300 image as institution logo', () => {
+    const result = Arquivo.criar({
+      tipo: TipoArquivo.LOGO_INSTITUICAO,
+      nomeOriginal: 'logo.png',
+      mime: 'image/png',
+      bytes: 1024,
+      largura: 300,
+      altura: 300,
+      chaveStorage: 'instituicao/logo.png',
+    });
+
+    expect(result.isLeft()).toBe(true);
+
+    if (result.isLeft()) {
+      expect(result.value.message.toLowerCase()).toContain('dimensão');
+    }
+  });
+
+  it('should cite 5 MB limit for institution logo', () => {
+    const result = Arquivo.criar({
+      tipo: TipoArquivo.LOGO_INSTITUICAO,
+      nomeOriginal: 'logo.png',
+      mime: 'image/png',
+      bytes: 5 * 1024 * 1024 + 1,
+      largura: 1024,
+      altura: 1024,
+      chaveStorage: 'instituicao/logo.png',
+    });
+
+    expect(result.isLeft()).toBe(true);
+
+    if (result.isLeft()) {
+      expect(result.value.message.toLowerCase()).toContain('5 mb');
+    }
+  });
+
+  it('should accept clean SVG as institution logo', () => {
+    const result = Arquivo.criar({
+      tipo: TipoArquivo.LOGO_INSTITUICAO,
+      nomeOriginal: 'logo.svg',
+      mime: 'image/svg+xml',
+      bytes: 2048,
+      chaveStorage: 'instituicao/logo.svg',
+      svgConteudo:
+        '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" /></svg>',
+    });
+
+    expect(result.isRight()).toBe(true);
+  });
 });
