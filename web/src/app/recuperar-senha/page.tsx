@@ -12,6 +12,9 @@ import Link from "next/link";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import GrassRoundedIcon from "@mui/icons-material/GrassRounded";
 import { APP_ROUTES } from "@/lib/routes";
+import ErrorMessage from "@/components/ui/ErrorMessage";
+import { ApiError, mensagemDeErro } from "@/services/api";
+import { solicitarRecuperacaoSenha } from "@/services/auth";
 
 export default function RecuperarSenhaPage() {
   const [email, setEmail] = useState("");
@@ -21,19 +24,22 @@ export default function RecuperarSenhaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
+    if (!email.trim()) {
       setErro("Informe seu e-mail corporativo.");
       return;
     }
 
     setErro(null);
     setLoading(true);
-
-    // Simulação do envio de e-mail de recuperação
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await solicitarRecuperacaoSenha(email.trim());
       setEnviado(true);
-    }, 1200);
+    } catch (e) {
+      const erroCampo = e instanceof ApiError ? e.fieldErrors.email : undefined;
+      setErro(erroCampo ?? mensagemDeErro(e));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -141,35 +147,13 @@ export default function RecuperarSenhaPage() {
               Informe seu e-mail corporativo cadastrado.
             </Typography>
 
-            {erro && (
-              <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-                {erro}
-              </Alert>
-            )}
+            {erro && <ErrorMessage mensagem={erro} sx={{ mb: 2, borderRadius: 2 }} />}
 
             {enviado ? (
               <Box sx={{ textAlign: "center", py: 2 }}>
                 <Alert severity="success" sx={{ mb: 3, borderRadius: 2, textAlign: "left" }}>
-                  Enviamos as instruções para <strong>{email}</strong>. Verifique sua caixa de entrada e spam.
+                  Se <strong>{email}</strong> estiver cadastrado, enviaremos um link de redefinição. Verifique sua caixa de entrada e spam.
                 </Alert>
-
-                <Button
-                  component={Link}
-                  href={APP_ROUTES.public.recuperarSenhaRedefinir}
-                  variant="outlined"
-                  fullWidth
-                  sx={{
-                    mb: 2,
-                    py: 1.2,
-                    borderRadius: 2,
-                    textTransform: "none",
-                    borderColor: "#0F6E56",
-                    color: "#0F6E56",
-                    fontWeight: 600,
-                  }}
-                >
-                  Simular abertura do link recebido
-                </Button>
 
                 <Link
                   href={APP_ROUTES.public.login}
@@ -200,6 +184,7 @@ export default function RecuperarSenhaPage() {
                     placeholder="nome@empresa.com.br"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         borderRadius: 2,
