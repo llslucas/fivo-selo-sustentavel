@@ -12,7 +12,7 @@ export default function CompApresenta() {
         flexDirection: "column",
         justifyContent: "space-between",
         height: "100%",
-        width: "50%"
+        width: { xs: "100%", md: "50%" },
       }}
     >
       <Box>
@@ -38,7 +38,7 @@ export default function CompApresenta() {
           Cada produto vendido pode virar um impacto real.
         </Typography>
 
-        <Typography variant="body2" sx={{ color: "#A8D5C2", maxWidth: "85%", lineHeight: 1.6 }}>
+        <Typography variant="body2" sx={{ color: "#CDE8DC", maxWidth: { xs: "100%", md: "85%" }, lineHeight: 1.6 }}>
           Crie campanhas, gere seu selo e mostre ao consumidor exatamente para onde a doação foi.
         </Typography>
       </Box>

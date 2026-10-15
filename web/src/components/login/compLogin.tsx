@@ -58,7 +58,7 @@ export default function CompLogin() {
         flexDirection: "column",
         justifyContent: "center",
         height: "100%",
-        width: "50%"
+        width: { xs: "100%", md: "50%" },
       }}
     >
       <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: "#333" }}>
@@ -80,11 +80,9 @@ export default function CompLogin() {
         {erro && <Alert severity="error">{erro}</Alert>}
 
         <Box>
-          <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
-            E-mail corporativo
-          </Typography>
           <TextField
             fullWidth
+            label="E-mail corporativo"
             placeholder="nome@empresa.com.br"
             variant="outlined"
             size="small"
@@ -102,11 +100,9 @@ export default function CompLogin() {
           />
         </Box>
         <Box>
-          <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
-            Senha
-          </Typography>
           <TextField
             fullWidth
+            label="Senha"
             type={mostrarSenha ? "text" : "password"}
             placeholder="••••••••"
             variant="outlined"
@@ -146,7 +142,7 @@ export default function CompLogin() {
 
 
         <Box sx={{ display: "flex", justifyContent: "flex-end", textAlign: "right" }}>
-          <Link href="/recuperar-senha" underline="none" sx={{ color: "#116A4D", fontSize: "0.875rem", fontWeight: 500, width: "100%" }}>
+          <Link href="/recuperar-senha" underline="none" sx={{ color: "#116A4D", fontSize: "0.875rem", fontWeight: 500 }}>
             Esqueci minha senha
           </Link>
         </Box>

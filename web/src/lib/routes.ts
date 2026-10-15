@@ -20,9 +20,9 @@ export const APP_ROUTES = {
 export const isPublicRoute = (path: string): boolean => {
   if (path.startsWith('/parceiros')) return true;
   if (path.startsWith('/recuperar-senha')) return true;
-  return Object.values(APP_ROUTES.public).includes(path as any);
+  return (Object.values(APP_ROUTES.public) as string[]).includes(path);
 };
 
 export const isPrivateRoute = (path: string): boolean => {
-  return Object.values(APP_ROUTES.private).includes(path as any);
+  return (Object.values(APP_ROUTES.private) as string[]).includes(path);
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
@@ -66,10 +66,18 @@ const CAMPOS_ETAPA_1 = ["razaoSocial", "nomeFantasia", "cnpj", "telefone", "emai
 const CAMPOS_ETAPA_2 = ["cep", "logradouro", "numero", "complemento", "bairro", "cidade", "uf"];
 
 // Label com asterisco vermelho pra marcar campo obrigatório.
+// O asterisco é apenas visual; o texto "(obrigatório)" fica oculto para
+// leitores de tela anunciarem o estado programaticamente.
 function Obrigatorio({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {children} <Box component="span" sx={{ color: "error.main" }}>*</Box>
+      {children}{" "}
+      <Box component="span" aria-hidden="true" sx={{ color: "error.main" }}>
+        *
+      </Box>
+      <Box component="span" className="visually-hidden">
+        (obrigatório)
+      </Box>
     </>
   );
 }
@@ -90,8 +98,6 @@ export default function CadastroWizard() {
   const [erro, setErro] = useState<string | null>(null);
   const [errosCampo, setErrosCampo] = useState<Record<string, string>>({});
   const [concluido, setConcluido] = useState(false);
-
-  const inputRef = useRef<HTMLInputElement>(null);
 
   function patch(campo: keyof FormState, valor: string) {
     setData((prev) => ({ ...prev, [campo]: valor }));
@@ -158,6 +164,13 @@ export default function CadastroWizard() {
 
   // Trava o "Continuar" enquanto a etapa atual não estiver toda preenchida.
   const podeAvancar = step === 1 ? etapa1Completa : step === 2 ? etapa2Completa : true;
+
+  const tituloEtapa =
+    step === 1
+      ? "Dados da empresa"
+      : step === 2
+        ? "Endereço e Localização"
+        : "Revisão e Confirmação";
 
   function handleBack() {
     setErro(null);
@@ -251,6 +264,8 @@ export default function CadastroWizard() {
       >
         <Container maxWidth="sm">
           <Box
+            role="status"
+            aria-live="polite"
             sx={{
               bgcolor: "background.default",
               borderRadius: 3,
@@ -303,6 +318,9 @@ export default function CadastroWizard() {
             boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
           }}
         >
+          <Box className="visually-hidden" role="status" aria-live="polite">
+            {`Etapa ${step} de ${totalSteps}: ${tituloEtapa}`}
+          </Box>
           <Box sx={{ mb: 4 }}>
             <Chip
               label={`Etapa ${step} de ${totalSteps}`}
@@ -519,7 +537,8 @@ export default function CadastroWizard() {
                   Logo da empresa (opcional)
                 </Typography>
                 <Box
-                  onClick={() => inputRef.current?.click()}
+                  component="label"
+                  aria-label="Enviar logo da empresa"
                   onDragOver={(e) => {
                     e.preventDefault();
                     setDragOver(true);
@@ -531,6 +550,7 @@ export default function CadastroWizard() {
                     handleFile(e.dataTransfer.files?.[0]);
                   }}
                   sx={{
+                    display: "block",
                     border: "1px dashed",
                     borderColor: dragOver ? "primary.main" : "divider",
                     bgcolor: dragOver ? "primary.light" : "background.paper",
@@ -541,10 +561,14 @@ export default function CadastroWizard() {
                     cursor: "pointer",
                     transition: "border-color 0.15s ease, background-color 0.15s ease",
                     "&:hover": { borderColor: "primary.main" },
+                    "&:focus-within": {
+                      borderColor: "primary.main",
+                      outline: "2px solid var(--color-primary)",
+                      outlineOffset: 2,
+                    },
                   }}
                 >
                   <input
-                    ref={inputRef}
                     type="file"
                     accept="image/png,image/svg+xml"
                     hidden

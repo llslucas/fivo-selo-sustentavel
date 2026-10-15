@@ -14,6 +14,7 @@ const QR_PATTERN = [
 function QrPlaceholder({ size = 56 }: { size?: number }) {
   return (
     <Box
+      aria-hidden="true"
       sx={{
         width: size,
         height: size,
@@ -50,6 +51,8 @@ export default function SealPreviewPanel({
 
   return (
     <Box
+      role="img"
+      aria-label={`Pré-visualização do selo da campanha ${campaignName || "sem nome"}`}
       sx={{
         bgcolor: "primary.main",
         borderRadius: 3,

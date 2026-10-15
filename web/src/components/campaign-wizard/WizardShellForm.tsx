@@ -33,6 +33,9 @@ export default function WizardShellForm({
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <Box className="visually-hidden" role="status" aria-live="polite">
+          {`Etapa ${step} de ${totalSteps}: ${title}`}
+        </Box>
         <Box>
           <Chip
             label={`Etapa ${step} de ${totalSteps}`}
@@ -53,6 +56,7 @@ export default function WizardShellForm({
           <LinearProgress
             variant="determinate"
             value={(step / totalSteps) * 100}
+            aria-label={`Progresso: etapa ${step} de ${totalSteps}`}
             sx={{
               height: 4,
               borderRadius: 2,
@@ -67,19 +71,19 @@ export default function WizardShellForm({
         <Box
           sx={{
             display: "flex",
+            flexWrap: "wrap",
+            gap: 2,
             justifyContent: "space-between",
             pt: 2,
           }}
         >
-          <Button
-            variant="outlined"
-            color="inherit"
-            onClick={onBack}
-            disabled={!onBack}
-            sx={{ visibility: onBack ? "visible" : "hidden" }}
-          >
-            Voltar
-          </Button>
+          {onBack ? (
+            <Button variant="outlined" color="inherit" onClick={onBack}>
+              Voltar
+            </Button>
+          ) : (
+            <Box aria-hidden="true" />
+          )}
           <Button variant="contained" onClick={onNext} disabled={nextDisabled}>
             {nextLabel}
           </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useState } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -15,7 +15,6 @@ export default function StepSelo({
   data: CampaignWizardData;
   onChange: (patch: Partial<CampaignWizardData>) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
   function handleFile(file: File | undefined) {
@@ -31,7 +30,8 @@ export default function StepSelo({
           Logo da empresa
         </Typography>
         <Box
-          onClick={() => inputRef.current?.click()}
+          component="label"
+          aria-label="Enviar logo da empresa"
           onDragOver={(e) => {
             e.preventDefault();
             setDragOver(true);
@@ -43,6 +43,7 @@ export default function StepSelo({
             handleFile(e.dataTransfer.files?.[0]);
           }}
           sx={{
+            display: "block",
             border: "1px dashed",
             borderColor: dragOver ? "primary.main" : "divider",
             bgcolor: dragOver ? "primary.light" : "background.paper",
@@ -53,10 +54,14 @@ export default function StepSelo({
             cursor: "pointer",
             transition: "border-color 0.15s ease, background-color 0.15s ease",
             "&:hover": { borderColor: "primary.main" },
+            "&:focus-within": {
+              borderColor: "primary.main",
+              outline: "2px solid var(--color-primary)",
+              outlineOffset: 2,
+            },
           }}
         >
           <input
-            ref={inputRef}
             type="file"
             accept="image/png,image/svg+xml"
             hidden
@@ -100,6 +105,8 @@ function ToggleRow({
   checked: boolean;
   onChange: (checked: boolean) => void;
 }) {
+  const titleId = useId();
+  const descId = useId();
   return (
     <Stack
       direction="row"
@@ -113,14 +120,20 @@ function ToggleRow({
       }}
     >
       <Box>
-        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+        <Typography id={titleId} variant="subtitle2" sx={{ fontWeight: 600 }}>
           {title}
         </Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography id={descId} variant="caption" color="text.secondary">
           {description}
         </Typography>
       </Box>
-      <Switch checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <Switch
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        slotProps={{
+          input: { "aria-labelledby": titleId, "aria-describedby": descId },
+        }}
+      />
     </Stack>
   );
 }

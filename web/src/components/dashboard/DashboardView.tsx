@@ -44,8 +44,9 @@ export default function DashboardView() {
         <Stack spacing={4}>
          
           <Stack
-            direction="row"
-            sx={{ justifyContent: "space-between", alignItems: "flex-start" }}
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            sx={{ justifyContent: "space-between", alignItems: { xs: "stretch", sm: "flex-start" } }}
           >
             <Box>
               <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 0.5 }}>
@@ -60,7 +61,7 @@ export default function DashboardView() {
               href="/campanhas/nova"
               variant="contained"
               startIcon={<AddRoundedIcon />}
-              sx={{ flexShrink: 0 }}
+              sx={{ flexShrink: 0, alignSelf: { xs: "flex-start", sm: "auto" } }}
             >
               Nova campanha
             </Button>
@@ -79,6 +80,8 @@ export default function DashboardView() {
 
         
           <Box
+            role="status"
+            aria-live="polite"
             sx={{
               border: 1,
               borderColor: "#F0D9A8",
@@ -87,7 +90,8 @@ export default function DashboardView() {
               px: 3,
               py: 2,
               display: "flex",
-              alignItems: "center",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: { xs: "flex-start", sm: "center" },
               justifyContent: "space-between",
               gap: 2,
             }}
@@ -125,7 +129,11 @@ export default function DashboardView() {
               <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                 Campanhas recentes
               </Typography>
-              <Link href="/campanhas" style={{ textDecoration: "none" }}>
+              <Link
+                href="/campanhas"
+                aria-label="Ver todas as campanhas"
+                style={{ textDecoration: "none" }}
+              >
                 <Typography
                   variant="body2"
                   sx={{

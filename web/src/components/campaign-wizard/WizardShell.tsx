@@ -32,6 +32,9 @@ export default function WizardShell({
 }) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 5 }}>
+      <Box className="visually-hidden" role="status" aria-live="polite">
+        {`Etapa ${step} de ${totalSteps}: ${title}`}
+      </Box>
       <Box>
         <Chip
           label={`Etapa ${step} de ${totalSteps}`}
@@ -52,6 +55,7 @@ export default function WizardShell({
         <LinearProgress
           variant="determinate"
           value={(step / totalSteps) * 100}
+          aria-label={`Progresso: etapa ${step} de ${totalSteps}`}
           sx={{
             height: 4,
             borderRadius: 2,
@@ -72,12 +76,18 @@ export default function WizardShell({
           borderColor: "divider",
           pt: 3,
           display: "flex",
+          flexWrap: "wrap",
+          gap: 2,
           justifyContent: "space-between",
         }}
       >
-        <Button variant="outlined" color="inherit" onClick={onBack} disabled={!onBack}>
-          Voltar
-        </Button>
+        {onBack ? (
+          <Button variant="outlined" color="inherit" onClick={onBack}>
+            Voltar
+          </Button>
+        ) : (
+          <Box aria-hidden="true" />
+        )}
         <Button variant="contained" onClick={onNext} disabled={nextDisabled}>
           {nextLabel}
         </Button>

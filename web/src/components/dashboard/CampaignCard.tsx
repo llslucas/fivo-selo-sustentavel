@@ -68,12 +68,16 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
         <Typography variant="caption" color="text.secondary">
           {campaign.qrInfo}
         </Typography>
-        <Link href={`/campanhas/${campaign.id}`} style={{ textDecoration: "none" }}>
+        <Link
+          href={`/campanhas/${campaign.id}`}
+          aria-label={`Ver campanha ${campaign.nome}`}
+          style={{ textDecoration: "none" }}
+        >
           <Stack direction="row" spacing={0.25} sx={{ alignItems: "center", color: "text.secondary" }}>
             <Typography variant="caption" sx={{ fontWeight: 600 }}>
               Ver
             </Typography>
-            <ArrowForwardRoundedIcon sx={{ fontSize: 13 }} />
+            <ArrowForwardRoundedIcon sx={{ fontSize: 13 }} aria-hidden="true" />
           </Stack>
         </Link>
       </Stack>
@@ -86,6 +90,7 @@ export function NewCampaignCard() {
     <Box
       component={Link}
       href="/campanhas/nova"
+      aria-label="Criar nova campanha"
       sx={{
         flex: 1,
         minWidth: 0,

@@ -16,8 +16,8 @@ export default function LoginPage() {
       >
         <Container maxWidth="md">
           <Stack
-            spacing={2}
-            sx={{ display: "flex", flexDirection: "row", alignItems: "stretch",border: 1, borderColor: "#E0E0E0", borderRadius: 2, overflow: "hidden" }}
+            spacing={0}
+            sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, alignItems: "stretch", border: 1, borderColor: "#E0E0E0", borderRadius: 2, overflow: "hidden" }}
           >
             <CompApresenta />
             <CompLogin />

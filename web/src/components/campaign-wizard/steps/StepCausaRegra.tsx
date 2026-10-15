@@ -61,11 +61,20 @@ export default function StepCausaRegra({
         <Stack spacing={1.5}>
           {instituicoes.map((instituicao) => {
             const selected = data.instituicaoId === instituicao.id;
+            const pendente = extraInstituicoes.some((i) => i.id === instituicao.id);
             return (
               <Box
                 key={instituicao.id}
+                component="button"
+                type="button"
+                aria-pressed={selected}
+                aria-label={`${instituicao.nome}, ${instituicao.cidade}${pendente ? ", pendente de aprovação" : ""}`}
                 onClick={() => onChange({ instituicaoId: instituicao.id })}
                 sx={{
+                  width: "100%",
+                  textAlign: "left",
+                  font: "inherit",
+                  color: "inherit",
                   border: 1,
                   borderColor: selected ? "primary.main" : "divider",
                   bgcolor: selected ? "primary.light" : "transparent",
@@ -85,10 +94,11 @@ export default function StepCausaRegra({
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                       {instituicao.nome}
                     </Typography>
-                    {extraInstituicoes.some((i) => i.id === instituicao.id) && (
+                    {pendente && (
                       <Chip
                         label="Pendente de aprovação"
                         size="small"
+                        aria-hidden="true"
                         sx={{ bgcolor: "secondary.light", color: "secondary.dark", fontWeight: 600 }}
                       />
                     )}
@@ -174,8 +184,9 @@ export default function StepCausaRegra({
         <ToggleButtonGroup
           value={data.regraTipo}
           exclusive
+          aria-label="Regra da doação"
           onChange={(_, value) => value && onChange({ regraTipo: value })}
-          sx={{ mb: 2 }}
+          sx={{ mb: 2, flexWrap: "wrap" }}
         >
           <ToggleButton value="valor_fixo">Valor fixo por unidade</ToggleButton>
           <ToggleButton value="percentual">Percentual da venda</ToggleButton>
