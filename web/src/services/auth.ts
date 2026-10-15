@@ -18,3 +18,22 @@ export function login(email: string, senha: string): Promise<{ papel: Papel }> {
 export function logout(): Promise<void> {
   return request("/sessoes/atual", { method: "DELETE" });
 }
+
+// Resposta neutra (202): a API devolve a mesma mensagem com ou sem conta
+// cadastrada para o e-mail.
+export function solicitarRecuperacaoSenha(email: string): Promise<{ mensagem: string }> {
+  return request("/senha/recuperacao", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+}
+
+// O token vem do link enviado por e-mail. 400 = link inválido, expirado ou já usado.
+export function redefinirSenha(token: string, novaSenha: string): Promise<void> {
+  return request("/senha/redefinicao", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, novaSenha }),
+  });
+}
