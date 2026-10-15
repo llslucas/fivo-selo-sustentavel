@@ -202,16 +202,16 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| INST-01 | P1: Autocadastro da instituição — dados cadastrais e validações | Tasks | ✅ Domínio verificado (`validation-dominio.md`, 2026-10-13) · infra em Tasks (T21, T29, T34) |
-| INST-02 | P1: Autocadastro da instituição — documento de validação obrigatório | Tasks | ✅ Domínio verificado (`validation-dominio.md`, 2026-10-13) · infra em Tasks (T24, T29) |
-| INST-03 | P1: Autocadastro da instituição — credencial e vínculo com causa | Tasks | ✅ Domínio verificado (`validation-dominio.md`, 2026-10-13) · infra em Tasks (T29) |
-| INST-04 | P1: Aprovação pelo administrador — fila, decisão e comunicação | Tasks | ✅ Domínio verificado (`validation-dominio.md`, 2026-10-13) · infra em Tasks (T23, T30, T33, T34) |
-| INST-05 | P1: Aprovação pelo administrador — máquina de estados e auditoria | Tasks | ✅ Domínio verificado (`validation-dominio.md`, 2026-10-13) · infra em Tasks (T21, T23, T30, T31, T33) |
-| INST-06 | P1: Aprovação pelo administrador — acesso restrito ao documento | Tasks | ✅ Domínio verificado (`validation-dominio.md`, 2026-10-13) · infra em Tasks (T25, T26, T30) |
-| INST-07 | P1: Manutenção de causas pelo administrador | Tasks | ✅ Domínio verificado (`validation-dominio.md`, 2026-10-13) · infra em Tasks (T21, T22, T27, T28, T34) |
-| INST-08 | P1: Seleção da beneficiada — listagem e busca | Tasks | ✅ Domínio verificado (`validation-dominio.md`, 2026-10-13) · infra em Tasks (T28, T32, T34) |
-| INST-09 | P1: Seleção da beneficiada — vínculo exclusivo e validação | Tasks | ✅ Domínio verificado (`validation-dominio.md`, 2026-10-13) · consumo na feature `campanhas` |
-| INST-10 | P1: Seleção da beneficiada — exposição pública de dados | Tasks | ✅ Domínio verificado (`validation-dominio.md`, 2026-10-13) · infra em Tasks (T32) |
+| INST-01 | P1: Autocadastro da instituição — dados cadastrais e validações | Execute | ✅ Verified (`validation.md`, 2026-10-14) — domínio + infra |
+| INST-02 | P1: Autocadastro da instituição — documento de validação obrigatório | Execute | ✅ Verified (`validation.md`, 2026-10-14) — domínio + infra |
+| INST-03 | P1: Autocadastro da instituição — credencial e vínculo com causa | Execute | ✅ Verified (`validation.md`, 2026-10-14) — domínio + infra |
+| INST-04 | P1: Aprovação pelo administrador — fila, decisão e comunicação | Execute | ✅ Verified (`validation.md`, 2026-10-14) — domínio + infra |
+| INST-05 | P1: Aprovação pelo administrador — máquina de estados e auditoria | Execute | ✅ Verified (`validation.md`, 2026-10-14) — domínio + infra |
+| INST-06 | P1: Aprovação pelo administrador — acesso restrito ao documento | Execute | ✅ Verified (`validation.md`, 2026-10-14) — domínio + infra |
+| INST-07 | P1: Manutenção de causas pelo administrador | Execute | ✅ Verified (`validation.md`, 2026-10-14) — domínio + infra |
+| INST-08 | P1: Seleção da beneficiada — listagem e busca | Execute | ✅ Verified (`validation.md`, 2026-10-14) — domínio + infra |
+| INST-09 | P1: Seleção da beneficiada — vínculo exclusivo e validação | Execute | ✅ Domínio verificado (`validation-dominio.md`) · consumo na feature `campanhas` |
+| INST-10 | P1: Seleção da beneficiada — exposição pública de dados | Execute | ✅ Verified (`validation.md`, 2026-10-14) — domínio + infra |
 | INST-11 | P2: Área logada da instituição — autenticação e isolamento | - | Deferred (rodada P2) |
 | INST-12 | P2: Área logada da instituição — edição e reanálise | - | Deferred (rodada P2) |
 | INST-13 | P2: Notas internas de curadoria | - | Deferred (rodada P2) |
@@ -220,7 +220,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 13 total, 10 mapeados para tasks (INST-01…INST-10, T1–T34), 3 adiados para a rodada P2 (INST-11…INST-13).
+**Coverage:** 13 total, 10 mapeados para tasks (INST-01…INST-10, T1–T53), 3 adiados para a rodada P2 (INST-11…INST-13).
 
 ---
 

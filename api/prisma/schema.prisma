@@ -28,8 +28,27 @@ enum EmpresaStatus {
   @@map("empresa_status")
 }
 
+enum InstituicaoStatus {
+  PENDENTE_APROVACAO
+  APROVADA
+  REJEITADA
+  SUSPENSA
+  INATIVA
+
+  @@map("instituicao_status")
+}
+
+enum CausaStatus {
+  ATIVA
+  INATIVA
+
+  @@map("causa_status")
+}
+
 enum TipoArquivo {
   LOGO_EMPRESA
+  LOGO_INSTITUICAO
+  DOCUMENTO_INSTITUICAO
 
   @@map("tipo_arquivo")
 }
@@ -47,6 +66,7 @@ model Usuario {
   atualizadoEm    DateTime? @map("atualizado_em")
 
   empresa     Empresa?
+  instituicao Instituicao?
   sessoes     Sessao[]
   tokensSenha TokenSenha[]
 
@@ -86,6 +106,66 @@ model Empresa {
   // Fila de aprovação: filtra por status e ordena por data de cadastro (EMP-04 AC1).
   @@index([status, criadoEm], map: "empresa_status_criado_em_idx")
   @@map("empresa")
+}
+
+// Taxonomia curada pelo admin (INST-07). `nomeBusca` é o nome em minúsculas e
+// sem acento, gravado pelo mapper: o índice único faz "Educação" e "educacao"
+// serem a mesma causa.
+model Causa {
+  id           String      @id
+  nome         String
+  nomeBusca    String      @unique @map("nome_busca")
+  descricao    String
+  status       CausaStatus
+  criadoEm     DateTime    @map("criado_em")
+  atualizadoEm DateTime?   @map("atualizado_em")
+
+  instituicoes Instituicao[]
+
+  @@map("causa")
+}
+
+// Perfil da instituição, 1-1 com `usuario` (papel INSTITUICAO). O CNPJ é único
+// só nesta tabela: empresa e instituição podem repetir CNPJ (spec, Edge cases).
+// A busca do catálogo é feita no caso de uso, sem coluna derivada aqui (T47).
+model Instituicao {
+  id                 String            @id
+  usuarioId          String?           @unique @map("usuario_id")
+  razaoSocial        String            @map("razao_social")
+  nomeFantasia       String            @map("nome_fantasia")
+  cnpj               String            @unique
+  telefone           String
+  cep                String
+  logradouro         String
+  numero             String
+  complemento        String?
+  bairro             String
+  cidade             String
+  uf                 String            @db.Char(2)
+  site               String
+  contato            String
+  descricao          String
+  causaId            String            @map("causa_id")
+  logoArquivoId      String?           @map("logo_arquivo_id")
+  documentoArquivoId String            @map("documento_arquivo_id")
+  documentoDescricao String?           @map("documento_descricao")
+  status             InstituicaoStatus
+  decididoPor        String?           @map("decidido_por")
+  decididoEm         DateTime?         @map("decidido_em")
+  motivoDecisao      String?           @map("motivo_decisao")
+  criadoEm           DateTime          @map("criado_em")
+  atualizadoEm       DateTime?         @map("atualizado_em")
+
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  causa     Causa    @relation(fields: [causaId], references: [id])
+  logo      Arquivo? @relation("LogoInstituicao", fields: [logoArquivoId], references: [id])
+  documento Arquivo  @relation("DocumentoInstituicao", fields: [documentoArquivoId], references: [id])
+
+  // Fila de análise: filtra por status e ordena por data de cadastro (INST-04).
+  @@index([status, criadoEm], map: "instituicao_status_criado_em_idx")
+  // Inativação de causa: instituições aprovadas vinculadas (INST-07 AC4).
+  @@index([causaId, status], map: "instituicao_causa_id_status_idx")
+  @@map("instituicao")
 }
 
 model Sessao {
@@ -145,7 +225,9 @@ model Arquivo {
   svgConteudo  String?     @map("svg_conteudo")
   criadoEm     DateTime    @default(now()) @map("criado_em")
 
-  empresas Empresa[]
+  empresas                Empresa[]
+  logosDeInstituicao      Instituicao[] @relation("LogoInstituicao")
+  documentosDeInstituicao Instituicao[] @relation("DocumentoInstituicao")
 
   @@map("arquivo")
 }

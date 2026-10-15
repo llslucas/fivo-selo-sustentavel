@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 15,
+  "next_id": 21,
   "lessons": [
     {
       "id": "L-001",
@@ -256,6 +256,114 @@
       ],
       "created": "2026-10-14T01:02:45Z",
       "last_seen": "2026-10-14T01:02:45Z"
+    },
+    {
+      "id": "L-015",
+      "key": "surviving_mutant::cover each role guard with a wrong role request whose body is also invalid so the guard s 403 stays distinguishable from a use case denial or a validation 422",
+      "text": "Cover each role guard with a wrong-role request whose body is also invalid, so the guard's 403 stays distinguishable from a use-case denial or a validation 422",
+      "signal": "surviving_mutant",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md M26 admin-causas.controller.ts:65, M27 admin-instituicoes.controller.ts:43 (routes)"
+      ],
+      "created": "2026-10-14T02:32:16Z",
+      "last_seen": "2026-10-14T02:32:16Z"
+    },
+    {
+      "id": "L-016",
+      "key": "ac_gap::when a spec edge case requires showing an item state to a user add an explicit field to the list response or record the ui deferral in the design",
+      "text": "When a spec edge case requires showing an item state to a user, add an explicit field to the list response or record the UI deferral in the design",
+      "signal": "ac_gap",
+      "scope": "design",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "spec.md:196 edge case documento inacessível; design.md:311; tasks.md:1529 (design)"
+      ],
+      "created": "2026-10-14T02:32:16Z",
+      "last_seen": "2026-10-14T02:32:16Z"
+    },
+    {
+      "id": "L-017",
+      "key": "spec_precision_gap::every quantity limit in a spec such as exactly one file must state the status and message returned when it is exceeded",
+      "text": "Every quantity limit in a spec, such as exactly one file, must state the status and message returned when it is exceeded",
+      "signal": "spec_precision_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md SP2, Autocadastro AC7 (exatamente um arquivo -> 400 Unexpected field) (specs)"
+      ],
+      "created": "2026-10-14T02:32:16Z",
+      "last_seen": "2026-10-14T02:32:16Z"
+    },
+    {
+      "id": "L-018",
+      "key": "spec_precision_gap::access control acs must state the response for unauthenticated callers separately from authenticated non owners",
+      "text": "Access-control ACs must state the response for unauthenticated callers separately from authenticated non-owners",
+      "signal": "spec_precision_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md SP5, Aprovação AC7 (anônimo 401 vs 403) (specs)"
+      ],
+      "created": "2026-10-14T02:32:16Z",
+      "last_seen": "2026-10-14T02:32:16Z"
+    },
+    {
+      "id": "L-019",
+      "key": "spec_precision_gap::when an ac lists fields to show or collect name the exact attribute instead of an umbrella term like nome link or site ou canal",
+      "text": "When an AC lists fields to show or collect, name the exact attribute instead of an umbrella term like nome, link or site ou canal",
+      "signal": "spec_precision_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md SP3/SP6, Aprovação AC1 nome/link, Autocadastro AC1 site ou canal (specs)"
+      ],
+      "created": "2026-10-14T02:32:16Z",
+      "last_seen": "2026-10-14T02:32:16Z"
+    },
+    {
+      "id": "L-020",
+      "key": "gate_fail::give a task the full gate when it changes a use case response that a route returns because e2e tests assert route payloads with exact toequal",
+      "text": "Give a task the full gate when it changes a use-case response that a route returns, because e2e tests assert route payloads with exact toEqual",
+      "signal": "gate_fail",
+      "scope": "tasks",
+      "status": "candidate",
+      "features": [
+        "catalogo-instituicoes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "c46080b: test/http/admin-instituicoes.e2e-spec.ts:174 red until 2a123fb (validation.md, Rodada 2 Gate Check) (tasks)"
+      ],
+      "created": "2026-10-14T09:02:31Z",
+      "last_seen": "2026-10-14T09:02:31Z"
     }
   ]
 }

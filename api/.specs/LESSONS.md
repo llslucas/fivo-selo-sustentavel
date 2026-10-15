@@ -98,6 +98,42 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation-dominio.md rodada 2, T47 residuos design.md:221 e tasks.md:1262 (specs)
 - last seen: 2026-10-14T01:02:45Z
 
+### L-015 - Cover each role guard with a wrong-role request whose body is also invalid, so the guard's 403 stays distinguishable from a use-case denial or a validation 422
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation.md M26 admin-causas.controller.ts:65, M27 admin-instituicoes.controller.ts:43 (routes)
+- last seen: 2026-10-14T02:32:16Z
+
+### L-016 - When a spec edge case requires showing an item state to a user, add an explicit field to the list response or record the UI deferral in the design
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: spec.md:196 edge case documento inacessível; design.md:311; tasks.md:1529 (design)
+- last seen: 2026-10-14T02:32:16Z
+
+### L-017 - Every quantity limit in a spec, such as exactly one file, must state the status and message returned when it is exceeded
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation.md SP2, Autocadastro AC7 (exatamente um arquivo -> 400 Unexpected field) (specs)
+- last seen: 2026-10-14T02:32:16Z
+
+### L-018 - Access-control ACs must state the response for unauthenticated callers separately from authenticated non-owners
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation.md SP5, Aprovação AC7 (anônimo 401 vs 403) (specs)
+- last seen: 2026-10-14T02:32:16Z
+
+### L-019 - When an AC lists fields to show or collect, name the exact attribute instead of an umbrella term like nome, link or site ou canal
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: validation.md SP3/SP6, Aprovação AC1 nome/link, Autocadastro AC1 site ou canal (specs)
+- last seen: 2026-10-14T02:32:16Z
+
+### L-020 - Give a task the full gate when it changes a use-case response that a route returns, because e2e tests assert route payloads with exact toEqual
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `tasks` · harmful: 0
+- features: catalogo-instituicoes
+- evidence: c46080b: test/http/admin-instituicoes.e2e-spec.ts:174 red until 2a123fb (validation.md, Rodada 2 Gate Check) (tasks)
+- last seen: 2026-10-14T09:02:31Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

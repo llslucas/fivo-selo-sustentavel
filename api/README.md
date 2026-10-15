@@ -2,7 +2,7 @@
 
 API da plataforma que permite a empresas associarem uma ação social à venda de seus produtos, com transparência para o consumidor. Contexto do produto em [`../docs/proposta-inicial.md`](../docs/proposta-inicial.md).
 
-Estado atual: feature **cadastro-empresa** implementada e validada (cadastro, autenticação por sessão, moderação pelo admin, troca de e-mail, recuperação de senha e upload de arquivos). As demais features (catálogo de instituições, campanhas, selo e QR Code, páginas públicas, transparência) ainda serão construídas — ver [`.specs/STATE.md`](.specs/STATE.md).
+Estado atual: feature **cadastro-empresa** implementada e validada (cadastro, autenticação por sessão, moderação pelo admin, troca de e-mail, recuperação de senha e upload de arquivos). Feature **catalogo-instituicoes** implementada no recorte P1 (autocadastro da instituição com documento de validação, fila e decisões do admin, curadoria de causas, catálogo de beneficiadas para a empresa). As demais features (campanhas, selo e QR Code, páginas públicas, transparência) ainda serão construídas — ver [`.specs/STATE.md`](.specs/STATE.md).
 
 ## Stack
 
@@ -35,7 +35,9 @@ npm run start:dev
 
 A API sobe em `http://localhost:3000` (mude com `PORT`). Fora de produção, a documentação interativa fica em `http://localhost:3000/docs` e o JSON em `/docs/openapi.json`.
 
-Ao subir, o administrador definido em `ADMIN_*` é criado se ainda não existir. Use-o para entrar em `POST /sessoes` e moderar empresas.
+Ao subir, o administrador definido em `ADMIN_*` é criado se ainda não existir. Use-o para entrar em `POST /sessoes`, moderar empresas e instituições e manter as causas.
+
+> **Crie as causas antes de divulgar o autocadastro de instituições.** O banco novo não tem nenhuma causa e não há seed automático. Sem causa ativa, todo `POST /instituicoes` responde 422 ("Causa inválida ou inativa"). O admin cria as causas em `POST /admin/causas`; o formulário de cadastro lê as ativas em `GET /causas`.
 
 > O banco do compose é volátil: ao reiniciar o container, rode `npx prisma migrate deploy` de novo.
 
@@ -46,7 +48,7 @@ Os scripts `start*` carregam o `.env` via `--env-file`. Referência completa em 
 | Variável          | Padrão                 | Descrição                                                                   |
 | ----------------- | ---------------------- | --------------------------------------------------------------------------- |
 | `DATABASE_URL`    | —                      | Conexão Postgres (obrigatória). O exemplo aponta para o compose de teste.   |
-| `STORAGE_DIR`     | `./tmp/storage`        | Diretório dos arquivos enviados (logos etc.), em disco local.               |
+| `STORAGE_DIR`     | `./tmp/storage`        | Diretório dos arquivos enviados (logos, documentos de validação), em disco local. |
 | `ADMIN_EMAIL`     | —                      | E-mail do admin criado no boot. Sem ele (ou sem senha), o seed é ignorado.  |
 | `ADMIN_SENHA`     | —                      | Senha do admin. **Troque em qualquer ambiente compartilhado.**              |
 | `ADMIN_NOME`      | `Administrador Fivo`   | Nome do admin.                                                              |
@@ -131,8 +133,18 @@ Referência viva: `/docs` (Swagger UI) ou [`openapi.json`](openapi.json). Resumo
 | `GET /arquivos/:id`                  | logado   | Baixa um arquivo enviado                    |
 | `GET /admin/empresas`                | admin    | Fila de aprovação                           |
 | `POST /admin/empresas/:id/{aprovacao,rejeicao,suspensao,reativacao}` | admin | Moderação de empresa |
+| `POST /instituicoes`                 | público  | Autocadastro de instituição, multipart com `documento` (obrigatório, PDF/JPG/PNG até 10 MB) e `logo` (opcional); fica `PENDENTE_APROVACAO` |
+| `GET /causas`                        | público  | Causas ativas, em ordem alfabética          |
+| `POST /admin/causas`                 | admin    | Cria causa                                  |
+| `PATCH /admin/causas/:id`            | admin    | Edita nome e descrição da causa             |
+| `POST /admin/causas/:id/inativacao`  | admin    | Inativa causa (409 com a lista de instituições aprovadas vinculadas, se houver) |
+| `GET /admin/instituicoes`            | admin    | Fila de instituições pendentes, com o documento e o sinal de CNPJ igual ao de uma empresa |
+| `POST /admin/instituicoes/:id/{aprovacao,rejeicao,suspensao,reativacao,inativacao}` | admin | Moderação de instituição (aprovação responde 503 se o documento estiver ilegível) |
+| `GET /beneficiadas?busca=`           | empresa aprovada | Catálogo: instituições aprovadas e causas ativas, busca sem acento a partir de 2 caracteres |
 
 A autenticação é por **cookie de sessão** (`fivo_sessao`, expira após 8 h de inatividade). No Swagger UI, faça login em `POST /sessoes` e o navegador reaproveita o cookie.
+
+O documento de validação da instituição só é baixado (`GET /arquivos/:id`) pelo admin e pela própria instituição; qualquer outro usuário recebe 403. Ele nunca sai em `GET /beneficiadas`.
 
 E-mails ainda não são enviados de verdade: o transporte atual é o `LogMailer`, que escreve a mensagem no log da API. Tokens de recuperação de senha e troca de e-mail aparecem lá durante o desenvolvimento.
 

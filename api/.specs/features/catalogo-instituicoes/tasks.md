@@ -22,7 +22,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/catalogo-instituicoes/design.md`
-**Status**: Draft
+**Status**: Done — P1 do `api` verificado (`validation.md`, PASS na rodada 2, 2026-10-14)
 
 > **Escopo desta rodada: P1 (MVP) do `api`.** P2 (área logada da instituição, notas internas de curadoria) e as telas do `web` são rodadas separadas. Arquitetura de **AD-017** (hexagonal completa, contexto único `src/domain/fivo/`, rich domain model): regra de estado → método na entidade; valor restrito → value object; regra entre registros → caso de uso.
 >
@@ -193,6 +193,18 @@ T27 → T34
 T28 → T34
 T32 → T34
 T33 → T34
+```
+
+### Phase 9b: Correções da verificação da infra 🤖
+
+Aberta pela rodada 1 da verificação da infra (`validation.md`, 2026-10-14, veredito FAIL): edge case da fila sem o sinal de documento indisponível e mutantes M26/M27 (guards de papel) vivos.
+
+```
+T14 → T51
+T26 → T51
+T30 → T52
+T51 → T52
+T33 → T53
 ```
 
 ---
@@ -1275,11 +1287,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `enum InstituicaoStatus` (com `INATIVA`), `enum CausaStatus`, e `TipoArquivo` com `LOGO_INSTITUICAO` e `DOCUMENTO_INSTITUICAO`
-- [ ] `instituicao`: `usuario_id` único, `cnpj` único, FKs de causa, logo e documento, colunas de decisão (sem coluna de busca: a busca do catálogo fica no caso de uso, T47)
-- [ ] `causa`: `nome_busca` com índice único (unicidade sem acento/caixa)
-- [ ] Migration criada com `prisma migrate dev` e aplicada; nenhuma migration existente editada
-- [ ] Gate `build` passa
+- [x] `enum InstituicaoStatus` (com `INATIVA`), `enum CausaStatus`, e `TipoArquivo` com `LOGO_INSTITUICAO` e `DOCUMENTO_INSTITUICAO`
+- [x] `instituicao`: `usuario_id` único, `cnpj` único, FKs de causa, logo e documento, colunas de decisão (sem coluna de busca: a busca do catálogo fica no caso de uso, T47)
+- [x] `causa`: `nome_busca` com índice único (unicidade sem acento/caixa)
+- [x] Migration criada com `prisma migrate dev` e aplicada; nenhuma migration existente editada
+- [x] Gate `build` passa
 
 **Tests**: none (schema — build gate)
 **Gate**: build
@@ -1303,11 +1315,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Todas as operações da porta implementadas; `nome_busca` gravado pelo mapper
-- [ ] `findByNome` encontra "Educação" buscando "educacao"; violação do índice único vira erro tratável
-- [ ] Registrado no `DatabaseModule`
-- [ ] `test/database/prisma-causa-repository.e2e-spec.ts` cobre roundtrip, busca normalizada, listagem de ativas e unicidade
-- [ ] Gate `full` passa
+- [x] Todas as operações da porta implementadas; `nome_busca` gravado pelo mapper
+- [x] `findByNome` encontra "Educação" buscando "educacao"; violação do índice único vira erro tratável
+- [x] Registrado no `DatabaseModule`
+- [x] `test/database/prisma-causa-repository.e2e-spec.ts` cobre roundtrip, busca normalizada, listagem de ativas e unicidade
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1331,12 +1343,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `salvarTransicao` devolve `false` quando o estado persistido já mudou (asserido com duas decisões concorrentes)
-- [ ] `save` não altera `status`, `decididoPor`, `decididoEm`, `motivoDecisao`
-- [ ] `listarPorEstado` ordena por `criado_em`
-- [ ] Registrado no `DatabaseModule`
-- [ ] `test/database/prisma-instituicao-repository.e2e-spec.ts` cobre roundtrip, CAS, unicidade de CNPJ e o `save` conservador
-- [ ] Gate `full` passa
+- [x] `salvarTransicao` devolve `false` quando o estado persistido já mudou (asserido com duas decisões concorrentes)
+- [x] `save` não altera `status`, `decididoPor`, `decididoEm`, `motivoDecisao`
+- [x] `listarPorEstado` ordena por `criado_em`
+- [x] Registrado no `DatabaseModule`
+- [x] `test/database/prisma-instituicao-repository.e2e-spec.ts` cobre roundtrip, CAS, unicidade de CNPJ e o `save` conservador
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1360,11 +1372,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `%PDF-` reconhecido como `application/pdf`; sniff continua ignorando o `Content-Type` do cliente
-- [ ] Upload de documento aceita PDF/JPG/PNG até 10 MB e rejeita acima disso com a mensagem do domínio
-- [ ] Falha do storage continua virando `StorageIndisponivelError`
-- [ ] `test/arquivo/arquivo-service.e2e-spec.ts` estendido: PDF aceito, PDF rejeitado como logo, limite de 10 MB nas duas bordas
-- [ ] Gate `full` passa
+- [x] `%PDF-` reconhecido como `application/pdf`; sniff continua ignorando o `Content-Type` do cliente
+- [x] Upload de documento aceita PDF/JPG/PNG até 10 MB e rejeita acima disso com a mensagem do domínio
+- [x] Falha do storage continua virando `StorageIndisponivelError`
+- [x] `test/arquivo/arquivo-service.e2e-spec.ts` estendido: PDF aceito, PDF rejeitado como logo, limite de 10 MB nas duas bordas
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1388,10 +1400,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `buscarAcesso` considera o `usuarioId` da instituição dona (logo e documento)
-- [ ] Admin e dono recebem 200; outra instituição, empresa e anônimo recebem 403/401
-- [ ] `test/http/arquivo.e2e-spec.ts` estendido com esses casos
-- [ ] Gate `full` passa
+- [x] `buscarAcesso` considera o `usuarioId` da instituição dona (logo e documento)
+- [x] Admin e dono recebem 200; outra instituição, empresa e anônimo recebem 403/401
+- [x] `test/http/arquivo.e2e-spec.ts` estendido com esses casos
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1415,10 +1427,10 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `estaLegivel` devolve `false` quando o registro sumiu ou o storage falha na leitura, e `true` no caminho feliz
-- [ ] Provider registrado para a porta `VerificadorDeDocumento`
-- [ ] `test/arquivo/verificador-de-documento.e2e-spec.ts` cobre os três casos
-- [ ] Gate `full` passa
+- [x] `estaLegivel` devolve `false` quando o registro sumiu ou o storage falha na leitura, e `true` no caminho feliz
+- [x] Provider registrado para a porta `VerificadorDeDocumento`
+- [x] `test/arquivo/verificador-de-documento.e2e-spec.ts` cobre os três casos
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1442,11 +1454,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `POST /admin/causas` (201), `PATCH /admin/causas/:id` (200), `POST /admin/causas/:id/inativacao` (204)
-- [ ] Nome duplicado → 409; não-admin → 403; inativação com instituições aprovadas → 409 listando os nomes
-- [ ] Rotas documentadas no OpenAPI (o teste de paridade falha se faltar)
-- [ ] `test/http/admin-causas.e2e-spec.ts` cobre happy path e cada erro acima
-- [ ] Gate `full` passa
+- [x] `POST /admin/causas` (201), `PATCH /admin/causas/:id` (200), `POST /admin/causas/:id/inativacao` (204)
+- [x] Nome duplicado → 409; não-admin → 403; inativação com instituições aprovadas → 409 listando os nomes
+- [x] Rotas documentadas no OpenAPI (o teste de paridade falha se faltar)
+- [x] `test/http/admin-causas.e2e-spec.ts` cobre happy path e cada erro acima
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1470,11 +1482,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `GET /causas` público devolve apenas causas ativas, ordenadas, com `id`, `nome`, `descricao`
-- [ ] Causa inativada some da resposta
-- [ ] Rota documentada no OpenAPI
-- [ ] `test/http/causas.e2e-spec.ts` cobre os dois casos
-- [ ] Gate `full` passa
+- [x] `GET /causas` público devolve apenas causas ativas, ordenadas, com `id`, `nome`, `descricao`
+- [x] Causa inativada some da resposta
+- [x] Rota documentada no OpenAPI
+- [x] `test/http/causas.e2e-spec.ts` cobre os dois casos
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1498,11 +1510,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `POST /instituicoes` público, 201 com o id; limite de upload coerente com 10 MB do documento
-- [ ] Erros mapeados: 422 (CNPJ, senha, documento ausente, descrição longa, formato/limite, causa inválida), 409 (CNPJ ou e-mail), 503 (storage fora do ar, sem criar instituição)
-- [ ] Rota documentada no OpenAPI, incluindo o corpo multipart
-- [ ] `test/http/cadastro-instituicao.e2e-spec.ts` cobre happy path e cada erro acima
-- [ ] Gate `full` passa
+- [x] `POST /instituicoes` público, 201 com o id; limite de upload coerente com 10 MB do documento
+- [x] Erros mapeados: 422 (CNPJ, senha, documento ausente, descrição longa, formato/limite, causa inválida), 409 (CNPJ ou e-mail), 503 (storage fora do ar, sem criar instituição)
+- [x] Rota documentada no OpenAPI, incluindo o corpo multipart
+- [x] `test/http/cadastro-instituicao.e2e-spec.ts` cobre happy path e cada erro acima
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1526,11 +1538,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `GET /admin/instituicoes` (fila ordenada, com referência do documento e sinal de CNPJ coincidente) e `POST /admin/instituicoes/:id/{aprovacao,rejeicao}`
-- [ ] Rejeição sem motivo suficiente → 422; documento ilegível → 503; decisão repetida → 409; não-admin → 403
-- [ ] Rotas documentadas no OpenAPI
-- [ ] `test/http/admin-instituicoes.e2e-spec.ts` cobre happy path e cada erro acima
-- [ ] Gate `full` passa
+- [x] `GET /admin/instituicoes` (fila ordenada, com referência do documento e sinal de CNPJ coincidente) e `POST /admin/instituicoes/:id/{aprovacao,rejeicao}`
+- [x] Rejeição sem motivo suficiente → 422; documento ilegível → 503; decisão repetida → 409; não-admin → 403
+- [x] Rotas documentadas no OpenAPI
+- [x] `test/http/admin-instituicoes.e2e-spec.ts` cobre happy path e cada erro acima
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1554,12 +1566,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `POST /admin/instituicoes/:id/{suspensao,reativacao,inativacao}` respondendo 204
-- [ ] Transição inválida → 409; não-admin → 403
-- [ ] Instituição suspensa ou inativada some de `GET /beneficiadas` (asserido no e2e)
-- [ ] Rotas documentadas no OpenAPI
-- [ ] `test/http/admin-instituicoes.e2e-spec.ts` estendido
-- [ ] Gate `full` passa
+- [x] `POST /admin/instituicoes/:id/{suspensao,reativacao,inativacao}` respondendo 204
+- [x] Transição inválida → 409; não-admin → 403
+- [x] Instituição suspensa ou inativada some de `GET /beneficiadas` (asserido no e2e)
+- [x] Rotas documentadas no OpenAPI
+- [x] `test/http/admin-instituicoes.e2e-spec.ts` estendido
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1583,12 +1595,12 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `GET /beneficiadas?busca=` exige empresa autenticada e aprovada (empresa pendente → 403)
-- [ ] Resposta nunca traz documento, e-mail, telefone, CNPJ ou dados de decisão — asserido por inspeção do payload
-- [ ] Busca com acento/sem acento devolve o mesmo resultado; catálogo vazio devolve `[]`
-- [ ] Rota documentada no OpenAPI
-- [ ] `test/http/beneficiadas.e2e-spec.ts` cobre os casos acima
-- [ ] Gate `full` passa
+- [x] `GET /beneficiadas?busca=` exige empresa autenticada e aprovada (empresa pendente → 403)
+- [x] Resposta nunca traz documento, e-mail, telefone, CNPJ ou dados de decisão — asserido por inspeção do payload
+- [x] Busca com acento/sem acento devolve o mesmo resultado; catálogo vazio devolve `[]`
+- [x] Rota documentada no OpenAPI
+- [x] `test/http/beneficiadas.e2e-spec.ts` cobre os casos acima
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1612,11 +1624,11 @@ T33 → T34
 
 **Done when**:
 
-- [ ] Dois autocadastros simultâneos com o mesmo CNPJ: um 201, um 409, um único registro no banco
-- [ ] Aprovação e rejeição simultâneas do mesmo cadastro: a primeira vence, a segunda recebe 409
-- [ ] Empresa e instituição com o mesmo CNPJ coexistem, e a fila do admin sinaliza a coincidência
-- [ ] Toda rota administrativa do catálogo responde 403 para empresa e instituição autenticadas
-- [ ] Gate `full` passa
+- [x] Dois autocadastros simultâneos com o mesmo CNPJ: um 201, um 409, um único registro no banco
+- [x] Aprovação e rejeição simultâneas do mesmo cadastro: a primeira vence, a segunda recebe 409
+- [x] Empresa e instituição com o mesmo CNPJ coexistem, e a fila do admin sinaliza a coincidência
+- [x] Toda rota administrativa do catálogo responde 403 para empresa e instituição autenticadas
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1640,14 +1652,97 @@ T33 → T34
 
 **Done when**:
 
-- [ ] `npm run openapi:export` rodado e `openapi.json` commitado; teste de paridade verde
-- [ ] README do `api` lista as rotas novas e explica que o admin precisa criar causas antes de divulgar o autocadastro
-- [ ] Gate `build` passa
-- [ ] `validation.md` consolidado da feature escrito pelo Verifier (exigido por `validate_state.py`)
+- [x] `npm run openapi:export` rodado e `openapi.json` commitado; teste de paridade verde
+- [x] README do `api` lista as rotas novas e explica que o admin precisa criar causas antes de divulgar o autocadastro
+- [x] Gate `build` passa
+- [x] `validation.md` consolidado da feature escrito pelo Verifier (exigido por `validate_state.py`)
 
 **Tests**: e2e
 **Gate**: build
 **Commit**: `docs(api): documenta o catálogo de instituições e exporta o openapi`
+
+---
+
+### T51: Fila sinaliza documento indisponível
+
+**What**: O edge case "documento inacessível durante a análise" (`spec.md:196`) manda exibir ao administrador o item como temporariamente indisponível. Hoje só a metade do 503 na aprovação existe. `ListarFilaInstituicoesUseCase` passa a consultar `VerificadorDeDocumento.estaLegivel` por item e expor `documentoDisponivel: boolean`, sem tirar o item da fila.
+**Where**: `src/domain/fivo/application/use-cases/listar-fila-instituicoes.ts`, `listar-fila-instituicoes.spec.ts`
+**Depends on**: T14, T26
+**Reuses**: `FakeVerificadorDeDocumento` (`test/arquivo/fake-verificador-de-documento.ts`), padrão de `cnpjCoincideComEmpresa`
+**Requirement**: INST-04, INST-06
+**Autor**: 🤖 agente (autorização de 2026-10-14, ver AD-020)
+**Severidade**: Major (bloqueia o PASS)
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] Cada item da fila traz `documentoDisponivel: boolean`
+- [x] Documento legível → `true`; documento marcado ilegível no fake → `false`, e o item continua na fila com os demais campos
+- [x] Um teste por caso, com duas instituições na mesma fila (uma legível, outra não) para provar que o sinal é por item
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `feat(api): fila de instituições sinaliza documento indisponível`
+
+---
+
+### T52: `documentoDisponivel` na rota da fila
+
+**What**: Expor o campo novo da T51 em `GET` da fila do admin (presenter + OpenAPI) e provar, com o armazenamento falhando para um documento, que o item aparece com `documentoDisponivel: false` enquanto a aprovação dele devolve 503.
+**Where**: `src/infra/http/controllers/admin-instituicoes.controller.ts`, `test/http/admin-instituicoes.e2e-spec.ts`
+**Depends on**: T30, T51
+**Reuses**: teste de 503 existente (`admin-instituicoes.e2e-spec.ts`), `npm run openapi:export`
+**Requirement**: INST-04, INST-06
+**Autor**: 🤖 agente
+**Severidade**: Major (bloqueia o PASS)
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] A resposta da fila traz `documentoDisponivel` por item, documentado no OpenAPI
+- [x] e2e: documento ilegível → item listado com `documentoDisponivel: false`; documento legível → `true`
+- [x] `openapi.json` regenerado; paridade e exportação verdes
+- [x] Gate `full` passa
+
+**Tests**: e2e
+**Gate**: full
+**Commit**: `feat(api): rota da fila expõe documento indisponível`
+
+---
+
+### T53: Guards de papel testados com corpo válido
+
+**What**: Os mutantes M26 e M27 sobreviveram: tirar `@Roles(UserRole.ADMIN)` de `admin-causas.controller.ts` ou `admin-instituicoes.controller.ts` deixa os testes verdes, porque o sweep de 403 só manda corpo válido, e sem o guard o próprio caso de uso devolve 403. O sweep passa a rodar também com `{}`: nas rotas com corpo obrigatório, só o guard responde 403 antes da validação (422). P1-Causas AC6 e P1-Aprovação AC8 exigem 403. (Texto corrigido depois da execução; a primeira versão descrevia a causa ao contrário.)
+**Where**: `test/http/catalogo-concorrencia.e2e-spec.ts`
+**Depends on**: T33
+**Reuses**: sweep orientado pelo OpenAPI já existente no arquivo
+**Requirement**: INST-04, INST-07
+**Autor**: 🤖 agente
+**Severidade**: Minor
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] Para cada rota administrativa do catálogo, EMPRESA e INSTITUICAO recebem 403 com um corpo que passaria na validação (ou `{}` onde a rota não exige corpo), e nada é alterado
+- [x] Mutantes M26 e M27 (remover `@Roles` em cada controller) passam a ser mortos
+- [x] Gate `build` passa
+
+**Tests**: e2e
+**Gate**: build
+**Commit**: `test(api): guards de papel do catálogo testados com corpo válido`
 
 ---
 
@@ -1726,9 +1821,14 @@ T27 → T34
 T28 → T34
 T32 → T34
 T33 → T34
+T14 → T51
+T26 → T51
+T30 → T52
+T51 → T52
+T33 → T53
 ```
 
-Ordem de execução (prosa): Fase 1 `T1 … T5` · Fase 2 `T6 … T8` · Fase 3 `T9 … T12` · Fase 4 `T13 … T18` · Fase 5 `T19 → T20` · **gate de handoff** · Fase 6 `T21 → T22 → T23` · Fase 7 `T24 → T25 → T26` · Fase 8 `T27 … T32` · Fase 9 `T33 → T34`.
+Ordem de execução (prosa): Fase 1 `T1 … T5` · Fase 2 `T6 … T8` · Fase 3 `T9 … T12` · Fase 4 `T13 … T18` · Fase 5 `T19 → T20` · **gate de handoff** · Fase 6 `T21 → T22 → T23` · Fase 7 `T24 → T25 → T26` · Fase 8 `T27 … T32` · Fase 9 `T33 → T34` · Fase 9b `T51 → T52 → T53`.
 
 Execução estritamente sequencial — sem paralelismo intra-fase.
 
@@ -1786,6 +1886,9 @@ Execução estritamente sequencial — sem paralelismo intra-fase.
 | T32 | T19, T23 | idem | ✅ Match |
 | T33 | T29, T30, T31 | idem | ✅ Match |
 | T34 | T27, T28, T32, T33 | idem | ✅ Match |
+| T51 | T14, T26 | idem | ✅ Match |
+| T52 | T30, T51 | idem | ✅ Match |
+| T53 | T33 | idem | ✅ Match |
 
 Nenhuma dependência aponta para uma fase posterior.
 
@@ -1814,14 +1917,14 @@ Nenhuma task difere testes para outra: toda task que cria código com tipo de te
 
 | Requirement | Tasks | Status |
 | ----------- | ----- | ------ |
-| INST-01 | T1, T5, T13, T21, T29, T34 | Pending |
-| INST-02 | T1, T3, T4, T13, T24, T29 | Pending |
-| INST-03 | T1, T5, T13, T29 | Pending |
-| INST-04 | T7, T14, T15, T16, T23, T30, T33, T34 | Pending |
-| INST-05 | T5, T7, T15, T16, T17, T18, T21, T23, T30, T31, T33 | Pending |
-| INST-06 | T8, T15, T25, T26, T30 | Pending |
-| INST-07 | T1, T2, T6, T9, T10, T11, T12, T21, T22, T27, T28, T34 | Pending |
-| INST-08 | T7, T12, T19, T23, T28, T32, T34 | Pending |
-| INST-09 | T1, T20 | Pending |
-| INST-10 | T19, T32 | Pending |
+| INST-01 | T1, T5, T13, T21, T29, T34 | Verified |
+| INST-02 | T1, T3, T4, T13, T24, T29 | Verified |
+| INST-03 | T1, T5, T13, T29 | Verified |
+| INST-04 | T7, T14, T15, T16, T23, T30, T33, T34, T51, T52, T53 | Verified |
+| INST-05 | T5, T7, T15, T16, T17, T18, T21, T23, T30, T31, T33 | Verified |
+| INST-06 | T8, T15, T25, T26, T30, T51, T52 | Verified |
+| INST-07 | T1, T2, T6, T9, T10, T11, T12, T21, T22, T27, T28, T34, T53 | Verified |
+| INST-08 | T7, T12, T19, T23, T28, T32, T34 | Verified |
+| INST-09 | T1, T20 | Verified |
+| INST-10 | T19, T32 | Verified |
 | INST-11, INST-12, INST-13 | — (P2, fora desta rodada) | Deferred |
