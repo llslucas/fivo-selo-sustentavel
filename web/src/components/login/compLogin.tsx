@@ -110,6 +110,7 @@ export default function CompLogin() {
             onChange={(e) => setEmail(e.target.value)}
             error={Boolean(errosCampo.email)}
             helperText={errosCampo.email}
+            slotProps={{ htmlInput: { "aria-label": "E-mail corporativo" } }}
             sx={{
               "& .MuiOutlinedInput-root": {
                 bgcolor: "#FFFFFF",
@@ -146,6 +147,7 @@ export default function CompLogin() {
             error={Boolean(errosCampo.senha)}
             helperText={errosCampo.senha}
             slotProps={{
+              htmlInput: { "aria-label": "Senha" },
               input: {
                 endAdornment: (
                   <InputAdornment position="end">
