@@ -43,8 +43,30 @@ section[id] {
 }
 
 a:focus-visible,
-button:focus-visible {
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible,
+[role="link"]:focus-visible,
+[role="switch"]:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Conteúdo visível apenas para leitores de tela (live regions, rótulos). */
+.visually-hidden,
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

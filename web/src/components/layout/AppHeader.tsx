@@ -93,10 +93,12 @@ export default function AppHeader() {
 
           <Link
             href={APP_ROUTES.private.dashboard}
+            aria-label="Fivo — ir para o dashboard"
             style={{ color: "inherit", textDecoration: "none", flexShrink: 0 }}
           >
             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
               <Box
+                aria-hidden="true"
                 sx={{
                   width: 34,
                   height: 34,
@@ -117,6 +119,8 @@ export default function AppHeader() {
           </Link>
 
           <Stack
+            component="nav"
+            aria-label="Navegação principal"
             direction="row"
             spacing={4}
             sx={{ display: { xs: "none", md: "flex" } }}
@@ -127,6 +131,7 @@ export default function AppHeader() {
                 <Link
                   key={link.label}
                   href={link.href}
+                  aria-current={active ? "page" : undefined}
                   style={{ textDecoration: "none" }}
                 >
                   <Typography
@@ -162,6 +167,9 @@ export default function AppHeader() {
        
             <Button
               onClick={handleOpenUserMenu}
+              aria-label="Abrir menu da conta"
+              aria-haspopup="menu"
+              aria-expanded={userMenuOpen}
               sx={{
                 p: 0.5,
                 borderRadius: 2,
@@ -270,6 +278,7 @@ export default function AppHeader() {
             <IconButton
               onClick={() => setMobileOpen(true)}
               aria-label="abrir menu de navegação"
+              aria-expanded={mobileOpen}
               sx={{
                 display: { xs: "flex", md: "none" },
                 p: 1,
@@ -321,6 +330,7 @@ export default function AppHeader() {
           >
             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
               <Box
+                aria-hidden="true"
                 sx={{
                   width: 32,
                   height: 32,
@@ -366,6 +376,7 @@ export default function AppHeader() {
             }}
           >
             <Avatar
+              aria-hidden="true"
               sx={{
                 width: 40,
                 height: 40,
@@ -424,7 +435,7 @@ export default function AppHeader() {
 
           <Divider sx={{ mb: 2 }} />
 
-          <Stack spacing={0.75}>
+          <Stack component="nav" aria-label="Navegação principal" spacing={0.75}>
             {navLinks.map((link) => {
               const active = pathname === link.href || pathname.startsWith(link.href + "/");
               return (
@@ -432,6 +443,7 @@ export default function AppHeader() {
                   key={link.label}
                   component={Link}
                   href={link.href}
+                  aria-current={active ? "page" : undefined}
                   onClick={() => setMobileOpen(false)}
                   sx={{
                     justifyContent: "flex-start",

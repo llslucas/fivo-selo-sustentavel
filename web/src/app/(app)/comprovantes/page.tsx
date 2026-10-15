@@ -67,6 +67,7 @@ export default function ComprovantesPage() {
   const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(null);
   const [comprovantes, setComprovantes] = useState<ComprovanteItem[]>(comprovantesIniciais);
   const [sucessoMsg, setSucessoMsg] = useState<string | null>(null);
+  const [erroMsg, setErroMsg] = useState<string | null>(null);
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -84,8 +85,11 @@ export default function ComprovantesPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!campanhaSelecionada || !valorDoado) {
+      setSucessoMsg(null);
+      setErroMsg("Selecione a campanha e informe o valor doado para enviar o comprovante.");
       return;
     }
+    setErroMsg(null);
 
     const valorNumerico = parseFloat(
       valorDoado.replace(/[^\d,.-]/g, "").replace(",", ".")
@@ -147,9 +151,16 @@ export default function ComprovantesPage() {
             </Typography>
           </Box>
 
-          {sucessoMsg && (
-            <Alert severity="success" sx={{ borderRadius: 2 }}>
-              {sucessoMsg}
+          <Box aria-live="polite">
+            {sucessoMsg && (
+              <Alert severity="success" role="status" sx={{ borderRadius: 2 }}>
+                {sucessoMsg}
+              </Alert>
+            )}
+          </Box>
+          {erroMsg && (
+            <Alert severity="error" sx={{ borderRadius: 2 }}>
+              {erroMsg}
             </Alert>
           )}
 
@@ -166,55 +177,37 @@ export default function ComprovantesPage() {
           >
             <Stack spacing={3}>
               {/* Select Campanha */}
-              <Box>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: "#333333", mb: 0.75, display: "block" }}>
-                  Campanha
-                </Typography>
-                <TextField
-                  select
-                  fullWidth
-                  size="small"
-                  value={campanhaSelecionada}
-                  onChange={(e) => setCampanhaSelecionada(e.target.value)}
-                  placeholder="Selecione a campanha"
-                  slotProps={{
-                    select: {
-                      displayEmpty: true,
-                      renderValue: (selected: unknown) => {
-                        if (!selected) {
-                          return <span style={{ color: "#8E8E93" }}>Selecione a campanha</span>;
-                        }
-                        return campanhasOpcoes.find((c) => c.id === selected)?.nome;
-                      },
-                    },
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 2,
-                      bgcolor: "#FFFFFF",
-                    },
-                  }}
-                >
-                  <MenuItem value="" disabled>
-                    Selecione a campanha
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="Campanha"
+                value={campanhaSelecionada}
+                onChange={(e) => setCampanhaSelecionada(e.target.value)}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    bgcolor: "#FFFFFF",
+                  },
+                }}
+              >
+                <MenuItem value="" disabled>
+                  Selecione a campanha
+                </MenuItem>
+                {campanhasOpcoes.map((opcao) => (
+                  <MenuItem key={opcao.id} value={opcao.id}>
+                    {opcao.nome}
                   </MenuItem>
-                  {campanhasOpcoes.map((opcao) => (
-                    <MenuItem key={opcao.id} value={opcao.id}>
-                      {opcao.nome}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Box>
+                ))}
+              </TextField>
 
               {/* Linha Valor doado e Data */}
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: "#333333", mb: 0.75, display: "block" }}>
-                    Valor doado
-                  </Typography>
                   <TextField
                     fullWidth
                     size="small"
+                    label="Valor doado"
                     placeholder="R$ 0,00"
                     value={valorDoado}
                     onChange={(e) => setValorDoado(e.target.value)}
@@ -227,12 +220,10 @@ export default function ComprovantesPage() {
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: "#333333", mb: 0.75, display: "block" }}>
-                    Data da doação
-                  </Typography>
                   <TextField
                     fullWidth
                     size="small"
+                    label="Data da doação"
                     placeholder="dd/mm/aaaa"
                     value={dataDoacao}
                     onChange={(e) => setDataDoacao(e.target.value)}
@@ -247,29 +238,26 @@ export default function ComprovantesPage() {
               </Grid>
 
               {/* Descrição opcional */}
-              <Box>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: "#333333", mb: 0.75, display: "block" }}>
-                  Descrição (opcional)
-                </Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  placeholder="Detalhes sobre esta doação..."
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 2,
-                      bgcolor: "#FFFFFF",
-                    },
-                  }}
-                />
-              </Box>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label="Descrição (opcional)"
+                placeholder="Detalhes sobre esta doação..."
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    bgcolor: "#FFFFFF",
+                  },
+                }}
+              />
 
               {/* Dropzone de upload */}
               <Box
                 component="label"
+                aria-label="Enviar comprovante"
                 sx={{
                   border: "1.5px dashed #D1D5DB",
                   borderRadius: 2.5,
@@ -284,6 +272,11 @@ export default function ComprovantesPage() {
                   "&:hover": {
                     borderColor: "#0F6E56",
                     bgcolor: "#F4FAF7",
+                  },
+                  "&:focus-within": {
+                    borderColor: "#0F6E56",
+                    outline: "2px solid var(--color-primary)",
+                    outlineOffset: 2,
                   },
                 }}
               >
@@ -308,10 +301,14 @@ export default function ComprovantesPage() {
                 >
                   <FileUploadOutlinedIcon sx={{ fontSize: 22 }} />
                 </Box>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: "#1B1B19", textAlign: "center", mb: 0.5 }}>
+                <Typography
+                  variant="body2"
+                  aria-live="polite"
+                  sx={{ fontWeight: 600, color: "#1B1B19", textAlign: "center", mb: 0.5 }}
+                >
                   {arquivoSelecionado ? arquivoSelecionado.name : "Arraste o comprovante aqui ou clique para selecionar"}
                 </Typography>
-                <Typography variant="caption" sx={{ color: "#71717A" }}>
+                <Typography variant="caption" sx={{ color: "#5F5E5A" }}>
                   PDF, JPG ou PNG até 10MB
                 </Typography>
               </Box>
@@ -363,7 +360,8 @@ export default function ComprovantesPage() {
                     sx={{
                       p: 2.5,
                       display: "flex",
-                      alignItems: "center",
+                      flexDirection: { xs: "column", sm: "row" },
+                      alignItems: { xs: "flex-start", sm: "center" },
                       justifyContent: "space-between",
                       borderBottom: isLast ? 0 : "1px solid #F0EFEA",
                       flexWrap: "wrap",
@@ -391,7 +389,7 @@ export default function ComprovantesPage() {
                         <Typography variant="body2" sx={{ fontWeight: 600, color: "#1B1B19" }}>
                           Comprovante — {item.campanha}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: "#8E8E93" }}>
+                        <Typography variant="caption" sx={{ color: "#5F5E5A" }}>
                           Enviado em {item.dataEnvio} · {item.nomeArquivo}
                         </Typography>
                       </Box>

@@ -64,18 +64,34 @@ export default function SelosPage() {
                     />
                   </Box>
                   <Box sx={{ width: "100%", textAlign: "center" }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
                       {selo.campanha}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
                       Modelo: {selo.modelo} · Criado em {selo.dataCriacao}
                     </Typography>
                   </Box>
-                  <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
-                    <Button variant="outlined" size="small" fullWidth color="inherit">
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    spacing={1}
+                    sx={{ width: "100%" }}
+                  >
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      color="inherit"
+                      aria-label={`Baixar PNG do selo ${selo.campanha}`}
+                    >
                       Baixar PNG
                     </Button>
-                    <Button variant="outlined" size="small" fullWidth color="inherit">
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      color="inherit"
+                      aria-label={`Baixar SVG do selo ${selo.campanha}`}
+                    >
                       Baixar SVG
                     </Button>
                   </Stack>

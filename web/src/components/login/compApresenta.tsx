@@ -76,7 +76,7 @@ export default function CompApresenta() {
         <Typography
           variant="body1"
           sx={{
-            color: "#A8D5C2",
+            color: "#CDE8DC",
             fontSize: { xs: "0.925rem", md: "1rem" },
             lineHeight: 1.55,
             maxWidth: { xs: "100%", md: "90%" },
