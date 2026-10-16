@@ -22,7 +22,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/campanhas/design.md`
-**Status**: Draft
+**Status**: Approved (2026-10-15) — issues de domínio #159–#185 (`docs/issues-campanhas.md`)
 
 > **Escopo desta rodada: P1 do `api`** (CAMP-01…08, CAMP-11). Encerramento (CAMP-09), duplicação (CAMP-10) e o `web` ficam para rodadas posteriores. Arquitetura de **AD-017**: valor restrito → value object; regra de estado → método da entidade; regra entre registros → caso de uso.
 >
@@ -205,7 +205,7 @@ T39 → T40
 
 - [ ] 422: `NomeCampanhaInvalidoError` ("O nome deve ter entre 3 e 80 caracteres"), `DescricaoCampanhaInvalidaError` ("A descrição deve ter no máximo 2000 caracteres"), `ValorMonetarioInvalidoError`, `PercentualInvalidoError`, `DataInvalidaError`, `VigenciaInvalidaError` ("A data de fim deve ser posterior à data de início"), `VigenciaVencidaError` ("A data de fim deve ser posterior à data atual"), `CamposPendentesError` (com `campos: string[]` público)
 - [ ] 409: `CampanhaEmAnaliseError` ("Campanha em análise não pode ser editada"), `AlteracaoJaPendenteError` ("Já existe uma alteração em análise"), `BeneficiadaIndisponivelNaDecisaoError` ("A beneficiada não está mais disponível no catálogo")
-- [ ] Mensagens de `ValorMonetarioInvalidoError` e `PercentualInvalidoError` iguais às do design §Value objects
+- [ ] Mensagens de `ValorMonetarioInvalidoError` e `PercentualInvalidoError` iguais às do design §Value objects; `DataInvalidaError` = "Data inválida. Use o formato AAAA-MM-DD"; `CamposPendentesError` = "Preencha os campos obrigatórios antes de enviar para análise"
 - [ ] Gate `quick` passa
 
 **Tests**: none (erros — build gate; as mensagens são asseridas nos testes dos VOs e casos de uso)

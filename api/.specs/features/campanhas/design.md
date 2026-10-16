@@ -142,7 +142,7 @@ graph TD
 | `Percentual` | `deDecimal(texto: string)` | `^\d{1,3}(\.\d{1,2})?$`; 0,01–100,00; guarda `centesimos: number` | `PercentualInvalidoError` (422, "O percentual deve estar entre 0,01% e 100,00%, com no máximo 2 casas decimais") |
 | `RegraDoacao` | `criar({ tipo, valor?, percentual? })` | `POR_UNIDADE` exige só `valor`; `PERCENTUAL` exige só `percentual`; o valor do outro tipo presente → erro | `InvalidRuleValueError` (422, mensagem existente) + os erros de `ValorMonetario`/`Percentual` |
 | `Beneficiada` | `criar({ instituicaoId?, causaId? })` | exatamente um dos dois | `BeneficiadaAmbiguaError` (422) |
-| `DataCalendario` | `criar(texto: string)`, `hojeEm(agora: Date)` | `AAAA-MM-DD` válido; `hojeEm` usa `Intl.DateTimeFormat` com `timeZone: 'America/Sao_Paulo'`; `ehAnteriorA`, `ehPosteriorA` | `DataInvalidaError` (422) |
+| `DataCalendario` | `criar(texto: string)`, `hojeEm(agora: Date)` | `AAAA-MM-DD` válido; `hojeEm` usa `Intl.DateTimeFormat` com `timeZone: 'America/Sao_Paulo'`; `ehAnteriorA`, `ehPosteriorA` | `DataInvalidaError` (422, "Data inválida. Use o formato AAAA-MM-DD") |
 | `Vigencia` | `criar({ inicio, fim? })` | `fim`, se houver, estritamente posterior a `inicio`; início no passado é aceito; `naoIniciadaEm(hoje)`, `fimJaPassouEm(hoje)` (fim ≤ hoje) | `VigenciaInvalidaError` (422, "A data de fim deve ser posterior à data de início") |
 | `Compromisso` | `criar({ beneficiada, regraDoacao, vigencia })` | os três obrigatórios; usado na alteração pendente e como retrato da versão aprovada | — |
 
@@ -172,7 +172,7 @@ graph TD
 
 #### Erros de aplicação novos — `application/errors/`
 
-`NomeCampanhaInvalidoError`, `DescricaoCampanhaInvalidaError`, `ValorMonetarioInvalidoError`, `PercentualInvalidoError`, `DataInvalidaError`, `VigenciaInvalidaError`, `VigenciaVencidaError` (todos 422); `CamposPendentesError` (422, com `campos: string[]`); `CampanhaEmAnaliseError`, `AlteracaoJaPendenteError` (409); `BeneficiadaIndisponivelNaDecisaoError` (409, "A beneficiada não está mais disponível no catálogo").
+`NomeCampanhaInvalidoError`, `DescricaoCampanhaInvalidaError`, `ValorMonetarioInvalidoError`, `PercentualInvalidoError`, `DataInvalidaError`, `VigenciaInvalidaError`, `VigenciaVencidaError` (todos 422); `CamposPendentesError` (422, "Preencha os campos obrigatórios antes de enviar para análise", com `campos: string[]`); `CampanhaEmAnaliseError`, `AlteracaoJaPendenteError` (409); `BeneficiadaIndisponivelNaDecisaoError` (409, "A beneficiada não está mais disponível no catálogo").
 
 #### Portas
 

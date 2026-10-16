@@ -187,7 +187,8 @@
 - **Next step**: grupo começa a Fase 1 (T1). Depois de T27, o agente roda a verificação do domínio.
 - **Follow-ups** (não bloqueiam): comportamento do Prisma 6.19 com índice parcial criado por SQL não verificado (T28 confere drift); auditoria fora da transação segue como risco aceito do projeto.
 - **Blockers**: nenhum
-- **Branch**: `feat/campanhas-planejamento` (local)
+- **Branch**: `feat/campanhas-planejamento` (no remoto, PR aberta contra `main`)
+- **Issues**: domínio T1–T27 = #159–#185 no milestone `campanhas — API` (nº 3); mapa em `docs/issues-campanhas.md`
 
 ### Handoff — `catalogo-instituicoes` P1 do `api` concluído (2026-10-14)
 
