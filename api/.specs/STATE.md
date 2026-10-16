@@ -166,7 +166,28 @@
 - **Extensão (2026-10-13)**: o pedido do usuário ("pode aplicar as correções") cobre o ciclo de correção e reverificação do hardening. Com isso, inclui as tasks abertas pela rodada 2 da verificação (T49, T50).
 - **Exceção de autoria (2026-10-14)**: depois do FAIL da verificação da infra (`validation.md`, rodada 1), o usuário escolheu fechar o edge case "documento inacessível durante a análise" com um campo na API e autorizou o agente a editar `ListarFilaInstituicoesUseCase` e o teste dele (`src/domain/fivo/application/use-cases/listar-fila-instituicoes.ts` e `.spec.ts`) — task T51. O restante de `src/domain/**` continua de autoria humana.
 
+### AD-021
+- **Decision**: Em `campanhas`, a autoria segue a mesma divisão do AD-020: **tasks de domínio (T1–T27: erros, value objects, entidades, portas, doubles em memória, factories, casos de uso e os testes unit correspondentes) são escritas por humanos do grupo**; **tasks de infra (T28–T40: Prisma, adaptadores, `ArquivoService`, e-mail, HTTP, OpenAPI, e2e) são do agente**, e só começam depois do gate de handoff (build verde + verificação independente do agente sobre `src/domain/**` em `validation-dominio.md` com veredito PASS). Enquanto o domínio estiver aberto, o agente não escreve nem edita código em `src/domain/**`, `src/core/**`, `test/repositories/**` e `test/factories/**` desta feature. Exceções exigem pedido explícito do usuário, registrado aqui (data + tasks) antes da primeira linha de código.
+- **Reason**: Decisão do usuário em 2026-10-15, no planejamento de `campanhas`. A regra de negócio é onde está a nota do grupo; a infra repete precedentes já verificados em `cadastro-empresa` e `catalogo-instituicoes`. O AD-020 tem escopo só no catálogo, então a divisão precisa de registro próprio aqui.
+- **Trade-off**: O caminho crítico depende da disponibilidade do grupo para 27 tasks de domínio, e o gate de verificação no meio da feature se repete.
+- **Scope**: `campanhas` — tasks T1–T40.
+- **Date**: 2026-10-15
+- **Status**: active
+
 ## Handoff
+
+### Handoff — planejamento de `campanhas` (2026-10-15)
+
+- **Feature**: `campanhas` (`.specs/features/campanhas/`)
+- **Phase / Task**: Specify (spec confirmada; `context.md` com as decisões), Design (abordagem A: `AlteracaoCompromisso` filha da `Campanha`) e Tasks concluídos; nenhuma task executada.
+- **Escopo da rodada**: P1 do `api` — CAMP-01…08 e CAMP-11 (consulta pública mínima, nova). CAMP-09 (encerramento), CAMP-10 (duplicação) e `web` ficam para rodadas posteriores.
+- **Artefatos**: `spec.md`, `context.md`, `design.md`, `tasks.md` (40 tasks / 9 fases; `validate_tasks.py` 0 erros, 4 warnings esperados de `Tests: none`).
+- **Autoria**: T1–T27 humanas, T28–T40 do agente, com gate de handoff entre elas (AD-021).
+- **Estado do código**: rascunho de 2026-09-04 (`entities/campanha.ts`, `criar-campanha.ts`, double e factory) fora da spec e do AD-017 — retrabalhado no lugar por T13, T16 e T18.
+- **Next step**: grupo começa a Fase 1 (T1). Depois de T27, o agente roda a verificação do domínio.
+- **Follow-ups** (não bloqueiam): comportamento do Prisma 6.19 com índice parcial criado por SQL não verificado (T28 confere drift); auditoria fora da transação segue como risco aceito do projeto.
+- **Blockers**: nenhum
+- **Branch**: `feat/campanhas-planejamento` (local)
 
 ### Handoff — `catalogo-instituicoes` P1 do `api` concluído (2026-10-14)
 
