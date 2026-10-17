@@ -49,6 +49,7 @@ enum TipoArquivo {
   LOGO_EMPRESA
   LOGO_INSTITUICAO
   DOCUMENTO_INSTITUICAO
+  IMAGEM_CAMPANHA
 
   @@map("tipo_arquivo")
 }
