@@ -663,8 +663,8 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Os dois valores existem no enum, com valor igual ao nome
-- [ ] Gate `quick` passa
+- [x] Os dois valores existem no enum, com valor igual ao nome
+- [x] Gate `quick` passa
 
 **Tests**: none (porta — build gate)
 **Gate**: quick
