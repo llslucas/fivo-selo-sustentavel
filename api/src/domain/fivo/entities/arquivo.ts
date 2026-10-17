@@ -6,6 +6,7 @@ export enum TipoArquivo {
   LOGO_EMPRESA = 'LOGO_EMPRESA',
   LOGO_INSTITUICAO = 'LOGO_INSTITUICAO',
   DOCUMENTO_INSTITUICAO = 'DOCUMENTO_INSTITUICAO',
+  IMAGEM_CAMPANHA = 'IMAGEM_CAMPANHA',
   // FOTO_PERFIL = 'FOTO_PERFIL',
   // BANNER = 'BANNER',
   // DOCUMENTO = 'DOCUMENTO',
@@ -47,18 +48,21 @@ export class Arquivo extends Entity<ArquivoProps> {
         'image/jpeg',
         'image/png',
       ],
+      [TipoArquivo.IMAGEM_CAMPANHA]: ['image/png', 'image/jpeg'],
     };
 
     const limiteEmBytesPorTipo: Record<TipoArquivo, number> = {
       [TipoArquivo.LOGO_EMPRESA]: 5 * 1024 * 1024,
       [TipoArquivo.LOGO_INSTITUICAO]: 5 * 1024 * 1024,
       [TipoArquivo.DOCUMENTO_INSTITUICAO]: 10 * 1024 * 1024,
+      [TipoArquivo.IMAGEM_CAMPANHA]: 5 * 1024 * 1024,
     };
 
     const checagemDimensoesPorTipo: Record<TipoArquivo, boolean> = {
       [TipoArquivo.LOGO_EMPRESA]: true,
       [TipoArquivo.LOGO_INSTITUICAO]: true,
       [TipoArquivo.DOCUMENTO_INSTITUICAO]: false,
+      [TipoArquivo.IMAGEM_CAMPANHA]: false,
     };
 
     const formatosAceitos = formatosAceitosPorTipo[input.tipo] ?? [];
