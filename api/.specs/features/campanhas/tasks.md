@@ -392,7 +392,6 @@ T39 → T40
 **Reuses**: nenhum (primeira data sem hora do projeto)
 **Requirement**: CAMP-01, CAMP-05, CAMP-11
 **Autor**: 👤 humano
-
 **Tools**:
 
 - MCP: NONE
@@ -400,10 +399,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `criar(texto)` rejeita formato inválido e datas inexistentes (`2026-02-30`, `2026-13-01`) com `DataInvalidaError`
-- [ ] `hojeEm(agora: Date)` usa `Intl.DateTimeFormat` com `timeZone: 'America/Sao_Paulo'`; teste com `2026-10-16T02:30:00Z` devolve `2026-10-15`
-- [ ] `ehAnteriorA`, `ehPosteriorA`, `equals` e `toString()` (`AAAA-MM-DD`)
-- [ ] Gate `quick` passa
+- [x] `criar(texto)` rejeita formato inválido e datas inexistentes (`2026-02-30`, `2026-13-01`) com `DataInvalidaError`
+- [x] `hojeEm(agora: Date)` usa `Intl.DateTimeFormat` com `timeZone: 'America/Sao_Paulo'`; teste com `2026-10-16T02:30:00Z` devolve `2026-10-15`
+- [x] `ehAnteriorA`, `ehPosteriorA`, `equals` e `toString()` (`AAAA-MM-DD`)
+- [x] Gate `quick` passa — `tsc`/`jest` limpos; `eslint` isolado nos 2 arquivos do T8 limpo.
 
 **Tests**: unit
 **Gate**: quick
