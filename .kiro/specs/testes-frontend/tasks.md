@@ -66,7 +66,7 @@ Testes de propriedade (PBT) usam **fast-check** integrado ao Vitest, com no mín
     - `importarSeExistir(nomeArquivo)` com import dinâmico apenas quando existe
     - _Requirements: 7.1, 7.2, 7.3, 7.5_
 
-- [~] 4. Checkpoint - infraestrutura e helpers
+- [ ] 4. Checkpoint - infraestrutura e helpers
   - Garantir que todos os testes passam; perguntar ao usuário se surgirem dúvidas.
 
 - [x] 5. Testes de unidade do Cliente_HTTP (`web/tests/unit/api.test.ts`)
@@ -189,7 +189,7 @@ Testes de propriedade (PBT) usam **fast-check** integrado ao Vitest, com no mín
     - Erro de rede exibe mensagem de falha de conexão, oculta loader e oferece nova tentativa (6.6)
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6_
 
-- [~] 12. Checkpoint - componente e integração
+- [ ] 12. Checkpoint - componente e integração
   - Garantir que todos os testes passam; perguntar ao usuário se surgirem dúvidas.
 
 - [x] 13. Testes condicionais de serviços opcionais (`web/tests/unit/*.conditional.test.ts`)
@@ -226,7 +226,7 @@ Testes de propriedade (PBT) usam **fast-check** integrado ao Vitest, com no mín
     - _Requirements: 9.1, 9.4_
 
 - [ ] 15. (Opcional) Testes e2e de navegador com Playwright
-  - [~] 15.1 Configurar `web/playwright.config.ts` e um percurso e2e mínimo
+  - [ ] 15.1 Configurar `web/playwright.config.ts` e um percurso e2e mínimo
     - Opcional e fora do escopo mínimo; cobre percurso ponta a ponta (ex.: login→dashboard) em ambiente controlado
     - _Requirements: 1.1_
 
