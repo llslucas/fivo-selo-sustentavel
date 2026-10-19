@@ -345,10 +345,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `RegraDoacao.criar({ tipo, valor?, percentual? })` devolve `Either`, propagando os erros de `ValorMonetario`/`Percentual`
-- [ ] `POR_UNIDADE` com `percentual` presente, ou `PERCENTUAL` com `valor` presente → `InvalidRuleValueError`; tipo sem o próprio valor → `InvalidRuleValueError`
-- [ ] Getters expõem os VOs internos; nenhum setter
-- [ ] Gate `quick` passa
+- [x] `RegraDoacao.criar({ tipo, valor?, percentual? })` devolve `Either`, propagando os erros de `ValorMonetario`/`Percentual`
+- [x] `POR_UNIDADE` com `percentual` presente, ou `PERCENTUAL` com `valor` presente → `InvalidRuleValueError`; tipo sem o próprio valor → `InvalidRuleValueError`
+- [x] Getters expõem os VOs internos; nenhum setter
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -428,10 +428,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Fim igual ou anterior ao início → `VigenciaInvalidaError`; fim no dia seguinte ao início aceito
-- [ ] Início anterior à data atual aceito (sem validação contra "hoje")
-- [ ] `fimJaPassouEm(hoje)` é `true` quando fim ≤ hoje e `false` sem fim; `naoIniciadaEm(hoje)` é `true` só quando início > hoje
-- [ ] Gate `quick` passa
+- [x] Fim igual ou anterior ao início → `VigenciaInvalidaError`; fim no dia seguinte ao início aceito
+- [x] Início anterior à data atual aceito (sem validação contra "hoje")
+- [x] `fimJaPassouEm(hoje)` é `true` quando fim ≤ hoje e `false` sem fim; `naoIniciadaEm(hoje)` é `true` só quando início > hoje
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
