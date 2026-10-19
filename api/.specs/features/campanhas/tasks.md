@@ -428,10 +428,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Fim igual ou anterior ao início → `VigenciaInvalidaError`; fim no dia seguinte ao início aceito
-- [ ] Início anterior à data atual aceito (sem validação contra "hoje")
-- [ ] `fimJaPassouEm(hoje)` é `true` quando fim ≤ hoje e `false` sem fim; `naoIniciadaEm(hoje)` é `true` só quando início > hoje
-- [ ] Gate `quick` passa
+- [x] Fim igual ou anterior ao início → `VigenciaInvalidaError`; fim no dia seguinte ao início aceito
+- [x] Início anterior à data atual aceito (sem validação contra "hoje")
+- [x] `fimJaPassouEm(hoje)` é `true` quando fim ≤ hoje e `false` sem fim; `naoIniciadaEm(hoje)` é `true` só quando início > hoje
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
