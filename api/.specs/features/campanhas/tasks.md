@@ -345,10 +345,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `RegraDoacao.criar({ tipo, valor?, percentual? })` devolve `Either`, propagando os erros de `ValorMonetario`/`Percentual`
-- [ ] `POR_UNIDADE` com `percentual` presente, ou `PERCENTUAL` com `valor` presente → `InvalidRuleValueError`; tipo sem o próprio valor → `InvalidRuleValueError`
-- [ ] Getters expõem os VOs internos; nenhum setter
-- [ ] Gate `quick` passa
+- [x] `RegraDoacao.criar({ tipo, valor?, percentual? })` devolve `Either`, propagando os erros de `ValorMonetario`/`Percentual`
+- [x] `POR_UNIDADE` com `percentual` presente, ou `PERCENTUAL` com `valor` presente → `InvalidRuleValueError`; tipo sem o próprio valor → `InvalidRuleValueError`
+- [x] Getters expõem os VOs internos; nenhum setter
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
