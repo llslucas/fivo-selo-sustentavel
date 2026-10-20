@@ -4,10 +4,9 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
-import InputAdornment from "@mui/material/InputAdornment";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import { instituicoesMock } from "@/lib/campaign-wizard/mock-data";
 import type { CampaignWizardData } from "@/lib/campaign-wizard/types";
+import { useBeneficiadas } from "../hooks/useBeneficiadas";
+import SeletorBeneficiada from "../SeletorBeneficiada";
 
 type Props = {
   data: CampaignWizardData;
@@ -15,6 +14,19 @@ type Props = {
 };
 
 export default function StepSobreCampanha({ data, onChange }: Props) {
+  // Catálogo real de beneficiadas obtido do endpoint `GET /beneficiadas`. A
+  // seleção vive no estado do wizard (`data.instituicaoId`), nunca em estado
+  // local do passo (Requisitos 5.1, 5.4, 7.1, 7.5).
+  const {
+    estado,
+    beneficiadas,
+    termoBusca,
+    mensagemErro,
+    podeTentarNovamente,
+    definirTermoBusca,
+    tentarNovamente,
+  } = useBeneficiadas();
+
   return (
     <Stack spacing={4}>
       {/* Nome da campanha */}
@@ -42,58 +54,18 @@ export default function StepSobreCampanha({ data, onChange }: Props) {
         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
           Causa ou instituição beneficiada
         </Typography>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-          {instituicoesMock.map((inst) => {
-            const selected = data.instituicaoId === inst.id;
-            return (
-              <Box
-                key={inst.id}
-                onClick={() => onChange({ instituicaoId: inst.id })}
-                sx={{
-                  flex: 1,
-                  border: 1,
-                  borderColor: selected ? "primary.main" : "divider",
-                  bgcolor: selected ? "primary.light" : "background.default",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  position: "relative",
-                  transition: "border-color 0.15s ease, background-color 0.15s ease",
-                  "&:hover": { borderColor: "primary.main" },
-                }}
-              >
-                {/* Avatar colorido da instituição */}
-                <Box
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    bgcolor: selected ? "primary.main" : "divider",
-                    mb: 1.5,
-                    opacity: 0.6,
-                  }}
-                />
-                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                  {inst.nome}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {inst.descricao}
-                </Typography>
-                {selected && (
-                  <CheckCircleRoundedIcon
-                    color="primary"
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      fontSize: 20,
-                    }}
-                  />
-                )}
-              </Box>
-            );
-          })}
-        </Stack>
+        <SeletorBeneficiada
+          variante="cards"
+          beneficiadas={beneficiadas}
+          estado={estado}
+          termoBusca={termoBusca}
+          mensagemErro={mensagemErro}
+          podeTentarNovamente={podeTentarNovamente}
+          selecionadaId={data.instituicaoId}
+          onBuscar={definirTermoBusca}
+          onTentarNovamente={tentarNovamente}
+          onSelecionar={(id) => onChange({ instituicaoId: id })}
+        />
       </Box>
 
       {/* Regra de doação inline */}

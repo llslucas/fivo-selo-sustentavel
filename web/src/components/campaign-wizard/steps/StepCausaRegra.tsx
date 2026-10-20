@@ -6,14 +6,18 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
 import InputAdornment from "@mui/material/InputAdornment";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import { instituicoesMock } from "@/lib/campaign-wizard/mock-data";
-import type { CampaignWizardData, Instituicao } from "@/lib/campaign-wizard/types";
+import type { CampaignWizardData } from "@/lib/campaign-wizard/types";
+import SeletorBeneficiada from "../SeletorBeneficiada";
+import { useBeneficiadas } from "../hooks/useBeneficiadas";
+
+// Mensagem exibida quando a empresa aciona a afordância de pré-cadastro
+// enquanto o endpoint correspondente não existe (Requisitos 8.2, 8.3).
+const MENSAGEM_PRE_CADASTRO_INDISPONIVEL =
+  "O pré-cadastro de instituições ainda não está disponível. Em breve você poderá solicitar a inclusão de uma nova beneficiada por aqui.";
 
 export default function StepCausaRegra({
   data,
@@ -22,31 +26,33 @@ export default function StepCausaRegra({
   data: CampaignWizardData;
   onChange: (patch: Partial<CampaignWizardData>) => void;
 }) {
-  const [extraInstituicoes, setExtraInstituicoes] = useState<Instituicao[]>([]);
+  // Catálogo real servido por GET /beneficiadas. A seleção é persistida
+  // exclusivamente no estado do wizard (data.instituicaoId), nunca em estado
+  // local do passo (Requisitos 5.1, 5.4, 7.1).
+  const {
+    estado,
+    beneficiadas,
+    termoBusca,
+    mensagemErro,
+    podeTentarNovamente,
+    definirTermoBusca,
+    tentarNovamente,
+  } = useBeneficiadas();
+
+  // Afordância de pré-cadastro em estado "em breve": nenhum dado fabricado,
+  // nenhuma requisição de rede. Os campos digitados permanecem preservados
+  // (Requisitos 8.1, 8.2, 8.3, 8.6).
   const [formAberto, setFormAberto] = useState(false);
   const [novoNome, setNovoNome] = useState("");
   const [novoCnpj, setNovoCnpj] = useState("");
+  const [preCadastroIndisponivel, setPreCadastroIndisponivel] = useState(false);
 
-  const instituicoes = [...instituicoesMock, ...extraInstituicoes];
-
-  function handleAdicionarInstituicao() {
-    if (!novoNome.trim()) return;
-    const nova: Instituicao = {
-      id: `custom-${Date.now()}`,
-      nome: novoNome.trim(),
-      cidade: "—",
-      descricao: "Pré-cadastro enviado pela sua empresa.",
-    };
-    setExtraInstituicoes((prev) => [...prev, nova]);
-    onChange({ instituicaoId: nova.id });
-    setNovoNome("");
-    setNovoCnpj("");
-    setFormAberto(false);
+  // Aciona a afordância de pré-cadastro: apenas sinaliza a indisponibilidade.
+  // Não fabrica beneficiadas locais, não altera a seleção nem os dados
+  // preenchidos e não emite nenhuma requisição (Requisitos 8.1, 8.2, 8.3, 8.6).
+  function handleSolicitarPreCadastro() {
+    setPreCadastroIndisponivel(true);
   }
-
-  const instituicaoSelecionadaEhNova = extraInstituicoes.some(
-    (i) => i.id === data.instituicaoId,
-  );
 
   return (
     <Stack spacing={4}>
@@ -58,62 +64,18 @@ export default function StepCausaRegra({
           Escolha quem recebe a doação desta campanha.
         </Typography>
 
-        <Stack spacing={1.5}>
-          {instituicoes.map((instituicao) => {
-            const selected = data.instituicaoId === instituicao.id;
-            const pendente = extraInstituicoes.some((i) => i.id === instituicao.id);
-            return (
-              <Box
-                key={instituicao.id}
-                component="button"
-                type="button"
-                aria-pressed={selected}
-                aria-label={`${instituicao.nome}, ${instituicao.cidade}${pendente ? ", pendente de aprovação" : ""}`}
-                onClick={() => onChange({ instituicaoId: instituicao.id })}
-                sx={{
-                  width: "100%",
-                  textAlign: "left",
-                  font: "inherit",
-                  color: "inherit",
-                  border: 1,
-                  borderColor: selected ? "primary.main" : "divider",
-                  bgcolor: selected ? "primary.light" : "transparent",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 2,
-                  transition: "border-color 0.15s ease, background-color 0.15s ease",
-                  "&:hover": { borderColor: "primary.main" },
-                }}
-              >
-                <Box>
-                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      {instituicao.nome}
-                    </Typography>
-                    {pendente && (
-                      <Chip
-                        label="Pendente de aprovação"
-                        size="small"
-                        aria-hidden="true"
-                        sx={{ bgcolor: "secondary.light", color: "secondary.dark", fontWeight: 600 }}
-                      />
-                    )}
-                  </Stack>
-                  <Typography variant="caption" color="text.secondary">
-                    {instituicao.cidade}
-                  </Typography>
-                </Box>
-                {selected && (
-                  <CheckCircleRoundedIcon color="primary" fontSize="small" />
-                )}
-              </Box>
-            );
-          })}
-        </Stack>
+        <SeletorBeneficiada
+          variante="lista"
+          beneficiadas={beneficiadas}
+          estado={estado}
+          termoBusca={termoBusca}
+          mensagemErro={mensagemErro}
+          podeTentarNovamente={podeTentarNovamente}
+          selecionadaId={data.instituicaoId}
+          onBuscar={definirTermoBusca}
+          onTentarNovamente={tentarNovamente}
+          onSelecionar={(id) => onChange({ instituicaoId: id })}
+        />
 
         {formAberto ? (
           <Box
@@ -145,16 +107,27 @@ export default function StepCausaRegra({
                 fullWidth
               />
               <Stack direction="row" spacing={1.5}>
-                <Button variant="contained" size="small" onClick={handleAdicionarInstituicao}>
-                  Adicionar
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleSolicitarPreCadastro}
+                >
+                  Solicitar pré-cadastro
                 </Button>
                 <Button variant="text" size="small" onClick={() => setFormAberto(false)}>
                   Cancelar
                 </Button>
               </Stack>
-              <Typography variant="caption" color="text.secondary">
-                A instituição fica pendente até a Fivo Lab aprovar o cadastro.
-              </Typography>
+              {preCadastroIndisponivel && (
+                <Typography
+                  role="status"
+                  data-testid="pre-cadastro-indisponivel"
+                  variant="caption"
+                  color="text.secondary"
+                >
+                  {MENSAGEM_PRE_CADASTRO_INDISPONIVEL}
+                </Typography>
+              )}
             </Stack>
           </Box>
         ) : (
@@ -165,11 +138,6 @@ export default function StepCausaRegra({
           >
             Não encontrou? Cadastrar uma nova instituição
           </Button>
-        )}
-        {instituicaoSelecionadaEhNova && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
-            Você pode continuar o cadastro da campanha — a aprovação acontece em paralelo.
-          </Typography>
         )}
       </Box>
 

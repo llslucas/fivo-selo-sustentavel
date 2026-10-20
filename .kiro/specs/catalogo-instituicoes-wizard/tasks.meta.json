@@ -1,0 +1,656 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Implementar os tipos e a função `listarBeneficiadas`": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442150629
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442162715
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442528576
+      }
+    ],
+    "1.2 Escrever teste de propriedade para o descarte de itens inválidos": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442151864
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442532857
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442811105
+      }
+    ],
+    "1.3 Escrever teste de propriedade para a regra de busca por comprimento do termo": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152007
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442534258
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442812490
+      }
+    ],
+    "1.4 Escrever testes de unidade de exemplo do serviço": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152096
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442535643
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442813944
+      }
+    ],
+    "2.1 Reexportar `Beneficiada` e substituir o tipo plano `Instituicao`": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152191
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442536742
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442815297
+      }
+    ],
+    "3.1 Implementar a máquina de estados e o ciclo de busca": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152321
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442819900
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443444131
+      }
+    ],
+    "3.2 Escrever teste de propriedade anti-stale": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152386
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443451191
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443667212
+      }
+    ],
+    "3.3 Escrever teste de propriedade para botão de nova tentativa condicionado ao erro": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152457
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443452632
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443669035
+      }
+    ],
+    "3.4 Escrever teste de propriedade para preservação da lista anterior sob falha": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152523
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443453994
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443670388
+      }
+    ],
+    "3.5 Escrever teste de propriedade para preservação do termo de busca sob falha": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152592
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443456775
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443671833
+      }
+    ],
+    "3.6 Escrever testes de unidade de exemplo/edge do hook": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152656
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443677267
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443861527
+      }
+    ],
+    "4. Checkpoint - garantir que serviço, tipos e hook passam nos testes": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152746
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443871208
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443896479
+      }
+    ],
+    "5.1 Implementar o componente e seus estados visuais": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152812
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443449853
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443672662
+      }
+    ],
+    "5.2 Escrever teste de propriedade para ordem/itens renderizados": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152877
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443902520
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444188140
+      }
+    ],
+    "5.3 Escrever teste de propriedade para nome e descrição por item": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442152942
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443903913
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444189540
+      }
+    ],
+    "5.4 Escrever teste de propriedade para registro da seleção": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153002
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443905346
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444190943
+      }
+    ],
+    "5.5 Escrever teste de propriedade para marcação de seleção refletir o id": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153071
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443906744
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444192336
+      }
+    ],
+    "5.6 Escrever testes de componente de exemplo/edge": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153132
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443907764
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444193250
+      }
+    ],
+    "6. Checkpoint - garantir que o componente de seleção passa nos testes": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153191
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444202081
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444219841
+      }
+    ],
+    "7.1 Substituir o mock e o pré-cadastro falso pela seleção real (variante lista)": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153245
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444226561
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444336548
+      }
+    ],
+    "7.2 Escrever teste de propriedade para pré-cadastro não fabricar beneficiadas locais": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153308
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444347714
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444571725
+      }
+    ],
+    "7.3 Escrever teste de propriedade para pré-cadastro não emitir requisição de rede": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153372
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444343750
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444573157
+      }
+    ],
+    "7.4 Escrever teste de exemplo da mensagem de pré-cadastro indisponível": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153444
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444345098
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444570299
+      }
+    ],
+    "8.1 Substituir o mock pela seleção real (variante cards)": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153507
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444225484
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444337639
+      }
+    ],
+    "9.1 Garantir persistência da seleção e bloqueio de avanço": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153565
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444346504
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444574277
+      }
+    ],
+    "9.2 Escrever teste de integração para persistência do id na navegação": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153631
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444584631
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792468000012
+      }
+    ],
+    "9.3 Escrever teste de integração para preservação do id no payload": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153723
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444580386
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792468001409
+      }
+    ],
+    "9.4 Escrever teste de integração para bloqueio de avanço sem seleção": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153836
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444581828
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792468002782
+      }
+    ],
+    "9.5 Escrever testes de integração de exemplo para recarga ao retornar": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153898
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444583281
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792468004173
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792468844558
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792469675006
+      }
+    ],
+    "10. Checkpoint - garantir que a integração do wizard passa nos testes": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442153960
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792468011019
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792469676269
+      }
+    ],
+    "11.1 Apagar `mock-data.ts` e garantir ausência de referências": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442154025
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444585778
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792468005269
+      }
+    ],
+    "11.2 Adicionar verificação estrutural da remoção do mock": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442154107
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792469683948
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792469824627
+      }
+    ],
+    "12.1 Ajustar o teste condicional e rodar typecheck/lint/testes": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442154205
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792469831042
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792470682375
+      }
+    ],
+    "13. Checkpoint final - garantir que todos os testes passam": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442154271
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792470687337
+      },
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792470691685
+      }
+    ],
+    "1. Criar a camada de serviço `web/src/services/instituicoes.ts`": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442814021
+      }
+    ],
+    "2. Reconciliar os tipos do wizard em `web/src/lib/campaign-wizard/types.ts`": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792442815372
+      }
+    ],
+    "3. Criar o hook `useBeneficiadas`": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792443861648
+      }
+    ],
+    "5. Criar o componente apresentacional `SeletorBeneficiada`": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444193346
+      }
+    ],
+    "8. Integrar `SeletorBeneficiada` + `useBeneficiadas` em `StepSobreCampanha.tsx`": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444337699
+      }
+    ],
+    "7. Integrar `SeletorBeneficiada` + `useBeneficiadas` em `StepCausaRegra.tsx`": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792444573238
+      }
+    ],
+    "9. Ajustar e verificar os pais do wizard `CampaignWizard.tsx` e `CampaignWizardNew.tsx`": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792468004245
+      }
+    ],
+    "11. Remover os dados simulados de beneficiadas": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792469824818
+      }
+    ],
+    "12. Verificação final e ajuste do teste condicional": [
+      {
+        "executionId": "aa01a510-7c54-419c-ab01-2d203470ab52",
+        "chatSessionId": "sess_2455175a-5405-421a-a5a7-9a16a3099bb0",
+        "timestamp": 1792470682480
+      }
+    ]
+  }
+}

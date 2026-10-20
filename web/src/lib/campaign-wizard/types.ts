@@ -1,11 +1,13 @@
+import type { Beneficiada, TipoBeneficiada } from "@/services/instituicoes";
+
+// Reexporta o contrato canônico de API servido por GET /beneficiadas.
+export type { Beneficiada, TipoBeneficiada };
+
 export type AvatarColor = "mint" | "peach" | "lavender";
 
-export type Instituicao = {
-  id: string;
-  nome: string;
-  cidade: string;
-  descricao: string;
-};
+// Alias mantido para compatibilidade com os módulos que ainda referenciam
+// `Instituicao`; `Beneficiada` é a fonte canônica do formato de API.
+export type Instituicao = Beneficiada;
 
 export type RegraTipo = "valor_fixo" | "percentual";
 
