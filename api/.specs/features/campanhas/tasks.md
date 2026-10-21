@@ -455,10 +455,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `Compromisso.criar({ beneficiada, regraDoacao, vigencia })` exige os três (tipos obrigatórios, sem `Either`)
-- [ ] `mesclar(parcial)` devolve um novo `Compromisso` com os campos informados substituídos e o original intacto
-- [ ] `equals` distingue mudança em cada um dos três campos
-- [ ] Gate `quick` passa
+- [x] `Compromisso.criar({ beneficiada, regraDoacao, vigencia })` exige os três (tipos obrigatórios, sem `Either`)
+- [x] `mesclar(parcial)` devolve um novo `Compromisso` com os campos informados substituídos e o original intacto
+- [x] `equals` distingue mudança em cada um dos três campos
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
