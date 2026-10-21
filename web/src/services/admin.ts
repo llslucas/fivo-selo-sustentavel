@@ -1,7 +1,6 @@
-// Funções específicas do recurso "admin" — filas e decisões do administrador.
-// Usa o cliente genérico de services/api.ts.
-
 import { request } from "./api";
+
+export const MOTIVO_REJEICAO_MINIMO = 20;
 
 export type ItemFilaInstituicao = {
   id: string;
@@ -19,4 +18,16 @@ export type ItemFilaInstituicao = {
 
 export function listarFilaInstituicoes(): Promise<ItemFilaInstituicao[]> {
   return request("/admin/instituicoes");
+}
+
+export function aprovarInstituicao(id: string): Promise<void> {
+  return request(`/admin/instituicoes/${id}/aprovacao`, { method: "POST" });
+}
+
+export function rejeitarInstituicao(id: string, motivo: string): Promise<void> {
+  return request(`/admin/instituicoes/${id}/rejeicao`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ motivo }),
+  });
 }
