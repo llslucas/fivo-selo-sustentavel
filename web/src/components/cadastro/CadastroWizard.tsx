@@ -19,6 +19,8 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 import { useRouter } from "next/navigation";
+import NextLink from "next/link";
+import Link from "@mui/material/Link";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { ApiError, mensagemDeErro } from "@/services/api";
 import { criarEmpresa } from "@/services/empresas";
@@ -356,6 +358,15 @@ export default function CadastroWizard() {
             {step < 3 && (
               <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1.5 }}>
                 Campos marcados com <Box component="span" sx={{ color: "error.main" }}>*</Box> são obrigatórios.
+              </Typography>
+            )}
+            
+            {step === 1 && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+                É uma instituição?{" "}
+                <Link component={NextLink} href={APP_ROUTES.public.cadastroInstituicao} underline="hover">
+                  Cadastre-se aqui
+                </Link>
               </Typography>
             )}
           </Box>
