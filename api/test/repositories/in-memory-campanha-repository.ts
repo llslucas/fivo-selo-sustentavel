@@ -10,9 +10,9 @@ export class InMemoryCampanhaRepository implements CampanhaRepository {
     );
   }
 
-  findByIdPublico(id_publico: string): Promise<Campanha | null> {
+  findByIdPublico(idPublico: string): Promise<Campanha | null> {
     return Promise.resolve(
-      this.items.find((item) => item.id_publico.toString() === id_publico) ||
+      this.items.find((item) => item.idPublico.toString() === idPublico) ||
         null,
     );
   }
