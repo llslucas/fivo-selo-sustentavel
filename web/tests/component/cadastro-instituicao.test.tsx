@@ -75,7 +75,7 @@ async function preencherTudo(user: ReturnType<typeof userEvent.setup>) {
   digitar(/Descrição da instituição/, "Apoio a crianças em vulnerabilidade.");
 
   await user.click(screen.getByRole("combobox", { name: /Causa que a instituição defende/ }));
-  await user.click(await screen.findByRole("option", { name: "Educação" }));
+  await user.click(await screen.findByRole("option", { name: /Educação/ }));
 
   await user.upload(
     screen.getByLabelText("Documento de comprovação"),
@@ -88,6 +88,11 @@ describe("CadastroInstituicaoForm", () => {
     const user = userEvent.setup();
     renderizar();
 
+    // O envio só é liberado depois que o seletor de causas termina de carregar
+    // (botão fica desabilitado enquanto causasProntas é falso).
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Enviar cadastro" })).toBeEnabled(),
+    );
     await user.click(screen.getByRole("button", { name: "Enviar cadastro" }));
 
     expect(await screen.findByText("Anexe o documento de comprovação")).toBeInTheDocument();
