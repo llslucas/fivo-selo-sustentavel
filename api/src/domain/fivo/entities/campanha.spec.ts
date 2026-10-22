@@ -2,10 +2,12 @@ import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { CampanhaFactory } from '@test/factories/campanha-factory';
 import { CampanhaEmAnaliseError } from '../application/errors/campanha-em-analise.error';
 import { CamposPendentesError } from '../application/errors/campos-pendentes.error';
+import { MotivoInsuficienteError } from '../application/errors/motivo-insuficiente.error';
 import { TransicaoInvalidaError } from '../application/errors/transicao-invalida.error';
 import { VigenciaVencidaError } from '../application/errors/vigencia-vencida.error';
 import { Beneficiada } from './beneficiada';
 import { Campanha, CampanhaStatus } from './campanha';
+import { Compromisso } from './compromisso';
 import { DataCalendario } from './data-calendario';
 import { DescricaoCampanha } from './descricao-campanha';
 import { NomeCampanha } from './nome-campanha';
@@ -278,6 +280,131 @@ describe('Campanha', () => {
     expect(campanha.status).toBe(CampanhaStatus.EM_ANALISE);
     expect(campanha.submetidaEm).toBe(submetidaEm);
   });
+
+  it('approves a campaign under review and records who decided and when', () => {
+    const campanha = CampanhaFactory.create({
+      status: CampanhaStatus.EM_ANALISE,
+    });
+    const adminId = new UniqueEntityId();
+
+    const result = campanha.aprovar(adminId);
+
+    expect(result.isRight()).toBe(true);
+    expect(campanha.status).toBe(CampanhaStatus.APROVADA);
+    expect(campanha.decididoPor).toEqual(adminId);
+    expect(campanha.decididoEm).toBeInstanceOf(Date);
+  });
+
+  it('rejects a campaign under review and records the reason', () => {
+    const campanha = CampanhaFactory.create({
+      status: CampanhaStatus.EM_ANALISE,
+    });
+    const adminId = new UniqueEntityId();
+    const motivo = 'A regra de doacao nao esta clara para o consumidor';
+
+    const result = campanha.rejeitar(adminId, motivo);
+
+    expect(result.isRight()).toBe(true);
+    expect(campanha.status).toBe(CampanhaStatus.REJEITADA);
+    expect(campanha.decididoPor).toEqual(adminId);
+    expect(campanha.decididoEm).toBeInstanceOf(Date);
+    expect(campanha.motivoUltimaRejeicao).toBe(motivo);
+  });
+
+  it('does not reject with a reason shorter than 20 characters after trimming', () => {
+    const campanha = CampanhaFactory.create({
+      status: CampanhaStatus.EM_ANALISE,
+    });
+
+    const result = campanha.rejeitar(
+      new UniqueEntityId(),
+      '   motivo curto      ',
+    );
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(MotivoInsuficienteError);
+    expect(campanha.status).toBe(CampanhaStatus.EM_ANALISE);
+    expect(campanha.decididoPor).toBeUndefined();
+    expect(campanha.motivoUltimaRejeicao).toBeUndefined();
+  });
+
+  it.each([
+    CampanhaStatus.RASCUNHO,
+    CampanhaStatus.APROVADA,
+    CampanhaStatus.REJEITADA,
+  ])('does not approve a campaign in %s', (status) => {
+    const campanha = CampanhaFactory.create({ status });
+
+    const result = campanha.aprovar(new UniqueEntityId());
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
+    expect(campanha.status).toBe(status);
+  });
+
+  it.each([
+    CampanhaStatus.RASCUNHO,
+    CampanhaStatus.APROVADA,
+    CampanhaStatus.REJEITADA,
+  ])('does not reject a campaign in %s', (status) => {
+    const campanha = CampanhaFactory.create({ status });
+
+    const result = campanha.rejeitar(
+      new UniqueEntityId(),
+      'Motivo com mais de vinte caracteres',
+    );
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
+    expect(campanha.status).toBe(status);
+  });
+
+  it.each([
+    [CampanhaStatus.RASCUNHO, false],
+    [CampanhaStatus.EM_ANALISE, false],
+    [CampanhaStatus.APROVADA, true],
+    [CampanhaStatus.REJEITADA, false],
+  ])('is apt for a seal in %s: %s', (status, esperado) => {
+    const campanha = CampanhaFactory.create({ status });
+
+    expect(campanha.estaAptaASelo()).toBe(esperado);
+  });
+
+  it.each([
+    [CampanhaStatus.RASCUNHO, false],
+    [CampanhaStatus.EM_ANALISE, false],
+    [CampanhaStatus.APROVADA, true],
+    [CampanhaStatus.REJEITADA, false],
+  ])('is published in %s: %s', (status, esperado) => {
+    const campanha = CampanhaFactory.create({ status });
+
+    expect(campanha.estaPublicada()).toBe(esperado);
+  });
+
+  it('returns the current commitment when beneficiary, rule and period are filled', () => {
+    const campanha = campanhaCompleta('2026-12-31');
+
+    const compromisso = campanha.compromissoVigente();
+
+    expect(compromisso).toBeInstanceOf(Compromisso);
+    expect(compromisso?.beneficiada).toBe(campanha.beneficiada);
+    expect(compromisso?.regraDoacao).toBe(campanha.regraDoacao);
+    expect(compromisso?.vigencia).toBe(campanha.vigencia);
+  });
+
+  it.each(['beneficiada', 'regraDoacao', 'vigencia'] as const)(
+    'returns no current commitment when %s is missing',
+    (campo) => {
+      const campanha = CampanhaFactory.create({
+        beneficiada: beneficiada(),
+        regraDoacao: regraDoacao(),
+        vigencia: vigencia('2026-10-01'),
+        [campo]: null,
+      });
+
+      expect(campanha.compromissoVigente()).toBeNull();
+    },
+  );
 
   it('has no public setter', () => {
     const descritores = Object.getOwnPropertyDescriptors(Campanha.prototype);
