@@ -9,7 +9,9 @@ import { RegraDoacao } from './regra-doacao';
 import { ValorMonetario } from './valor-monetario';
 import { Vigencia } from './vigencia';
 import { DataCalendario } from './data-calendario';
+import { Compromisso } from './compromisso';
 import { TransicaoInvalidaError } from '../application/errors/transicao-invalida.error';
+import { MotivoInsuficienteError } from '../application/errors/motivo-insuficiente.error';
 import { CampanhaEmAnaliseError } from '../application/errors/campanha-em-analise.error';
 import { CamposPendentesError } from '../application/errors/campos-pendentes.error';
 import { VigenciaVencidaError } from '../application/errors/vigencia-vencida.error';
@@ -225,6 +227,59 @@ export class Campanha extends Entity<CampanhaProps> {
     this._props.updatedAt = new Date();
 
     return right(void 0);
+  }
+
+  aprovar(adminId: UniqueEntityId): Either<TransicaoInvalidaError, void> {
+    if (this._props.status !== CampanhaStatus.EM_ANALISE) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    this._props.status = CampanhaStatus.APROVADA;
+    this._props.decididoPor = adminId;
+    this._props.decididoEm = new Date();
+    this._props.updatedAt = new Date();
+
+    return right(void 0);
+  }
+
+  rejeitar(
+    adminId: UniqueEntityId,
+    motivo: string,
+  ): Either<TransicaoInvalidaError | MotivoInsuficienteError, void> {
+    if (this._props.status !== CampanhaStatus.EM_ANALISE) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    if (!motivo || motivo.trim().length < 20) {
+      return left(new MotivoInsuficienteError());
+    }
+
+    this._props.status = CampanhaStatus.REJEITADA;
+    this._props.decididoPor = adminId;
+    this._props.decididoEm = new Date();
+    this._props.motivoUltimaRejeicao = motivo;
+    this._props.updatedAt = new Date();
+
+    return right(void 0);
+  }
+
+  estaAptaASelo(): boolean {
+    return this._props.status === CampanhaStatus.APROVADA;
+  }
+
+  // A checagem de empresa aprovada fica no caso de uso da página pública.
+  estaPublicada(): boolean {
+    return this._props.status === CampanhaStatus.APROVADA;
+  }
+
+  compromissoVigente(): Compromisso | null {
+    const { beneficiada, regraDoacao, vigencia } = this._props;
+
+    if (!beneficiada || !regraDoacao || !vigencia) {
+      return null;
+    }
+
+    return Compromisso.criar({ beneficiada, regraDoacao, vigencia });
   }
 
   camposPendentes(): string[] {
