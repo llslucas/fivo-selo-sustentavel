@@ -21,7 +21,8 @@ import ErrorMessage from "@/components/ui/ErrorMessage";
 import SeletorCausa from "@/components/cadastro/SeletorCausa";
 import { ApiError, ehErroRecuperavel, mensagemDeErro } from "@/services/api";
 import { criarInstituicao } from "@/services/cadastroInstituicao";
-import { formatarCnpj, formatarTelefone } from "@/lib/mascaras";
+import { formatarCep, formatarCnpj, formatarTelefone } from "@/lib/mascaras";
+import { useBuscaCep } from "@/hooks/useBuscaCep";
 import { validarDocumento, validarLogo } from "@/lib/arquivos";
 import { APP_ROUTES } from "@/lib/routes";
 
@@ -173,6 +174,16 @@ export default function CadastroInstituicaoForm() {
   function patch(campo: keyof FormState, valor: string) {
     setData((prev) => ({ ...prev, [campo]: valor }));
   }
+
+  const buscaCep = useBuscaCep((endereco) => {
+    setData((prev) => ({
+      ...prev,
+      logradouro: endereco.logradouro || prev.logradouro,
+      bairro: endereco.bairro || prev.bairro,
+      cidade: endereco.cidade || prev.cidade,
+      uf: endereco.uf || prev.uf,
+    }));
+  });
 
   function limparErroCampo(campo: string) {
     setErrosCampo((prev) => {
@@ -516,9 +527,25 @@ export default function CadastroInstituicaoForm() {
                   label={<Obrigatorio>CEP</Obrigatorio>}
                   placeholder="13870-000"
                   value={data.cep}
-                  onChange={(e) => patch("cep", e.target.value)}
-                  error={Boolean(errosCampo.cep)}
-                  helperText={errosCampo.cep}
+                  onChange={(e) => {
+                    const formatado = formatarCep(e.target.value);
+                    patch("cep", formatado);
+                    if (formatado.replace(/\D/g, "").length === 8) {
+                      void buscaCep.buscar(formatado);
+                    }
+                  }}
+                  onBlur={() => void buscaCep.buscar(data.cep)}
+                  error={Boolean(errosCampo.cep) || Boolean(buscaCep.erro)}
+                  helperText={errosCampo.cep || buscaCep.erro}
+                  slotProps={{
+                    input: {
+                      endAdornment: buscaCep.buscando ? (
+                        <InputAdornment position="end">
+                          <CircularProgress size={18} />
+                        </InputAdornment>
+                      ) : undefined,
+                    },
+                  }}
                   fullWidth
                 />
               </Grid>
