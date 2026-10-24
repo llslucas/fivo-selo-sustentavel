@@ -4,6 +4,7 @@ export const APP_ROUTES = {
     home: '/home',
     login: '/login',
     cadastro: '/cadastro',
+    cadastroInstituicao: '/cadastro-instituicao',
     recuperarSenha: '/recuperar-senha',
     recuperarSenhaRedefinir: '/recuperar-senha/redefinir',
     parceiros: '/parceiros',

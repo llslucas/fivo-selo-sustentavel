@@ -1,5 +1,5 @@
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
-import { RegraType } from '@domain/fivo/entities/campanha';
+import { TipoRegraDoacao } from '@domain/fivo/entities/regra-doacao';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { InstituicaoFactory } from '@test/factories/instituicao-factory';
 import { InMemoryCampanhaRepository } from '@test/repositories/in-memory-campanha-repository';
@@ -40,12 +40,11 @@ describe('CriarCampanhaUseCase', () => {
       instituicao_id: instituicao.id.toString(),
       nome: 'Campanha Teste',
       descricao: 'Descrição da Campanha Teste',
-      regra_tipo: RegraType.VALOR_FIXO,
-      regra_valor_brl: 100,
-      regra_percentual: 0,
-      meta_valor_brl: 1000,
-      data_inicio: new Date(),
-      data_fim: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      regra_tipo: TipoRegraDoacao.POR_UNIDADE,
+      regra_valor: '100',
+      meta_valor: '1000',
+      data_inicio: '2026-11-01',
+      data_fim: '2026-11-08',
     };
 
     const result = await criarCampanhaUseCase.execute(request);
@@ -57,8 +56,8 @@ describe('CriarCampanhaUseCase', () => {
     const createdCampanha = result.value.campanha;
 
     expect(createdCampanha).toBeDefined();
-    expect(createdCampanha?.nome).toBe(request.nome);
-    expect(createdCampanha?.descricao).toBe(request.descricao);
+    expect(createdCampanha?.nome.valor).toBe(request.nome);
+    expect(createdCampanha?.descricao?.valor).toBe(request.descricao);
   });
 
   it('should return ResourceNotFoundError if empresa does not exist', async () => {
@@ -72,12 +71,11 @@ describe('CriarCampanhaUseCase', () => {
       instituicao_id: instituicao.id.toString(),
       nome: 'Campanha Teste',
       descricao: 'Descrição da Campanha Teste',
-      regra_tipo: RegraType.VALOR_FIXO,
-      regra_valor_brl: 100,
-      regra_percentual: 0,
-      meta_valor_brl: 1000,
-      data_inicio: new Date(),
-      data_fim: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      regra_tipo: TipoRegraDoacao.POR_UNIDADE,
+      regra_valor: '100',
+      meta_valor: '1000',
+      data_inicio: '2026-11-01',
+      data_fim: '2026-11-08',
     };
 
     const result = await criarCampanhaUseCase.execute(request);
@@ -97,12 +95,11 @@ describe('CriarCampanhaUseCase', () => {
       instituicao_id: instituicao.id.toString(),
       nome: 'Campanha Teste',
       descricao: 'Descrição da Campanha Teste',
-      regra_tipo: RegraType.VALOR_FIXO,
-      regra_valor_brl: 100,
-      regra_percentual: 0,
-      meta_valor_brl: 1000,
-      data_inicio: new Date(),
-      data_fim: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      regra_tipo: TipoRegraDoacao.POR_UNIDADE,
+      regra_valor: '100',
+      meta_valor: '1000',
+      data_inicio: '2026-11-01',
+      data_fim: '2026-11-08',
     };
 
     const result = await criarCampanhaUseCase.execute(request);
@@ -111,7 +108,7 @@ describe('CriarCampanhaUseCase', () => {
     expect(result.value).toBeInstanceOf(ResourceNotFoundError);
   });
 
-  it('should return InvalidRuleValueError if regra_valor_brl below or equal to 0 with VALOR_FIXO as regra.', async () => {
+  it('should return InvalidRuleValueError if regra_percentual is sent with POR_UNIDADE as regra.', async () => {
     const empresa = EmpresaFactory.create();
     const instituicao = InstituicaoFactory.create();
 
@@ -123,12 +120,12 @@ describe('CriarCampanhaUseCase', () => {
       instituicao_id: instituicao.id.toString(),
       nome: 'Campanha Teste',
       descricao: 'Descrição da Campanha Teste',
-      regra_tipo: RegraType.VALOR_FIXO,
-      regra_valor_brl: 0, // Valor inválido
-      regra_percentual: 100,
-      meta_valor_brl: 1000,
-      data_inicio: new Date(),
-      data_fim: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      regra_tipo: TipoRegraDoacao.POR_UNIDADE,
+      regra_valor: '1',
+      regra_percentual: '100', // Indevido para POR_UNIDADE
+      meta_valor: '1000',
+      data_inicio: '2026-11-01',
+      data_fim: '2026-11-08',
     };
 
     const result = await criarCampanhaUseCase.execute(request);
@@ -137,7 +134,7 @@ describe('CriarCampanhaUseCase', () => {
     expect(result.value).toBeInstanceOf(InvalidRuleValueError);
   });
 
-  it('should return InvalidRuleValueError if regra_percentual is below or equal to 0 with VALOR_PERCENTUAL as regra.', async () => {
+  it('should return InvalidRuleValueError if regra_valor is sent with PERCENTUAL as regra.', async () => {
     const empresa = EmpresaFactory.create();
     const instituicao = InstituicaoFactory.create();
 
@@ -149,12 +146,12 @@ describe('CriarCampanhaUseCase', () => {
       instituicao_id: instituicao.id.toString(),
       nome: 'Campanha Teste',
       descricao: 'Descrição da Campanha Teste',
-      regra_tipo: RegraType.VALOR_PERCENTUAL,
-      regra_valor_brl: 100,
-      regra_percentual: 0, // Valor inválido
-      meta_valor_brl: 1000,
-      data_inicio: new Date(),
-      data_fim: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      regra_tipo: TipoRegraDoacao.PERCENTUAL,
+      regra_valor: '100', // Indevido para PERCENTUAL
+      regra_percentual: '10',
+      meta_valor: '1000',
+      data_inicio: '2026-11-01',
+      data_fim: '2026-11-08',
     };
 
     const result = await criarCampanhaUseCase.execute(request);

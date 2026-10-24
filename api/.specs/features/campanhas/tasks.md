@@ -455,10 +455,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `Compromisso.criar({ beneficiada, regraDoacao, vigencia })` exige os três (tipos obrigatórios, sem `Either`)
-- [ ] `mesclar(parcial)` devolve um novo `Compromisso` com os campos informados substituídos e o original intacto
-- [ ] `equals` distingue mudança em cada um dos três campos
-- [ ] Gate `quick` passa
+- [x] `Compromisso.criar({ beneficiada, regraDoacao, vigencia })` exige os três (tipos obrigatórios, sem `Either`)
+- [x] `mesclar(parcial)` devolve um novo `Compromisso` com os campos informados substituídos e o original intacto
+- [x] `equals` distingue mudança em cada um dos três campos
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -541,14 +541,14 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Props e `CampanhaStatus` exatamente como no design §`Campanha`; camelCase; ids como `UniqueEntityId`; nenhum setter público
-- [ ] `criar({ empresaId, nome })` gera `idPublico` novo e diferente do `id`, `versao = 0`
-- [ ] `editarTextos` e `editarCompromisso`: aplicam em `RASCUNHO`; em `REJEITADA` aplicam e voltam para `RASCUNHO` mantendo `motivoUltimaRejeicao`; em `EM_ANALISE` → `CampanhaEmAnaliseError`
-- [ ] `submeter(hoje)`: só em `RASCUNHO`; lista **todos** os campos pendentes (`descricao`, `beneficiada`, `regraDoacao`, `vigencia.inicio`) num só `CamposPendentesError`; fim ≤ hoje → `VigenciaVencidaError`; sucesso grava `EM_ANALISE` e `submetidaEm`
-- [ ] `submeter` fora de `RASCUNHO` → `TransicaoInvalidaError`
-- [ ] `test/factories/campanha-factory.ts`, `test/repositories/in-memory-campanha-repository.ts` e `criar-campanha.ts` + spec continuam compilando e verdes (ajuste mecânico; o caso de uso é reescrito em T18)
-- [ ] `campanha.spec.ts` cobre cada item acima, um ramo por teste
-- [ ] Gate `quick` passa
+- [x] Props e `CampanhaStatus` exatamente como no design §`Campanha`; camelCase; ids como `UniqueEntityId`; nenhum setter público
+- [x] `criar({ empresaId, nome })` gera `idPublico` novo e diferente do `id`, `versao = 0`
+- [x] `editarTextos` e `editarCompromisso`: aplicam em `RASCUNHO`; em `REJEITADA` aplicam e voltam para `RASCUNHO` mantendo `motivoUltimaRejeicao`; em `EM_ANALISE` → `CampanhaEmAnaliseError`
+- [x] `submeter(hoje)`: só em `RASCUNHO`; lista **todos** os campos pendentes (`descricao`, `beneficiada`, `regraDoacao`, `vigencia.inicio`) num só `CamposPendentesError`; fim ≤ hoje → `VigenciaVencidaError`; sucesso grava `EM_ANALISE` e `submetidaEm`
+- [x] `submeter` fora de `RASCUNHO` → `TransicaoInvalidaError`
+- [x] `test/factories/campanha-factory.ts`, `test/repositories/in-memory-campanha-repository.ts` e `criar-campanha.ts` + spec continuam compilando e verdes (ajuste mecânico; o caso de uso é reescrito em T18)
+- [x] `campanha.spec.ts` cobre cada item acima, um ramo por teste
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

@@ -1,5 +1,6 @@
-
 import { request } from "./api";
+
+export const MOTIVO_REJEICAO_MINIMO = 20;
 
 export type ItemFilaInstituicao = {
   id: string;
@@ -19,6 +20,17 @@ export function listarFilaInstituicoes(): Promise<ItemFilaInstituicao[]> {
   return request("/admin/instituicoes");
 }
 
+export function aprovarInstituicao(id: string): Promise<void> {
+  return request(`/admin/instituicoes/${id}/aprovacao`, { method: "POST" });
+}
+
+export function rejeitarInstituicao(id: string, motivo: string): Promise<void> {
+  return request(`/admin/instituicoes/${id}/rejeicao`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ motivo }),
+  });
+}
 
 export type EstadoInstituicao = "APROVADA" | "SUSPENSA";
 
@@ -33,16 +45,13 @@ export type InstituicaoAprovada = {
   estado: EstadoInstituicao;
 };
 
-
 export function listarInstituicoesAprovadas(): Promise<InstituicaoAprovada[]> {
   return request("/admin/instituicoes?estado=APROVADA");
 }
 
-
 export function suspenderInstituicao(id: string): Promise<void> {
   return request(`/admin/instituicoes/${id}/suspensao`, { method: "POST" });
 }
-
 
 export function reativarInstituicao(id: string): Promise<void> {
   return request(`/admin/instituicoes/${id}/reativacao`, { method: "POST" });
