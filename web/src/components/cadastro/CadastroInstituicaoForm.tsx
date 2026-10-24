@@ -18,7 +18,7 @@ import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 import { useRouter } from "next/navigation";
 import ErrorMessage from "@/components/ui/ErrorMessage";
-import SeletorCausa from "@/components/cadastro/SeletorCausa";
+import SeletorCausa, { type EstadoSeletorCausa } from "@/components/cadastro/SeletorCausa";
 import { ApiError, ehErroRecuperavel, mensagemDeErro } from "@/services/api";
 import { criarInstituicao } from "@/services/cadastroInstituicao";
 import { formatarCep, formatarCnpj, formatarTelefone } from "@/lib/mascaras";
@@ -69,6 +69,11 @@ const ESTADO_INICIAL: FormState = {
   descricao: "",
   descricaoDocumento: "",
 };
+
+// Mensagem_Causa_Invalida exibida junto ao campo causaId quando a causa
+// selecionada não corresponde a nenhuma causa da lista carregada pelo seletor.
+const MENSAGEM_CAUSA_INVALIDA =
+  "A causa selecionada é inválida ou não está mais disponível. Escolha outra.";
 
 const CAMPOS_OBRIGATORIOS: (keyof FormState)[] = [
   "razaoSocial",
@@ -171,6 +176,17 @@ export default function CadastroInstituicaoForm() {
   const [errosCampo, setErrosCampo] = useState<Record<string, string>>({});
   const [concluido, setConcluido] = useState(false);
 
+  // Estado de prontidão do seletor de causas, reportado pelo próprio SeletorCausa
+  // via onEstadoChange. O envio só é liberado quando o seletor está "pronto"
+  // (há ao menos uma causa carregada). recarregarCausas é a reload key: incrementá-la
+  // força o seletor a refazer a busca (usado no tratamento do 422 — tarefa 5.1).
+  const [estadoCausa, setEstadoCausa] = useState<EstadoSeletorCausa>("carregando");
+  const [recarregarCausas, setRecarregarCausas] = useState(0);
+  // Ids da última lista de causas carregada pelo seletor. Usado para validar
+  // localmente que o causaId enviado pertence à lista apresentada (Requisito 2.5).
+  const [causasIds, setCausasIds] = useState<string[]>([]);
+  const causasProntas = estadoCausa === "pronto";
+
   function patch(campo: keyof FormState, valor: string) {
     setData((prev) => ({ ...prev, [campo]: valor }));
   }
@@ -264,9 +280,19 @@ export default function CadastroInstituicaoForm() {
       });
       setConcluido(true);
     } catch (e) {
-      setErro(mensagemDeErro(e));
-      setPodeTentarDeNovo(ehErroRecuperavel(e));
-      if (e instanceof ApiError) setErrosCampo(e.fieldErrors);
+      // Erro_422_Causa: a API rejeitou a causa como inválida/inativa (ex.: causa
+      // desativada durante o preenchimento). Trata esse caso de forma isolada,
+      // sem acionar o ErrorMessage global (Requisito 6): exibe a mensagem junto
+      // ao campo causaId, limpa a seleção e força o seletor a recarregar a lista.
+      if (e instanceof ApiError && e.status === 422 && e.fieldErrors.causaId) {
+        setErrosCampo({ causaId: e.fieldErrors.causaId });
+        patch("causaId", "");
+        setRecarregarCausas((n) => n + 1);
+      } else {
+        setErro(mensagemDeErro(e));
+        setPodeTentarDeNovo(ehErroRecuperavel(e));
+        if (e instanceof ApiError) setErrosCampo(e.fieldErrors);
+      }
     } finally {
       setLoading(false);
     }
@@ -278,6 +304,18 @@ export default function CadastroInstituicaoForm() {
     const erros = validar();
     setErrosCampo(erros);
     if (Object.keys(erros).length > 0) return;
+    // Bloqueia o envio enquanto o seletor de causas não está pronto
+    // (carregando/erro/vazio). Os erros de campo já foram definidos acima,
+    // então os demais valores do formulário permanecem preservados.
+    if (estadoCausa !== "pronto") return;
+    // Bloqueia localmente o envio de um causaId que não pertence à lista
+    // apresentada pelo seletor (Requisito 2.5): exibe a Mensagem_Causa_Invalida
+    // junto ao campo e preserva os demais valores. causaId vazio já foi tratado
+    // acima como "Campo obrigatório", então aqui só checamos valores não vazios.
+    if (data.causaId && !causasIds.includes(data.causaId)) {
+      setErrosCampo((prev) => ({ ...prev, causaId: MENSAGEM_CAUSA_INVALIDA }));
+      return;
+    }
     await enviar();
   }
 
@@ -619,6 +657,9 @@ export default function CadastroInstituicaoForm() {
               value={data.causaId}
               onChange={(causaId) => patch("causaId", causaId)}
               error={errosCampo.causaId}
+              recarregarChave={recarregarCausas}
+              onEstadoChange={setEstadoCausa}
+              onCausasChange={setCausasIds}
             />
             <TextField
               label={<Obrigatorio>Descrição da instituição</Obrigatorio>}
@@ -683,7 +724,7 @@ export default function CadastroInstituicaoForm() {
             <Button
               type="submit"
               variant="contained"
-              disabled={loading}
+              disabled={loading || !causasProntas}
               sx={{ px: 4, borderRadius: 2, minWidth: 120 }}
             >
               {loading ? <CircularProgress size={22} sx={{ color: "#fff" }} /> : "Enviar cadastro"}
