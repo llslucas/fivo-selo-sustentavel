@@ -512,10 +512,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `AlteracaoStatus`: `EM_ANALISE`, `APROVADA`, `REJEITADA`; nasce `EM_ANALISE`
-- [ ] `aprovar(adminId)` e `rejeitar(adminId, motivo)` devolvem `Either`; decidir fora de `EM_ANALISE` → `TransicaoInvalidaError`; motivo com trim < 20 → `MotivoInsuficienteError`
-- [ ] Nenhum setter público
-- [ ] Gate `quick` passa
+- [x] `AlteracaoStatus`: `EM_ANALISE`, `APROVADA`, `REJEITADA`; nasce `EM_ANALISE`
+- [x] `aprovar(adminId)` e `rejeitar(adminId, motivo)` devolvem `Either`; decidir fora de `EM_ANALISE` → `TransicaoInvalidaError`; motivo com trim < 20 → `MotivoInsuficienteError`
+- [x] Nenhum setter público
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
