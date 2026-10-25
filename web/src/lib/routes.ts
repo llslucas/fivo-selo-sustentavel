@@ -15,6 +15,7 @@ export const APP_ROUTES = {
     campanhas: '/campanhas',
     comprovantes: '/comprovantes',
     selos: '/selos',
+    instituicao: '/instituicao',
   },
 } as const;
 
