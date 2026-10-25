@@ -811,10 +811,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Não-ADMIN → `NotAllowedError`
-- [ ] Item: `tipo` (`NOVA` | `ALTERACAO`), empresa (`nomeFantasia`), nome, beneficiada (tipo + nome), regra, vigência e `submetidoEm` (submissão ou abertura da alteração); na alteração, os valores mostrados são os propostos
-- [ ] Ordenação ascendente por `submetidoEm` misturando os dois tipos (teste com três itens intercalados)
-- [ ] Gate `quick` passa
+- [x] Não-ADMIN → `NotAllowedError`
+- [x] Item: `tipo` (`NOVA` | `ALTERACAO`), empresa (`nomeFantasia`), nome, beneficiada (tipo + nome), regra, vigência e `submetidoEm` (submissão ou abertura da alteração); na alteração, os valores mostrados são os propostos
+- [x] Ordenação ascendente por `submetidoEm` misturando os dois tipos (teste com três itens intercalados)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
