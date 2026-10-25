@@ -634,11 +634,11 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `salvar` devolve `false` sem gravar quando a `versao` guardada difere de `versaoEsperada`; em sucesso grava e incrementa `versao`
-- [ ] `listarEmAnalise` devolve campanhas `EM_ANALISE` e campanhas `APROVADA` com alteração pendente
-- [ ] `InMemoryCampanhaRepository` reescrito com esse contrato, guardando cópias para que mutação fora do `salvar` não vaze
-- [ ] `CampanhaFactory` monta campanhas em qualquer estado (rascunho vazio, completa, `EM_ANALISE`, `APROVADA`, `APROVADA` com alteração)
-- [ ] Gate `quick` passa
+- [x] `salvar` devolve `false` sem gravar quando a `versao` guardada difere de `versaoEsperada`; em sucesso grava e incrementa `versao`
+- [x] `listarEmAnalise` devolve campanhas `EM_ANALISE` e campanhas `APROVADA` com alteração pendente
+- [x] `InMemoryCampanhaRepository` reescrito com esse contrato, guardando cópias para que mutação fora do `salvar` não vaze
+- [x] `CampanhaFactory` monta campanhas em qualquer estado (rascunho vazio, completa, `EM_ANALISE`, `APROVADA`, `APROVADA` com alteração)
+- [x] Gate `quick` passa
 
 **Tests**: none (porta + doubles — build gate; exercitados pelos casos de uso)
 **Gate**: quick
