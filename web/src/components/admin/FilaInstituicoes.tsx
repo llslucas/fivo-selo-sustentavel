@@ -28,18 +28,28 @@ import {
   rejeitarInstituicao,
   type ItemFilaInstituicao,
 } from "@/services/admin";
+import { baixarArquivo } from "@/services/arquivos";
 
 const MENSAGENS_DECISAO: Record<number, string> = {
   403: "Você não tem permissão para decidir sobre instituições.",
   503: "O documento de validação está temporariamente indisponível. Tente novamente em instantes.",
 };
 
+const MENSAGENS_DOCUMENTO: Record<number, string> = {
+  403: "Você não tem permissão para ver este documento.",
+  404: "Documento não encontrado.",
+};
+
+// Tempo que a URL temporária do documento fica válida depois de aberta. A aba
+// nova já carregou o arquivo bem antes disso.
+const VALIDADE_URL_DOCUMENTO_MS = 60_000;
+
 type Decisao = "aprovacao" | "rejeicao";
 type Aviso = { severidade: AlertColor; mensagem: string };
 
 // Fila de instituições pendentes de aprovação, da mais antiga para a mais
 // recente (a ordem já vem pronta da API). Cada linha tem os botões de aprovar
-// e rejeitar (F6); os de documento e suspender entram no mesmo espaço (F5, F7).
+// e rejeitar (F6) e o de ver o documento de validação (F5).
 export default function FilaInstituicoes() {
   const router = useRouter();
   const [itens, setItens] = useState<ItemFilaInstituicao[]>([]);
@@ -55,6 +65,7 @@ export default function FilaInstituicoes() {
   const [enviando, setEnviando] = useState(false);
   const [erroDecisao, setErroDecisao] = useState<unknown>(null);
   const [aviso, setAviso] = useState<Aviso | null>(null);
+  const [abrindoDocumento, setAbrindoDocumento] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
     try {
@@ -123,6 +134,37 @@ export default function FilaInstituicoes() {
       setErroDecisao(e);
     } finally {
       setEnviando(false);
+    }
+  }
+
+  // A aba é aberta já no clique, antes da requisição: aberta depois de um
+  // await, o navegador a trataria como pop-up e bloquearia.
+  async function verDocumento(item: ItemFilaInstituicao) {
+    if (abrindoDocumento) return;
+    const aba = window.open("", "_blank");
+
+    setAbrindoDocumento(item.id);
+    try {
+      const arquivo = await baixarArquivo(item.documentoArquivoId);
+      const url = URL.createObjectURL(arquivo);
+      if (aba) {
+        aba.location.href = url;
+      } else {
+        window.open(url, "_blank");
+      }
+      setTimeout(() => URL.revokeObjectURL(url), VALIDADE_URL_DOCUMENTO_MS);
+    } catch (e) {
+      aba?.close();
+      if (e instanceof ApiError && e.status === 401) {
+        router.replace(APP_ROUTES.public.login);
+        return;
+      }
+      setAviso({
+        severidade: "error",
+        mensagem: mensagemDeErro(e, MENSAGENS_DOCUMENTO),
+      });
+    } finally {
+      setAbrindoDocumento(null);
     }
   }
 
@@ -203,13 +245,37 @@ export default function FilaInstituicoes() {
                   </Alert>
                 )}
 
-                {/* Ações da linha. Os botões das F5 e F7 entram aqui também. */}
+                {!item.documentoDisponivel && (
+                  <Alert severity="error" data-testid="documento-indisponivel">
+                    Documento indisponível. Enquanto o arquivo não puder ser
+                    acessado, a aprovação será recusada.
+                  </Alert>
+                )}
+
+                {/* Ações da linha. O botão da F7 entra aqui também. */}
                 <Stack
                   data-testid="acoes-instituicao"
                   direction="row"
                   spacing={1}
                   sx={{ justifyContent: "flex-end", pt: 1 }}
                 >
+                  <Button
+                    variant="text"
+                    size="small"
+                    disabled={
+                      !item.documentoDisponivel || abrindoDocumento !== null
+                    }
+                    onClick={() => void verDocumento(item)}
+                    sx={{ mr: "auto" }}
+                  >
+                    {abrindoDocumento === item.id ? (
+                      <CircularProgress size={18} color="inherit" />
+                    ) : item.documentoDisponivel ? (
+                      "Ver documento"
+                    ) : (
+                      "Documento indisponível"
+                    )}
+                  </Button>
                   <Button
                     variant="outlined"
                     color="error"
