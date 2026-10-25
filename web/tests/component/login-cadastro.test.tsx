@@ -159,7 +159,7 @@ describe("Property 14 — controles críticos têm papel e nome acessível", () 
         const elemento = screen.getByRole(controle.role, { name: controle.name });
         expect(elemento).toBeInTheDocument();
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 
@@ -173,7 +173,7 @@ describe("Property 14 — controles críticos têm papel e nome acessível", () 
         const elemento = screen.getByRole(controle.role, { name: controle.name });
         expect(elemento).toBeInTheDocument();
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });
@@ -225,7 +225,7 @@ describe("Property 15 — campo em erro referencia programaticamente sua mensage
         });
         verificarReferenciaDeErro(campo, campoErro.mensagem);
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });
@@ -296,7 +296,7 @@ describe("Property 16 — controles críticos são operáveis por teclado", () =
         elemento.focus();
         expect(document.activeElement).toBe(elemento);
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 

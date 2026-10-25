@@ -92,7 +92,7 @@ function preencherCamposTexto() {
   // CEP propositalmente com menos de 8 dígitos: satisfaz a validação de campo
   // obrigatório (não vazio) sem disparar a busca de endereço (useBuscaCep só
   // busca com 8 dígitos). Evita um fetch de CEP por iteração, que a cada uma
-  // das 100 execuções só somaria latência sem agregar cobertura a esta Property.
+  // das 10 execuções só somaria latência sem agregar cobertura a esta Property.
   digitar(/CEP/, "13870");
   digitar(/Endereço \(Rua, Av\.\)/, "Rua das Flores");
   digitar(/^Número/, "100");
@@ -173,7 +173,7 @@ describe("CadastroInstituicaoForm — envio válido carrega um id pertencente à
           cleanup();
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });

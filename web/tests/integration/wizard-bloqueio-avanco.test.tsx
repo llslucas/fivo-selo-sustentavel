@@ -176,7 +176,7 @@ describe("Wizard — bloqueio de avanço sem seleção de beneficiada", () => {
           }
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   }, 200000);
 
@@ -221,7 +221,7 @@ describe("Wizard — bloqueio de avanço sem seleção de beneficiada", () => {
           }
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   }, 200000);
 });

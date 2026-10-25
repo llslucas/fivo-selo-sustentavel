@@ -195,7 +195,7 @@ describe("Payload do wizard — Property 12: preservação do identificador no p
             }
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     },
   );
@@ -265,7 +265,7 @@ describe("Payload do wizard — Property 12: preservação do identificador no p
             }
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     },
   );

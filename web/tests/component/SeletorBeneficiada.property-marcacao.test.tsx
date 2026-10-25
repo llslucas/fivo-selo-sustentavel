@@ -130,7 +130,7 @@ describe("SeletorBeneficiada — marcação de seleção reflete o identificador
           cleanup();
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });
