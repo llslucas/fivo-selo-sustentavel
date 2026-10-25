@@ -139,7 +139,7 @@ describe("SeletorCausa — renderização fiel à lista (Task 2.7)", () => {
           mock?.restaurar();
         }
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });

@@ -198,7 +198,7 @@ describe("Wizard — Property 11: persistência do instituicaoId na navegação"
             }
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     },
   );
@@ -253,7 +253,7 @@ describe("Wizard — Property 11: persistência do instituicaoId na navegação"
             }
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     },
   );

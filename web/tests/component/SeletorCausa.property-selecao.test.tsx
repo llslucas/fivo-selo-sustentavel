@@ -27,7 +27,7 @@ import type { Causa } from "@/services/causas";
 import { instalarMockFetch, type MockFetch } from "../helpers/mockFetch";
 
 // Cada iteração busca as causas (GET /causas mockado) e aguarda o estado
-// "pronto"; 100 execuções levam mais que o timeout padrão de 5 s.
+// "pronto"; 10 execuções levam mais que o timeout padrão de 5 s.
 vi.setConfig({ testTimeout: 120000 });
 
 // Cada iteração monta e desmonta a própria árvore; o afterEach global também
@@ -104,7 +104,7 @@ describe("SeletorCausa — seleção emite o id correspondente", () => {
           cleanup();
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });

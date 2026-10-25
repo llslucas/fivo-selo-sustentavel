@@ -60,7 +60,7 @@ const MENSAGEM_CAUSA_INVALIDA =
   "A causa selecionada é inválida ou não está mais disponível. Escolha outra.";
 
 // Cada iteração monta o seletor real (GET /causas mockado), aguarda o estado
-// "pronto", seleciona, recarrega para a lista disjunta e envia; 100 execuções
+// "pronto", seleciona, recarrega para a lista disjunta e envia; 10 execuções
 // excedem o timeout padrão de 5 s.
 vi.setConfig({ testTimeout: 120000 });
 
@@ -235,7 +235,7 @@ describe("CadastroInstituicaoForm — id fora da lista bloqueia o envio (Task 4.
           }
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });

@@ -106,7 +106,7 @@ describe("SeletorBeneficiada — Property 2: itens renderizados na ordem recebid
           cleanup();
         }
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });

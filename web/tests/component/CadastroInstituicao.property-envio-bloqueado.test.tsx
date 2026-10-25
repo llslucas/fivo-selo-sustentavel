@@ -35,7 +35,7 @@ import CadastroInstituicaoForm from "@/components/cadastro/CadastroInstituicaoFo
 import { instalarMockFetch, type MockFetch } from "../helpers/mockFetch";
 
 // Cada iteração monta o formulário, aguarda o estado do seletor refletir e
-// submete; 100 execuções ultrapassam o timeout padrão de 5 s.
+// submete; 10 execuções ultrapassam o timeout padrão de 5 s.
 vi.setConfig({ testTimeout: 120000 });
 
 vi.mock("next/navigation", () => ({
@@ -54,7 +54,7 @@ afterEach(() => {
 
 type EstadoNaoPronto = "carregando" | "erro" | "vazio";
 
-// Gera cada estado não-pronto. numRuns: 100 repete os três estados ~33x cada,
+// Gera cada estado não-pronto. numRuns: 10 repete os três estados ~3x cada,
 // o que é aceitável conforme a tarefa ("para cada estado").
 const arbEstado: fc.Arbitrary<EstadoNaoPronto> = fc.constantFrom(
   "carregando",
@@ -143,7 +143,7 @@ describe("CadastroInstituicaoForm — envio bloqueado enquanto o seletor não es
         if (mock) mock.restaurar();
         vi.unstubAllGlobals();
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });

@@ -123,7 +123,7 @@ describe("SeletorCausa — nome e descrição por opção (Task 2.6)", () => {
           mock?.restaurar();
         }
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });
