@@ -131,7 +131,7 @@ describe.skipIf(!servicoExiste("comprovantes.ts"))("comprovantes", () => {
 
     // AO IMPLEMENTAR: se o serviço tratar o erro de outra forma (ex.: retornar
     // um Result em vez de lançar), ajustar esta asserção ao comportamento real.
-    const erro = await listar!().then(
+    const erro = await Promise.resolve(listar!()).then(
       () => null,
       (e: unknown) => e,
     );

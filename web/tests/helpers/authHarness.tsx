@@ -19,7 +19,7 @@
 //   redirecionamentos sem navegação real; os spies ficam acessíveis via
 //   `spiesNavegacao` para asserção nos testes de guarda de rota.
 
-import { useContext } from "react";
+import { useContext, useLayoutEffect } from "react";
 import { render, type RenderResult } from "@testing-library/react";
 import { ThemeProvider } from "@mui/material/styles";
 import { vi } from "vitest";
@@ -91,12 +91,16 @@ function criarCaptura() {
 // Componente sonda: lê o AuthContext e renderiza o estado atual e a empresa em
 // nós com testids acessíveis, permitindo asserção estável a partir do DOM.
 function EstadoProbe({
-  captura,
+  aoCapturar,
 }: {
-  captura: { valor: AuthContextValue | null };
+  aoCapturar: (contexto: AuthContextValue | null) => void;
 }) {
   const contexto = useContext(AuthContext);
-  captura.valor = contexto;
+  // Publica no commit (não durante o render): a leitura imperativa acontece
+  // depois do act(), quando os layout effects já rodaram.
+  useLayoutEffect(() => {
+    aoCapturar(contexto);
+  });
 
   if (!contexto) {
     // Fora de um AuthProvider — não deveria acontecer no harness.
@@ -143,7 +147,11 @@ export function montarAuth(opts?: {
       return render(
         <ThemeProvider theme={theme}>
           <AuthProvider>
-            <EstadoProbe captura={captura} />
+            <EstadoProbe
+              aoCapturar={(contexto) => {
+                captura.valor = contexto;
+              }}
+            />
             {children}
           </AuthProvider>
         </ThemeProvider>,

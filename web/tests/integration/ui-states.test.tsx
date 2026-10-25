@@ -111,6 +111,7 @@ function ListagemHarness() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch inicial intencional, espelha o padrão dos componentes reais
     void buscar();
   }, [buscar]);
 
