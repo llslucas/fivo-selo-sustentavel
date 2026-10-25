@@ -605,12 +605,12 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Em `APROVADA`, `editarTextos` (nome, descrição, capa, meta) aplica sem mudar o estado e sem abrir alteração
-- [ ] Em `APROVADA`, `editarCompromisso` cria alteração com `proposto = compromissoVigente().mesclar(parcial)` e `anterior = compromissoVigente()`; a campanha segue `APROVADA` e `compromissoVigente()` continua o anterior
-- [ ] Segunda `editarCompromisso` com alteração pendente → `AlteracaoJaPendenteError`
-- [ ] `aprovarAlteracao` copia o proposto para a campanha e limpa a pendência; `rejeitarAlteracao` mantém os valores anteriores, guarda o motivo na alteração e limpa a pendência; os dois sem pendência → `TransicaoInvalidaError`
-- [ ] `idPublico` igual antes e depois de cada operação (asserido)
-- [ ] Gate `quick` passa
+- [x] Em `APROVADA`, `editarTextos` (nome, descrição, capa, meta) aplica sem mudar o estado e sem abrir alteração
+- [x] Em `APROVADA`, `editarCompromisso` cria alteração com `proposto = compromissoVigente().mesclar(parcial)` e `anterior = compromissoVigente()`; a campanha segue `APROVADA` e `compromissoVigente()` continua o anterior
+- [x] Segunda `editarCompromisso` com alteração pendente → `AlteracaoJaPendenteError`
+- [x] `aprovarAlteracao` copia o proposto para a campanha e limpa a pendência; `rejeitarAlteracao` mantém os valores anteriores, guarda o motivo na alteração e limpa a pendência; os dois sem pendência → `TransicaoInvalidaError`
+- [x] `idPublico` igual antes e depois de cada operação (asserido)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

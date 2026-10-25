@@ -10,11 +10,13 @@ import { ValorMonetario } from './valor-monetario';
 import { Vigencia } from './vigencia';
 import { DataCalendario } from './data-calendario';
 import { Compromisso } from './compromisso';
+import { AlteracaoCompromisso } from './alteracao-compromisso';
 import { TransicaoInvalidaError } from '../application/errors/transicao-invalida.error';
 import { MotivoInsuficienteError } from '../application/errors/motivo-insuficiente.error';
 import { CampanhaEmAnaliseError } from '../application/errors/campanha-em-analise.error';
 import { CamposPendentesError } from '../application/errors/campos-pendentes.error';
 import { VigenciaVencidaError } from '../application/errors/vigencia-vencida.error';
+import { AlteracaoJaPendenteError } from '../application/errors/alteracao-ja-pendente.error';
 
 export enum CampanhaStatus {
   RASCUNHO = 'RASCUNHO',
@@ -38,6 +40,7 @@ export interface CampanhaProps {
   decididoPor?: UniqueEntityId | null;
   decididoEm?: Date | null;
   motivoUltimaRejeicao?: string | null;
+  alteracaoPendente?: AlteracaoCompromisso | null;
   versao: number;
   createdAt: Date;
   updatedAt?: Date | null;
@@ -142,6 +145,10 @@ export class Campanha extends Entity<CampanhaProps> {
     return this._props.motivoUltimaRejeicao;
   }
 
+  get alteracaoPendente(): AlteracaoCompromisso | null | undefined {
+    return this._props.alteracaoPendente;
+  }
+
   get versao(): number {
     return this._props.versao;
   }
@@ -179,18 +186,24 @@ export class Campanha extends Entity<CampanhaProps> {
     return right(void 0);
   }
 
+  // Em APROVADA o compromisso não muda na hora: vira uma alteração pendente e a
+  // versão aprovada continua valendo até o admin decidir.
   editarCompromisso({
     beneficiada,
     regraDoacao,
     vigencia,
   }: EditarCompromissoProps): Either<
-    CampanhaEmAnaliseError | TransicaoInvalidaError,
+    CampanhaEmAnaliseError | TransicaoInvalidaError | AlteracaoJaPendenteError,
     void
   > {
     const podeEditar = this.verificarSePodeEditar();
 
     if (podeEditar.isLeft()) {
       return podeEditar;
+    }
+
+    if (this._props.status === CampanhaStatus.APROVADA) {
+      return this.abrirAlteracao({ beneficiada, regraDoacao, vigencia });
     }
 
     if (beneficiada !== undefined) this._props.beneficiada = beneficiada;
@@ -263,6 +276,54 @@ export class Campanha extends Entity<CampanhaProps> {
     return right(void 0);
   }
 
+  aprovarAlteracao(
+    adminId: UniqueEntityId,
+  ): Either<TransicaoInvalidaError, void> {
+    const alteracao = this._props.alteracaoPendente;
+
+    if (!alteracao) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    const resultado = alteracao.aprovar(adminId);
+
+    if (resultado.isLeft()) {
+      return resultado;
+    }
+
+    const { beneficiada, regraDoacao, vigencia } = alteracao.proposto;
+    this._props.beneficiada = beneficiada;
+    this._props.regraDoacao = regraDoacao;
+    this._props.vigencia = vigencia;
+    this._props.alteracaoPendente = null;
+    this._props.updatedAt = new Date();
+
+    return right(void 0);
+  }
+
+  // O motivo fica na alteração; o compromisso da campanha não muda.
+  rejeitarAlteracao(
+    adminId: UniqueEntityId,
+    motivo: string,
+  ): Either<TransicaoInvalidaError | MotivoInsuficienteError, void> {
+    const alteracao = this._props.alteracaoPendente;
+
+    if (!alteracao) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    const resultado = alteracao.rejeitar(adminId, motivo);
+
+    if (resultado.isLeft()) {
+      return resultado;
+    }
+
+    this._props.alteracaoPendente = null;
+    this._props.updatedAt = new Date();
+
+    return right(void 0);
+  }
+
   estaAptaASelo(): boolean {
     return this._props.status === CampanhaStatus.APROVADA;
   }
@@ -304,8 +365,6 @@ export class Campanha extends Entity<CampanhaProps> {
     return pendentes;
   }
 
-  // APROVADA ainda não é editável aqui: a alteração de campanha aprovada
-  // entra na T15.
   private verificarSePodeEditar(): Either<
     CampanhaEmAnaliseError | TransicaoInvalidaError,
     void
@@ -316,10 +375,36 @@ export class Campanha extends Entity<CampanhaProps> {
 
     if (
       this._props.status !== CampanhaStatus.RASCUNHO &&
-      this._props.status !== CampanhaStatus.REJEITADA
+      this._props.status !== CampanhaStatus.REJEITADA &&
+      this._props.status !== CampanhaStatus.APROVADA
     ) {
       return left(new TransicaoInvalidaError());
     }
+
+    return right(void 0);
+  }
+
+  private abrirAlteracao(
+    parcial: EditarCompromissoProps,
+  ): Either<TransicaoInvalidaError | AlteracaoJaPendenteError, void> {
+    if (this._props.alteracaoPendente) {
+      return left(new AlteracaoJaPendenteError());
+    }
+
+    // Campanha aprovada sempre tem o compromisso completo; a checagem só
+    // protege contra um estado montado à mão.
+    const anterior = this.compromissoVigente();
+
+    if (!anterior) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    this._props.alteracaoPendente = AlteracaoCompromisso.create({
+      campanhaId: this.id,
+      proposto: anterior.mesclar(parcial),
+      anterior,
+    });
+    this._props.updatedAt = new Date();
 
     return right(void 0);
   }
