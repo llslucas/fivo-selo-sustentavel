@@ -36,7 +36,7 @@ jobs:
         run: npx jest
 
   web:
-    name: Web — vitest
+    name: Web — eslint + vitest + next build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -52,5 +52,12 @@ jobs:
 
       - run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
       - name: Tests
         run: npm test
+
+      # Também faz o type-check (inclui tests/ via tsconfig)
+      - name: Build
+        run: npm run build
