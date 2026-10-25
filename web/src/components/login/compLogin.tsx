@@ -14,14 +14,14 @@ import Link from "@mui/material/Link";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 import ErrorMessage from "@/components/ui/ErrorMessage";
-import { APP_ROUTES } from "@/lib/routes";
+import { APP_ROUTES, rotaInicialDoPapel } from "@/lib/routes";
 import { ApiError, mensagemDeErro } from "@/services/api";
 import { login } from "@/services/auth";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function CompLogin() {
   const router = useRouter();
-  const { verificar } = useAuth();
+  const { entrar } = useAuth();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -34,12 +34,12 @@ export default function CompLogin() {
     setErrosCampo({});
     setLoading(true);
     try {
-      await login(email, senha);
+      const { papel } = await login(email, senha);
       // O AuthContext buscou a sessão (ausente) uma vez, na raiz da app, antes
-      // de existir cookie — sem isso o AuthGuard do dashboard acharia que
+      // de existir cookie — sem isso o AuthGuard da área do papel acharia que
       // ainda não tem sessão e mandaria de volta pro login.
-      await verificar();
-      router.push(APP_ROUTES.private.dashboard);
+      await entrar(papel);
+      router.push(rotaInicialDoPapel(papel));
     } catch (e) {
       if (e instanceof ApiError) setErrosCampo(e.fieldErrors);
       setErro(mensagemDeErro(e, { 401: "E-mail ou senha incorretos." }));
