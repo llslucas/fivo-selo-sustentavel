@@ -899,11 +899,11 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Não-ADMIN → 403; sem alteração pendente → `TransicaoInvalidaError`
-- [ ] Nova beneficiada indisponível → `BeneficiadaIndisponivelNaDecisaoError`, nada aplicado
-- [ ] Sucesso: `compromissoVigente()` passa a ser o proposto; auditoria `ALTERACAO_CAMPANHA_APROVADA` com compromissos anterior e novo
-- [ ] `salvar` com `false` → `TransicaoInvalidaError`
-- [ ] Gate `quick` passa
+- [x] Não-ADMIN → 403; sem alteração pendente → `TransicaoInvalidaError`
+- [x] Nova beneficiada indisponível → `BeneficiadaIndisponivelNaDecisaoError`, nada aplicado
+- [x] Sucesso: `compromissoVigente()` passa a ser o proposto; auditoria `ALTERACAO_CAMPANHA_APROVADA` com compromissos anterior e novo
+- [x] `salvar` com `false` → `TransicaoInvalidaError`
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
