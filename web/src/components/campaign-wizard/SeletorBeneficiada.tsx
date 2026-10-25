@@ -5,9 +5,10 @@
 // das props, delegando a seleção e a nova tentativa aos callbacks do pai. Não
 // mantém estado próprio de dados: todo o estado vem do hook `useBeneficiadas`.
 // Suporta dois layouts via `variante`: "lista" (pilha vertical, como em
-// StepCausaRegra) e "cards" (cards em linha com avatar, como em
+// StepCausaRegra) e "cards" (grade de cards com avatar, como em
 // StepSobreCampanha).
 
+import { useState } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -15,8 +16,13 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import Collapse from "@mui/material/Collapse";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import type { Theme } from "@mui/material/styles";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import type { Beneficiada } from "@/services/instituicoes";
 import type { EstadoBeneficiadas } from "./hooks/useBeneficiadas";
 
@@ -215,74 +221,133 @@ function ListaVertical({ beneficiadas, selecionadaId, onSelecionar }: ListaProps
   );
 }
 
-// Variante "cards": cards em linha com avatar, como em StepSobreCampanha.
+// Variante "cards": grade de cards com avatar, como em StepSobreCampanha.
+// Grid em vez de Stack com wrap: todas as colunas têm a mesma largura e as
+// linhas ficam alinhadas (4 por linha no desktop, 2 no tablet, 1 no celular).
 function ListaCards({ beneficiadas, selecionadaId, onSelecionar }: ListaProps) {
   return (
-    <Stack
-      direction={{ xs: "column", sm: "row" }}
-      spacing={1.5}
+    <Box
       role="listbox"
       aria-label="Instituições e causas"
       data-testid="beneficiadas-lista"
-      sx={{ flexWrap: "wrap" }}
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" },
+        gap: 2,
+      }}
     >
-      {beneficiadas.map((beneficiada) => {
-        const selected = selecionadaId === beneficiada.id;
-        return (
-          <Box
-            key={beneficiada.id}
-            component="button"
-            type="button"
-            role="option"
-            aria-selected={selected}
-            aria-label={beneficiada.nome}
-            data-testid={`beneficiada-item-${beneficiada.id}`}
-            data-selected={selected ? "true" : "false"}
-            onClick={() => onSelecionar(beneficiada.id)}
-            sx={{
-              flex: 1,
-              minWidth: 180,
-              textAlign: "left",
-              font: "inherit",
-              color: "inherit",
-              border: 1,
-              borderColor: selected ? "primary.main" : "divider",
-              bgcolor: selected ? "primary.light" : "background.default",
-              borderRadius: 2,
-              p: 2,
-              cursor: "pointer",
-              position: "relative",
-              transition: "border-color 0.15s ease, background-color 0.15s ease",
-              "&:hover": { borderColor: "primary.main" },
-            }}
+      {beneficiadas.map((beneficiada) => (
+        <CardBeneficiada
+          key={beneficiada.id}
+          beneficiada={beneficiada}
+          selected={selecionadaId === beneficiada.id}
+          onSelecionar={onSelecionar}
+        />
+      ))}
+    </Box>
+  );
+}
+
+type CardBeneficiadaProps = {
+  beneficiada: Beneficiada;
+  selected: boolean;
+  onSelecionar: (id: string) => void;
+};
+
+// No celular a descrição começa recolhida e abre pela setinha; no tablet e no
+// desktop fica sempre aberta. A setinha é irmã do card (não filha): um botão
+// dentro de outro é HTML inválido, e assim abrir a descrição não seleciona.
+function CardBeneficiada({ beneficiada, selected, onSelecionar }: CardBeneficiadaProps) {
+  const ehCelular = useMediaQuery((theme: Theme) => theme.breakpoints.down("sm"));
+  const [expandida, setExpandida] = useState(false);
+  const descricaoAberta = !ehCelular || expandida;
+  const idDescricao = `beneficiada-descricao-${beneficiada.id}`;
+
+  return (
+    <Box sx={{ position: "relative", minWidth: 0 }}>
+      <Box
+        component="button"
+        type="button"
+        role="option"
+        aria-selected={selected}
+        aria-label={beneficiada.nome}
+        data-testid={`beneficiada-item-${beneficiada.id}`}
+        data-selected={selected ? "true" : "false"}
+        onClick={() => onSelecionar(beneficiada.id)}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          justifyContent: "flex-start",
+          width: "100%",
+          height: "100%",
+          minWidth: 0,
+          textAlign: "left",
+          font: "inherit",
+          color: "inherit",
+          border: 1,
+          borderColor: selected ? "primary.main" : "divider",
+          bgcolor: selected ? "primary.light" : "background.default",
+          borderRadius: 2,
+          p: 2.5,
+          cursor: "pointer",
+          position: "relative",
+          transition: "border-color 0.15s ease, background-color 0.15s ease",
+          "&:hover": { borderColor: "primary.main" },
+        }}
+      >
+        {/* Avatar colorido da beneficiada. */}
+        <Box
+          aria-hidden="true"
+          sx={{
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            bgcolor: selected ? "primary.main" : "divider",
+            mb: 1.5,
+            opacity: 0.6,
+          }}
+        />
+        <Typography
+          variant="subtitle1"
+          sx={{ fontWeight: 700, mb: descricaoAberta ? 0.5 : 0, pr: { xs: 5, sm: 3 } }}
+        >
+          {beneficiada.nome}
+        </Typography>
+        <Collapse in={descricaoAberta} timeout="auto" id={idDescricao} sx={{ width: "100%" }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ lineHeight: 1.6, wordBreak: "break-word" }}
           >
-            {/* Avatar colorido da beneficiada. */}
-            <Box
-              aria-hidden="true"
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                bgcolor: selected ? "primary.main" : "divider",
-                mb: 1.5,
-                opacity: 0.6,
-              }}
-            />
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-              {beneficiada.nome}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {beneficiada.descricao}
-            </Typography>
-            {selected && (
-              <CheckCircleRoundedIcon
-                color="primary"
-                sx={{ position: "absolute", top: 10, right: 10, fontSize: 20 }}
-              />
-            )}
-          </Box>
-        );
-      })}
-    </Stack>
+            {beneficiada.descricao}
+          </Typography>
+        </Collapse>
+        {selected && (
+          <CheckCircleRoundedIcon
+            color="primary"
+            sx={{ position: "absolute", top: 12, right: 12, fontSize: 22 }}
+          />
+        )}
+      </Box>
+
+      {ehCelular && (
+        <IconButton
+          size="small"
+          onClick={() => setExpandida((atual) => !atual)}
+          aria-expanded={expandida}
+          aria-controls={idDescricao}
+          aria-label={`${expandida ? "Esconder" : "Mostrar"} descrição de ${beneficiada.nome}`}
+          sx={{ position: "absolute", bottom: 12, right: 12 }}
+        >
+          <ExpandMoreRoundedIcon
+            sx={{
+              transform: expandida ? "rotate(180deg)" : "none",
+              transition: "transform 0.2s ease",
+            }}
+          />
+        </IconButton>
+      )}
+    </Box>
   );
 }

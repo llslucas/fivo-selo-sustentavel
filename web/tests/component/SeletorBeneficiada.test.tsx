@@ -32,6 +32,7 @@ import SeletorBeneficiada, {
   type SeletorBeneficiadaProps,
 } from "@/components/campaign-wizard/SeletorBeneficiada";
 import type { Beneficiada } from "@/services/instituicoes";
+import { definirViewport } from "../helpers/viewport";
 
 // Texto exato do Estado_Vazio do catálogo (Requisito 2.3). Repetido aqui de
 // propósito: o teste fixa o contrato visível, falhando se o componente mudar.
@@ -262,5 +263,50 @@ describe("SeletorBeneficiada — exemplos/edge dos estados visuais", () => {
       within(erro).queryByRole("button", { name: "Tentar novamente" }),
     ).not.toBeInTheDocument();
     expect(onTentarNovamente).not.toHaveBeenCalled();
+  });
+});
+
+describe("SeletorBeneficiada — descrição recolhível dos cards no celular", () => {
+  it("celular: descrição começa recolhida e a setinha abre e fecha", async () => {
+    definirViewport(320);
+    const user = userEvent.setup();
+    montar({ variante: "cards", beneficiadas: [beneficiadaFixture] });
+
+    const mostrar = screen.getByRole("button", {
+      name: "Mostrar descrição de Instituto Verde",
+    });
+    expect(mostrar).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(mostrar);
+    const esconder = screen.getByRole("button", {
+      name: "Esconder descrição de Instituto Verde",
+    });
+    expect(esconder).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(esconder);
+    expect(
+      screen.getByRole("button", { name: "Mostrar descrição de Instituto Verde" }),
+    ).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("celular: abrir a descrição não seleciona a beneficiada", async () => {
+    definirViewport(320);
+    const user = userEvent.setup();
+    const { onSelecionar } = montar({ variante: "cards", beneficiadas: [beneficiadaFixture] });
+
+    await user.click(
+      screen.getByRole("button", { name: "Mostrar descrição de Instituto Verde" }),
+    );
+
+    expect(onSelecionar).not.toHaveBeenCalled();
+    expect(screen.getByText("Reflorestamento urbano")).toBeInTheDocument();
+  });
+
+  it("desktop: sem setinha, descrição sempre aberta", () => {
+    definirViewport(1280);
+    montar({ variante: "cards", beneficiadas: [beneficiadaFixture] });
+
+    expect(screen.queryByRole("button", { name: /descrição de/ })).not.toBeInTheDocument();
+    expect(screen.getByText("Reflorestamento urbano")).toBeVisible();
   });
 });
