@@ -751,12 +751,12 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Empresa não aprovada → 403; campanha alheia → 404
-- [ ] Campos pendentes → `CamposPendentesError` com a lista completa
-- [ ] Fim ≤ hoje (com `jest.useFakeTimers`) → `VigenciaVencidaError`; beneficiada indisponível → `BeneficiadaIndisponivelError`
-- [ ] Segunda submissão → `TransicaoInvalidaError`; `salvar` com `false` → `TransicaoInvalidaError`
-- [ ] Auditoria `CAMPANHA_SUBMETIDA` com autor, estados anterior e novo e data-hora
-- [ ] Gate `quick` passa
+- [x] Empresa não aprovada → 403; campanha alheia → 404
+- [x] Campos pendentes → `CamposPendentesError` com a lista completa
+- [x] Fim ≤ hoje (com `jest.useFakeTimers`) → `VigenciaVencidaError`; beneficiada indisponível → `BeneficiadaIndisponivelError`
+- [x] Segunda submissão → `TransicaoInvalidaError`; `salvar` com `false` → `TransicaoInvalidaError`
+- [x] Auditoria `CAMPANHA_SUBMETIDA` com autor, estados anterior e novo e data-hora
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
