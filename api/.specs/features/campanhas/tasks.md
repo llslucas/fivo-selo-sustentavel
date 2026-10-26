@@ -840,11 +840,11 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Não-ADMIN → `NotAllowedError`, sem gravar; inexistente → `ResourceNotFoundError`
-- [ ] Beneficiada indisponível → `BeneficiadaIndisponivelNaDecisaoError` (409), estado inalterado
-- [ ] `salvar` com `false` → `TransicaoInvalidaError` (decisão concorrente exercitada contra o double)
-- [ ] Auditoria `CAMPANHA_APROVADA` com autor, estados e data-hora; depois disso `estaAptaASelo()` é `true`
-- [ ] Gate `quick` passa
+- [x] Não-ADMIN → `NotAllowedError`, sem gravar; inexistente → `ResourceNotFoundError`
+- [x] Beneficiada indisponível → `BeneficiadaIndisponivelNaDecisaoError` (409), estado inalterado
+- [x] `salvar` com `false` → `TransicaoInvalidaError` (decisão concorrente exercitada contra o double)
+- [x] Auditoria `CAMPANHA_APROVADA` com autor, estados e data-hora; depois disso `estaAptaASelo()` é `true`
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
