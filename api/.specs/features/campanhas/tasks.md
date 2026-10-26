@@ -512,10 +512,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `AlteracaoStatus`: `EM_ANALISE`, `APROVADA`, `REJEITADA`; nasce `EM_ANALISE`
-- [ ] `aprovar(adminId)` e `rejeitar(adminId, motivo)` devolvem `Either`; decidir fora de `EM_ANALISE` → `TransicaoInvalidaError`; motivo com trim < 20 → `MotivoInsuficienteError`
-- [ ] Nenhum setter público
-- [ ] Gate `quick` passa
+- [x] `AlteracaoStatus`: `EM_ANALISE`, `APROVADA`, `REJEITADA`; nasce `EM_ANALISE`
+- [x] `aprovar(adminId)` e `rejeitar(adminId, motivo)` devolvem `Either`; decidir fora de `EM_ANALISE` → `TransicaoInvalidaError`; motivo com trim < 20 → `MotivoInsuficienteError`
+- [x] Nenhum setter público
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -605,12 +605,12 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Em `APROVADA`, `editarTextos` (nome, descrição, capa, meta) aplica sem mudar o estado e sem abrir alteração
-- [ ] Em `APROVADA`, `editarCompromisso` cria alteração com `proposto = compromissoVigente().mesclar(parcial)` e `anterior = compromissoVigente()`; a campanha segue `APROVADA` e `compromissoVigente()` continua o anterior
-- [ ] Segunda `editarCompromisso` com alteração pendente → `AlteracaoJaPendenteError`
-- [ ] `aprovarAlteracao` copia o proposto para a campanha e limpa a pendência; `rejeitarAlteracao` mantém os valores anteriores, guarda o motivo na alteração e limpa a pendência; os dois sem pendência → `TransicaoInvalidaError`
-- [ ] `idPublico` igual antes e depois de cada operação (asserido)
-- [ ] Gate `quick` passa
+- [x] Em `APROVADA`, `editarTextos` (nome, descrição, capa, meta) aplica sem mudar o estado e sem abrir alteração
+- [x] Em `APROVADA`, `editarCompromisso` cria alteração com `proposto = compromissoVigente().mesclar(parcial)` e `anterior = compromissoVigente()`; a campanha segue `APROVADA` e `compromissoVigente()` continua o anterior
+- [x] Segunda `editarCompromisso` com alteração pendente → `AlteracaoJaPendenteError`
+- [x] `aprovarAlteracao` copia o proposto para a campanha e limpa a pendência; `rejeitarAlteracao` mantém os valores anteriores, guarda o motivo na alteração e limpa a pendência; os dois sem pendência → `TransicaoInvalidaError`
+- [x] `idPublico` igual antes e depois de cada operação (asserido)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -634,11 +634,11 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `salvar` devolve `false` sem gravar quando a `versao` guardada difere de `versaoEsperada`; em sucesso grava e incrementa `versao`
-- [ ] `listarEmAnalise` devolve campanhas `EM_ANALISE` e campanhas `APROVADA` com alteração pendente
-- [ ] `InMemoryCampanhaRepository` reescrito com esse contrato, guardando cópias para que mutação fora do `salvar` não vaze
-- [ ] `CampanhaFactory` monta campanhas em qualquer estado (rascunho vazio, completa, `EM_ANALISE`, `APROVADA`, `APROVADA` com alteração)
-- [ ] Gate `quick` passa
+- [x] `salvar` devolve `false` sem gravar quando a `versao` guardada difere de `versaoEsperada`; em sucesso grava e incrementa `versao`
+- [x] `listarEmAnalise` devolve campanhas `EM_ANALISE` e campanhas `APROVADA` com alteração pendente
+- [x] `InMemoryCampanhaRepository` reescrito com esse contrato, guardando cópias para que mutação fora do `salvar` não vaze
+- [x] `CampanhaFactory` monta campanhas em qualquer estado (rascunho vazio, completa, `EM_ANALISE`, `APROVADA`, `APROVADA` com alteração)
+- [x] Gate `quick` passa
 
 **Tests**: none (porta + doubles — build gate; exercitados pelos casos de uso)
 **Gate**: quick
@@ -751,12 +751,12 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Empresa não aprovada → 403; campanha alheia → 404
-- [ ] Campos pendentes → `CamposPendentesError` com a lista completa
-- [ ] Fim ≤ hoje (com `jest.useFakeTimers`) → `VigenciaVencidaError`; beneficiada indisponível → `BeneficiadaIndisponivelError`
-- [ ] Segunda submissão → `TransicaoInvalidaError`; `salvar` com `false` → `TransicaoInvalidaError`
-- [ ] Auditoria `CAMPANHA_SUBMETIDA` com autor, estados anterior e novo e data-hora
-- [ ] Gate `quick` passa
+- [x] Empresa não aprovada → 403; campanha alheia → 404
+- [x] Campos pendentes → `CamposPendentesError` com a lista completa
+- [x] Fim ≤ hoje (com `jest.useFakeTimers`) → `VigenciaVencidaError`; beneficiada indisponível → `BeneficiadaIndisponivelError`
+- [x] Segunda submissão → `TransicaoInvalidaError`; `salvar` com `false` → `TransicaoInvalidaError`
+- [x] Auditoria `CAMPANHA_SUBMETIDA` com autor, estados anterior e novo e data-hora
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -811,10 +811,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Não-ADMIN → `NotAllowedError`
-- [ ] Item: `tipo` (`NOVA` | `ALTERACAO`), empresa (`nomeFantasia`), nome, beneficiada (tipo + nome), regra, vigência e `submetidoEm` (submissão ou abertura da alteração); na alteração, os valores mostrados são os propostos
-- [ ] Ordenação ascendente por `submetidoEm` misturando os dois tipos (teste com três itens intercalados)
-- [ ] Gate `quick` passa
+- [x] Não-ADMIN → `NotAllowedError`
+- [x] Item: `tipo` (`NOVA` | `ALTERACAO`), empresa (`nomeFantasia`), nome, beneficiada (tipo + nome), regra, vigência e `submetidoEm` (submissão ou abertura da alteração); na alteração, os valores mostrados são os propostos
+- [x] Ordenação ascendente por `submetidoEm` misturando os dois tipos (teste com três itens intercalados)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -899,11 +899,11 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Não-ADMIN → 403; sem alteração pendente → `TransicaoInvalidaError`
-- [ ] Nova beneficiada indisponível → `BeneficiadaIndisponivelNaDecisaoError`, nada aplicado
-- [ ] Sucesso: `compromissoVigente()` passa a ser o proposto; auditoria `ALTERACAO_CAMPANHA_APROVADA` com compromissos anterior e novo
-- [ ] `salvar` com `false` → `TransicaoInvalidaError`
-- [ ] Gate `quick` passa
+- [x] Não-ADMIN → 403; sem alteração pendente → `TransicaoInvalidaError`
+- [x] Nova beneficiada indisponível → `BeneficiadaIndisponivelNaDecisaoError`, nada aplicado
+- [x] Sucesso: `compromissoVigente()` passa a ser o proposto; auditoria `ALTERACAO_CAMPANHA_APROVADA` com compromissos anterior e novo
+- [x] `salvar` com `false` → `TransicaoInvalidaError`
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

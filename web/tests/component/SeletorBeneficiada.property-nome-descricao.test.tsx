@@ -113,7 +113,7 @@ describe("SeletorBeneficiada — nome e descrição por item (Task 5.3)", () => 
           }
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });

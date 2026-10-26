@@ -73,8 +73,8 @@ describe("Servico_Auth (auth.ts)", () => {
             },
           };
 
-        const cookieGetSpy = vi.fn<[], string>(() => "");
-        const cookieSetSpy = vi.fn<[string], void>(() => {
+        const cookieGetSpy = vi.fn<() => string>(() => "");
+        const cookieSetSpy = vi.fn<(valor: string) => void>(() => {
           /* no-op */
         });
 

@@ -1,0 +1,485 @@
+{
+  "pbtResults": {
+    "2.6 Escrever teste de propriedade: cada opção exibe nome e descrição": {
+      "status": "passed",
+      "lastRunTimestamp": 1792645295414
+    },
+    "4.7 Escrever teste de propriedade: envio bloqueado enquanto o seletor não está pronto": {
+      "status": "passed",
+      "lastRunTimestamp": 1792646569641
+    },
+    "4.6 Escrever teste de propriedade: id fora da lista bloqueia o envio": {
+      "status": "passed",
+      "lastRunTimestamp": 1792648089674
+    }
+  },
+  "executionHistory": {
+    "1.1 Adicionar `LIMITE_ESPERA_CAUSAS_MS` e `listarCausasComTimeout()` em `web/src/services/causas.ts`": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644294385
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644305404
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644469952
+      }
+    ],
+    "1.2 Escrever teste de contrato/assinatura do serviço": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644295637
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644473872
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644634656
+      }
+    ],
+    "1.3 Escrever teste de propriedade do round-trip do serviço": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644295782
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644475297
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644633262
+      }
+    ],
+    "2.1 Definir contrato de estado e props do seletor": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644295918
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644476322
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644635741
+      }
+    ],
+    "2.2 Implementar busca com timeout e máquina de transições": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644295998
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644639825
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644710015
+      }
+    ],
+    "2.3 Renderizar o estado `carregando`": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644296066
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644714459
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644782514
+      }
+    ],
+    "2.4 Renderizar o estado `erro` com \"Tentar novamente\"": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644296199
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644787242
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644975497
+      }
+    ],
+    "2.5 Renderizar os estados `vazio` e `pronto`": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644296276
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644979260
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645054453
+      }
+    ],
+    "2.6 Escrever teste de propriedade: cada opção exibe nome e descrição": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644296372
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645060489
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645929086
+      }
+    ],
+    "2.7 Escrever teste de propriedade: renderização fiel à lista (ordem e pertencimento)": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644296443
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645062572
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645930989
+      }
+    ],
+    "2.8 Escrever teste de propriedade: seleção emite o id correspondente": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644296514
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645064659
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645926372
+      }
+    ],
+    "2.9 Escrever testes de exemplo dos estados do seletor": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644296621
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645067483
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645927690
+      }
+    ],
+    "3. Checkpoint - Garantir que os testes do serviço e do seletor passam": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644296683
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645965203
+      }
+    ],
+    "4.1 Adicionar estado de prontidão e fiação com o seletor": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644296741
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645067819
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645931978
+      }
+    ],
+    "4.2 Bloquear o envio enquanto o seletor não está pronto": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644296809
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645969519
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646022955
+      }
+    ],
+    "4.3 Bloquear envio de `causaId` fora da lista carregada": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644296881
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646027417
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646164484
+      }
+    ],
+    "4.4 Enviar `causaId` válido no cadastro": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644296943
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646168931
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646224716
+      }
+    ],
+    "4.5 Escrever teste de propriedade: envio válido carrega um id pertencente à lista": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644297008
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646382035
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792648120269
+      }
+    ],
+    "4.6 Escrever teste de propriedade: id fora da lista bloqueia o envio": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644297077
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646377341
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792648121552
+      }
+    ],
+    "4.7 Escrever teste de propriedade: envio bloqueado enquanto o seletor não está pronto": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644297147
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646378800
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792648123081
+      }
+    ],
+    "4.8 Escrever testes de exemplo de envio e bloqueio": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644297269
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646382964
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792648124441
+      }
+    ],
+    "5.1 Tratar o 422 em `enviar()` e disparar o recarregamento": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644297331
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646228832
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646294678
+      }
+    ],
+    "5.2 Manter envio bloqueado quando o recarregamento pós-422 falha": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644297427
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646299177
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646357433
+      }
+    ],
+    "5.3 Escrever teste de exemplo do fluxo 422 completo": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644297492
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792646380590
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792648125431
+      }
+    ],
+    "6.1 Rodar typecheck/build e a suíte de testes do frontend": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644297560
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792648130956
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792649765259
+      }
+    ],
+    "7. Checkpoint final - Garantir que todos os testes passam": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644297621
+      },
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792649770186
+      }
+    ],
+    "1. Camada de serviço: auxiliar de timeout não-quebrador em `causas.ts`": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792644634716
+      }
+    ],
+    "2. Componente `SeletorCausa`: máquina de quatro estados": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792645931053
+      }
+    ],
+    "4. Integração no `CadastroInstituicaoForm`: prontidão e bloqueio de envio": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792648124510
+      }
+    ],
+    "5. Tratamento da rejeição 422 \"causa inválida ou inativa\"": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792648125497
+      }
+    ],
+    "6. Verificação final": [
+      {
+        "executionId": "9ff446ec-dd7f-4d58-a106-5c7a231a8d48",
+        "chatSessionId": "sess_5472e386-520a-4f20-abaa-8c592feb3e01",
+        "timestamp": 1792649765336
+      }
+    ]
+  }
+}

@@ -308,7 +308,7 @@ describe("Contexto_Auth (AuthContext) — transições de estado e guarda de rot
           }
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });

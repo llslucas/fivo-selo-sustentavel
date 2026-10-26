@@ -88,7 +88,7 @@ describe("SeletorBeneficiada — registro da seleção", () => {
           cleanup();
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });

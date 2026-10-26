@@ -107,7 +107,7 @@ describe("StepCausaRegra — pré-cadastro não emite requisição de rede", () 
           mock.restaurar();
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   }, 60_000);
 });

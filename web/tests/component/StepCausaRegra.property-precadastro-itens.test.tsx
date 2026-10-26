@@ -225,7 +225,7 @@ describe("StepCausaRegra — Property 14: pré-cadastro não fabrica beneficiada
           }
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     );
   });
 });

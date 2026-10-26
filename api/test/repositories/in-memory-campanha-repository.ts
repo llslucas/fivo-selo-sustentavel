@@ -1,36 +1,98 @@
 import { CampanhaRepository } from '@domain/fivo/application/ports/database/campanha-repository';
-import { Campanha } from '@domain/fivo/entities/campanha';
+import { AlteracaoCompromisso } from '@domain/fivo/entities/alteracao-compromisso';
+import { Campanha, CampanhaStatus } from '@domain/fivo/entities/campanha';
+
+function copiarAlteracao(
+  alteracao: AlteracaoCompromisso | null | undefined,
+): AlteracaoCompromisso | null {
+  if (!alteracao) {
+    return null;
+  }
+
+  return AlteracaoCompromisso.create(
+    {
+      campanhaId: alteracao.campanhaId,
+      proposto: alteracao.proposto,
+      anterior: alteracao.anterior,
+      status: alteracao.status,
+      createdAt: alteracao.createdAt,
+      decididoPor: alteracao.decididoPor,
+      decididoEm: alteracao.decididoEm,
+      motivo: alteracao.motivo,
+    },
+    alteracao.id,
+  );
+}
+
+// Os value objects são imutáveis e podem ser compartilhados; a campanha e a
+// alteração pendente, não.
+function copiar(
+  campanha: Campanha,
+  versao: number = campanha.versao,
+): Campanha {
+  return Campanha.create(
+    {
+      empresaId: campanha.empresaId,
+      idPublico: campanha.idPublico,
+      nome: campanha.nome,
+      descricao: campanha.descricao,
+      capaArquivoId: campanha.capaArquivoId,
+      beneficiada: campanha.beneficiada,
+      regraDoacao: campanha.regraDoacao,
+      meta: campanha.meta,
+      vigencia: campanha.vigencia,
+      status: campanha.status,
+      submetidaEm: campanha.submetidaEm,
+      decididoPor: campanha.decididoPor,
+      decididoEm: campanha.decididoEm,
+      motivoUltimaRejeicao: campanha.motivoUltimaRejeicao,
+      alteracaoPendente: copiarAlteracao(campanha.alteracaoPendente),
+      versao,
+      createdAt: campanha.createdAt,
+      updatedAt: campanha.updatedAt,
+    },
+    campanha.id,
+  );
+}
 
 export class InMemoryCampanhaRepository implements CampanhaRepository {
-  items: Campanha[] = [];
+  public items: Campanha[] = [];
 
   findById(id: string): Promise<Campanha | null> {
-    return Promise.resolve(
-      this.items.find((item) => item.id.toString() === id) || null,
-    );
+    const campanha = this.items.find((item) => item.id.toString() === id);
+    return Promise.resolve(campanha ? copiar(campanha) : null);
   }
 
   findByIdPublico(idPublico: string): Promise<Campanha | null> {
-    return Promise.resolve(
-      this.items.find((item) => item.idPublico.toString() === idPublico) ||
-        null,
+    const campanha = this.items.find(
+      (item) => item.idPublico.toString() === idPublico,
     );
+    return Promise.resolve(campanha ? copiar(campanha) : null);
   }
 
   create(campanha: Campanha): Promise<void> {
-    this.items.push(campanha);
+    this.items.push(copiar(campanha));
     return Promise.resolve();
   }
 
-  save(campanha: Campanha): Promise<void> {
-    const index = this.items.findIndex(
-      (item) => item.id.toString() === campanha.id.toString(),
-    );
+  salvar(campanha: Campanha, versaoEsperada: number): Promise<boolean> {
+    const index = this.items.findIndex((item) => item.id.equals(campanha.id));
 
-    if (index !== -1) {
-      this.items[index] = campanha;
+    if (index === -1 || this.items[index].versao !== versaoEsperada) {
+      return Promise.resolve(false);
     }
 
-    return Promise.resolve();
+    this.items[index] = copiar(campanha, versaoEsperada + 1);
+    return Promise.resolve(true);
+  }
+
+  listarEmAnalise(): Promise<Campanha[]> {
+    const emAnalise = this.items.filter(
+      (item) =>
+        item.status === CampanhaStatus.EM_ANALISE ||
+        (item.status === CampanhaStatus.APROVADA && !!item.alteracaoPendente),
+    );
+
+    return Promise.resolve(emAnalise.map((item) => copiar(item)));
   }
 }
