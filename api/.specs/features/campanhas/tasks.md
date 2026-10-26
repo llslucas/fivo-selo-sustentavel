@@ -929,10 +929,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Não-ADMIN → 403; motivo curto → 422; sem pendência → 409; nada gravado em nenhum dos três
-- [ ] Sucesso: campanha `APROVADA` com o compromisso anterior, motivo na alteração, auditoria `ALTERACAO_CAMPANHA_REJEITADA`, e-mail `ALTERACAO_CAMPANHA_REJEITADA`
-- [ ] Falha do `Mailer` não desfaz a decisão
-- [ ] Gate `quick` passa
+- [x] Não-ADMIN → 403; motivo curto → 422; sem pendência → 409; nada gravado em nenhum dos três
+- [x] Sucesso: campanha `APROVADA` com o compromisso anterior, motivo na alteração, auditoria `ALTERACAO_CAMPANHA_REJEITADA`, e-mail `ALTERACAO_CAMPANHA_REJEITADA`
+- [x] Falha do `Mailer` não desfaz a decisão
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
