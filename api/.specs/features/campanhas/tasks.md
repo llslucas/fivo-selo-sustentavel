@@ -870,10 +870,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Não-ADMIN → 403 sem gravar; motivo curto → `MotivoInsuficienteError` sem gravar
-- [ ] Sucesso: `REJEITADA`, motivo persistido, auditoria `CAMPANHA_REJEITADA` com motivo, e-mail `CAMPANHA_REJEITADA` para o e-mail do usuário dono com `{ nomeCampanha, motivo }`
-- [ ] Falha do `Mailer` não desfaz a rejeição
-- [ ] Gate `quick` passa
+- [x] Não-ADMIN → 403 sem gravar; motivo curto → `MotivoInsuficienteError` sem gravar
+- [x] Sucesso: `REJEITADA`, motivo persistido, auditoria `CAMPANHA_REJEITADA` com motivo, e-mail `CAMPANHA_REJEITADA` para o e-mail do usuário dono com `{ nomeCampanha, motivo }`
+- [x] Falha do `Mailer` não desfaz a rejeição
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
