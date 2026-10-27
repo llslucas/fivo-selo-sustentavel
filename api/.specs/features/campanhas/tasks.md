@@ -782,10 +782,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Read model `CampanhaDetalhe` com valores em string decimal e datas `AAAA-MM-DD`
-- [ ] Campanha alheia ou inexistente → `ResourceNotFoundError`
-- [ ] Funciona para empresa em qualquer estado (leitura não exige aprovação)
-- [ ] Gate `quick` passa
+- [x] Read model `CampanhaDetalhe` com valores em string decimal e datas `AAAA-MM-DD`
+- [x] Campanha alheia ou inexistente → `ResourceNotFoundError`
+- [x] Funciona para empresa em qualquer estado (leitura não exige aprovação)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
