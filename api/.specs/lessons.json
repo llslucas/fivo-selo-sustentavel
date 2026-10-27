@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 21,
+  "next_id": 29,
   "lessons": [
     {
       "id": "L-001",
@@ -11,17 +11,19 @@
       "text": "When an AC quotes an exact error message string, assert the literal message text in the test, not just the HTTP status code.",
       "signal": "ac_gap",
       "scope": "domain/fivo/application/errors",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "cadastro-empresa"
+        "cadastro-empresa",
+        "campanhas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "EMP-01 AC3 (domain/fivo/application/errors)"
+        "EMP-01 AC3 (domain/fivo/application/errors)",
+        "validation-dominio.md Criação AC7, Submissão AC5, Alteração AC4; mutantes M37 M38 M39 (domain/fivo/application/errors)"
       ],
       "created": "2026-09-18T02:53:46Z",
-      "last_seen": "2026-09-18T02:53:46Z"
+      "last_seen": "2026-10-27T23:36:01Z"
     },
     {
       "id": "L-002",
@@ -119,17 +121,19 @@
       "text": "Audit assertions must check author and timestamp, not just event type and states",
       "signal": "ac_gap",
       "scope": "audit",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "catalogo-instituicoes"
+        "catalogo-instituicoes",
+        "campanhas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "validation-dominio.md mutantes #16 #26, P1-Aprovação AC9, P1-Causas AC7 (audit)"
+        "validation-dominio.md mutantes #16 #26, P1-Aprovação AC9, P1-Causas AC7 (audit)",
+        "validation-dominio.md Submissão AC15, Alteração AC10; mutantes M25 M26 M42 (audit)"
       ],
       "created": "2026-10-14T00:26:51Z",
-      "last_seen": "2026-10-14T00:26:51Z"
+      "last_seen": "2026-10-27T23:36:01Z"
     },
     {
       "id": "L-008",
@@ -155,17 +159,19 @@
       "text": "Boundary tests must hit the exact limit value on both sides",
       "signal": "surviving_mutant",
       "scope": "domain-tests",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "catalogo-instituicoes"
+        "catalogo-instituicoes",
+        "campanhas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "validation-dominio.md mutante #9 (listar-beneficiadas.ts < 2) (domain-tests)"
+        "validation-dominio.md mutante #9 (listar-beneficiadas.ts < 2) (domain-tests)",
+        "validation-dominio.md mutantes M8 (vigencia.ts:22) e M13 (campanha.ts:266) (domain-tests)"
       ],
       "created": "2026-10-14T00:26:51Z",
-      "last_seen": "2026-10-14T00:26:51Z"
+      "last_seen": "2026-10-27T23:36:01Z"
     },
     {
       "id": "L-010",
@@ -191,17 +197,19 @@
       "text": "Every validation AC in a spec must state the exact user-facing error text, or tests fall back to toContain fragments",
       "signal": "spec_precision_gap",
       "scope": "specs",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "catalogo-instituicoes"
+        "catalogo-instituicoes",
+        "campanhas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "validation-dominio.md P1-Autocadastro AC8 (arquivo.spec.ts:247 toContain) (specs)"
+        "validation-dominio.md P1-Autocadastro AC8 (arquivo.spec.ts:247 toContain) (specs)",
+        "validation-dominio.md SP1 (Criação AC5 AC6 AC8 AC11, Submissão AC2 AC3) (specs)"
       ],
       "created": "2026-10-14T00:27:01Z",
-      "last_seen": "2026-10-14T00:27:01Z"
+      "last_seen": "2026-10-27T23:36:01Z"
     },
     {
       "id": "L-012",
@@ -335,17 +343,19 @@
       "text": "When an AC lists fields to show or collect, name the exact attribute instead of an umbrella term like nome, link or site ou canal",
       "signal": "spec_precision_gap",
       "scope": "specs",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "catalogo-instituicoes"
+        "catalogo-instituicoes",
+        "campanhas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "validation.md SP3/SP6, Aprovação AC1 nome/link, Autocadastro AC1 site ou canal (specs)"
+        "validation.md SP3/SP6, Aprovação AC1 nome/link, Autocadastro AC1 site ou canal (specs)",
+        "validation-dominio.md SP2 (Submissão AC6 empresa, Consulta pública AC1 nome da empresa/imagem de capa) (specs)"
       ],
       "created": "2026-10-14T02:32:16Z",
-      "last_seen": "2026-10-14T02:32:16Z"
+      "last_seen": "2026-10-27T23:36:01Z"
     },
     {
       "id": "L-020",
@@ -364,6 +374,150 @@
       ],
       "created": "2026-10-14T09:02:31Z",
       "last_seen": "2026-10-14T09:02:31Z"
+    },
+    {
+      "id": "L-021",
+      "key": "ac_gap::when an aggregate clears a child entity after deciding it keep the decided child reachable by the repository save or the decision never reaches persistence",
+      "text": "When an aggregate clears a child entity after deciding it, keep the decided child reachable by the repository save, or the decision never reaches persistence",
+      "signal": "ac_gap",
+      "scope": "domain-entities",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md T46, Alteração AC6 AC8; entities/campanha.ts:298,321 (domain-entities)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-022",
+      "key": "surviving_mutant::a notification test must create the recipient in its setup otherwise the send branch is skipped and the mailer failure test passes vacuously",
+      "text": "A notification test must create the recipient in its setup, otherwise the send branch is skipped and the mailer-failure test passes vacuously",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md mutantes M23 M24, rejeitar-alteracao-campanha.spec.ts:85-108 (domain-tests)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-023",
+      "key": "surviving_mutant::every use case that saves through a version cas needs its own concurrency test sibling use cases do not cover it",
+      "text": "Every use case that saves through a version CAS needs its own concurrency test; sibling use cases do not cover it",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md mutante M22 (rejeitar-alteracao-campanha.ts:72) (domain-tests)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-024",
+      "key": "ac_gap::when an ac says an operation applies the same validations as another flow list each inherited validation explicitly in the design and the task done when",
+      "text": "When an AC says an operation applies the same validations as another flow, list each inherited validation explicitly in the design and the task Done-when",
+      "signal": "ac_gap",
+      "scope": "tasks",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md Alteração AC5 (fim vencido na alteração), T49 (tasks)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-025",
+      "key": "ac_gap::map every field an ac names to the use case input not only to the entity method",
+      "text": "Map every field an AC names to the use-case input, not only to the entity method",
+      "signal": "ac_gap",
+      "scope": "domain/fivo/application/use-cases",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md Criação AC15, Alteração AC1 (capaArquivoId ausente em editar-campanha.ts:52-63), T47 (domain/fivo/application/use-cases)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-026",
+      "key": "ac_gap::when a done when says two use cases return the same read model define it once and assert both outputs with the same toequal",
+      "text": "When a Done-when says two use cases return the same read model, define it once and assert both outputs with the same toEqual",
+      "signal": "ac_gap",
+      "scope": "domain/fivo/application/use-cases",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md T19 Done-when (campanha-detalhe.ts:31 vs consultar-campanha-da-empresa.ts:42), T48 (domain/fivo/application/use-cases)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-027",
+      "key": "ac_gap::a new key in an entity s per type rule tables needs its own boundary tests the existing spec does not cover it",
+      "text": "A new key in an entity's per-type rule tables needs its own boundary tests; the existing spec does not cover it",
+      "signal": "ac_gap",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md T11 / Criação AC13 (arquivo.ts:51,58,65 sem teste), T50 (domain-tests)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-028",
+      "key": "spec_precision_gap::when an ac requires auditing before and after values fix one payload format for every audit event of the aggregate",
+      "text": "When an AC requires auditing before and after values, fix one payload format for every audit event of the aggregate",
+      "signal": "spec_precision_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md SP3, Alteração AC10 (string decimal na abertura, centavos na decisão) (specs)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
     }
   ]
 }

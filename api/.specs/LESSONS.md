@@ -8,17 +8,39 @@
 
 Corroborated across multiple features. Safe to apply as guidance.
 
-_none_
+### L-001 - When an AC quotes an exact error message string, assert the literal message text in the test, not just the HTTP status code.
+- signal: `ac_gap` · recurrence: 2 feature(s) · scope: `domain/fivo/application/errors` · harmful: 0
+- features: cadastro-empresa, campanhas
+- evidence: EMP-01 AC3 (domain/fivo/application/errors) (+1 more)
+- last seen: 2026-10-27T23:36:01Z
+
+### L-007 - Audit assertions must check author and timestamp, not just event type and states
+- signal: `ac_gap` · recurrence: 2 feature(s) · scope: `audit` · harmful: 0
+- features: catalogo-instituicoes, campanhas
+- evidence: validation-dominio.md mutantes #16 #26, P1-Aprovação AC9, P1-Causas AC7 (audit) (+1 more)
+- last seen: 2026-10-27T23:36:01Z
+
+### L-009 - Boundary tests must hit the exact limit value on both sides
+- signal: `surviving_mutant` · recurrence: 2 feature(s) · scope: `domain-tests` · harmful: 0
+- features: catalogo-instituicoes, campanhas
+- evidence: validation-dominio.md mutante #9 (listar-beneficiadas.ts < 2) (domain-tests) (+1 more)
+- last seen: 2026-10-27T23:36:01Z
+
+### L-011 - Every validation AC in a spec must state the exact user-facing error text, or tests fall back to toContain fragments
+- signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `specs` · harmful: 0
+- features: catalogo-instituicoes, campanhas
+- evidence: validation-dominio.md P1-Autocadastro AC8 (arquivo.spec.ts:247 toContain) (specs) (+1 more)
+- last seen: 2026-10-27T23:36:01Z
+
+### L-019 - When an AC lists fields to show or collect, name the exact attribute instead of an umbrella term like nome, link or site ou canal
+- signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `specs` · harmful: 0
+- features: catalogo-instituicoes, campanhas
+- evidence: validation.md SP3/SP6, Aprovação AC1 nome/link, Autocadastro AC1 site ou canal (specs) (+1 more)
+- last seen: 2026-10-27T23:36:01Z
 
 ## Candidates (under observation - do NOT load as guidance yet)
 
 Seen once or not yet corroborated. Tracked, not trusted.
-
-### L-001 - When an AC quotes an exact error message string, assert the literal message text in the test, not just the HTTP status code.
-- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `domain/fivo/application/errors` · harmful: 0
-- features: cadastro-empresa
-- evidence: EMP-01 AC3 (domain/fivo/application/errors)
-- last seen: 2026-09-18T02:53:46Z
 
 ### L-002 - Copy spec-quoted error message strings verbatim into the error class constructor, including punctuation, instead of freehand-restating them.
 - signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `domain/fivo/application/errors` · harmful: 0
@@ -50,22 +72,10 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation-dominio.md mutante #3, P1-Aprovação AC10 (domain-tests)
 - last seen: 2026-10-14T00:26:50Z
 
-### L-007 - Audit assertions must check author and timestamp, not just event type and states
-- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `audit` · harmful: 0
-- features: catalogo-instituicoes
-- evidence: validation-dominio.md mutantes #16 #26, P1-Aprovação AC9, P1-Causas AC7 (audit)
-- last seen: 2026-10-14T00:26:51Z
-
 ### L-008 - When a port promises normalized matching, cover it with an accented and mixed-case input in a use-case test
 - signal: `ac_gap` · recurrence: 1 feature(s) · scope: `repo-doubles` · harmful: 0
 - features: catalogo-instituicoes
 - evidence: validation-dominio.md P1-Causas AC2 (in-memory-causa-repository.ts findByNome) (repo-doubles)
-- last seen: 2026-10-14T00:26:51Z
-
-### L-009 - Boundary tests must hit the exact limit value on both sides
-- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain-tests` · harmful: 0
-- features: catalogo-instituicoes
-- evidence: validation-dominio.md mutante #9 (listar-beneficiadas.ts < 2) (domain-tests)
 - last seen: 2026-10-14T00:26:51Z
 
 ### L-010 - When a domain error changes status or message, update the exception-filter e2e table in the same commit
@@ -73,12 +83,6 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: catalogo-instituicoes
 - evidence: test/http/domain-exception-filter.e2e-spec.ts:65 (422 vs 409 after T1) (error-mapping)
 - last seen: 2026-10-14T00:26:51Z
-
-### L-011 - Every validation AC in a spec must state the exact user-facing error text, or tests fall back to toContain fragments
-- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
-- features: catalogo-instituicoes
-- evidence: validation-dominio.md P1-Autocadastro AC8 (arquivo.spec.ts:247 toContain) (specs)
-- last seen: 2026-10-14T00:27:01Z
 
 ### L-012 - A fix task for a conjunctive AC must list every operation the AC names, not only the ones in the previous gap list
 - signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain-tests` · harmful: 0
@@ -122,17 +126,59 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md SP5, Aprovação AC7 (anônimo 401 vs 403) (specs)
 - last seen: 2026-10-14T02:32:16Z
 
-### L-019 - When an AC lists fields to show or collect, name the exact attribute instead of an umbrella term like nome, link or site ou canal
-- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
-- features: catalogo-instituicoes
-- evidence: validation.md SP3/SP6, Aprovação AC1 nome/link, Autocadastro AC1 site ou canal (specs)
-- last seen: 2026-10-14T02:32:16Z
-
 ### L-020 - Give a task the full gate when it changes a use-case response that a route returns, because e2e tests assert route payloads with exact toEqual
 - signal: `gate_fail` · recurrence: 1 feature(s) · scope: `tasks` · harmful: 0
 - features: catalogo-instituicoes
 - evidence: c46080b: test/http/admin-instituicoes.e2e-spec.ts:174 red until 2a123fb (validation.md, Rodada 2 Gate Check) (tasks)
 - last seen: 2026-10-14T09:02:31Z
+
+### L-021 - When an aggregate clears a child entity after deciding it, keep the decided child reachable by the repository save, or the decision never reaches persistence
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `domain-entities` · harmful: 0
+- features: campanhas
+- evidence: validation-dominio.md T46, Alteração AC6 AC8; entities/campanha.ts:298,321 (domain-entities)
+- last seen: 2026-10-27T23:36:11Z
+
+### L-022 - A notification test must create the recipient in its setup, otherwise the send branch is skipped and the mailer-failure test passes vacuously
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain-tests` · harmful: 0
+- features: campanhas
+- evidence: validation-dominio.md mutantes M23 M24, rejeitar-alteracao-campanha.spec.ts:85-108 (domain-tests)
+- last seen: 2026-10-27T23:36:11Z
+
+### L-023 - Every use case that saves through a version CAS needs its own concurrency test; sibling use cases do not cover it
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain-tests` · harmful: 0
+- features: campanhas
+- evidence: validation-dominio.md mutante M22 (rejeitar-alteracao-campanha.ts:72) (domain-tests)
+- last seen: 2026-10-27T23:36:11Z
+
+### L-024 - When an AC says an operation applies the same validations as another flow, list each inherited validation explicitly in the design and the task Done-when
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `tasks` · harmful: 0
+- features: campanhas
+- evidence: validation-dominio.md Alteração AC5 (fim vencido na alteração), T49 (tasks)
+- last seen: 2026-10-27T23:36:11Z
+
+### L-025 - Map every field an AC names to the use-case input, not only to the entity method
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `domain/fivo/application/use-cases` · harmful: 0
+- features: campanhas
+- evidence: validation-dominio.md Criação AC15, Alteração AC1 (capaArquivoId ausente em editar-campanha.ts:52-63), T47 (domain/fivo/application/use-cases)
+- last seen: 2026-10-27T23:36:11Z
+
+### L-026 - When a Done-when says two use cases return the same read model, define it once and assert both outputs with the same toEqual
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `domain/fivo/application/use-cases` · harmful: 0
+- features: campanhas
+- evidence: validation-dominio.md T19 Done-when (campanha-detalhe.ts:31 vs consultar-campanha-da-empresa.ts:42), T48 (domain/fivo/application/use-cases)
+- last seen: 2026-10-27T23:36:11Z
+
+### L-027 - A new key in an entity's per-type rule tables needs its own boundary tests; the existing spec does not cover it
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `domain-tests` · harmful: 0
+- features: campanhas
+- evidence: validation-dominio.md T11 / Criação AC13 (arquivo.ts:51,58,65 sem teste), T50 (domain-tests)
+- last seen: 2026-10-27T23:36:11Z
+
+### L-028 - When an AC requires auditing before and after values, fix one payload format for every audit event of the aggregate
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: campanhas
+- evidence: validation-dominio.md SP3, Alteração AC10 (string decimal na abertura, centavos na decisão) (specs)
+- last seen: 2026-10-27T23:36:11Z
 
 ## Quarantined (failed when applied - ignore)
 
