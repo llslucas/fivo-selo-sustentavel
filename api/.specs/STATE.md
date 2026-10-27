@@ -174,6 +174,7 @@
 - **Date**: 2026-10-15
 - **Status**: active
 - **Exceção de autoria (2026-10-27)**: usuário autorizou explicitamente o agente a assumir a T18 de `campanhas` (`CriarCampanhaUseCase` — `src/domain/fivo/application/use-cases/criar-campanha.ts` + spec), incluindo a reescrita do caso de uso e dos testes unit correspondentes. As demais tasks de domínio T1–T27 continuam de autoria humana.
+- **Exceção de autoria (2026-10-27, gate de handoff)**: a rodada 1 da verificação do domínio deu FAIL (`validation-dominio.md`) e abriu as tasks de correção T41–T50 (Fase 6b). O usuário autorizou explicitamente o agente a aplicá-las, incluindo código em `src/domain/**`, `test/repositories/**` e `test/factories/**` e os testes correspondentes, além da emenda de `design.md` e da Done-when da T29 que a T46 exige. A autorização cobre o ciclo de correção e reverificação do gate (até 3 rodadas). As tasks T1–T27 continuam de autoria humana.
 
 ## Handoff
 
