@@ -720,12 +720,12 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Empresa não aprovada → 403; campanha de outra empresa ou inexistente → `ResourceNotFoundError`, nada gravado
-- [ ] Beneficiada nova indisponível → `BeneficiadaIndisponivelError`
-- [ ] `salvar` com `false` → `TransicaoInvalidaError`
-- [ ] Auditoria `CAMPANHA_REABERTA` quando `REJEITADA → RASCUNHO` e `ALTERACAO_CAMPANHA_ABERTA` com compromissos anterior e proposto; edição simples não audita
-- [ ] Devolve o detalhe da campanha (mesmo read model de T21)
-- [ ] Gate `quick` passa
+- [x] Empresa não aprovada → 403; campanha de outra empresa ou inexistente → `ResourceNotFoundError`, nada gravado
+- [x] Beneficiada nova indisponível → `BeneficiadaIndisponivelError`
+- [x] `salvar` com `false` → `TransicaoInvalidaError`
+- [x] Auditoria `CAMPANHA_REABERTA` quando `REJEITADA → RASCUNHO` e `ALTERACAO_CAMPANHA_ABERTA` com compromissos anterior e proposto; edição simples não audita
+- [x] Devolve o detalhe da campanha (mesmo read model de T21)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
