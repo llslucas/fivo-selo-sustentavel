@@ -173,6 +173,7 @@
 - **Scope**: `campanhas` — tasks T1–T40.
 - **Date**: 2026-10-15
 - **Status**: active
+- **Exceção de autoria (2026-10-27)**: usuário autorizou explicitamente o agente a assumir a T18 de `campanhas` (`CriarCampanhaUseCase` — `src/domain/fivo/application/use-cases/criar-campanha.ts` + spec), incluindo a reescrita do caso de uso e dos testes unit correspondentes. As demais tasks de domínio T1–T27 continuam de autoria humana.
 
 ## Handoff
 

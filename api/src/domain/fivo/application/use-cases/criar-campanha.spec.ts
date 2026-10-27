@@ -1,162 +1,282 @@
-import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
+import { NotAllowedError } from '@core/errors/not-allowed-error';
+import { CausaStatus } from '@domain/fivo/entities/causa';
+import { Empresa, EmpresaStatus } from '@domain/fivo/entities/empresa';
+import {
+  Instituicao,
+  InstituicaoStatus,
+} from '@domain/fivo/entities/instituicao';
 import { TipoRegraDoacao } from '@domain/fivo/entities/regra-doacao';
+import { CausaFactory } from '@test/factories/causa-factory';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { InstituicaoFactory } from '@test/factories/instituicao-factory';
 import { InMemoryCampanhaRepository } from '@test/repositories/in-memory-campanha-repository';
+import { InMemoryCausaRepository } from '@test/repositories/in-memory-causa-repository';
 import { InMemoryEmpresaRepository } from '@test/repositories/in-memory-empresa-repository';
 import { InMemoryInstituicaoRepository } from '@test/repositories/in-memory-instituicao-repository';
-import { CampanhaRepository } from '../ports/database/campanha-repository';
-import { EmpresaRepository } from '../ports/database/empresa-repository';
-import { InstituicaoRepository } from '../ports/database/instituicao-repository';
-import { CriarCampanhaUseCase } from './criar-campanha';
+import { BeneficiadaAmbiguaError } from '../errors/beneficiada-ambigua.error';
+import { BeneficiadaIndisponivelError } from '../errors/beneficiada-indisponivel.error';
+import { DataInvalidaError } from '../errors/data-invalida.error';
+import { DescricaoCampanhaInvalidaError } from '../errors/descricao-campanha-invalida.error';
 import { InvalidRuleValueError } from '../errors/invalid-rule-value.error';
+import { NomeCampanhaInvalidoError } from '../errors/nome-campanha-invalido.error';
+import { PercentualInvalidoError } from '../errors/percentual-invalido.error';
+import { ValorMonetarioInvalidoError } from '../errors/valor-monetario-invalido.error';
+import { VigenciaInvalidaError } from '../errors/vigencia-invalida.error';
+import { AssegurarBeneficiadaDisponivelUseCase } from './assegurar-beneficiada-disponivel';
+import { AssegurarEmpresaAprovadaUseCase } from './assegurar-empresa-aprovada';
+import {
+  CriarCampanhaUseCase,
+  CriarCampanhaUseCaseRequest,
+} from './criar-campanha';
 
 describe('CriarCampanhaUseCase', () => {
-  let campanhaRepository: CampanhaRepository;
-  let empresaRepository: EmpresaRepository;
-  let instituicaoRepository: InstituicaoRepository;
-  let criarCampanhaUseCase: CriarCampanhaUseCase;
+  let campanhaRepository: InMemoryCampanhaRepository;
+  let empresaRepository: InMemoryEmpresaRepository;
+  let instituicaoRepository: InMemoryInstituicaoRepository;
+  let causaRepository: InMemoryCausaRepository;
+  let empresa: Empresa;
+  let instituicao: Instituicao;
+  let sut: CriarCampanhaUseCase;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     campanhaRepository = new InMemoryCampanhaRepository();
     empresaRepository = new InMemoryEmpresaRepository();
     instituicaoRepository = new InMemoryInstituicaoRepository();
-    criarCampanhaUseCase = new CriarCampanhaUseCase(
+    causaRepository = new InMemoryCausaRepository();
+
+    empresa = EmpresaFactory.create({ status: EmpresaStatus.APROVADA });
+    await empresaRepository.create(empresa);
+
+    instituicao = InstituicaoFactory.create({
+      status: InstituicaoStatus.APROVADA,
+    });
+    await instituicaoRepository.create(instituicao);
+
+    sut = new CriarCampanhaUseCase(
       campanhaRepository,
-      empresaRepository,
-      instituicaoRepository,
+      new AssegurarEmpresaAprovadaUseCase(empresaRepository),
+      new AssegurarBeneficiadaDisponivelUseCase(
+        instituicaoRepository,
+        causaRepository,
+      ),
     );
   });
 
-  it('should create a new campaign successfully', async () => {
-    const empresa = EmpresaFactory.create();
-    const instituicao = InstituicaoFactory.create();
-
-    await empresaRepository.create(empresa);
-    await instituicaoRepository.create(instituicao);
-
-    const request = {
-      empresa_id: empresa.id.toString(),
-      instituicao_id: instituicao.id.toString(),
+  function pedido(
+    overrides: Partial<CriarCampanhaUseCaseRequest> = {},
+  ): CriarCampanhaUseCaseRequest {
+    return {
+      empresaId: empresa.id.toString(),
       nome: 'Campanha Teste',
-      descricao: 'Descrição da Campanha Teste',
-      regra_tipo: TipoRegraDoacao.POR_UNIDADE,
-      regra_valor: '100',
-      meta_valor: '1000',
-      data_inicio: '2026-11-01',
-      data_fim: '2026-11-08',
+      ...overrides,
     };
+  }
 
-    const result = await criarCampanhaUseCase.execute(request);
+  function expectNadaGravado() {
+    expect(campanhaRepository.items).toHaveLength(0);
+  }
 
-    if (result.isLeft()) {
-      throw result.value;
-    }
+  it('creates a RASCUNHO with only the name and returns id and idPublico', async () => {
+    const response = await sut.execute(pedido());
 
-    const createdCampanha = result.value.campanha;
+    expect(response.isRight()).toBe(true);
+    if (response.isLeft()) throw response.value;
 
-    expect(createdCampanha).toBeDefined();
-    expect(createdCampanha?.nome.valor).toBe(request.nome);
-    expect(createdCampanha?.descricao?.valor).toBe(request.descricao);
+    const { id, idPublico } = response.value;
+    expect(id).toEqual(expect.any(String));
+    expect(idPublico).toEqual(expect.any(String));
+    expect(idPublico).not.toBe(id);
+
+    expect(campanhaRepository.items).toHaveLength(1);
+    const salva = campanhaRepository.items[0];
+    expect(salva.id.toString()).toBe(id);
+    expect(salva.idPublico.toString()).toBe(idPublico);
+    expect(salva.nome.valor).toBe('Campanha Teste');
   });
 
-  it('should return ResourceNotFoundError if empresa does not exist', async () => {
-    const empresa = EmpresaFactory.create();
-    const instituicao = InstituicaoFactory.create();
+  it('creates a complete RASCUNHO applying every optional field', async () => {
+    const response = await sut.execute(
+      pedido({
+        descricao: 'Cada produto vendido ajuda uma instituicao.',
+        instituicaoId: instituicao.id.toString(),
+        regraDoacao: { tipo: TipoRegraDoacao.POR_UNIDADE, valor: '1.50' },
+        meta: '1000',
+        vigencia: { inicio: '2026-11-01', fim: '2026-11-30' },
+      }),
+    );
 
-    await instituicaoRepository.create(instituicao);
-
-    const request = {
-      empresa_id: empresa.id.toString(),
-      instituicao_id: instituicao.id.toString(),
-      nome: 'Campanha Teste',
-      descricao: 'Descrição da Campanha Teste',
-      regra_tipo: TipoRegraDoacao.POR_UNIDADE,
-      regra_valor: '100',
-      meta_valor: '1000',
-      data_inicio: '2026-11-01',
-      data_fim: '2026-11-08',
-    };
-
-    const result = await criarCampanhaUseCase.execute(request);
-
-    expect(result.isLeft()).toBe(true);
-    expect(result.value).toBeInstanceOf(ResourceNotFoundError);
+    expect(response.isRight()).toBe(true);
+    const salva = campanhaRepository.items[0];
+    expect(salva.descricao?.valor).toBe(
+      'Cada produto vendido ajuda uma instituicao.',
+    );
+    expect(salva.beneficiada?.tipo).toBe('INSTITUICAO');
+    expect(salva.beneficiada?.id).toBe(instituicao.id.toString());
+    expect(salva.regraDoacao?.valor?.centavos).toBe(150);
+    expect(salva.meta?.centavos).toBe(100000);
+    expect(salva.vigencia?.inicio.valor).toBe('2026-11-01');
+    expect(salva.vigencia?.fim?.valor).toBe('2026-11-30');
   });
 
-  it('should return ResourceNotFoundError if instituicao does not exist', async () => {
-    const empresa = EmpresaFactory.create();
-    const instituicao = InstituicaoFactory.create();
+  it('rejects with NotAllowedError "Cadastro ainda não aprovado" when the empresa is not APROVADA and saves nothing', async () => {
+    const pendente = EmpresaFactory.create({
+      status: EmpresaStatus.PENDENTE_APROVACAO,
+    });
+    await empresaRepository.create(pendente);
 
-    await empresaRepository.create(empresa);
+    const response = await sut.execute(
+      pedido({ empresaId: pendente.id.toString() }),
+    );
 
-    const request = {
-      empresa_id: empresa.id.toString(),
-      instituicao_id: instituicao.id.toString(),
-      nome: 'Campanha Teste',
-      descricao: 'Descrição da Campanha Teste',
-      regra_tipo: TipoRegraDoacao.POR_UNIDADE,
-      regra_valor: '100',
-      meta_valor: '1000',
-      data_inicio: '2026-11-01',
-      data_fim: '2026-11-08',
-    };
-
-    const result = await criarCampanhaUseCase.execute(request);
-
-    expect(result.isLeft()).toBe(true);
-    expect(result.value).toBeInstanceOf(ResourceNotFoundError);
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(NotAllowedError);
+    expect((response.value as NotAllowedError).message).toBe(
+      'Cadastro ainda não aprovado',
+    );
+    expectNadaGravado();
   });
 
-  it('should return InvalidRuleValueError if regra_percentual is sent with POR_UNIDADE as regra.', async () => {
-    const empresa = EmpresaFactory.create();
-    const instituicao = InstituicaoFactory.create();
+  it('returns NomeCampanhaInvalidoError and saves nothing for an invalid nome', async () => {
+    const response = await sut.execute(pedido({ nome: 'ab' }));
 
-    await empresaRepository.create(empresa);
-    await instituicaoRepository.create(instituicao);
-
-    const request = {
-      empresa_id: empresa.id.toString(),
-      instituicao_id: instituicao.id.toString(),
-      nome: 'Campanha Teste',
-      descricao: 'Descrição da Campanha Teste',
-      regra_tipo: TipoRegraDoacao.POR_UNIDADE,
-      regra_valor: '1',
-      regra_percentual: '100', // Indevido para POR_UNIDADE
-      meta_valor: '1000',
-      data_inicio: '2026-11-01',
-      data_fim: '2026-11-08',
-    };
-
-    const result = await criarCampanhaUseCase.execute(request);
-
-    expect(result.isLeft()).toBe(true);
-    expect(result.value).toBeInstanceOf(InvalidRuleValueError);
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(NomeCampanhaInvalidoError);
+    expectNadaGravado();
   });
 
-  it('should return InvalidRuleValueError if regra_valor is sent with PERCENTUAL as regra.', async () => {
-    const empresa = EmpresaFactory.create();
-    const instituicao = InstituicaoFactory.create();
+  it('returns DescricaoCampanhaInvalidaError and saves nothing for an invalid descricao', async () => {
+    const response = await sut.execute(pedido({ descricao: 'a'.repeat(2001) }));
 
-    await empresaRepository.create(empresa);
-    await instituicaoRepository.create(instituicao);
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(DescricaoCampanhaInvalidaError);
+    expectNadaGravado();
+  });
 
-    const request = {
-      empresa_id: empresa.id.toString(),
-      instituicao_id: instituicao.id.toString(),
-      nome: 'Campanha Teste',
-      descricao: 'Descrição da Campanha Teste',
-      regra_tipo: TipoRegraDoacao.PERCENTUAL,
-      regra_valor: '100', // Indevido para PERCENTUAL
-      regra_percentual: '10',
-      meta_valor: '1000',
-      data_inicio: '2026-11-01',
-      data_fim: '2026-11-08',
-    };
+  it('returns ValorMonetarioInvalidoError and saves nothing for an invalid meta', async () => {
+    const response = await sut.execute(pedido({ meta: '0' }));
 
-    const result = await criarCampanhaUseCase.execute(request);
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(ValorMonetarioInvalidoError);
+    expectNadaGravado();
+  });
 
-    expect(result.isLeft()).toBe(true);
-    expect(result.value).toBeInstanceOf(InvalidRuleValueError);
+  it('returns InvalidRuleValueError and saves nothing for an invalid regra de doação', async () => {
+    const response = await sut.execute(
+      pedido({
+        regraDoacao: {
+          tipo: TipoRegraDoacao.POR_UNIDADE,
+          valor: '1.00',
+          percentual: '10', // indevido para POR_UNIDADE
+        },
+      }),
+    );
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(InvalidRuleValueError);
+    expectNadaGravado();
+  });
+
+  it('returns PercentualInvalidoError and saves nothing for an invalid percentual', async () => {
+    const response = await sut.execute(
+      pedido({
+        regraDoacao: { tipo: TipoRegraDoacao.PERCENTUAL, percentual: '0' },
+      }),
+    );
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(PercentualInvalidoError);
+    expectNadaGravado();
+  });
+
+  it('returns DataInvalidaError and saves nothing for an invalid vigência date', async () => {
+    const response = await sut.execute(
+      pedido({ vigencia: { inicio: '2026-02-30' } }),
+    );
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(DataInvalidaError);
+    expectNadaGravado();
+  });
+
+  it('returns VigenciaInvalidaError and saves nothing when fim is not after inicio', async () => {
+    const response = await sut.execute(
+      pedido({ vigencia: { inicio: '2026-11-01', fim: '2026-11-01' } }),
+    );
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(VigenciaInvalidaError);
+    expectNadaGravado();
+  });
+
+  it('returns BeneficiadaIndisponivelError and saves nothing when the instituicao is SUSPENSA', async () => {
+    const suspensa = InstituicaoFactory.create({
+      status: InstituicaoStatus.SUSPENSA,
+    });
+    await instituicaoRepository.create(suspensa);
+
+    const response = await sut.execute(
+      pedido({ instituicaoId: suspensa.id.toString() }),
+    );
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(BeneficiadaIndisponivelError);
+    expectNadaGravado();
+  });
+
+  it('returns BeneficiadaIndisponivelError and saves nothing when the causa is INATIVA', async () => {
+    const causa = CausaFactory.create({ status: CausaStatus.INATIVA });
+    await causaRepository.create(causa);
+
+    const response = await sut.execute(
+      pedido({ causaId: causa.id.toString() }),
+    );
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(BeneficiadaIndisponivelError);
+    expectNadaGravado();
+  });
+
+  it('creates a RASCUNHO whose beneficiada is an ATIVA causa', async () => {
+    const causa = CausaFactory.create({ status: CausaStatus.ATIVA });
+    await causaRepository.create(causa);
+
+    const response = await sut.execute(
+      pedido({ causaId: causa.id.toString() }),
+    );
+
+    expect(response.isRight()).toBe(true);
+    const salva = campanhaRepository.items[0];
+    expect(salva.beneficiada?.tipo).toBe('CAUSA');
+    expect(salva.beneficiada?.id).toBe(causa.id.toString());
+  });
+
+  it('returns BeneficiadaAmbiguaError and saves nothing when both instituicao and causa are informed', async () => {
+    const causa = CausaFactory.create({ status: CausaStatus.ATIVA });
+    await causaRepository.create(causa);
+
+    const response = await sut.execute(
+      pedido({
+        instituicaoId: instituicao.id.toString(),
+        causaId: causa.id.toString(),
+      }),
+    );
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(BeneficiadaAmbiguaError);
+    expectNadaGravado();
+  });
+
+  it('does not touch the beneficiada guard when no beneficiada is informed', async () => {
+    const spy = jest.spyOn(
+      AssegurarBeneficiadaDisponivelUseCase.prototype,
+      'execute',
+    );
+
+    const response = await sut.execute(pedido());
+
+    expect(response.isRight()).toBe(true);
+    expect(spy).not.toHaveBeenCalled();
+
+    spy.mockRestore();
   });
 });
