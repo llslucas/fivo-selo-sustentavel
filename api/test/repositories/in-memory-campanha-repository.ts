@@ -57,6 +57,8 @@ function copiar(
 
 export class InMemoryCampanhaRepository implements CampanhaRepository {
   public items: Campanha[] = [];
+  /** Histórico das alterações decididas gravadas pelo `salvar`. */
+  public alteracoesDecididas: AlteracaoCompromisso[] = [];
 
   findById(id: string): Promise<Campanha | null> {
     const campanha = this.items.find((item) => item.id.toString() === id);
@@ -83,6 +85,7 @@ export class InMemoryCampanhaRepository implements CampanhaRepository {
     }
 
     this.items[index] = copiar(campanha, versaoEsperada + 1);
+    this.gravarAlteracaoDecidida(campanha.alteracaoDecidida);
     return Promise.resolve(true);
   }
 
@@ -94,5 +97,25 @@ export class InMemoryCampanhaRepository implements CampanhaRepository {
     );
 
     return Promise.resolve(emAnalise.map((item) => copiar(item)));
+  }
+
+  private gravarAlteracaoDecidida(
+    alteracao: AlteracaoCompromisso | null,
+  ): void {
+    const copia = copiarAlteracao(alteracao);
+
+    if (!copia) {
+      return;
+    }
+
+    const index = this.alteracoesDecididas.findIndex((item) =>
+      item.id.equals(copia.id),
+    );
+
+    if (index === -1) {
+      this.alteracoesDecididas.push(copia);
+    } else {
+      this.alteracoesDecididas[index] = copia;
+    }
   }
 }

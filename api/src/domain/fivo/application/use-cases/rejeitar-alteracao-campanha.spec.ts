@@ -42,6 +42,10 @@ describe('RejeitarAlteracaoCampanhaUseCase', () => {
     );
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   async function salva(campanha: Campanha): Promise<Campanha> {
     return (await campanhaRepository.findById(campanha.id.toString()))!;
   }
@@ -96,6 +100,25 @@ describe('RejeitarAlteracaoCampanhaUseCase', () => {
     expect(registroAuditoriaRepository.items[0].tipo).toBe(
       'ALTERACAO_CAMPANHA_REJEITADA',
     );
+  });
+  it('grava a alteracao decidida com status REJEITADA, o admin, a data-hora e o motivo', async () => {
+    const agora = new Date('2026-10-21T15:00:00Z');
+    jest.useFakeTimers({ now: agora });
+    const campanha = CampanhaFactory.aprovadaComAlteracao();
+    await campanhaRepository.create(campanha);
+    const alteracao = campanha.alteracaoPendente!;
+
+    const res = await sut.execute(campanha.id.toString(), admin, MOTIVO_VALIDO);
+
+    expect(res.isRight()).toBe(true);
+    expect(campanhaRepository.alteracoesDecididas).toHaveLength(1);
+    const [decidida] = campanhaRepository.alteracoesDecididas;
+    expect(decidida.id.equals(alteracao.id)).toBe(true);
+    expect(decidida.campanhaId.equals(campanha.id)).toBe(true);
+    expect(decidida.status).toBe(AlteracaoStatus.REJEITADA);
+    expect(decidida.decididoPor?.equals(admin.id)).toBe(true);
+    expect(decidida.decididoEm).toEqual(agora);
+    expect(decidida.motivo).toBe(MOTIVO_VALIDO);
   });
   it('conclui a rejeicao mesmo quando o envio do e-mail falha', async () => {
     const campanha = CampanhaFactory.aprovadaComAlteracao();

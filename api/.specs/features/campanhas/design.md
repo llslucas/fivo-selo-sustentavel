@@ -160,7 +160,8 @@ graph TD
   - `submeter(hoje: DataCalendario)` — só em `RASCUNHO` (senão `TransicaoInvalidaError`). Se faltar campo, devolve `CamposPendentesError` (422) com a lista completa: `descricao`, `beneficiada`, `regraDoacao`, `vigencia.inicio`. Se `vigencia.fimJaPassouEm(hoje)`, devolve `VigenciaVencidaError` (422, "A data de fim deve ser posterior à data atual"). Em caso de sucesso, passa a `EM_ANALISE` e grava `submetidaEm`.
   - `aprovar(adminId)` — `EM_ANALISE → APROVADA`; grava `decididoPor`/`decididoEm`.
   - `rejeitar(adminId, motivo)` — `EM_ANALISE → REJEITADA`; motivo com trim ≥ 20 (`MotivoInsuficienteError`); grava `motivoUltimaRejeicao`, que **não** é apagado ao voltar para `RASCUNHO`.
-  - `aprovarAlteracao(adminId)` / `rejeitarAlteracao(adminId, motivo)` — sem alteração pendente → `TransicaoInvalidaError`. Aprovar copia o `Compromisso` proposto para a campanha; rejeitar só fecha a alteração. Nos dois casos a campanha segue `APROVADA` e `alteracaoPendente` fica vazio.
+  - `aprovarAlteracao(adminId)` / `rejeitarAlteracao(adminId, motivo)` — sem alteração pendente → `TransicaoInvalidaError`. Aprovar copia o `Compromisso` proposto para a campanha; rejeitar só fecha a alteração. Nos dois casos a campanha segue `APROVADA` e `alteracaoPendente` fica vazio. A alteração decidida (status, `decididoPor`, `decididoEm` e, na rejeição, `motivo`) passa para `alteracaoDecidida`, de onde o `salvar` a grava (emenda da T46, 2026-10-27).
+  - `alteracaoDecidida: AlteracaoCompromisso | null` — campo transitório, fora das props: a última alteração decidida pela instância e ainda não gravada. Nasce `null` em toda campanha criada ou carregada do repositório e não impede abrir uma nova alteração.
   - `estaAptaASelo()` → `status === APROVADA`.
   - `estaPublicada()` → `status === APROVADA` (a empresa aprovada é checada no caso de uso).
   - `camposPendentes()`, `compromissoVigente(): Compromisso | null`.
@@ -179,7 +180,7 @@ graph TD
 - `CampanhaRepository` (**retrabalho**):
   - `findById(id)`, `findByIdPublico(idPublico)`;
   - `create(campanha)`;
-  - `salvar(campanha, versaoEsperada): Promise<boolean>`, que grava campanha e alteração juntas e incrementa `versao`;
+  - `salvar(campanha, versaoEsperada): Promise<boolean>`, que grava numa só transação a campanha (incrementando `versao`), a `alteracaoDecidida` (atualiza a linha da alteração pelo `id` com status, `decididoPor`, `decididoEm` e `motivo`) e a `alteracaoPendente` (insere ou atualiza pelo `id`), nessa ordem, para que a decisão libere o índice parcial antes de uma nova pendente. As gravações de alteração são idempotentes pelo `id`. Devolve `false` sem gravar nada quando a versão difere;
   - `listarEmAnalise(): Promise<Campanha[]>`, que traz as campanhas `EM_ANALISE` e as `APROVADA` com alteração pendente.
 - `Mailer`: `TemplateEmail.CAMPANHA_REJEITADA` e `TemplateEmail.ALTERACAO_CAMPANHA_REJEITADA`, ambos com `dados: { nomeCampanha, motivo }`.
 - Reusadas sem mudança: `EmpresaRepository`, `UserRepository`, `InstituicaoRepository`, `CausaRepository`, `RegistroAuditoriaRepository`.
@@ -204,7 +205,7 @@ graph TD
 | Peça | Local | Detalhe |
 | ---- | ----- | ------- |
 | Schema e migration | `prisma/schema.prisma`, `prisma/migrations/<ts>_campanhas` | modelos `Campanha` e `CampanhaAlteracao`, enums novos, valor `IMAGEM_CAMPANHA` em `tipo_arquivo`, SQL manual com CHECK e índice parcial (ver Data Models) |
-| `PrismaCampanhaMapper` + `PrismaCampanhaRepository` | `src/infra/database/prisma/` | `salvar` faz `updateMany where { id, versao: esperada }` com `versao + 1`, e `upsert` da alteração na mesma transação; `DataCalendario` ↔ `@db.Date` sem deslocamento de fuso |
+| `PrismaCampanhaMapper` + `PrismaCampanhaRepository` | `src/infra/database/prisma/` | `salvar` faz `updateMany where { id, versao: esperada }` com `versao + 1`; na mesma transação, grava a decisão da `alteracaoDecidida` na linha dela e depois faz `upsert` da `alteracaoPendente`; o mapper carrega só a alteração `EM_ANALISE` como `alteracaoPendente`; `DataCalendario` ↔ `@db.Date` sem deslocamento de fuso |
 | Binding da porta | `src/infra/database/database.module.ts` | `{ provide: CampanhaRepository, useClass: PrismaCampanhaRepository }` |
 | `Arquivo` / `ArquivoService` | `entities/arquivo.ts` (as três tabelas por tipo), `arquivo.service.ts` | `IMAGEM_CAMPANHA`; `buscarAcesso` reconhece a empresa dona da campanha |
 | Templates de e-mail | `src/infra/mail/` | `TEMPLATES_ENFILEIRAVEIS` inclui os dois novos |
@@ -273,6 +274,8 @@ model CampanhaAlteracao {
 ```
 
 O compromisso **anterior** da alteração não vira coluna: é sempre o que está na campanha enquanto ela está pendente, e o registro de auditoria guarda anterior e proposto no momento da decisão.
+
+A linha de `campanha_alteracao` nasce `EM_ANALISE` quando a alteração é aberta e recebe `status`, `decidido_por`, `decidido_em` e `motivo` no `salvar` que segue a decisão, a partir de `Campanha.alteracaoDecidida` (emenda da T46). Assim a tabela guarda o histórico de todas as decisões, e o índice parcial `campanha_alteracao_uma_pendente` fica livre para a próxima alteração.
 
 **SQL manual na migration** (o primeiro do projeto):
 

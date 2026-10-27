@@ -93,6 +93,10 @@ describe('AprovarAlteracaoCampanhaUseCase', () => {
     return campanha;
   }
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   async function salva(campanha: Campanha): Promise<Campanha> {
     return (await campanhaRepository.findById(campanha.id.toString()))!;
   }
@@ -109,6 +113,7 @@ describe('AprovarAlteracaoCampanhaUseCase', () => {
     expect(depois.alteracaoPendente?.status).toBe(AlteracaoStatus.EM_ANALISE);
     expect(depois.versao).toBe(campanha.versao);
     expect(registroAuditoriaRepository.items).toHaveLength(0);
+    expect(campanhaRepository.alteracoesDecididas).toHaveLength(0);
   });
 
   it('should reject with ResourceNotFoundError (404) when the campaign does not exist', async () => {
@@ -162,6 +167,25 @@ describe('AprovarAlteracaoCampanhaUseCase', () => {
         }) as unknown,
       }) as unknown,
     });
+  });
+
+  it('should save the decided change with status APROVADA, the admin and the decision time', async () => {
+    const agora = new Date('2026-10-21T15:00:00Z');
+    jest.useFakeTimers({ now: agora });
+    const campanha = await criarComAlteracaoDeRegra();
+    const alteracao = campanha.alteracaoPendente!;
+
+    const response = await sut.execute(campanha.id.toString(), admin);
+
+    expect(response.isRight()).toBe(true);
+    expect(campanhaRepository.alteracoesDecididas).toHaveLength(1);
+    const [decidida] = campanhaRepository.alteracoesDecididas;
+    expect(decidida.id.equals(alteracao.id)).toBe(true);
+    expect(decidida.campanhaId.equals(campanha.id)).toBe(true);
+    expect(decidida.status).toBe(AlteracaoStatus.APROVADA);
+    expect(decidida.decididoPor?.equals(admin.id)).toBe(true);
+    expect(decidida.decididoEm).toEqual(agora);
+    expect(decidida.motivo).toBeFalsy();
   });
 
   it('should apply a new beneficiary that is still available', async () => {
@@ -229,6 +253,7 @@ describe('AprovarAlteracaoCampanhaUseCase', () => {
       expect(depois.alteracaoPendente?.status).toBe(AlteracaoStatus.EM_ANALISE);
       expect(depois.versao).toBe(campanha.versao);
       expect(registroAuditoriaRepository.items).toHaveLength(0);
+      expect(campanhaRepository.alteracoesDecididas).toHaveLength(0);
     },
   );
 
@@ -253,5 +278,6 @@ describe('AprovarAlteracaoCampanhaUseCase', () => {
     expect(depois.compromissoVigente()?.equals(original)).toBe(true);
     expect(depois.alteracaoPendente?.status).toBe(AlteracaoStatus.EM_ANALISE);
     expect(registroAuditoriaRepository.items).toHaveLength(0);
+    expect(campanhaRepository.alteracoesDecididas).toHaveLength(0);
   });
 });

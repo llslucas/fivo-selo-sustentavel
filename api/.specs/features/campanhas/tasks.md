@@ -1097,10 +1097,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Depois de decidir, a campanha continua sem pendência (`alteracaoPendente` vazio, `compromissoVigente()` correto), e a alteração decidida fica acessível ao `salvar` com status, `decididoPor`, `decididoEm` e, na rejeição, `motivo`
-- [ ] O double guarda as alterações decididas (histórico), e os specs de aprovar e rejeitar alteração conferem pelo repositório: status `APROVADA`/`REJEITADA`, `decididoPor` = admin, `decididoEm` igual ao relógio fixado e `motivo` literal na rejeição
-- [ ] Uma nova alteração aberta depois da decisão continua aceita (`E/campanha.spec.ts:563-574` segue verde)
-- [ ] Gate `quick` passa
+- [x] Depois de decidir, a campanha continua sem pendência (`alteracaoPendente` vazio, `compromissoVigente()` correto), e a alteração decidida fica acessível ao `salvar` com status, `decididoPor`, `decididoEm` e, na rejeição, `motivo`
+- [x] O double guarda as alterações decididas (histórico), e os specs de aprovar e rejeitar alteração conferem pelo repositório: status `APROVADA`/`REJEITADA`, `decididoPor` = admin, `decididoEm` igual ao relógio fixado e `motivo` literal na rejeição
+- [x] Uma nova alteração aberta depois da decisão continua aceita (`E/campanha.spec.ts:563-574` segue verde)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -1220,7 +1220,7 @@ T39 → T40
 
 ### T29: `PrismaCampanhaRepository` e mapper
 
-**What**: Adaptador da porta com bloqueio otimista por `versao` e gravação da alteração na mesma transação.
+**What**: Adaptador da porta com bloqueio otimista por `versao` e gravação das alterações (decidida e pendente) na mesma transação.
 **Where**: `src/infra/database/prisma/repositories/prisma-campanha-repository.ts`
 **Depends on**: T28, T16
 **Reuses**: `prisma-instituicao-repository.ts`, `PrismaTransactionContext`
@@ -1235,9 +1235,11 @@ T39 → T40
 **Done when**:
 
 - [ ] Mapper reconstrói todos os VOs; dado persistido inválido lança erro
-- [ ] `salvar` = `updateMany where { id, versao }` com `versao + 1` e `upsert` da alteração, em uma transação; devolve `false` sem gravar quando a versão difere
+- [ ] `salvar` = `updateMany where { id, versao }` com `versao + 1`; na mesma transação, se houver `campanha.alteracaoDecidida`, atualiza a linha dela em `campanha_alteracao` (pelo `id`) com `status`, `decidido_por`, `decidido_em` e `motivo`, e **depois** faz `upsert` da `alteracaoPendente`; devolve `false` sem gravar nada quando a versão difere (contrato no JSDoc da porta, emenda da T46)
+- [ ] O mapper carrega como `alteracaoPendente` só a linha `EM_ANALISE`; as decididas ficam como histórico e não voltam ao agregado
 - [ ] Binding em `database.module.ts`; `limparBanco` inclui as duas tabelas novas
 - [ ] e2e em `test/database/`: ida e volta completa; `2026-01-01` volta `2026-01-01`; dois `salvar` com a mesma versão → só um grava; segunda alteração `EM_ANALISE` barrada pelo índice (ou pela versão, se T28 removeu o índice); `listarEmAnalise` traz os dois tipos; CHECK barra instituição e causa juntas
+- [ ] e2e de decisão: aprovar e rejeitar alteração gravam a linha com `status` `APROVADA`/`REJEITADA`, `decidido_por`, `decidido_em` e `motivo` (na rejeição), e a campanha recarregada vem sem pendência; uma nova alteração aberta depois da decisão é gravada sem violar o índice parcial, inclusive quando decisão e abertura vão no mesmo `salvar`
 - [ ] Gate `full` passa
 
 **Tests**: e2e

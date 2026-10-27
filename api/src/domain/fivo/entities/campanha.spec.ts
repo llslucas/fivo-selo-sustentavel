@@ -544,6 +544,85 @@ describe('Campanha', () => {
       expect(campanha.idPublico).toBe(idPublico);
     });
 
+    describe('decided change handed to the repository save', () => {
+      const agora = new Date('2026-10-21T15:00:00Z');
+
+      beforeEach(() => {
+        jest.useFakeTimers({ now: agora });
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('has no decided change while the change is still pending', () => {
+        const campanha = campanhaAprovada();
+
+        campanha.editarCompromisso({ beneficiada: beneficiada() });
+
+        expect(campanha.alteracaoDecidida).toBeNull();
+      });
+
+      it('keeps the approved change reachable with status, who decided and when', () => {
+        const campanha = campanhaAprovada();
+        campanha.editarCompromisso({ regraDoacao: regraDoacao() });
+        const alteracao = campanha.alteracaoPendente!;
+        const adminId = new UniqueEntityId();
+
+        const result = campanha.aprovarAlteracao(adminId);
+
+        expect(result.isRight()).toBe(true);
+        expect(campanha.alteracaoPendente).toBeNull();
+        expect(campanha.compromissoVigente()?.equals(alteracao.proposto)).toBe(
+          true,
+        );
+        const decidida = campanha.alteracaoDecidida!;
+        expect(decidida.id.equals(alteracao.id)).toBe(true);
+        expect(decidida.status).toBe(AlteracaoStatus.APROVADA);
+        expect(decidida.decididoPor).toEqual(adminId);
+        expect(decidida.decididoEm).toEqual(agora);
+        expect(decidida.motivo).toBeUndefined();
+      });
+
+      it('keeps the rejected change reachable with status, who decided, when and the reason', () => {
+        const campanha = campanhaAprovada();
+        const anterior = campanha.compromissoVigente()!;
+        campanha.editarCompromisso({ beneficiada: beneficiada() });
+        const alteracao = campanha.alteracaoPendente!;
+        const adminId = new UniqueEntityId();
+
+        const result = campanha.rejeitarAlteracao(adminId, MOTIVO_ALTERACAO);
+
+        expect(result.isRight()).toBe(true);
+        expect(campanha.alteracaoPendente).toBeNull();
+        expect(campanha.compromissoVigente()?.equals(anterior)).toBe(true);
+        const decidida = campanha.alteracaoDecidida!;
+        expect(decidida.id.equals(alteracao.id)).toBe(true);
+        expect(decidida.status).toBe(AlteracaoStatus.REJEITADA);
+        expect(decidida.decididoPor).toEqual(adminId);
+        expect(decidida.decididoEm).toEqual(agora);
+        expect(decidida.motivo).toBe(MOTIVO_ALTERACAO);
+      });
+
+      it('keeps the decided change reachable when a new change is opened afterwards', () => {
+        const campanha = campanhaAprovada();
+        campanha.editarCompromisso({ beneficiada: beneficiada() });
+        const primeira = campanha.alteracaoPendente!;
+        campanha.rejeitarAlteracao(new UniqueEntityId(), MOTIVO_ALTERACAO);
+
+        const result = campanha.editarCompromisso({
+          regraDoacao: regraDoacao(),
+        });
+
+        expect(result.isRight()).toBe(true);
+        expect(campanha.alteracaoDecidida).toBe(primeira);
+        expect(campanha.alteracaoPendente?.status).toBe(
+          AlteracaoStatus.EM_ANALISE,
+        );
+        expect(campanha.alteracaoPendente?.id.equals(primeira.id)).toBe(false);
+      });
+    });
+
     it('does not reject the change with a reason shorter than 20 characters', () => {
       const campanha = campanhaAprovada();
       campanha.editarCompromisso({ beneficiada: beneficiada() });
@@ -558,6 +637,7 @@ describe('Campanha', () => {
       expect(result.value).toBeInstanceOf(MotivoInsuficienteError);
       expect(campanha.alteracaoPendente).toBe(alteracao);
       expect(alteracao.status).toBe(AlteracaoStatus.EM_ANALISE);
+      expect(campanha.alteracaoDecidida).toBeNull();
     });
 
     it('accepts a new change request after the previous one was decided', () => {
@@ -590,6 +670,7 @@ describe('Campanha', () => {
       expect(result.value).toBeInstanceOf(TransicaoInvalidaError);
       expect(campanha.status).toBe(CampanhaStatus.APROVADA);
       expect(campanha.compromissoVigente()?.equals(anterior)).toBe(true);
+      expect(campanha.alteracaoDecidida).toBeNull();
     });
   });
 
