@@ -32,6 +32,30 @@ export function rejeitarInstituicao(id: string, motivo: string): Promise<void> {
   });
 }
 
+export type ItemFilaEmpresa = {
+  id: string;
+  razaoSocial: string;
+  cnpj: string;
+  email: string;
+  criadoEm: string;
+};
+
+export function listarFilaEmpresas(): Promise<ItemFilaEmpresa[]> {
+  return request("/admin/empresas");
+}
+
+export function aprovarEmpresa(id: string): Promise<void> {
+  return request(`/admin/empresas/${id}/aprovacao`, { method: "POST" });
+}
+
+export function rejeitarEmpresa(id: string, motivo: string): Promise<void> {
+  return request(`/admin/empresas/${id}/rejeicao`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ motivo }),
+  });
+}
+
 export type EstadoInstituicao = "APROVADA" | "SUSPENSA";
 
 export type InstituicaoAprovada = {
