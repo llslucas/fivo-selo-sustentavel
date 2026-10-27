@@ -958,11 +958,11 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `CampanhaPublica` tem nome, descrição, `temCapa`, nome da empresa, beneficiada (tipo + nome), regra, meta, vigência e `situacao`; o tipo **não** tem `id`, motivo nem alteração pendente
-- [ ] `ResourceNotFoundError('Campanha não encontrada')` idêntico para: inexistente, `RASCUNHO`, `EM_ANALISE`, `REJEITADA`, empresa `SUSPENSA` e `idPublico` que não é UUID
-- [ ] Com alteração pendente, devolve os valores aprovados anteriores
-- [ ] `situacao` `NAO_INICIADA` com início amanhã e `EM_ANDAMENTO` com início hoje (fake timers)
-- [ ] Gate `quick` passa
+- [x] `CampanhaPublica` tem nome, descrição, `temCapa`, nome da empresa, beneficiada (tipo + nome), regra, meta, vigência e `situacao`; o tipo **não** tem `id`, motivo nem alteração pendente
+- [x] `ResourceNotFoundError('Campanha não encontrada')` idêntico para: inexistente, `RASCUNHO`, `EM_ANALISE`, `REJEITADA`, empresa `SUSPENSA` e `idPublico` que não é UUID
+- [x] Com alteração pendente, devolve os valores aprovados anteriores
+- [x] `situacao` `NAO_INICIADA` com início amanhã e `EM_ANDAMENTO` com início hoje (fake timers)
+- [x] Gate `quick` passa — `tsc`/`jest` (11/11) limpos; `eslint` isolado nos 2 arquivos do T27 limpo.
 
 **Tests**: unit
 **Gate**: quick
