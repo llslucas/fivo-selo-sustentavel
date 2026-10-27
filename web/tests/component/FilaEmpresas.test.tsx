@@ -52,16 +52,32 @@ vi.mock("@/services/admin", async () => {
   };
 });
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    replace,
-    prefetch: vi.fn(),
-    back: vi.fn(),
-  }),
-  usePathname: () => "/admin/empresas",
-  useSearchParams: () => new URLSearchParams(),
-}));
+// IMPORTANTE: `useRouter` deve devolver SEMPRE o MESMO objeto. A `FilaEmpresas`
+// usa `carregar` num `useCallback([router])` disparado por `useEffect([carregar])`;
+// se o mock criasse um router novo a cada render, `carregar` mudaria de
+// identidade, o efeito re-executaria e re-buscaria a lista. No teste de erro
+// recuperável isso faria a 2ª chamada (que resolve) substituir o estado de erro
+// antes das asserções. Um objeto estável reproduz o router real.
+vi.mock("next/navigation", () => {
+  // Criação preguiçosa: a factory do `vi.mock` é içada ao topo do arquivo e
+  // avaliada antes de `replace` existir, então o objeto só é montado na
+  // primeira chamada de `useRouter` (já em runtime). A referência fica cacheada
+  // para que todas as renderizações recebam o MESMO objeto.
+  let routerEstavel: ReturnType<typeof useRouterReal> | null = null;
+  function useRouterReal() {
+    return {
+      push: vi.fn(),
+      replace,
+      prefetch: vi.fn(),
+      back: vi.fn(),
+    };
+  }
+  return {
+    useRouter: () => (routerEstavel ??= useRouterReal()),
+    usePathname: () => "/admin/empresas",
+    useSearchParams: () => new URLSearchParams(),
+  };
+});
 
 // Import após os mocks para que o componente use as versões mockadas.
 import FilaEmpresas from "@/components/admin/FilaEmpresas";
