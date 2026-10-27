@@ -1054,12 +1054,12 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Sucesso: `mailer.mensagens).toEqual([{ para: <e-mail do dono>, template: TemplateEmail.ALTERACAO_CAMPANHA_REJEITADA, dados: { nomeCampanha, motivo } }])`
-- [ ] Sucesso: auditoria com `tipo`, `usuarioId` do admin, `entidadeId`, `dados` completos (compromisso anterior, compromisso proposto e `motivo`) e `criadoEm` igual ao relógio fixado (`jest.useFakeTimers`)
-- [ ] Falha do `Mailer` com dono existente: a decisão fica gravada e `console.error` é chamado (a falha precisa ser exercitada de verdade)
-- [ ] Concorrência contra o double (`RepositorioComGravacaoConcorrente`) → `TransicaoInvalidaError`, pendência `EM_ANALISE`, auditoria vazia, nenhum e-mail
-- [ ] Não-admin, motivo curto e sem pendência: além do estado e da auditoria, `mailer.mensagens` vazio e `versao` inalterada
-- [ ] Mutantes M22, M23 e M24 morrem
+- [x] Sucesso: `mailer.mensagens).toEqual([{ para: <e-mail do dono>, template: TemplateEmail.ALTERACAO_CAMPANHA_REJEITADA, dados: { nomeCampanha, motivo } }])`
+- [x] Sucesso: auditoria com `tipo`, `usuarioId` do admin, `entidadeId`, `dados` completos (compromisso anterior, compromisso proposto e `motivo`) e `criadoEm` igual ao relógio fixado (`jest.useFakeTimers`)
+- [x] Falha do `Mailer` com dono existente: a decisão fica gravada e `console.error` é chamado (a falha precisa ser exercitada de verdade)
+- [x] Concorrência contra o double (`RepositorioComGravacaoConcorrente`) → `TransicaoInvalidaError`, pendência `EM_ANALISE`, auditoria vazia, nenhum e-mail
+- [x] Não-admin, motivo curto e sem pendência: além do estado e da auditoria, `mailer.mensagens` vazio e `versao` inalterada
+- [x] Mutantes M22, M23 e M24 morrem
 
 **Tests**: unit
 **Gate**: quick
