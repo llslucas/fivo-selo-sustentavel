@@ -63,8 +63,8 @@ vi.mock("next/navigation", () => {
   // avaliada antes de `replace` existir, então o objeto só é montado na
   // primeira chamada de `useRouter` (já em runtime). A referência fica cacheada
   // para que todas as renderizações recebam o MESMO objeto.
-  let routerEstavel: ReturnType<typeof useRouterReal> | null = null;
-  function useRouterReal() {
+  let routerEstavel: ReturnType<typeof montarRouter> | null = null;
+  function montarRouter() {
     return {
       push: vi.fn(),
       replace,
@@ -73,7 +73,7 @@ vi.mock("next/navigation", () => {
     };
   }
   return {
-    useRouter: () => (routerEstavel ??= useRouterReal()),
+    useRouter: () => (routerEstavel ??= montarRouter()),
     usePathname: () => "/admin/empresas",
     useSearchParams: () => new URLSearchParams(),
   };
