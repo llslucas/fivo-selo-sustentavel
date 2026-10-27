@@ -1118,10 +1118,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `EditarCampanhaUseCaseRequest.capaArquivoId?: string`, repassado a `editarTextos`
-- [ ] Rascunho e `APROVADA`: a capa é aplicada e gravada (`findById` mostra o id novo), sem abrir alteração e sem auditoria
-- [ ] `EM_ANALISE` → `CampanhaEmAnaliseError`, nada gravado
-- [ ] Gate `quick` passa
+- [x] `EditarCampanhaUseCaseRequest.capaArquivoId?: string`, repassado a `editarTextos`
+- [x] Rascunho e `APROVADA`: a capa é aplicada e gravada (`findById` mostra o id novo), sem abrir alteração e sem auditoria
+- [x] `EM_ANALISE` → `CampanhaEmAnaliseError`, nada gravado
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

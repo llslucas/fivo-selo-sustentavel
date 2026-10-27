@@ -361,6 +361,61 @@ describe('EditarCampanhaUseCase', () => {
     });
   });
 
+  describe('cover image', () => {
+    it.each([
+      ['a draft', CampanhaStatus.RASCUNHO],
+      ['an approved campaign', CampanhaStatus.APROVADA],
+    ])(
+      'applies and saves a new cover on %s without opening a change or auditing',
+      async (_caso, status) => {
+        const campanha = await guardar(
+          CampanhaFactory.completa({
+            empresaId: empresa.id,
+            status,
+            capaArquivoId: new UniqueEntityId(),
+          }),
+        );
+        const novaCapa = new UniqueEntityId().toString();
+
+        const response = await sut.execute(
+          pedido(campanha, { capaArquivoId: novaCapa }),
+        );
+
+        expect(response.isRight()).toBe(true);
+        if (response.isRight()) {
+          expect(response.value.capaArquivoId).toBe(novaCapa);
+        }
+        const depois = await salva(campanha);
+        expect(depois.capaArquivoId?.toString()).toBe(novaCapa);
+        expect(depois.status).toBe(status);
+        expect(depois.alteracaoPendente).toBeFalsy();
+        expect(depois.versao).toBe(campanha.versao + 1);
+        expect(registroAuditoriaRepository.items).toHaveLength(0);
+      },
+    );
+
+    it('rejects a new cover on a campaign under review with CampanhaEmAnaliseError, saving nothing', async () => {
+      const capaAtual = new UniqueEntityId();
+      const campanha = await guardar(
+        CampanhaFactory.emAnalise({
+          empresaId: empresa.id,
+          capaArquivoId: capaAtual,
+        }),
+      );
+
+      const response = await sut.execute(
+        pedido(campanha, { capaArquivoId: new UniqueEntityId().toString() }),
+      );
+
+      expect(response.isLeft()).toBe(true);
+      expect(response.value).toBeInstanceOf(CampanhaEmAnaliseError);
+      expect((await salva(campanha)).capaArquivoId?.equals(capaAtual)).toBe(
+        true,
+      );
+      expectNadaGravado(campanha);
+    });
+  });
+
   it('rejects editing a campaign under review with CampanhaEmAnaliseError', async () => {
     const campanha = await guardar(
       CampanhaFactory.emAnalise({ empresaId: empresa.id }),
