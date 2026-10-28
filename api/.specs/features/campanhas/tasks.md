@@ -1224,11 +1224,11 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Entidade: campanha `APROVADA` com vigência aprovada de fim = hoje (ou antes), `editarCompromisso({ regraDoacao }, hoje)` → `VigenciaVencidaError`, sem pendência e com `compromissoVigente()` intacto
-- [ ] Entidade: a mesma campanha com `editarCompromisso({ vigencia: <fim amanhã> }, hoje)` → alteração aberta (a vigência nova substitui a vencida)
-- [ ] Caso de uso (fake timers): campanha `APROVADA` com fim aprovado já vencido em SP + edição só da regra → `VigenciaVencidaError`, `expectNadaGravado`
-- [ ] Mutante N14 (`E/campanha.ts:428`, `proposto.vigencia` → `parcial.vigencia?`) morre
-- [ ] Gate `quick` passa
+- [x] Entidade: campanha `APROVADA` com vigência aprovada de fim = hoje (ou antes), `editarCompromisso({ regraDoacao }, hoje)` → `VigenciaVencidaError`, sem pendência e com `compromissoVigente()` intacto
+- [x] Entidade: a mesma campanha com `editarCompromisso({ vigencia: <fim amanhã> }, hoje)` → alteração aberta (a vigência nova substitui a vencida)
+- [x] Caso de uso (fake timers): campanha `APROVADA` com fim aprovado já vencido em SP + edição só da regra → `VigenciaVencidaError`, `expectNadaGravado`
+- [x] Mutante N14 (`E/campanha.ts:428`, `proposto.vigencia` → `parcial.vigencia?`) morre
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

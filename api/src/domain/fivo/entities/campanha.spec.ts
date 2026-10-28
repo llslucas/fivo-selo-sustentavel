@@ -539,6 +539,55 @@ describe('Campanha', () => {
       ).toBe('2026-10-22');
     });
 
+    describe('approved end date already past', () => {
+      function campanhaAprovadaVencida(): Campanha {
+        return CampanhaFactory.create({
+          status: CampanhaStatus.APROVADA,
+          descricao: descricao('Cada produto vendido ajuda uma instituicao.'),
+          beneficiada: beneficiada(),
+          regraDoacao: regraDoacao(),
+          vigencia: vigencia('2026-10-01', '2026-10-21'),
+        });
+      }
+
+      it('does not open a change that only edits the rule', () => {
+        const campanha = campanhaAprovadaVencida();
+        const anterior = campanha.compromissoVigente()!;
+        const novaRegra = RegraDoacao.criar({
+          tipo: TipoRegraDoacao.POR_UNIDADE,
+          valor: '2.50',
+        });
+        if (novaRegra.isLeft()) throw novaRegra.value;
+
+        const result = campanha.editarCompromisso(
+          { regraDoacao: novaRegra.value },
+          hoje,
+        );
+
+        expect(result.isLeft()).toBe(true);
+        expect(result.value).toBeInstanceOf(VigenciaVencidaError);
+        expect(campanha.alteracaoPendente).toBeFalsy();
+        expect(campanha.compromissoVigente()?.equals(anterior)).toBe(true);
+      });
+
+      it('opens a change when the new end date replaces the past one', () => {
+        const campanha = campanhaAprovadaVencida();
+
+        const result = campanha.editarCompromisso(
+          { vigencia: vigencia('2026-10-01', '2026-10-22') },
+          hoje,
+        );
+
+        expect(result.isRight()).toBe(true);
+        expect(campanha.alteracaoPendente?.status).toBe(
+          AlteracaoStatus.EM_ANALISE,
+        );
+        expect(
+          campanha.alteracaoPendente?.proposto.vigencia.fim?.toString(),
+        ).toBe('2026-10-22');
+      });
+    });
+
     it('does not open a second change request while one is pending', () => {
       const campanha = campanhaAprovada();
       campanha.editarCompromisso({ beneficiada: beneficiada() }, hoje);

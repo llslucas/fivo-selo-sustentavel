@@ -2,12 +2,14 @@ import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { Campanha, CampanhaStatus } from '@domain/fivo/entities/campanha';
+import { DataCalendario } from '@domain/fivo/entities/data-calendario';
 import { Empresa, EmpresaStatus } from '@domain/fivo/entities/empresa';
 import {
   Instituicao,
   InstituicaoStatus,
 } from '@domain/fivo/entities/instituicao';
 import { TipoRegraDoacao } from '@domain/fivo/entities/regra-doacao';
+import { Vigencia } from '@domain/fivo/entities/vigencia';
 import { CampanhaFactory } from '@test/factories/campanha-factory';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { InstituicaoFactory } from '@test/factories/instituicao-factory';
@@ -386,6 +388,39 @@ describe('EditarCampanhaUseCase', () => {
       const response = await sut.execute(
         pedido(campanha, {
           vigencia: { inicio: '2026-10-01', fim: '2026-12-31' },
+        }),
+      );
+
+      expect(response.isLeft()).toBe(true);
+      expect(response.value).toBeInstanceOf(VigenciaVencidaError);
+      const depois = await salva(campanha);
+      expect(depois.alteracaoPendente).toBeFalsy();
+      expect(depois.compromissoVigente()?.equals(vigenteAntes)).toBe(true);
+      expectNadaGravado(campanha);
+    });
+
+    it('rejects a change that only edits the rule when the approved end date is today in Sao Paulo, saving nothing', async () => {
+      jest.useFakeTimers({ now: virada });
+      const inicio = DataCalendario.criar('2026-10-01');
+      const fim = DataCalendario.criar('2026-12-31');
+      if (inicio.isLeft()) throw inicio.value;
+      if (fim.isLeft()) throw fim.value;
+      const vigenciaVencida = Vigencia.criar({
+        inicio: inicio.value,
+        fim: fim.value,
+      });
+      if (vigenciaVencida.isLeft()) throw vigenciaVencida.value;
+      const campanha = await guardar(
+        CampanhaFactory.aprovada({
+          empresaId: empresa.id,
+          vigencia: vigenciaVencida.value,
+        }),
+      );
+      const vigenteAntes = campanha.compromissoVigente()!;
+
+      const response = await sut.execute(
+        pedido(campanha, {
+          regraDoacao: { tipo: TipoRegraDoacao.POR_UNIDADE, valor: '2.50' },
         }),
       );
 
