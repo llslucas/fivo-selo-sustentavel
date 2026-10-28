@@ -2510,6 +2510,205 @@
         ]
       }
     },
+    "/campanhas/publicas/{idPublico}": {
+      "get": {
+        "operationId": "CampanhasPublicasController_buscar",
+        "parameters": [
+          {
+            "description": "Identificador público da campanha (o do selo e do QR Code)",
+            "in": "path",
+            "name": "idPublico",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "beneficiada": {
+                      "properties": {
+                        "nome": {
+                          "type": "string"
+                        },
+                        "tipo": {
+                          "enum": [
+                            "INSTITUICAO",
+                            "CAUSA"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "tipo",
+                        "nome"
+                      ],
+                      "type": "object"
+                    },
+                    "descricao": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "empresa": {
+                      "description": "Nome fantasia",
+                      "type": "string"
+                    },
+                    "meta": {
+                      "description": "String decimal (`\"1.50\"`)",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "nome": {
+                      "type": "string"
+                    },
+                    "regraDoacao": {
+                      "properties": {
+                        "percentual": {
+                          "description": "String decimal (`\"1.50\"`)",
+                          "type": "string"
+                        },
+                        "tipo": {
+                          "enum": [
+                            "POR_UNIDADE",
+                            "PERCENTUAL"
+                          ],
+                          "type": "string"
+                        },
+                        "valor": {
+                          "description": "String decimal (`\"1.50\"`)",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "tipo"
+                      ],
+                      "type": "object"
+                    },
+                    "situacao": {
+                      "enum": [
+                        "NAO_INICIADA",
+                        "EM_ANDAMENTO"
+                      ],
+                      "type": "string"
+                    },
+                    "temCapa": {
+                      "description": "Bytes em `GET /campanhas/publicas/{idPublico}/capa` quando `true`",
+                      "type": "boolean"
+                    },
+                    "vigencia": {
+                      "properties": {
+                        "fim": {
+                          "format": "date",
+                          "type": "string"
+                        },
+                        "inicio": {
+                          "format": "date",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "inicio"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "nome",
+                    "descricao",
+                    "temCapa",
+                    "empresa",
+                    "beneficiada",
+                    "regraDoacao",
+                    "meta",
+                    "vigencia",
+                    "situacao"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Versão aprovada da campanha"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Campanha inexistente, não aprovada, de empresa não aprovada ou identificador malformado (mesmo corpo em todos os casos)"
+          }
+        },
+        "summary": "Dados aprovados de uma campanha publicada, sem autenticação (sem id interno, motivo ou alteração pendente)",
+        "tags": [
+          "campanhas"
+        ]
+      }
+    },
+    "/campanhas/publicas/{idPublico}/capa": {
+      "get": {
+        "operationId": "CampanhasPublicasController_capa",
+        "parameters": [
+          {
+            "description": "Identificador público da campanha (o do selo e do QR Code)",
+            "in": "path",
+            "name": "idPublico",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Bytes da capa, com o Content-Type do arquivo"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Campanha inexistente, não aprovada, de empresa não aprovada ou identificador malformado (mesmo corpo em todos os casos), ou campanha sem capa"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Storage indisponível no momento."
+          }
+        },
+        "summary": "Imagem de capa de uma campanha publicada, sem autenticação",
+        "tags": [
+          "campanhas"
+        ]
+      }
+    },
     "/campanhas/{id}": {
       "get": {
         "operationId": "CampanhasController_detalhar",

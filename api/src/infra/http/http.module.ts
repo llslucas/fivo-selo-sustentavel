@@ -8,6 +8,7 @@ import { AprovarInstituicaoUseCase } from '@domain/fivo/application/use-cases/ap
 import { AssegurarBeneficiadaDisponivelUseCase } from '@domain/fivo/application/use-cases/assegurar-beneficiada-disponivel';
 import { AssegurarEmpresaAprovadaUseCase } from '@domain/fivo/application/use-cases/assegurar-empresa-aprovada';
 import { AutenticarUsuarioUseCase } from '@domain/fivo/application/use-cases/autenticar-usuario';
+import { BuscarCampanhaPublicaUseCase } from '@domain/fivo/application/use-cases/buscar-campanha-publica';
 import { ConfirmarTrocaEmailUseCase } from '@domain/fivo/application/use-cases/confirmar-troca-email';
 import { ConsultarCampanhaDaEmpresaUseCase } from '@domain/fivo/application/use-cases/consultar-campanha-da-empresa';
 import { CriarCampanhaUseCase } from '@domain/fivo/application/use-cases/criar-campanha';
@@ -50,6 +51,7 @@ import { BeneficiadasController } from './controllers/beneficiadas.controller';
 import { CadastroEmpresaController } from './controllers/cadastro-empresa.controller';
 import { CadastroInstituicaoController } from './controllers/cadastro-instituicao.controller';
 import { CampanhasController } from './controllers/campanhas.controller';
+import { CampanhasPublicasController } from './controllers/campanhas-publicas.controller';
 import { CausasController } from './controllers/causas.controller';
 import { DomainExceptionFilter } from './domain-exception.filter';
 import { SenhaController } from './controllers/senha.controller';
@@ -69,6 +71,7 @@ import { SenhaController } from './controllers/senha.controller';
     SenhaController,
     CampanhasController,
     AdminCampanhasController,
+    CampanhasPublicasController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
@@ -106,6 +109,7 @@ import { SenhaController } from './controllers/senha.controller';
     RejeitarCampanhaUseCase,
     AprovarAlteracaoCampanhaUseCase,
     RejeitarAlteracaoCampanhaUseCase,
+    BuscarCampanhaPublicaUseCase,
   ],
 })
 export class HttpModule {}

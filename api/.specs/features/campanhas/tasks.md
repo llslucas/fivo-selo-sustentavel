@@ -1560,10 +1560,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] e2e: 200 sem cookie para campanha aprovada; o JSON não tem `id`, motivo nem pendência
-- [ ] e2e: 404 com corpo idêntico (comparado byte a byte) para inexistente, rascunho, em análise, rejeitada, empresa suspensa e `idPublico` malformado
-- [ ] e2e: capa 200 com `Content-Type` correto quando publicada; 404 em rascunho
-- [ ] Gate `full` passa
+- [x] e2e: 200 sem cookie para campanha aprovada; o JSON não tem `id`, motivo nem pendência
+- [x] e2e: 404 com corpo idêntico (comparado byte a byte) para inexistente, rascunho, em análise, rejeitada, empresa suspensa e `idPublico` malformado
+- [x] e2e: capa 200 com `Content-Type` correto quando publicada; 404 em rascunho
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
