@@ -210,6 +210,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md SP4, Criação AC1 x PUT /campanhas/:id/capa (campanhas.controller.ts:309-339) (specs)
 - last seen: 2026-10-28T01:43:52Z
 
+### L-034 - When a controller spreads the request body into a use-case input next to session-derived ids, add an e2e that sends those ids in the body and asserts they are ignored
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: campanhas
+- evidence: validation.md rodada 2, mutantes S34 S45 S46 (campanhas.controller.ts:220-222,277-282 spread do corpo após os ids da sessão; campanhas.dto.ts:42,50) (routes)
+- last seen: 2026-10-28T01:58:36Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
