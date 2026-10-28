@@ -1419,10 +1419,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] e2e: rascunho editável; 409 em análise com a mensagem exata; `REJEITADA` editada volta a `RASCUNHO` com motivo preservado no detalhe
-- [ ] e2e: em `APROVADA`, descrição aplicada na hora; regra nova abre alteração (detalhe mostra pendência) e a segunda → 409 "Já existe uma alteração em análise"
-- [ ] e2e: 404 para campanha alheia; 422 nos limites
-- [ ] Gate `full` passa
+- [x] e2e: rascunho editável; 409 em análise com a mensagem exata; `REJEITADA` editada volta a `RASCUNHO` com motivo preservado no detalhe
+- [x] e2e: em `APROVADA`, descrição aplicada na hora; regra nova abre alteração (detalhe mostra pendência) e a segunda → 409 "Já existe uma alteração em análise"
+- [x] e2e: 404 para campanha alheia; 422 nos limites
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

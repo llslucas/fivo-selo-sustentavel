@@ -601,4 +601,439 @@ describe('Campanhas da empresa (e2e)', () => {
       expect(resposta.status).toBe(403);
     });
   });
+
+  describe('PATCH /campanhas/:id', () => {
+    const MOTIVO = 'A regra de doação não confere com a embalagem.';
+
+    async function linha(id: string) {
+      return contexto.prisma.campanha.findUniqueOrThrow({ where: { id } });
+    }
+
+    function editar(id: string, corpo: Record<string, unknown>) {
+      return comoDona(cenario.api().patch(`/campanhas/${id}`).send(corpo));
+    }
+
+    async function aprovada(): Promise<{ id: string; idPublico: string }> {
+      const campanha = await cenario.criarCampanha(
+        dona.token,
+        corpoCompleto(catalogo.instituicao, { meta: '500.00' }),
+      );
+      await cenario.forcarEstado(campanha.id, 'APROVADA');
+      return campanha;
+    }
+
+    function recente(data: Date | string): boolean {
+      return Math.abs(Date.now() - new Date(data).getTime()) < 60_000;
+    }
+
+    it('RASCUNHO → 200 com todos os campos editados e o idPublico intacto', async () => {
+      const { id, idPublico } = await cenario.criarCampanha(dona.token, {
+        nome: 'Rascunho',
+      });
+
+      const resposta = await editar(id, {
+        nome: 'Café Verde',
+        descricao: 'Parte da venda vai para o reflorestamento.',
+        causaId: catalogo.causa.id.toString(),
+        regraDoacao: { tipo: 'PERCENTUAL', percentual: '2.5' },
+        meta: '15000',
+        vigencia: { inicio: '2026-02-01', fim: '2026-12-31' },
+      });
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body).toMatchObject({
+        id,
+        idPublico,
+        nome: 'Café Verde',
+        descricao: 'Parte da venda vai para o reflorestamento.',
+        beneficiada: { tipo: 'CAUSA', id: catalogo.causa.id.toString() },
+        regraDoacao: { tipo: 'PERCENTUAL', percentual: '2.50' },
+        meta: '15000.00',
+        vigencia: { inicio: '2026-02-01', fim: '2026-12-31' },
+        status: 'RASCUNHO',
+        alteracaoPendente: null,
+      });
+      expect(await linha(id)).toMatchObject({
+        nome: 'Café Verde',
+        causaId: catalogo.causa.id.toString(),
+        regraTipo: 'PERCENTUAL',
+        regraPercentualCentesimos: 250,
+        metaCentavos: 1500000,
+        status: 'RASCUNHO',
+        idPublico,
+      });
+      expect(await contexto.prisma.registroAuditoria.count()).toBe(0);
+    });
+
+    it.each<[string, Record<string, unknown>]>([
+      ['texto', { descricao: 'Nova descrição' }],
+      ['compromisso', { regraDoacao: { tipo: 'POR_UNIDADE', valor: '2.00' } }],
+    ])(
+      'EM_ANALISE, edição de %s → 409 "Campanha em análise não pode ser editada", nada gravado',
+      async (_rotulo, corpo) => {
+        const { id } = await cenario.criarCampanha(
+          dona.token,
+          corpoCompleto(catalogo.instituicao),
+        );
+        await cenario.forcarEstado(id, 'EM_ANALISE');
+        const antes = await linha(id);
+
+        const resposta = await editar(id, corpo);
+
+        expect(resposta.status).toBe(409);
+        expect(resposta.body).toEqual({
+          statusCode: 409,
+          message: 'Campanha em análise não pode ser editada',
+        });
+        expect(await linha(id)).toEqual(antes);
+        expect(await contexto.prisma.campanhaAlteracao.count()).toBe(0);
+        expect(await contexto.prisma.registroAuditoria.count()).toBe(0);
+      },
+    );
+
+    it('REJEITADA editada → 200, volta a RASCUNHO com o motivo preservado no detalhe e a reabertura auditada', async () => {
+      const { id } = await cenario.criarCampanha(
+        dona.token,
+        corpoCompleto(catalogo.instituicao),
+      );
+      await cenario.forcarEstado(id, 'REJEITADA', MOTIVO);
+
+      const resposta = await editar(id, { descricao: 'Descrição corrigida' });
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body).toMatchObject({
+        status: 'RASCUNHO',
+        descricao: 'Descrição corrigida',
+        motivoUltimaRejeicao: MOTIVO,
+      });
+      const detalhe = await comoDona(cenario.api().get(`/campanhas/${id}`));
+      expect(detalhe.body).toMatchObject({
+        status: 'RASCUNHO',
+        motivoUltimaRejeicao: MOTIVO,
+      });
+      const [registro] = await contexto.prisma.registroAuditoria.findMany();
+      expect(registro).toMatchObject({
+        tipo: 'CAMPANHA_REABERTA',
+        usuarioId: dona.usuario.id.toString(),
+        entidadeId: id,
+        dados: { estadoAnterior: 'REJEITADA', estadoNovo: 'RASCUNHO' },
+      });
+      expect(recente(registro.criadoEm)).toBe(true);
+    });
+
+    it('APROVADA, nome, descrição e meta → 200 aplicados na hora, sem alteração pendente', async () => {
+      const { id, idPublico } = await aprovada();
+
+      const resposta = await editar(id, {
+        nome: 'Café que Educa 2',
+        descricao: 'Texto revisado',
+        meta: '750.25',
+      });
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body).toMatchObject({
+        idPublico,
+        nome: 'Café que Educa 2',
+        descricao: 'Texto revisado',
+        meta: '750.25',
+        status: 'APROVADA',
+        alteracaoPendente: null,
+      });
+      expect(await linha(id)).toMatchObject({
+        nome: 'Café que Educa 2',
+        descricao: 'Texto revisado',
+        metaCentavos: 75025,
+        status: 'APROVADA',
+      });
+      expect(await contexto.prisma.campanhaAlteracao.count()).toBe(0);
+    });
+
+    it.each<
+      [
+        string,
+        (c: Catalogo) => Record<string, unknown>,
+        (c: Catalogo) => Record<string, unknown>,
+      ]
+    >([
+      [
+        'regra de doação',
+        () => ({ regraDoacao: { tipo: 'PERCENTUAL', percentual: '12.05' } }),
+        (c) => ({
+          beneficiada: {
+            tipo: 'INSTITUICAO',
+            id: c.instituicao.id.toString(),
+          },
+          regraDoacao: { tipo: 'PERCENTUAL', percentual: '12.05' },
+          vigencia: { inicio: '2026-01-01' },
+        }),
+      ],
+      [
+        'beneficiada',
+        (c) => ({ causaId: c.causa.id.toString() }),
+        (c) => ({
+          beneficiada: { tipo: 'CAUSA', id: c.causa.id.toString() },
+          regraDoacao: { tipo: 'POR_UNIDADE', valor: '1.00' },
+          vigencia: { inicio: '2026-01-01' },
+        }),
+      ],
+      [
+        'vigência',
+        () => ({ vigencia: { inicio: '2026-01-01', fim: '2031-01-01' } }),
+        (c) => ({
+          beneficiada: {
+            tipo: 'INSTITUICAO',
+            id: c.instituicao.id.toString(),
+          },
+          regraDoacao: { tipo: 'POR_UNIDADE', valor: '1.00' },
+          vigencia: { inicio: '2026-01-01', fim: '2031-01-01' },
+        }),
+      ],
+    ])(
+      'APROVADA, nova %s → 200, abre alteração pendente e mantém os valores aprovados',
+      async (_rotulo, corpo, proposto) => {
+        const { id } = await aprovada();
+        const antes = await linha(id);
+
+        const resposta = await editar(id, corpo(catalogo));
+
+        expect(resposta.status).toBe(200);
+        const aprovados = {
+          beneficiada: {
+            tipo: 'INSTITUICAO',
+            id: catalogo.instituicao.id.toString(),
+          },
+          regraDoacao: { tipo: 'POR_UNIDADE', valor: '1.00' },
+          vigencia: { inicio: '2026-01-01' },
+        };
+        expect(resposta.body).toMatchObject({
+          status: 'APROVADA',
+          ...aprovados,
+          alteracaoPendente: {
+            ...proposto(catalogo),
+            abertaEm: expect.any(String) as string,
+          },
+        });
+        const detalhe = await comoDona(cenario.api().get(`/campanhas/${id}`));
+        expect(detalhe.body).toEqual(resposta.body);
+        expect(await linha(id)).toMatchObject({
+          status: 'APROVADA',
+          instituicaoId: antes.instituicaoId,
+          causaId: null,
+          regraTipo: 'POR_UNIDADE',
+          regraValorCentavos: 100,
+          dataFim: null,
+        });
+        const alteracoes = await contexto.prisma.campanhaAlteracao.findMany();
+        expect(alteracoes).toHaveLength(1);
+        expect(alteracoes[0]).toMatchObject({
+          campanhaId: id,
+          status: 'EM_ANALISE',
+        });
+        const [registro] = await contexto.prisma.registroAuditoria.findMany();
+        expect(registro).toMatchObject({
+          tipo: 'ALTERACAO_CAMPANHA_ABERTA',
+          usuarioId: dona.usuario.id.toString(),
+          entidadeId: id,
+          dados: {
+            compromissoAnterior: aprovados,
+            compromissoProposto: proposto(catalogo),
+          },
+        });
+        expect(recente(registro.criadoEm)).toBe(true);
+      },
+    );
+
+    it('APROVADA com alteração pendente, segunda alteração → 409 "Já existe uma alteração em análise", nada gravado', async () => {
+      const { id } = await aprovada();
+      await editar(id, {
+        regraDoacao: { tipo: 'POR_UNIDADE', valor: '2.00' },
+      });
+      const antes = await linha(id);
+
+      const resposta = await editar(id, {
+        regraDoacao: { tipo: 'POR_UNIDADE', valor: '3.00' },
+      });
+
+      expect(resposta.status).toBe(409);
+      expect(resposta.body).toEqual({
+        statusCode: 409,
+        message: 'Já existe uma alteração em análise',
+      });
+      expect(await linha(id)).toEqual(antes);
+      const alteracoes = await contexto.prisma.campanhaAlteracao.findMany();
+      expect(alteracoes).toHaveLength(1);
+      expect(alteracoes[0].regraValorCentavos).toBe(200);
+      expect(await contexto.prisma.registroAuditoria.count()).toBe(1);
+    });
+
+    it.each<[string, (c: Catalogo) => Record<string, unknown>, string]>([
+      [
+        'valor inválido',
+        () => ({ regraDoacao: { tipo: 'POR_UNIDADE', valor: '0.00' } }),
+        MENSAGEM_VALOR,
+      ],
+      [
+        'percentual inválido',
+        () => ({ regraDoacao: { tipo: 'PERCENTUAL', percentual: '100.01' } }),
+        MENSAGEM_PERCENTUAL,
+      ],
+      [
+        'regra com o valor do outro tipo',
+        () => ({ regraDoacao: { tipo: 'PERCENTUAL', valor: '1.00' } }),
+        MENSAGEM_OUTRO_TIPO,
+      ],
+      [
+        'instituição e causa juntas',
+        (c) => ({
+          instituicaoId: c.instituicao.id.toString(),
+          causaId: c.causa.id.toString(),
+        }),
+        MENSAGEM_AMBIGUA,
+      ],
+      [
+        'instituição suspensa',
+        (c) => ({ instituicaoId: c.instituicaoSuspensa.id.toString() }),
+        MENSAGEM_INDISPONIVEL,
+      ],
+      [
+        'causa inativa',
+        (c) => ({ causaId: c.causaInativa.id.toString() }),
+        MENSAGEM_INDISPONIVEL,
+      ],
+      [
+        'fim igual ao início',
+        () => ({ vigencia: { inicio: '2026-05-01', fim: '2026-05-01' } }),
+        MENSAGEM_VIGENCIA,
+      ],
+      [
+        'fim igual a hoje',
+        () => ({ vigencia: { inicio: '2020-01-01', fim: diaRelativo(0) } }),
+        'A data de fim deve ser posterior à data atual',
+      ],
+    ])(
+      'APROVADA, alteração com %s → 422 com a mensagem da criação, nada gravado',
+      async (_rotulo, corpo, mensagem) => {
+        const { id } = await aprovada();
+        const antes = await linha(id);
+
+        const resposta = await editar(id, corpo(catalogo));
+
+        expect(resposta.status).toBe(422);
+        expect(resposta.body).toEqual({ statusCode: 422, message: mensagem });
+        expect(await linha(id)).toEqual(antes);
+        expect(await contexto.prisma.campanhaAlteracao.count()).toBe(0);
+        expect(await contexto.prisma.registroAuditoria.count()).toBe(0);
+      },
+    );
+
+    it('APROVADA, alteração com fim amanhã → 200 e alteração aberta', async () => {
+      const { id } = await aprovada();
+
+      const resposta = await editar(id, {
+        vigencia: { inicio: '2020-01-01', fim: diaRelativo(1) },
+      });
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body).toMatchObject({
+        alteracaoPendente: {
+          vigencia: { inicio: '2020-01-01', fim: diaRelativo(1) },
+        },
+      });
+      expect(await contexto.prisma.campanhaAlteracao.count()).toBe(1);
+    });
+
+    it.each<[string, (c: Catalogo) => Record<string, unknown>, string]>([
+      ['nome com 2 caracteres', () => ({ nome: 'ab' }), MENSAGEM_NOME],
+      [
+        'descrição com 2001 caracteres',
+        () => ({ descricao: 'd'.repeat(2001) }),
+        MENSAGEM_DESCRICAO,
+      ],
+      ['meta de R$ 0,00', () => ({ meta: '0.00' }), MENSAGEM_VALOR],
+      [
+        'instituição pendente',
+        (c) => ({ instituicaoId: c.instituicaoPendente.id.toString() }),
+        MENSAGEM_INDISPONIVEL,
+      ],
+      [
+        'fim anterior ao início',
+        () => ({ vigencia: { inicio: '2026-05-02', fim: '2026-05-01' } }),
+        MENSAGEM_VIGENCIA,
+      ],
+      [
+        'data malformada',
+        () => ({ vigencia: { inicio: '2026-5-1' } }),
+        MENSAGEM_DATA,
+      ],
+    ])(
+      'RASCUNHO com %s → 422 com a mensagem da spec, nada gravado',
+      async (_rotulo, corpo, mensagem) => {
+        const { id } = await cenario.criarCampanha(dona.token, {
+          nome: 'Rascunho',
+        });
+        const antes = await linha(id);
+
+        const resposta = await editar(id, corpo(catalogo));
+
+        expect(resposta.status).toBe(422);
+        expect(resposta.body).toEqual({ statusCode: 422, message: mensagem });
+        expect(await linha(id)).toEqual(antes);
+      },
+    );
+
+    it('campanha de outra empresa → 404 com o corpo de inexistente, nada gravado', async () => {
+      const outra = await cenario.criarEmpresa();
+      const { id } = await cenario.criarCampanha(outra.token, {
+        nome: 'Campanha alheia',
+      });
+      const antes = await linha(id);
+
+      const resposta = await editar(id, { nome: 'Tomada' });
+
+      expect(resposta.status).toBe(404);
+      expect(resposta.body).toEqual(NAO_ENCONTRADA);
+      expect(await linha(id)).toEqual(antes);
+    });
+
+    it('empresa suspensa depois de criar → 403 "Cadastro ainda não aprovado", nada gravado', async () => {
+      const { id } = await cenario.criarCampanha(dona.token, {
+        nome: 'Rascunho',
+      });
+      await cenario.alterarStatusDaEmpresa(
+        dona.empresa,
+        EmpresaStatus.SUSPENSA,
+      );
+      const antes = await linha(id);
+
+      const resposta = await editar(id, { nome: 'Outro nome' });
+
+      expect(resposta.status).toBe(403);
+      expect(resposta.body).toEqual({
+        statusCode: 403,
+        message: 'Cadastro ainda não aprovado',
+      });
+      expect(await linha(id)).toEqual(antes);
+    });
+
+    it('sem sessão → 401; ADMIN → 403; nada gravado', async () => {
+      const { id } = await cenario.criarCampanha(dona.token, {
+        nome: 'Rascunho',
+      });
+      const antes = await linha(id);
+      const tokenAdmin = await cenario.sessaoComPapel(UserRole.ADMIN);
+
+      const anonima = await cenario
+        .api()
+        .patch(`/campanhas/${id}`)
+        .send({ nome: 'Outro nome' });
+      const admin = await comCookieDeSessao(
+        cenario.api().patch(`/campanhas/${id}`).send({ nome: 'Outro nome' }),
+        tokenAdmin,
+      );
+
+      expect(anonima.status).toBe(401);
+      expect(admin.status).toBe(403);
+      expect(await linha(id)).toEqual(antes);
+    });
+  });
 });

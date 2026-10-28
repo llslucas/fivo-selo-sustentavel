@@ -5,6 +5,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  Patch,
   Post,
 } from '@nestjs/common';
 import {
@@ -20,13 +21,14 @@ import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
 import { ConsultarCampanhaDaEmpresaUseCase } from '@domain/fivo/application/use-cases/consultar-campanha-da-empresa';
 import { CriarCampanhaUseCase } from '@domain/fivo/application/use-cases/criar-campanha';
+import { EditarCampanhaUseCase } from '@domain/fivo/application/use-cases/editar-campanha';
 import { UserRole } from '@domain/fivo/entities/user';
 import { CurrentUser } from '@infra/auth/decorators/current-user.decorator';
 import { Roles } from '@infra/auth/decorators/roles.decorator';
 import type { UsuarioAutenticado } from '@infra/auth/usuario-autenticado';
 
-import { criarCampanhaSchema } from '../campanhas.dto';
-import type { CriarCampanhaDto } from '../campanhas.dto';
+import { criarCampanhaSchema, editarCampanhaSchema } from '../campanhas.dto';
+import type { CriarCampanhaDto, EditarCampanhaDto } from '../campanhas.dto';
 import { desembrulhar } from '../desembrulhar';
 import { ApiErro, ApiProtegida } from '../openapi/decorators';
 import { esquemaOpenApi } from '../openapi/esquema-openapi';
@@ -35,6 +37,11 @@ import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
 const CORPO_CRIAR_CAMPANHA = esquemaOpenApi(
   'CriarCampanha',
   criarCampanhaSchema,
+);
+
+const CORPO_EDITAR_CAMPANHA = esquemaOpenApi(
+  'EditarCampanha',
+  editarCampanhaSchema,
 );
 
 const PARAMETRO_ID = { name: 'id', description: 'Id interno da campanha' };
@@ -140,6 +147,7 @@ export class CampanhasController {
     private readonly empresaRepository: EmpresaRepository,
     private readonly criarCampanha: CriarCampanhaUseCase,
     private readonly consultarCampanha: ConsultarCampanhaDaEmpresaUseCase,
+    private readonly editarCampanha: EditarCampanhaUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Cria uma campanha em rascunho (empresa aprovada)' })
@@ -196,6 +204,44 @@ export class CampanhasController {
 
     return this.executar(
       await this.consultarCampanha.execute({ empresaId, campanhaId: id }),
+    );
+  }
+
+  @ApiOperation({
+    summary:
+      'Edita a campanha: em RASCUNHO ou REJEITADA aplica tudo; em APROVADA aplica nome, descrição e meta na hora e abre uma alteração em análise para beneficiada, regra ou vigência',
+  })
+  @ApiParam(PARAMETRO_ID)
+  @ApiBody({ schema: CORPO_EDITAR_CAMPANHA })
+  @ApiResponse({
+    status: 200,
+    description: 'Campanha depois da edição',
+    schema: RESPOSTA_CAMPANHA,
+  })
+  @ApiErro(404, 'Campanha não encontrada (inclusive de outra empresa)')
+  @ApiErro(
+    409,
+    'Campanha em análise, alteração já em análise ou edição concorrente',
+  )
+  @ApiErro(
+    422,
+    'Nome, descrição, regra, meta ou datas inválidos, beneficiada ambígua ou indisponível, ou data de fim vencida na alteração',
+  )
+  @Patch(':id')
+  async editar(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(editarCampanhaSchema)) dados: EditarCampanhaDto,
+    @CurrentUser() usuario: UsuarioAutenticado,
+  ) {
+    const empresaId = await this.idDaEmpresaDe(usuario);
+
+    return this.executar(
+      await this.editarCampanha.execute({
+        empresaId,
+        usuarioId: usuario.id,
+        campanhaId: id,
+        ...dados,
+      }),
     );
   }
 

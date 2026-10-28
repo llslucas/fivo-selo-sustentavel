@@ -133,6 +133,50 @@ export class CenarioCampanhas {
     return instituicao;
   }
 
+  async alterarStatusDaEmpresa(
+    empresa: Empresa,
+    status: EmpresaStatus,
+  ): Promise<void> {
+    await this.contexto.prisma.empresa.update({
+      where: { id: empresa.id.toString() },
+      data: { status },
+    });
+  }
+
+  async alterarStatusDaInstituicao(
+    instituicao: Instituicao,
+    status: InstituicaoStatus,
+  ): Promise<void> {
+    await this.contexto.prisma.instituicao.update({
+      where: { id: instituicao.id.toString() },
+      data: { status },
+    });
+  }
+
+  /**
+   * Põe a campanha num estado sem passar pelas rotas de submissão e decisão,
+   * para testar uma rota da empresa isoladamente.
+   */
+  async forcarEstado(
+    campanhaId: string,
+    status: 'EM_ANALISE' | 'APROVADA' | 'REJEITADA',
+    motivoUltimaRejeicao?: string,
+  ): Promise<void> {
+    const agora = new Date();
+    await this.contexto.prisma.campanha.update({
+      where: { id: campanhaId },
+      data: {
+        status,
+        submetidaEm: agora,
+        ...(status !== 'EM_ANALISE' && {
+          decididoPor: randomUUID(),
+          decididoEm: agora,
+        }),
+        ...(motivoUltimaRejeicao && { motivoUltimaRejeicao }),
+      },
+    });
+  }
+
   /** `POST /campanhas`; devolve o `{ id, idPublico }` do 201. */
   async criarCampanha(
     token: string,

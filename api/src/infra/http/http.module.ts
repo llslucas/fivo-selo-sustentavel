@@ -12,6 +12,7 @@ import { CriarCampanhaUseCase } from '@domain/fivo/application/use-cases/criar-c
 import { CriarCausaUseCase } from '@domain/fivo/application/use-cases/criar-causa';
 import { CriarEmpresaUseCase } from '@domain/fivo/application/use-cases/criar-empresa';
 import { CriarInstituicaoUseCase } from '@domain/fivo/application/use-cases/criar-instituicao';
+import { EditarCampanhaUseCase } from '@domain/fivo/application/use-cases/editar-campanha';
 import { EditarCausaUseCase } from '@domain/fivo/application/use-cases/editar-causa';
 import { EditarDadosEmpresaUseCase } from '@domain/fivo/application/use-cases/editar-dados-empresa';
 import { InativarCausaUseCase } from '@domain/fivo/application/use-cases/inativar-causa';
@@ -90,6 +91,7 @@ import { SenhaController } from './controllers/senha.controller';
     AssegurarBeneficiadaDisponivelUseCase,
     CriarCampanhaUseCase,
     ConsultarCampanhaDaEmpresaUseCase,
+    EditarCampanhaUseCase,
   ],
 })
 export class HttpModule {}

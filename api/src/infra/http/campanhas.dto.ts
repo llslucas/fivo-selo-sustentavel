@@ -45,3 +45,11 @@ export const criarCampanhaSchema = z.object({
 });
 
 export type CriarCampanhaDto = z.infer<typeof criarCampanhaSchema>;
+
+// Edição parcial: só o que vier é alterado. A capa tem rota própria.
+export const editarCampanhaSchema = z.object({
+  nome: texto.optional(),
+  ...camposDaCampanha,
+});
+
+export type EditarCampanhaDto = z.infer<typeof editarCampanhaSchema>;
