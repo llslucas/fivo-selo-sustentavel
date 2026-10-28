@@ -993,9 +993,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `vigencia.spec.ts` tem caso com fim um dia **antes** do início → `isLeft()` incondicional + `toBeInstanceOf(VigenciaInvalidaError)` + `status` 422 + mensagem "A data de fim deve ser posterior à data de início"
-- [ ] `criar-campanha.spec.ts` tem o mesmo caso pelo caso de uso, com "nada gravado"
-- [ ] Mutante M8 (`E/vigencia.ts:22`, remover `|| fim.ehAnteriorA(inicio)`) morre
+- [x] `vigencia.spec.ts` tem caso com fim um dia **antes** do início → `isLeft()` incondicional + `toBeInstanceOf(VigenciaInvalidaError)` + `status` 422 + mensagem "A data de fim deve ser posterior à data de início"
+- [x] `criar-campanha.spec.ts` tem o mesmo caso pelo caso de uso, com "nada gravado"
+- [x] Mutante M8 (`E/vigencia.ts:22`, remover `|| fim.ehAnteriorA(inicio)`) morre
 
 **Tests**: unit
 **Gate**: quick
