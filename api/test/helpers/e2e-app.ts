@@ -59,6 +59,8 @@ const TABELAS_EM_ORDEM_DE_FK = [
   'token_senha',
   'registro_auditoria',
   'email_pendente',
+  'campanha_alteracao',
+  'campanha',
   'empresa',
   'instituicao',
   'causa',
