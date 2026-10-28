@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 31,
+  "next_id": 34,
   "lessons": [
     {
       "id": "L-001",
@@ -556,6 +556,60 @@
       ],
       "created": "2026-10-28T00:21:23Z",
       "last_seen": "2026-10-28T00:21:23Z"
+    },
+    {
+      "id": "L-031",
+      "key": "surviving_mutant::when a new route copies response headers from an existing route copy that route s header assertions into its e2e too",
+      "text": "When a new route copies response headers from an existing route, copy that route's header assertions into its e2e too",
+      "signal": "surviving_mutant",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md mutantes S25 S32 (campanhas-publicas.controller.ts:120,139; padrão em test/http/arquivo.e2e-spec.ts:208-211) (routes)"
+      ],
+      "created": "2026-10-28T01:43:52Z",
+      "last_seen": "2026-10-28T01:43:52Z"
+    },
+    {
+      "id": "L-032",
+      "key": "surviving_mutant::a route that reuses another route s body dto still needs its own missing field 422 test",
+      "text": "A route that reuses another route's body DTO still needs its own missing-field 422 test",
+      "signal": "surviving_mutant",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md mutante S33 (admin-campanhas.controller.ts:215; só admin-campanhas.e2e-spec.ts:440 testa sem motivo) (routes)"
+      ],
+      "created": "2026-10-28T01:43:52Z",
+      "last_seen": "2026-10-28T01:43:52Z"
+    },
+    {
+      "id": "L-033",
+      "key": "spec_precision_gap::an access control ac must state whether its 403 takes precedence over shape validation 422 and dependency 503 on the same route",
+      "text": "An access-control AC must state whether its 403 takes precedence over shape-validation 422 and dependency 503 on the same route",
+      "signal": "spec_precision_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md SP4, Criação AC1 x PUT /campanhas/:id/capa (campanhas.controller.ts:309-339) (specs)"
+      ],
+      "created": "2026-10-28T01:43:52Z",
+      "last_seen": "2026-10-28T01:43:52Z"
     }
   ]
 }

@@ -192,6 +192,24 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation-dominio.md rodada 2, mutante N14 (entities/campanha.ts:428), Alteração AC5 (domain-entities)
 - last seen: 2026-10-28T00:21:23Z
 
+### L-031 - When a new route copies response headers from an existing route, copy that route's header assertions into its e2e too
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: campanhas
+- evidence: validation.md mutantes S25 S32 (campanhas-publicas.controller.ts:120,139; padrão em test/http/arquivo.e2e-spec.ts:208-211) (routes)
+- last seen: 2026-10-28T01:43:52Z
+
+### L-032 - A route that reuses another route's body DTO still needs its own missing-field 422 test
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: campanhas
+- evidence: validation.md mutante S33 (admin-campanhas.controller.ts:215; só admin-campanhas.e2e-spec.ts:440 testa sem motivo) (routes)
+- last seen: 2026-10-28T01:43:52Z
+
+### L-033 - An access-control AC must state whether its 403 takes precedence over shape-validation 422 and dependency 503 on the same route
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: campanhas
+- evidence: validation.md SP4, Criação AC1 x PUT /campanhas/:id/capa (campanhas.controller.ts:309-339) (specs)
+- last seen: 2026-10-28T01:43:52Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
