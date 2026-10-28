@@ -82,18 +82,22 @@ src/
 ├── core/                    # Base compartilhada, sem framework
 │   ├── errors/              #   erros de domínio
 │   └── types/
-├── domain/fivo/             # Regras de negócio (sem Nest, sem Prisma)
-│   ├── entities/            #   entidades — fonte da verdade do modelo (AD-017)
-│   └── application/
-│       ├── use-cases/       #   um caso de uso por arquivo, com .spec.ts ao lado
-│       ├── ports/           #   contratos (repositórios, criptografia, mailer, storage)
-│       └── errors/
+├── domain/fivo/             # Regras de negócio (sem Nest, sem Prisma), fatiadas por feature
+│   ├── shared/              #   cnpj, arquivo, portas transversais (mailer, storage, unit-of-work, auditoria)
+│   ├── identidade/          #   usuário, senha, sessão, recuperação de senha
+│   ├── empresas/            #   cadastro, edição e moderação de empresa
+│   ├── catalogo/            #   instituições, causas e beneficiadas
+│   └── campanhas/           #   campanhas, compromissos e alterações
+│       ├── entities/        #     entidades — fonte da verdade do modelo (AD-017)
+│       ├── ports/           #     contratos (repositórios, criptografia, ...)
+│       ├── use-cases/       #     um caso de uso por arquivo, com .spec.ts ao lado
+│       ├── errors/
+│       └── index.ts         #     API pública da fatia
 └── infra/                   # Adaptadores e framework
     ├── main.ts              #   bootstrap
     ├── app.module.ts
-    ├── http/                #   controllers, DTOs (Zod), pipes, presenters,
-    │   │                    #   filtro de exceções e esquema OpenAPI
-    │   └── controllers/
+    ├── http/                #   pipes, filtro de exceções e esquema OpenAPI
+    │   └── <fatia>/         #   controllers, DTOs (Zod) e presenters de cada fatia
     ├── auth/                #   sessão por cookie, guards, decorators (@Public, @Roles, @CurrentUser)
     ├── database/prisma/     #   PrismaService, repositórios e mappers
     ├── cryptography/        #   hash de senha (argon2)
@@ -101,7 +105,7 @@ src/
     ├── arquivo/             #   upload e validação de arquivos
     └── mail/                #   envio de e-mail com fila persistente (EmailPendente)
 prisma/                      # schema.prisma e migrations
-test/                        # e2e (HTTP), factories, repositórios em memória
+test/                        # e2e (HTTP por fatia, database), factories, doubles
 scripts/                     # exportar-openapi.ts
 .specs/                      # specs, designs, tasks e validações por feature
 ```
@@ -109,6 +113,7 @@ scripts/                     # exportar-openapi.ts
 Convenções que valem para todo código novo:
 
 - **Regra de negócio entra em `domain/`** como caso de uso. Controllers só traduzem HTTP ↔ caso de uso; erros de domínio viram resposta HTTP no `domain-exception.filter.ts`.
+- **Cada caso de uso mora na fatia da sua feature** (`domain/fivo/<fatia>/`). Dentro da fatia, imports relativos; entre fatias, só pelo `index.ts` (`@domain/fivo/<fatia>`) e só na ordem `shared ← identidade ← empresas ← catalogo ← campanhas` — o ESLint barra o resto (AD-022).
 - **Casos de uso dependem de ports**, nunca de Prisma/Nest. A implementação concreta é ligada nos módulos de `infra/`.
 - **Entidades TypeScript são a fonte da verdade** do modelo; o `schema.prisma` deriva delas (AD-017 em `.specs/STATE.md`).
 - **Todo DTO é validado com Zod** via pipe em `infra/http/pipes/`.
@@ -168,7 +173,7 @@ E-mails ainda não são enviados de verdade: o transporte atual é o `LogMailer`
 
 ## Testes
 
-- **Unitários** (`npm test`): casos de uso com repositórios em memória (`test/repositories`, `test/factories`). Rápidos e sem infraestrutura.
+- **Unitários** (`npm test`): casos de uso com repositórios em memória (`test/doubles`, `test/factories`). Rápidos e sem infraestrutura.
 - **E2E** (`npm run test:e2e`): sobem a app Nest completa contra o Postgres de teste, rodando em série (`maxWorkers: 1`). Suba o compose e aplique as migrations antes. O `DATABASE_URL` vem do `.env`; se ausente, cai no do compose.
 
 Regra do projeto: testes derivam dos critérios de aceitação da spec e verificam o resultado esperado, não a implementação.
