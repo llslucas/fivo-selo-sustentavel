@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 
+import { AprovarAlteracaoCampanhaUseCase } from '@domain/fivo/application/use-cases/aprovar-alteracao-campanha';
 import { AprovarCampanhaUseCase } from '@domain/fivo/application/use-cases/aprovar-campanha';
 import { AprovarEmpresaUseCase } from '@domain/fivo/application/use-cases/aprovar-empresa';
 import { AprovarInstituicaoUseCase } from '@domain/fivo/application/use-cases/aprovar-instituicao';
@@ -26,6 +27,7 @@ import { ListarFilaInstituicoesUseCase } from '@domain/fivo/application/use-case
 import { RedefinirSenhaUseCase } from '@domain/fivo/application/use-cases/redefinir-senha';
 import { ReativarEmpresaUseCase } from '@domain/fivo/application/use-cases/reativar-empresa';
 import { ReativarInstituicaoUseCase } from '@domain/fivo/application/use-cases/reativar-instituicao';
+import { RejeitarAlteracaoCampanhaUseCase } from '@domain/fivo/application/use-cases/rejeitar-alteracao-campanha';
 import { RejeitarCampanhaUseCase } from '@domain/fivo/application/use-cases/rejeitar-campanha';
 import { RejeitarEmpresaUseCase } from '@domain/fivo/application/use-cases/rejeitar-empresa';
 import { RejeitarInstituicaoUseCase } from '@domain/fivo/application/use-cases/rejeitar-instituicao';
@@ -102,6 +104,8 @@ import { SenhaController } from './controllers/senha.controller';
     ListarFilaCampanhasUseCase,
     AprovarCampanhaUseCase,
     RejeitarCampanhaUseCase,
+    AprovarAlteracaoCampanhaUseCase,
+    RejeitarAlteracaoCampanhaUseCase,
   ],
 })
 export class HttpModule {}

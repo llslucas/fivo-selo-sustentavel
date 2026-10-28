@@ -16,8 +16,10 @@ import {
 } from '@nestjs/swagger';
 
 import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
+import { AprovarAlteracaoCampanhaUseCase } from '@domain/fivo/application/use-cases/aprovar-alteracao-campanha';
 import { AprovarCampanhaUseCase } from '@domain/fivo/application/use-cases/aprovar-campanha';
 import { ListarFilaCampanhasUseCase } from '@domain/fivo/application/use-cases/listar-fila-campanhas';
+import { RejeitarAlteracaoCampanhaUseCase } from '@domain/fivo/application/use-cases/rejeitar-alteracao-campanha';
 import { RejeitarCampanhaUseCase } from '@domain/fivo/application/use-cases/rejeitar-campanha';
 import { User, UserRole } from '@domain/fivo/entities/user';
 import { CurrentUser } from '@infra/auth/decorators/current-user.decorator';
@@ -47,6 +49,8 @@ export class AdminCampanhasController {
     private readonly listarFila: ListarFilaCampanhasUseCase,
     private readonly aprovarCampanha: AprovarCampanhaUseCase,
     private readonly rejeitarCampanha: RejeitarCampanhaUseCase,
+    private readonly aprovarAlteracao: AprovarAlteracaoCampanhaUseCase,
+    private readonly rejeitarAlteracao: RejeitarAlteracaoCampanhaUseCase,
   ) {}
 
   @ApiOperation({
@@ -159,6 +163,60 @@ export class AdminCampanhasController {
   ): Promise<void> {
     desembrulhar(
       await this.rejeitarCampanha.execute(
+        id,
+        await this.carregarAdmin(usuario),
+        motivo,
+      ),
+    );
+  }
+
+  @ApiOperation({
+    summary:
+      'Aprova a alteração pendente e aplica o compromisso proposto (somente ADMIN)',
+  })
+  @ApiParam(PARAMETRO_ID)
+  @ApiResponse({ status: 204, description: 'Decisão registrada' })
+  @ApiErro(404, 'Campanha não encontrada')
+  @ApiErro(
+    409,
+    'Sem alteração pendente, decisão concorrente ou nova beneficiada fora do catálogo',
+  )
+  @Post(':id/alteracao/aprovacao')
+  @HttpCode(204)
+  async aprovarAlteracaoPendente(
+    @Param('id') id: string,
+    @CurrentUser() usuario: UsuarioAutenticado,
+  ): Promise<void> {
+    desembrulhar(
+      await this.aprovarAlteracao.execute(
+        id,
+        await this.carregarAdmin(usuario),
+      ),
+    );
+  }
+
+  @ApiOperation({
+    summary:
+      'Rejeita a alteração pendente com motivo; a campanha segue com o compromisso aprovado (somente ADMIN)',
+  })
+  @ApiParam(PARAMETRO_ID)
+  @ApiBody({ schema: CORPO_REJEICAO })
+  @ApiResponse({
+    status: 204,
+    description: 'Decisão registrada; a empresa recebe o motivo por e-mail',
+  })
+  @ApiErro(404, 'Campanha não encontrada')
+  @ApiErro(409, 'Sem alteração pendente ou decisão concorrente')
+  @ApiErro(422, 'Motivo ausente ou com menos de 20 caracteres')
+  @Post(':id/alteracao/rejeicao')
+  @HttpCode(204)
+  async rejeitarAlteracaoPendente(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(rejeicaoSchema)) { motivo }: RejeicaoDto,
+    @CurrentUser() usuario: UsuarioAutenticado,
+  ): Promise<void> {
+    desembrulhar(
+      await this.rejeitarAlteracao.execute(
         id,
         await this.carregarAdmin(usuario),
         motivo,

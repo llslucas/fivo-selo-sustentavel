@@ -512,4 +512,337 @@ describe('Fila e decisões de campanha no painel do admin (e2e)', () => {
       expect(transporte.mensagens).toEqual([]);
     });
   });
+
+  describe('decisões de alteração', () => {
+    const APROVADO = {
+      beneficiada: { tipo: 'INSTITUICAO', id: '' },
+      regraDoacao: { tipo: 'POR_UNIDADE', valor: '1.00' },
+      vigencia: { inicio: '2026-01-01' },
+    };
+
+    function aprovado() {
+      return {
+        ...APROVADO,
+        beneficiada: { tipo: 'INSTITUICAO', id: instituicao.id.toString() },
+      };
+    }
+
+    /** Campanha aprovada com uma alteração aberta pela rota da empresa. */
+    async function comAlteracao(
+      alteracao: Record<string, unknown>,
+    ): Promise<string> {
+      const { id } = await cenario.criarAprovada(
+        dona.token,
+        tokenAdmin,
+        corpoCompleto(instituicao),
+      );
+      const resposta = await comCookieDeSessao(
+        cenario.api().patch(`/campanhas/${id}`).send(alteracao),
+        dona.token,
+      );
+      expect(resposta.status).toBe(200);
+      return id;
+    }
+
+    function detalhe(id: string) {
+      return comCookieDeSessao(
+        cenario.api().get(`/campanhas/${id}`),
+        dona.token,
+      );
+    }
+
+    function aprovarAlteracao(id: string) {
+      return comoAdmin(
+        cenario.api().post(`/admin/campanhas/${id}/alteracao/aprovacao`),
+      );
+    }
+
+    function rejeitarAlteracao(id: string, corpo: Record<string, unknown>) {
+      return comoAdmin(
+        cenario
+          .api()
+          .post(`/admin/campanhas/${id}/alteracao/rejeicao`)
+          .send(corpo),
+      );
+    }
+
+    async function alteracoes() {
+      return contexto.prisma.campanhaAlteracao.findMany();
+    }
+
+    describe('POST /admin/campanhas/:id/alteracao/aprovacao', () => {
+      it('aplica a regra nova, encerra a pendência com autor e data-hora e audita anterior e novo', async () => {
+        const id = await comAlteracao({
+          regraDoacao: { tipo: 'PERCENTUAL', percentual: '12.05' },
+        });
+        const proposto = {
+          ...aprovado(),
+          regraDoacao: { tipo: 'PERCENTUAL', percentual: '12.05' },
+        };
+
+        const resposta = await aprovarAlteracao(id);
+
+        expect(resposta.status).toBe(204);
+        expect((await detalhe(id)).body).toMatchObject({
+          status: 'APROVADA',
+          ...proposto,
+          alteracaoPendente: null,
+        });
+        expect(await linha(id)).toMatchObject({
+          status: 'APROVADA',
+          regraTipo: 'PERCENTUAL',
+          regraPercentualCentesimos: 1205,
+          regraValorCentavos: null,
+        });
+        const [decidida] = await alteracoes();
+        expect(decidida).toMatchObject({
+          status: 'APROVADA',
+          decididoPor: admin.id.toString(),
+          motivo: null,
+        });
+        expect(recente(decidida.decididoEm as Date)).toBe(true);
+        const [registro] = await auditoriasDo('ALTERACAO_CAMPANHA_APROVADA');
+        expect(registro).toMatchObject({
+          usuarioId: admin.id.toString(),
+          entidadeId: id,
+          dados: {
+            compromissoAnterior: aprovado(),
+            compromissoNovo: proposto,
+          },
+        });
+        expect(recente(registro.criadoEm)).toBe(true);
+        const fila = await comoAdmin(
+          cenario.api().get('/admin/campanhas/fila'),
+        );
+        expect(fila.body).toEqual([]);
+      });
+
+      it('aplica a nova beneficiada e libera uma nova alteração', async () => {
+        const id = await comAlteracao({ causaId: causa.id.toString() });
+
+        const resposta = await aprovarAlteracao(id);
+
+        expect(resposta.status).toBe(204);
+        expect((await detalhe(id)).body).toMatchObject({
+          beneficiada: { tipo: 'CAUSA', id: causa.id.toString() },
+          alteracaoPendente: null,
+        });
+        const nova = await comCookieDeSessao(
+          cenario
+            .api()
+            .patch(`/campanhas/${id}`)
+            .send({ regraDoacao: { tipo: 'POR_UNIDADE', valor: '3.00' } }),
+          dona.token,
+        );
+        expect(nova.status).toBe(200);
+        expect(nova.body).toMatchObject({
+          alteracaoPendente: {
+            regraDoacao: { tipo: 'POR_UNIDADE', valor: '3.00' },
+          },
+        });
+      });
+
+      it('nova beneficiada indisponível na aprovação → 409, alteração não aplicada', async () => {
+        const id = await comAlteracao({ causaId: causa.id.toString() });
+        await contexto.prisma.causa.update({
+          where: { id: causa.id.toString() },
+          data: { status: 'INATIVA' },
+        });
+        const antes = await linha(id);
+        const [pendenteAntes] = await alteracoes();
+
+        const resposta = await aprovarAlteracao(id);
+
+        expect(resposta.status).toBe(409);
+        expect(resposta.body).toEqual({
+          statusCode: 409,
+          message: MENSAGEM_BENEFICIADA_NA_DECISAO,
+        });
+        expect(await linha(id)).toEqual(antes);
+        expect(await alteracoes()).toEqual([pendenteAntes]);
+        expect(await auditoriasDo('ALTERACAO_CAMPANHA_APROVADA')).toHaveLength(
+          0,
+        );
+      });
+
+      it('sem alteração pendente → 409 "Operação não permitida para o estado atual", nada gravado', async () => {
+        const { id } = await cenario.criarAprovada(
+          dona.token,
+          tokenAdmin,
+          corpoCompleto(instituicao),
+        );
+        const antes = await linha(id);
+
+        const resposta = await aprovarAlteracao(id);
+
+        expect(resposta.status).toBe(409);
+        expect(resposta.body).toEqual({
+          statusCode: 409,
+          message: MENSAGEM_TRANSICAO,
+        });
+        expect(await linha(id)).toEqual(antes);
+        expect(await alteracoes()).toEqual([]);
+      });
+
+      it('campanha inexistente → 404', async () => {
+        const resposta = await aprovarAlteracao(INEXISTENTE);
+
+        expect(resposta.status).toBe(404);
+        expect(resposta.body).toEqual(NAO_ENCONTRADA);
+      });
+
+      it('EMPRESA → 403, alteração não aplicada', async () => {
+        const id = await comAlteracao({
+          regraDoacao: { tipo: 'POR_UNIDADE', valor: '2.00' },
+        });
+        const antes = await linha(id);
+
+        const resposta = await comCookieDeSessao(
+          cenario.api().post(`/admin/campanhas/${id}/alteracao/aprovacao`),
+          dona.token,
+        );
+
+        expect(resposta.status).toBe(403);
+        expect(await linha(id)).toEqual(antes);
+        expect((await alteracoes())[0].status).toBe('EM_ANALISE');
+      });
+    });
+
+    describe('POST /admin/campanhas/:id/alteracao/rejeicao', () => {
+      it('mantém a regra anterior, grava o motivo, envia e-mail e audita anterior e proposto', async () => {
+        const id = await comAlteracao({
+          regraDoacao: { tipo: 'POR_UNIDADE', valor: '2.00' },
+        });
+        const antes = await linha(id);
+
+        const resposta = await rejeitarAlteracao(id, { motivo: MOTIVO });
+
+        expect(resposta.status).toBe(204);
+        expect((await detalhe(id)).body).toMatchObject({
+          status: 'APROVADA',
+          ...aprovado(),
+          alteracaoPendente: null,
+        });
+        expect(await linha(id)).toMatchObject({
+          status: 'APROVADA',
+          regraTipo: antes.regraTipo,
+          regraValorCentavos: 100,
+        });
+        const [decidida] = await alteracoes();
+        expect(decidida).toMatchObject({
+          status: 'REJEITADA',
+          motivo: MOTIVO,
+          decididoPor: admin.id.toString(),
+          regraValorCentavos: 200,
+        });
+        expect(recente(decidida.decididoEm as Date)).toBe(true);
+        expect(transporte.mensagens).toEqual([
+          {
+            para: dona.usuario.email,
+            template: TemplateEmail.ALTERACAO_CAMPANHA_REJEITADA,
+            dados: { nomeCampanha: 'Café que Educa', motivo: MOTIVO },
+          },
+        ]);
+        const [registro] = await auditoriasDo('ALTERACAO_CAMPANHA_REJEITADA');
+        expect(registro).toMatchObject({
+          usuarioId: admin.id.toString(),
+          entidadeId: id,
+          dados: {
+            compromissoAnterior: aprovado(),
+            compromissoProposto: {
+              ...aprovado(),
+              regraDoacao: { tipo: 'POR_UNIDADE', valor: '2.00' },
+            },
+            motivo: MOTIVO,
+          },
+        });
+        expect(recente(registro.criadoEm)).toBe(true);
+      });
+
+      it('envio de e-mail falhando → 204, decisão gravada e e-mail na fila de reenvio', async () => {
+        const id = await comAlteracao({
+          regraDoacao: { tipo: 'POR_UNIDADE', valor: '2.00' },
+        });
+        transporte.forceFailure();
+
+        const resposta = await rejeitarAlteracao(id, { motivo: MOTIVO });
+
+        expect(resposta.status).toBe(204);
+        expect((await alteracoes())[0].status).toBe('REJEITADA');
+        expect(await contexto.prisma.emailPendente.findMany()).toMatchObject([
+          {
+            para: dona.usuario.email,
+            template: TemplateEmail.ALTERACAO_CAMPANHA_REJEITADA,
+            dados: { nomeCampanha: 'Café que Educa', motivo: MOTIVO },
+          },
+        ]);
+      });
+
+      it('motivo de 19 caracteres → 422, pendência mantida e nenhum e-mail', async () => {
+        const id = await comAlteracao({
+          regraDoacao: { tipo: 'POR_UNIDADE', valor: '2.00' },
+        });
+        const antes = await linha(id);
+
+        const resposta = await rejeitarAlteracao(id, {
+          motivo: ` ${'m'.repeat(19)} `,
+        });
+
+        expect(resposta.status).toBe(422);
+        expect(resposta.body).toEqual({
+          statusCode: 422,
+          message: MENSAGEM_MOTIVO,
+        });
+        expect(await linha(id)).toEqual(antes);
+        expect((await alteracoes())[0].status).toBe('EM_ANALISE');
+        expect(transporte.mensagens).toEqual([]);
+      });
+
+      it('sem alteração pendente → 409, nada gravado e nenhum e-mail', async () => {
+        const { id } = await cenario.criarAprovada(
+          dona.token,
+          tokenAdmin,
+          corpoCompleto(instituicao),
+        );
+        const antes = await linha(id);
+
+        const resposta = await rejeitarAlteracao(id, { motivo: MOTIVO });
+
+        expect(resposta.status).toBe(409);
+        expect(resposta.body).toEqual({
+          statusCode: 409,
+          message: MENSAGEM_TRANSICAO,
+        });
+        expect(await linha(id)).toEqual(antes);
+        expect(transporte.mensagens).toEqual([]);
+      });
+
+      it('campanha inexistente → 404', async () => {
+        const resposta = await rejeitarAlteracao(INEXISTENTE, {
+          motivo: MOTIVO,
+        });
+
+        expect(resposta.status).toBe(404);
+        expect(resposta.body).toEqual(NAO_ENCONTRADA);
+      });
+
+      it('EMPRESA → 403, pendência mantida', async () => {
+        const id = await comAlteracao({
+          regraDoacao: { tipo: 'POR_UNIDADE', valor: '2.00' },
+        });
+
+        const resposta = await comCookieDeSessao(
+          cenario
+            .api()
+            .post(`/admin/campanhas/${id}/alteracao/rejeicao`)
+            .send({ motivo: MOTIVO }),
+          dona.token,
+        );
+
+        expect(resposta.status).toBe(403);
+        expect((await alteracoes())[0].status).toBe('EM_ANALISE');
+        expect(transporte.mensagens).toEqual([]);
+      });
+    });
+  });
 });

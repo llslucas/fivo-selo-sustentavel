@@ -1533,8 +1533,8 @@ T39 → T40
 
 **Done when**:
 
-- [ ] e2e: aprovar aplica a regra nova; rejeitar mantém a anterior e envia e-mail; 409 sem pendência; 409 com nova beneficiada indisponível
-- [ ] Gate `full` passa
+- [x] e2e: aprovar aplica a regra nova; rejeitar mantém a anterior e envia e-mail; 409 sem pendência; 409 com nova beneficiada indisponível
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

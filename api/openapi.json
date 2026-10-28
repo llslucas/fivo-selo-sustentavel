@@ -721,6 +721,166 @@
         ]
       }
     },
+    "/admin/campanhas/{id}/alteracao/aprovacao": {
+      "post": {
+        "operationId": "AdminCampanhasController_aprovarAlteracaoPendente",
+        "parameters": [
+          {
+            "description": "Id interno da campanha",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Decisão registrada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Campanha não encontrada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sem alteração pendente, decisão concorrente ou nova beneficiada fora do catálogo"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Aprova a alteração pendente e aplica o compromisso proposto (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/campanhas/{id}/alteracao/rejeicao": {
+      "post": {
+        "operationId": "AdminCampanhasController_rejeitarAlteracaoPendente",
+        "parameters": [
+          {
+            "description": "Id interno da campanha",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejeicaoCampanha"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Decisão registrada; a empresa recebe o motivo por e-mail"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Campanha não encontrada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sem alteração pendente ou decisão concorrente"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Motivo ausente ou com menos de 20 caracteres"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Rejeita a alteração pendente com motivo; a campanha segue com o compromisso aprovado (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/admin/campanhas/{id}/aprovacao": {
       "post": {
         "operationId": "AdminCampanhasController_aprovar",
