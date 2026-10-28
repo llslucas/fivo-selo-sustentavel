@@ -2,7 +2,7 @@ import { Either, left, right } from '@core/either';
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import {
   Cnpj,
-  InvalidCnpjError,
+  CnpjInvalidoError,
   Mailer,
   TemplateEmail,
   UnitOfWork,
@@ -13,12 +13,12 @@ import {
   User,
   UserRole,
   SenhaFracaError,
-  UserAlreadyExistsError,
+  UsuarioJaExisteError,
   Hasher,
   UserRepository,
 } from '@domain/fivo/identidade';
 import { Injectable } from '@nestjs/common';
-import { EmpresaAlreadyExistsError } from '../errors/empresa-already-exists.error';
+import { EmpresaJaExisteError } from '../errors/empresa-ja-existe.error';
 import { EmpresaRepository } from '../ports/empresa-repository';
 
 interface CriarEmpresaUseCaseRequest {
@@ -42,9 +42,9 @@ interface CriarEmpresaUseCaseRequest {
 
 export type CriarEmpresaUseCaseResponse = Either<
   | SenhaFracaError
-  | InvalidCnpjError
-  | UserAlreadyExistsError
-  | EmpresaAlreadyExistsError,
+  | CnpjInvalidoError
+  | UsuarioJaExisteError
+  | EmpresaJaExisteError,
   {
     empresaId: string;
   }
@@ -105,11 +105,11 @@ export class CriarEmpresaUseCase {
 
     if (!empresaReaproveitavel) {
       if (existingUser) {
-        return left(new UserAlreadyExistsError());
+        return left(new UsuarioJaExisteError());
       }
 
       if (existingEmpresa) {
-        return left(new EmpresaAlreadyExistsError());
+        return left(new EmpresaJaExisteError());
       }
     }
 
@@ -161,7 +161,7 @@ export class CriarEmpresaUseCase {
 
         // Outro re-cadastro venceu a corrida: desfaz a escrita do usuário.
         if (!aplicada) {
-          throw new EmpresaAlreadyExistsError();
+          throw new EmpresaJaExisteError();
         }
       } else {
         await this.userRepository.create(user);

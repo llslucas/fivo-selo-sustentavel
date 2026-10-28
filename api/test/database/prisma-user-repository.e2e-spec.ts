@@ -1,5 +1,5 @@
 import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
-import { UserAlreadyExistsError } from '@domain/fivo/identidade/errors/users-already-exists.error';
+import { UsuarioJaExisteError } from '@domain/fivo/identidade/errors/usuario-ja-existe.error';
 import { Senha } from '@domain/fivo/identidade/entities/senha';
 import { UserRole } from '@domain/fivo/identidade/entities/user';
 import { UserFactory } from '@test/factories/user-factory';
@@ -111,7 +111,7 @@ describe('PrismaUserRepository (e2e)', () => {
     expect(encontrado!.estaBloqueado(agora)).toBe(true);
   });
 
-  it('create com e-mail já cadastrado falha com UserAlreadyExistsError (409)', async () => {
+  it('create com e-mail já cadastrado falha com UsuarioJaExisteError (409)', async () => {
     const primeiro = UserFactory.create({
       email: 'duplicado@empresa.test',
       senha: senhaJaHasheada(),
@@ -124,7 +124,7 @@ describe('PrismaUserRepository (e2e)', () => {
     await repository.create(primeiro);
 
     await expect(repository.create(segundo)).rejects.toBeInstanceOf(
-      UserAlreadyExistsError,
+      UsuarioJaExisteError,
     );
     await expect(repository.create(segundo)).rejects.toMatchObject({
       status: 409,

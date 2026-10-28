@@ -1,6 +1,6 @@
 import { UseCaseError } from '@core/types/use-case-error';
 
-export class EmpresaAlreadyExistsError extends Error implements UseCaseError {
+export class InstituicaoJaExisteError extends Error implements UseCaseError {
   readonly status = 409;
 
   constructor() {

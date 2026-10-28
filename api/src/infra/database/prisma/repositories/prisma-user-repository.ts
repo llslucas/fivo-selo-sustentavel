@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
-import { UserAlreadyExistsError } from '@domain/fivo/identidade/errors/users-already-exists.error';
+import { UsuarioJaExisteError } from '@domain/fivo/identidade/errors/usuario-ja-existe.error';
 import { User } from '@domain/fivo/identidade/entities/user';
 
 import { ehViolacaoDeUnicidade } from '../erros-prisma';
@@ -53,7 +53,7 @@ export class PrismaUserRepository implements UserRepository {
       // Corrida entre a checagem de unicidade do caso de uso e o INSERT:
       // o erro do banco vira o mesmo erro de domínio (409).
       if (ehViolacaoDeUnicidade(erro)) {
-        throw new UserAlreadyExistsError();
+        throw new UsuarioJaExisteError();
       }
 
       throw erro;
@@ -68,7 +68,7 @@ export class PrismaUserRepository implements UserRepository {
       });
     } catch (erro) {
       if (ehViolacaoDeUnicidade(erro)) {
-        throw new UserAlreadyExistsError();
+        throw new UsuarioJaExisteError();
       }
 
       throw erro;

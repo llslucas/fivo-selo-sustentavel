@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { UserRole, UserAlreadyExistsError } from '@domain/fivo/identidade';
+import { UserRole, UsuarioJaExisteError } from '@domain/fivo/identidade';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { UserFactory } from '@test/factories/user-factory';
 import { InMemoryEmpresaRepository } from '@test/doubles/in-memory-empresa-repository';
@@ -88,7 +88,7 @@ describe('ConfirmarTrocaEmailUseCase', () => {
     expect(segunda.value).toBeInstanceOf(TokenConfirmacaoEmailInvalidoError);
   });
 
-  it('should return UserAlreadyExistsError (409) when the pending e-mail was taken meanwhile', async () => {
+  it('should return UsuarioJaExisteError (409) when the pending e-mail was taken meanwhile', async () => {
     const { user } = await prepararTrocaPendente();
     await userRepository.create(
       UserFactory.create({
@@ -100,7 +100,7 @@ describe('ConfirmarTrocaEmailUseCase', () => {
     const response = await sut.execute({ token: TOKEN, agora: AGORA });
 
     expect(response.isLeft()).toBe(true);
-    expect(response.value).toBeInstanceOf(UserAlreadyExistsError);
+    expect(response.value).toBeInstanceOf(UsuarioJaExisteError);
     expect((await userRepository.findById(user.id.toString()))?.email).toBe(
       'antigo@empresa.test',
     );

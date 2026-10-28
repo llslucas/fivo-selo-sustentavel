@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
-import { EmpresaAlreadyExistsError } from '@domain/fivo/empresas/errors/empresa-already-exists.error';
+import { EmpresaJaExisteError } from '@domain/fivo/empresas/errors/empresa-ja-existe.error';
 import {
   EmpresaRepository,
   OrdenacaoListaEmpresa,
@@ -76,7 +76,7 @@ export class PrismaEmpresaRepository implements EmpresaRepository {
       // Corrida entre a checagem de unicidade do caso de uso e o INSERT:
       // o erro do banco vira o mesmo erro de domínio (409).
       if (ehViolacaoDeUnicidade(erro)) {
-        throw new EmpresaAlreadyExistsError();
+        throw new EmpresaJaExisteError();
       }
 
       throw erro;
@@ -113,7 +113,7 @@ export class PrismaEmpresaRepository implements EmpresaRepository {
       });
     } catch (erro) {
       if (ehViolacaoDeUnicidade(erro)) {
-        throw new EmpresaAlreadyExistsError();
+        throw new EmpresaJaExisteError();
       }
 
       throw erro;

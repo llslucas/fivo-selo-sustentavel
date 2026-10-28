@@ -7,7 +7,7 @@ import { InMemoryUnitOfWork } from '@test/doubles/in-memory-unit-of-work';
 import { InMemorySessaoRepository } from '@test/doubles/in-memory-sessao-repository';
 import { InMemoryUserRepository } from '@test/doubles/in-memory-user-repository';
 import { ContaBloqueadaError } from '../errors/conta-bloqueada.error';
-import { CredenciaisInvalidasError } from '../errors/wrong-credentials.error';
+import { CredenciaisInvalidasError } from '../errors/credenciais-invalidas.error';
 import { AutenticarUsuarioUseCase } from './autenticar-usuario';
 
 const SENHA_CORRETA = 'SenhaForte123';

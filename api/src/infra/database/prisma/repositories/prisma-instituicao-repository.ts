@@ -4,7 +4,7 @@ import {
   Prisma,
 } from '@prisma/client';
 
-import { InstituicaoAlreadyExistsError } from '@domain/fivo/catalogo/errors/instituicao-already-exists.error';
+import { InstituicaoJaExisteError } from '@domain/fivo/catalogo/errors/instituicao-ja-existe.error';
 import {
   InstituicaoRepository,
   OrdenacaoListaInstituicao,
@@ -94,7 +94,7 @@ export class PrismaInstituicaoRepository implements InstituicaoRepository {
       // Corrida entre a checagem de unicidade do caso de uso e o INSERT:
       // o índice único de CNPJ vira o mesmo erro de domínio (409).
       if (ehViolacaoDeUnicidade(erro)) {
-        throw new InstituicaoAlreadyExistsError();
+        throw new InstituicaoJaExisteError();
       }
 
       throw erro;
@@ -115,7 +115,7 @@ export class PrismaInstituicaoRepository implements InstituicaoRepository {
       });
     } catch (erro) {
       if (ehViolacaoDeUnicidade(erro)) {
-        throw new InstituicaoAlreadyExistsError();
+        throw new InstituicaoJaExisteError();
       }
 
       throw erro;

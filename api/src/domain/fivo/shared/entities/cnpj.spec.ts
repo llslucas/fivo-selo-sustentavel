@@ -1,4 +1,4 @@
-import { InvalidCnpjError } from '../errors/invalid-cnpj.error';
+import { CnpjInvalidoError } from '../errors/cnpj-invalido.error';
 import { Cnpj } from './cnpj';
 
 describe('CNPJ Value Object', () => {
@@ -27,34 +27,34 @@ describe('CNPJ Value Object', () => {
     const cnpj = Cnpj.create('12.345.678/0001-00');
 
     expect(cnpj.isLeft()).toBe(true);
-    expect(cnpj.value).toBeInstanceOf(InvalidCnpjError);
+    expect(cnpj.value).toBeInstanceOf(CnpjInvalidoError);
   });
 
   it('should return an error for a CNPJ with length less than 14', () => {
     const cnpj = Cnpj.create('12.345.678/0001');
 
     expect(cnpj.isLeft()).toBe(true);
-    expect(cnpj.value).toBeInstanceOf(InvalidCnpjError);
+    expect(cnpj.value).toBeInstanceOf(CnpjInvalidoError);
   });
 
   it('should return an error for a CNPJ with length greater than 14', () => {
     const cnpj = Cnpj.create('12.345.678/0001-9500');
 
     expect(cnpj.isLeft()).toBe(true);
-    expect(cnpj.value).toBeInstanceOf(InvalidCnpjError);
+    expect(cnpj.value).toBeInstanceOf(CnpjInvalidoError);
   });
 
   it('should return an error for a CNPJ with non-numeric characters', () => {
     const cnpj = Cnpj.create('12.345.678/0001-AB');
 
     expect(cnpj.isLeft()).toBe(true);
-    expect(cnpj.value).toBeInstanceOf(InvalidCnpjError);
+    expect(cnpj.value).toBeInstanceOf(CnpjInvalidoError);
   });
 
   it('should return an error for a CNPJ with an empty string', () => {
     const cnpj = Cnpj.create('');
 
     expect(cnpj.isLeft()).toBe(true);
-    expect(cnpj.value).toBeInstanceOf(InvalidCnpjError);
+    expect(cnpj.value).toBeInstanceOf(CnpjInvalidoError);
   });
 });

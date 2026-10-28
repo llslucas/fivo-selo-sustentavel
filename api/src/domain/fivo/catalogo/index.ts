@@ -13,7 +13,7 @@ export * from './errors/causa-ja-existe.error';
 export * from './errors/descricao-documento-invalida.error';
 export * from './errors/documento-indisponivel.error';
 export * from './errors/documento-obrigatorio.error';
-export * from './errors/instituicao-already-exists.error';
+export * from './errors/instituicao-ja-existe.error';
 export * from './errors/nome-causa-invalido.error';
 export * from './use-cases/aprovar-instituicao';
 export * from './use-cases/assegurar-beneficiada-disponivel';

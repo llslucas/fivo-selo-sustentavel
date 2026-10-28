@@ -2,10 +2,7 @@ import { createHash } from 'node:crypto';
 import { Either, left, right } from '@core/either';
 import { Injectable } from '@nestjs/common';
 import { TokenConfirmacaoEmailInvalidoError } from '../errors/token-confirmacao-email-invalido.error';
-import {
-  UserAlreadyExistsError,
-  UserRepository,
-} from '@domain/fivo/identidade';
+import { UsuarioJaExisteError, UserRepository } from '@domain/fivo/identidade';
 import { EmpresaRepository } from '../ports/empresa-repository';
 import { UnitOfWork } from '@domain/fivo/shared';
 
@@ -15,7 +12,7 @@ interface ConfirmarTrocaEmailUseCaseRequest {
 }
 
 export type ConfirmarTrocaEmailUseCaseResponse = Either<
-  TokenConfirmacaoEmailInvalidoError | UserAlreadyExistsError,
+  TokenConfirmacaoEmailInvalidoError | UsuarioJaExisteError,
   void
 >;
 
@@ -61,7 +58,7 @@ export class ConfirmarTrocaEmailUseCase {
     );
 
     if (donoDoNovoEmail && !donoDoNovoEmail.id.equals(user.id)) {
-      return left(new UserAlreadyExistsError());
+      return left(new UsuarioJaExisteError());
     }
 
     user.alterarEmail(empresa.emailPendente);

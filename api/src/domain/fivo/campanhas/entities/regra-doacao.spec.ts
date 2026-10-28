@@ -1,4 +1,4 @@
-import { InvalidRuleValueError } from '../errors/invalid-rule-value.error';
+import { ValorRegraInvalidoError } from '../errors/valor-regra-invalido.error';
 import { ValorMonetarioInvalidoError } from '../errors/valor-monetario-invalido.error';
 import { PercentualInvalidoError } from '../errors/percentual-invalido.error';
 import { RegraDoacao, TipoRegraDoacao } from './regra-doacao';
@@ -23,39 +23,39 @@ describe('RegraDoacao Value Object', () => {
     expect(r.value.percentual?.percentual).toBe(500);
   });
 
-  it('POR_UNIDADE sem valor → InvalidRuleValueError', () => {
+  it('POR_UNIDADE sem valor → ValorRegraInvalidoError', () => {
     const r = RegraDoacao.criar({ tipo: TipoRegraDoacao.POR_UNIDADE });
     expect(r.isLeft()).toBe(true);
-    expect(r.value).toBeInstanceOf(InvalidRuleValueError);
+    expect(r.value).toBeInstanceOf(ValorRegraInvalidoError);
   });
 
-  it('POR_UNIDADE com percentual (valor do outro tipo) → InvalidRuleValueError', () => {
+  it('POR_UNIDADE com percentual (valor do outro tipo) → ValorRegraInvalidoError', () => {
     const r = RegraDoacao.criar({
       tipo: TipoRegraDoacao.POR_UNIDADE,
       percentual: '5',
     });
     expect(r.isLeft()).toBe(true);
-    expect(r.value).toBeInstanceOf(InvalidRuleValueError);
-    expect((r.value as InvalidRuleValueError).status).toBe(422);
-    expect((r.value as InvalidRuleValueError).message).toBe(
+    expect(r.value).toBeInstanceOf(ValorRegraInvalidoError);
+    expect((r.value as ValorRegraInvalidoError).status).toBe(422);
+    expect((r.value as ValorRegraInvalidoError).message).toBe(
       'O Valor da regra deve corresponder à regra selecionada.',
     );
   });
 
-  it('PERCENTUAL sem percentual → InvalidRuleValueError', () => {
+  it('PERCENTUAL sem percentual → ValorRegraInvalidoError', () => {
     const r = RegraDoacao.criar({ tipo: TipoRegraDoacao.PERCENTUAL });
-    expect(r.value).toBeInstanceOf(InvalidRuleValueError);
+    expect(r.value).toBeInstanceOf(ValorRegraInvalidoError);
   });
 
-  it('PERCENTUAL com valor (valor do outro tipo) → InvalidRuleValueError', () => {
+  it('PERCENTUAL com valor (valor do outro tipo) → ValorRegraInvalidoError', () => {
     const r = RegraDoacao.criar({
       tipo: TipoRegraDoacao.PERCENTUAL,
       valor: '1.50',
     });
     expect(r.isLeft()).toBe(true);
-    expect(r.value).toBeInstanceOf(InvalidRuleValueError);
-    expect((r.value as InvalidRuleValueError).status).toBe(422);
-    expect((r.value as InvalidRuleValueError).message).toBe(
+    expect(r.value).toBeInstanceOf(ValorRegraInvalidoError);
+    expect((r.value as ValorRegraInvalidoError).status).toBe(422);
+    expect((r.value as ValorRegraInvalidoError).message).toBe(
       'O Valor da regra deve corresponder à regra selecionada.',
     );
   });

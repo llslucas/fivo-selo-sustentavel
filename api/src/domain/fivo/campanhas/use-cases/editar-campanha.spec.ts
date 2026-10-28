@@ -27,7 +27,7 @@ import { InMemoryRegistroAuditoriaRepository } from '@test/doubles/in-memory-reg
 import { AlteracaoJaPendenteError } from '../errors/alteracao-ja-pendente.error';
 import { CampanhaEmAnaliseError } from '../errors/campanha-em-analise.error';
 import { NomeCampanhaInvalidoError } from '../errors/nome-campanha-invalido.error';
-import { InvalidRuleValueError } from '../errors/invalid-rule-value.error';
+import { ValorRegraInvalidoError } from '../errors/valor-regra-invalido.error';
 import { TransicaoInvalidaError } from '@domain/fivo/shared';
 import { VigenciaVencidaError } from '../errors/vigencia-vencida.error';
 import { ConsultarCampanhaDaEmpresaUseCase } from './consultar-campanha-da-empresa';
@@ -476,8 +476,8 @@ describe('EditarCampanhaUseCase', () => {
       );
 
       expect(response.isLeft()).toBe(true);
-      expect(response.value).toBeInstanceOf(InvalidRuleValueError);
-      expect((response.value as InvalidRuleValueError).status).toBe(422);
+      expect(response.value).toBeInstanceOf(ValorRegraInvalidoError);
+      expect((response.value as ValorRegraInvalidoError).status).toBe(422);
       const depois = await salva(campanha);
       expect(depois.alteracaoPendente).toBeFalsy();
       expect(depois.regraDoacao?.equals(regraAntes)).toBe(true);

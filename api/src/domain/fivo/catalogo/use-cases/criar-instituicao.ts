@@ -2,7 +2,7 @@ import { Either, left, right } from '@core/either';
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import {
   Cnpj,
-  InvalidCnpjError,
+  CnpjInvalidoError,
   Mailer,
   TemplateEmail,
   UnitOfWork,
@@ -14,7 +14,7 @@ import {
   User,
   UserRole,
   SenhaFracaError,
-  UserAlreadyExistsError,
+  UsuarioJaExisteError,
   Hasher,
   UserRepository,
 } from '@domain/fivo/identidade';
@@ -22,7 +22,7 @@ import { Injectable } from '@nestjs/common';
 import { CausaIndisponivelError } from '../errors/causa-indisponivel.error';
 import { DescricaoDocumentoInvalidaError } from '../errors/descricao-documento-invalida.error';
 import { DocumentoObrigatorioError } from '../errors/documento-obrigatorio.error';
-import { InstituicaoAlreadyExistsError } from '../errors/instituicao-already-exists.error';
+import { InstituicaoJaExisteError } from '../errors/instituicao-ja-existe.error';
 import { CausaRepository } from '../ports/causa-repository';
 import { InstituicaoRepository } from '../ports/instituicao-repository';
 
@@ -51,12 +51,12 @@ interface CriarInstituicaoUseCaseRequest {
 
 export type CriarInstituicaoUseCaseResponse = Either<
   | SenhaFracaError
-  | InvalidCnpjError
+  | CnpjInvalidoError
   | DocumentoObrigatorioError
   | DescricaoDocumentoInvalidaError
   | CausaIndisponivelError
-  | UserAlreadyExistsError
-  | InstituicaoAlreadyExistsError,
+  | UsuarioJaExisteError
+  | InstituicaoJaExisteError,
   {
     instituicaoId: string;
   }
@@ -129,11 +129,11 @@ export class CriarInstituicaoUseCase {
     ]);
 
     if (existingUser) {
-      return left(new UserAlreadyExistsError());
+      return left(new UsuarioJaExisteError());
     }
 
     if (existingInstituicao) {
-      return left(new InstituicaoAlreadyExistsError());
+      return left(new InstituicaoJaExisteError());
     }
 
     const senhaHash = await senhaOrError.value.hash(this.hasher);

@@ -22,7 +22,7 @@ import { InMemoryEmpresaRepository } from '@test/doubles/in-memory-empresa-repos
 import { InMemoryInstituicaoRepository } from '@test/doubles/in-memory-instituicao-repository';
 import { DataInvalidaError } from '../errors/data-invalida.error';
 import { DescricaoCampanhaInvalidaError } from '../errors/descricao-campanha-invalida.error';
-import { InvalidRuleValueError } from '../errors/invalid-rule-value.error';
+import { ValorRegraInvalidoError } from '../errors/valor-regra-invalido.error';
 import { NomeCampanhaInvalidoError } from '../errors/nome-campanha-invalido.error';
 import { PercentualInvalidoError } from '../errors/percentual-invalido.error';
 import { ValorMonetarioInvalidoError } from '../errors/valor-monetario-invalido.error';
@@ -163,7 +163,7 @@ describe('CriarCampanhaUseCase', () => {
     expectNadaGravado();
   });
 
-  it('returns InvalidRuleValueError and saves nothing for an invalid regra de doação', async () => {
+  it('returns ValorRegraInvalidoError and saves nothing for an invalid regra de doação', async () => {
     const response = await sut.execute(
       pedido({
         regraDoacao: {
@@ -175,7 +175,7 @@ describe('CriarCampanhaUseCase', () => {
     );
 
     expect(response.isLeft()).toBe(true);
-    expect(response.value).toBeInstanceOf(InvalidRuleValueError);
+    expect(response.value).toBeInstanceOf(ValorRegraInvalidoError);
     expectNadaGravado();
   });
 

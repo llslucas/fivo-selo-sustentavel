@@ -3,7 +3,7 @@ import { Either, left, right } from '@core/either';
 import { User, UserRole } from '../entities/user';
 import { Injectable } from '@nestjs/common';
 import { ContaBloqueadaError } from '../errors/conta-bloqueada.error';
-import { CredenciaisInvalidasError } from '../errors/wrong-credentials.error';
+import { CredenciaisInvalidasError } from '../errors/credenciais-invalidas.error';
 import { gerarTokenDeSessao } from './gerar-token-de-sessao';
 import { Hasher } from '../ports/hasher';
 import { UserRepository } from '../ports/user-repository';

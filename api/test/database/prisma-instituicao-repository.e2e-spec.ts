@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { InstituicaoAlreadyExistsError } from '@domain/fivo/catalogo/errors/instituicao-already-exists.error';
+import { InstituicaoJaExisteError } from '@domain/fivo/catalogo/errors/instituicao-ja-existe.error';
 import { CausaRepository } from '@domain/fivo/catalogo/ports/causa-repository';
 import { EmpresaRepository } from '@domain/fivo/empresas/ports/empresa-repository';
 import { InstituicaoRepository } from '@domain/fivo/catalogo/ports/instituicao-repository';
@@ -408,13 +408,13 @@ describe('PrismaInstituicaoRepository (e2e)', () => {
     expect(final!.motivoDecisao).toBe(MOTIVO_REJEICAO);
   });
 
-  it('create com CNPJ já cadastrado em outra instituição falha com InstituicaoAlreadyExistsError (409)', async () => {
+  it('create com CNPJ já cadastrado em outra instituição falha com InstituicaoJaExisteError (409)', async () => {
     const primeira = nova();
     const segunda = nova({ cnpj: primeira.cnpj });
     await repository.create(primeira);
 
     await expect(repository.create(segunda)).rejects.toBeInstanceOf(
-      InstituicaoAlreadyExistsError,
+      InstituicaoJaExisteError,
     );
     await expect(repository.create(segunda)).rejects.toMatchObject({
       status: 409,

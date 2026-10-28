@@ -18,7 +18,7 @@ import { Vigencia } from '../entities/vigencia';
 import { Injectable } from '@nestjs/common';
 import { DataInvalidaError } from '../errors/data-invalida.error';
 import { DescricaoCampanhaInvalidaError } from '../errors/descricao-campanha-invalida.error';
-import { InvalidRuleValueError } from '../errors/invalid-rule-value.error';
+import { ValorRegraInvalidoError } from '../errors/valor-regra-invalido.error';
 import { NomeCampanhaInvalidoError } from '../errors/nome-campanha-invalido.error';
 import { PercentualInvalidoError } from '../errors/percentual-invalido.error';
 import { ValorMonetarioInvalidoError } from '../errors/valor-monetario-invalido.error';
@@ -53,7 +53,7 @@ export type CriarCampanhaUseCaseResponse = Either<
   | ResourceNotFoundError
   | NomeCampanhaInvalidoError
   | DescricaoCampanhaInvalidaError
-  | InvalidRuleValueError
+  | ValorRegraInvalidoError
   | ValorMonetarioInvalidoError
   | PercentualInvalidoError
   | DataInvalidaError

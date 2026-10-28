@@ -5,7 +5,7 @@ export * from './ports/registro-auditoria-repository';
 export * from './ports/storage';
 export * from './ports/unit-of-work';
 export * from './errors/arquivo-invalido.error';
-export * from './errors/invalid-cnpj.error';
+export * from './errors/cnpj-invalido.error';
 export * from './errors/motivo-insuficiente.error';
 export * from './errors/storage-indisponivel.error';
 export * from './errors/transicao-invalida.error';

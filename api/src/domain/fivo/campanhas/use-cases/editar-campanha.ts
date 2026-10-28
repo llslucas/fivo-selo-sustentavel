@@ -21,7 +21,7 @@ import { AlteracaoJaPendenteError } from '../errors/alteracao-ja-pendente.error'
 import { CampanhaEmAnaliseError } from '../errors/campanha-em-analise.error';
 import { DataInvalidaError } from '../errors/data-invalida.error';
 import { DescricaoCampanhaInvalidaError } from '../errors/descricao-campanha-invalida.error';
-import { InvalidRuleValueError } from '../errors/invalid-rule-value.error';
+import { ValorRegraInvalidoError } from '../errors/valor-regra-invalido.error';
 import { NomeCampanhaInvalidoError } from '../errors/nome-campanha-invalido.error';
 import { PercentualInvalidoError } from '../errors/percentual-invalido.error';
 import {
@@ -72,7 +72,7 @@ export type EditarCampanhaUseCaseResponse = Either<
   | ResourceNotFoundError
   | NomeCampanhaInvalidoError
   | DescricaoCampanhaInvalidaError
-  | InvalidRuleValueError
+  | ValorRegraInvalidoError
   | ValorMonetarioInvalidoError
   | PercentualInvalidoError
   | DataInvalidaError

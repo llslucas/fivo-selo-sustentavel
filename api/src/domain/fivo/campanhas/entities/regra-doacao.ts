@@ -1,6 +1,6 @@
 import { Either, left, right } from '@core/either';
 import { ValueObject } from '@core/types/entities/value-object';
-import { InvalidRuleValueError } from '../errors/invalid-rule-value.error';
+import { ValorRegraInvalidoError } from '../errors/valor-regra-invalido.error';
 import { ValorMonetario } from './valor-monetario';
 import { ValorMonetarioInvalidoError } from '../errors/valor-monetario-invalido.error';
 import { Percentual } from './percentual';
@@ -31,7 +31,7 @@ export class RegraDoacao extends ValueObject<RegraDoacaoProps> {
   static criar(
     input: CriarRegraDoacaoInput,
   ): Either<
-    | InvalidRuleValueError
+    | ValorRegraInvalidoError
     | ValorMonetarioInvalidoError
     | PercentualInvalidoError,
     RegraDoacao
@@ -40,10 +40,10 @@ export class RegraDoacao extends ValueObject<RegraDoacaoProps> {
 
     if (tipo === TipoRegraDoacao.POR_UNIDADE) {
       if (percentual !== undefined) {
-        return left(new InvalidRuleValueError());
+        return left(new ValorRegraInvalidoError());
       }
       if (valor === undefined) {
-        return left(new InvalidRuleValueError());
+        return left(new ValorRegraInvalidoError());
       }
       const resultado = ValorMonetario.deDecimal(valor);
       if (resultado.isLeft()) {
@@ -52,10 +52,10 @@ export class RegraDoacao extends ValueObject<RegraDoacaoProps> {
       return right(new RegraDoacao({ tipo, valor: resultado.value }));
     }
     if (valor !== undefined) {
-      return left(new InvalidRuleValueError());
+      return left(new ValorRegraInvalidoError());
     }
     if (percentual === undefined) {
-      return left(new InvalidRuleValueError());
+      return left(new ValorRegraInvalidoError());
     }
 
     const resultado = Percentual.deDecimal(percentual);

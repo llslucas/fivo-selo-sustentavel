@@ -1,10 +1,10 @@
-import { Cnpj, InvalidCnpjError, TemplateEmail } from '@domain/fivo/shared';
+import { Cnpj, CnpjInvalidoError, TemplateEmail } from '@domain/fivo/shared';
 import { CausaStatus } from '../entities/causa';
 import { InstituicaoStatus } from '../entities/instituicao';
 import {
   UserRole,
   SenhaFracaError,
-  UserAlreadyExistsError,
+  UsuarioJaExisteError,
 } from '@domain/fivo/identidade';
 import { FakeHasher } from '@test/doubles/fake-hasher';
 import { FakeMailer } from '@test/doubles/fake-mailer';
@@ -18,7 +18,7 @@ import { InMemoryUserRepository } from '@test/doubles/in-memory-user-repository'
 import { CausaIndisponivelError } from '../errors/causa-indisponivel.error';
 import { DescricaoDocumentoInvalidaError } from '../errors/descricao-documento-invalida.error';
 import { DocumentoObrigatorioError } from '../errors/documento-obrigatorio.error';
-import { InstituicaoAlreadyExistsError } from '../errors/instituicao-already-exists.error';
+import { InstituicaoJaExisteError } from '../errors/instituicao-ja-existe.error';
 import { CriarInstituicaoUseCase } from './criar-instituicao';
 
 type CriarInstituicaoRequest = Parameters<
@@ -177,14 +177,14 @@ describe('CriarInstituicaoUseCase', () => {
     expectNadaPersistido();
   });
 
-  it('should reject with InvalidCnpjError (422) and persist nothing when the CNPJ fails the check digits', async () => {
+  it('should reject with CnpjInvalidoError (422) and persist nothing when the CNPJ fails the check digits', async () => {
     const response = await sut.execute(
       validRequest({ cnpj: '11111111111111' }),
     );
 
     expect(response.isLeft()).toBe(true);
     if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(InvalidCnpjError);
+      expect(response.value).toBeInstanceOf(CnpjInvalidoError);
       expect(response.value.status).toBe(422);
       expect(response.value.message).toBe('CNPJ inválido');
     }
@@ -254,7 +254,7 @@ describe('CriarInstituicaoUseCase', () => {
     expectNadaPersistido();
   });
 
-  it('should reject with InstituicaoAlreadyExistsError (409) when the CNPJ already belongs to another instituicao', async () => {
+  it('should reject with InstituicaoJaExisteError (409) when the CNPJ already belongs to another instituicao', async () => {
     const cnpjOrError = Cnpj.create('12345678000195');
     if (cnpjOrError.isLeft()) throw new Error('invalid cnpj fixture');
 
@@ -266,7 +266,7 @@ describe('CriarInstituicaoUseCase', () => {
 
     expect(response.isLeft()).toBe(true);
     if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(InstituicaoAlreadyExistsError);
+      expect(response.value).toBeInstanceOf(InstituicaoJaExisteError);
       expect(response.value.status).toBe(409);
       expect(response.value.message).toBe('CNPJ ou e-mail já cadastrado');
     }
@@ -275,7 +275,7 @@ describe('CriarInstituicaoUseCase', () => {
     expect(mailer.mensagens).toHaveLength(0);
   });
 
-  it('should reject with UserAlreadyExistsError (409) when the e-mail already belongs to any account of the platform', async () => {
+  it('should reject with UsuarioJaExisteError (409) when the e-mail already belongs to any account of the platform', async () => {
     await userRepository.create(
       UserFactory.create({
         email: 'contato@instituicaoteste.org.br',
@@ -287,7 +287,7 @@ describe('CriarInstituicaoUseCase', () => {
 
     expect(response.isLeft()).toBe(true);
     if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(UserAlreadyExistsError);
+      expect(response.value).toBeInstanceOf(UsuarioJaExisteError);
       expect(response.value.status).toBe(409);
       expect(response.value.message).toBe('CNPJ ou e-mail já cadastrado');
     }
@@ -314,7 +314,7 @@ describe('CriarInstituicaoUseCase', () => {
     const cnpj = await sut.execute(
       validRequest({ ...tudoInvalido, senha: 'SenhaForte123' }),
     );
-    expect(cnpj.value).toBeInstanceOf(InvalidCnpjError);
+    expect(cnpj.value).toBeInstanceOf(CnpjInvalidoError);
 
     const documento = await sut.execute(
       validRequest({
@@ -335,7 +335,7 @@ describe('CriarInstituicaoUseCase', () => {
     expect(causa.value).toBeInstanceOf(CausaIndisponivelError);
 
     const unicidade = await sut.execute(validRequest());
-    expect(unicidade.value).toBeInstanceOf(UserAlreadyExistsError);
+    expect(unicidade.value).toBeInstanceOf(UsuarioJaExisteError);
   });
 
   it('should still return right, keep the cadastro created and log the error when the Mailer fails', async () => {

@@ -1,7 +1,7 @@
 import { User, UserRole } from '../entities/user';
 import { UserRepository } from '../ports/user-repository';
 import { Either, left, right } from '@core/either';
-import { UserAlreadyExistsError } from '../errors/users-already-exists.error';
+import { UsuarioJaExisteError } from '../errors/usuario-ja-existe.error';
 import { Hasher } from '../ports/hasher';
 import { Senha } from '../entities/senha';
 import { SenhaFracaError } from '../errors/senha-fraca.error';
@@ -14,7 +14,7 @@ export interface CriarUsuarioRequest {
 }
 
 export type CriarUsuarioResponse = Either<
-  UserAlreadyExistsError | SenhaFracaError,
+  UsuarioJaExisteError | SenhaFracaError,
   {
     user: User;
   }
@@ -32,7 +32,7 @@ export class CriarUsuarioUseCase {
     const existingUser = await this.userRepository.findByEmail(email);
 
     if (existingUser) {
-      return left(new UserAlreadyExistsError());
+      return left(new UsuarioJaExisteError());
     }
 
     const plainSenha = Senha.create(senha);

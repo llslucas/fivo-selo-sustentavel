@@ -1,4 +1,4 @@
-import { EmpresaAlreadyExistsError } from '@domain/fivo/empresas/errors/empresa-already-exists.error';
+import { EmpresaJaExisteError } from '@domain/fivo/empresas/errors/empresa-ja-existe.error';
 import { EmpresaRepository } from '@domain/fivo/empresas/ports/empresa-repository';
 import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
 import { UnitOfWork } from '@domain/fivo/shared/ports/unit-of-work';
@@ -96,7 +96,7 @@ describe('CriarEmpresaUseCase — transação atômica User + Empresa (e2e)', ()
 
     await expect(
       criarUseCase(repositorioComConflito).execute(request()),
-    ).rejects.toBeInstanceOf(EmpresaAlreadyExistsError);
+    ).rejects.toBeInstanceOf(EmpresaJaExisteError);
 
     expect(await contexto.prisma.usuario.count()).toBe(0);
     expect(
@@ -121,7 +121,7 @@ describe('CriarEmpresaUseCase — transação atômica User + Empresa (e2e)', ()
 
     const classificados = resultados.map((resultado) => {
       if (resultado.status === 'rejected') {
-        return resultado.reason instanceof EmpresaAlreadyExistsError
+        return resultado.reason instanceof EmpresaJaExisteError
           ? 'conflito'
           : 'erro-inesperado';
       }
@@ -130,7 +130,7 @@ describe('CriarEmpresaUseCase — transação atômica User + Empresa (e2e)', ()
         return 'sucesso';
       }
 
-      return resultado.value.value instanceof EmpresaAlreadyExistsError
+      return resultado.value.value instanceof EmpresaJaExisteError
         ? 'conflito'
         : 'erro-inesperado';
     });

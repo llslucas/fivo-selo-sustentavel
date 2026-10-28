@@ -2,7 +2,7 @@ import { Empresa, EmpresaStatus } from '../entities/empresa';
 import {
   UserRole,
   SenhaFracaError,
-  UserAlreadyExistsError,
+  UsuarioJaExisteError,
 } from '@domain/fivo/identidade';
 import { FakeHasher } from '@test/doubles/fake-hasher';
 import { FakeMailer } from '@test/doubles/fake-mailer';
@@ -11,8 +11,8 @@ import { UserFactory } from '@test/factories/user-factory';
 import { InMemoryEmpresaRepository } from '@test/doubles/in-memory-empresa-repository';
 import { InMemoryUnitOfWork } from '@test/doubles/in-memory-unit-of-work';
 import { InMemoryUserRepository } from '@test/doubles/in-memory-user-repository';
-import { InvalidCnpjError, TemplateEmail, Cnpj } from '@domain/fivo/shared';
-import { EmpresaAlreadyExistsError } from '../errors/empresa-already-exists.error';
+import { CnpjInvalidoError, TemplateEmail, Cnpj } from '@domain/fivo/shared';
+import { EmpresaJaExisteError } from '../errors/empresa-ja-existe.error';
 import { CriarEmpresaUseCase } from './criar-empresa';
 
 type CriarEmpresaRequest = Parameters<CriarEmpresaUseCase['execute']>[0];
@@ -111,7 +111,7 @@ describe('CriarEmpresaUseCase', () => {
     expect(userRepository.items).toHaveLength(0);
   });
 
-  it('should reject with InvalidCnpjError (422) and persist/query nothing when CNPJ is invalid', async () => {
+  it('should reject with CnpjInvalidoError (422) and persist/query nothing when CNPJ is invalid', async () => {
     const findByCnpjSpy = jest.spyOn(empresaRepository, 'findByCnpj');
     const findByEmailSpy = jest.spyOn(userRepository, 'findByEmail');
 
@@ -121,7 +121,7 @@ describe('CriarEmpresaUseCase', () => {
 
     expect(response.isLeft()).toBe(true);
     if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(InvalidCnpjError);
+      expect(response.value).toBeInstanceOf(CnpjInvalidoError);
       expect(response.value.status).toBe(422);
     }
     expect(findByCnpjSpy).not.toHaveBeenCalled();
@@ -130,7 +130,7 @@ describe('CriarEmpresaUseCase', () => {
     expect(userRepository.items).toHaveLength(0);
   });
 
-  it('should reject with UserAlreadyExistsError (409) when the e-mail already belongs to another account', async () => {
+  it('should reject with UsuarioJaExisteError (409) when the e-mail already belongs to another account', async () => {
     const otherUser = UserFactory.create({
       email: 'contato@empresateste.com.br',
     });
@@ -140,14 +140,14 @@ describe('CriarEmpresaUseCase', () => {
 
     expect(response.isLeft()).toBe(true);
     if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(UserAlreadyExistsError);
+      expect(response.value).toBeInstanceOf(UsuarioJaExisteError);
       expect(response.value.status).toBe(409);
       expect(response.value.message).toBe('CNPJ ou e-mail já cadastrado');
     }
     expect(empresaRepository.items).toHaveLength(0);
   });
 
-  it('should reject with EmpresaAlreadyExistsError (409) when the CNPJ already belongs to a non-rejected empresa', async () => {
+  it('should reject with EmpresaJaExisteError (409) when the CNPJ already belongs to a non-rejected empresa', async () => {
     const cnpjOrError = Cnpj.create('12345678000195');
     if (cnpjOrError.isLeft()) throw new Error('invalid cnpj fixture');
 
@@ -161,7 +161,7 @@ describe('CriarEmpresaUseCase', () => {
 
     expect(response.isLeft()).toBe(true);
     if (response.isLeft()) {
-      expect(response.value).toBeInstanceOf(EmpresaAlreadyExistsError);
+      expect(response.value).toBeInstanceOf(EmpresaJaExisteError);
       expect(response.value.status).toBe(409);
       expect(response.value.message).toBe('CNPJ ou e-mail já cadastrado');
     }
@@ -255,7 +255,7 @@ describe('CriarEmpresaUseCase', () => {
     expect(empresa?.logoArquivoId?.toString()).toBe(arquivoId);
   });
 
-  it('should keep the winning re-registration and throw EmpresaAlreadyExistsError when the stored status changed after the read (CAS of the real double)', async () => {
+  it('should keep the winning re-registration and throw EmpresaJaExisteError when the stored status changed after the read (CAS of the real double)', async () => {
     const cnpjOrError = Cnpj.create('12345678000195');
     if (cnpjOrError.isLeft()) throw new Error('invalid cnpj fixture');
 
@@ -285,7 +285,7 @@ describe('CriarEmpresaUseCase', () => {
 
     await expect(
       sut.execute(validRequest({ razaoSocial: 'Empresa Perdedora LTDA' })),
-    ).rejects.toBeInstanceOf(EmpresaAlreadyExistsError);
+    ).rejects.toBeInstanceOf(EmpresaJaExisteError);
 
     const guardada = await lerEmpresa(rejectedEmpresa.id.toString());
     expect(guardada.razaoSocial).toBe('Empresa Vencedora LTDA');
