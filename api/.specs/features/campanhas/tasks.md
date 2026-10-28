@@ -139,7 +139,7 @@ T16 → T27
 
 ### Phase 6b: Hardening do domínio 🤖 (exceção AD-021)
 
-Aberta pela rodada 1 do gate de handoff. T41, T42, T43, T46, T47, T49 e T50 não têm dependência dentro da fase. Termina com a rodada 2 do gate (`validation-dominio.md` em PASS).
+Aberta pela rodada 1 do gate de handoff. T41, T42, T43, T46, T47, T49 e T50 não têm dependência dentro da fase. A rodada 2 do gate deu FAIL e acrescentou T51–T53, sem dependência entre si. Termina com a rodada 3 do gate (`validation-dominio.md` em PASS).
 
 ```
 T46 → T44
@@ -1188,6 +1188,73 @@ T39 → T40
 **Tests**: unit
 **Gate**: quick
 **Commit**: `test(api): cobre tipo IMAGEM_CAMPANHA em Arquivo`
+
+---
+
+> **Rodada 2 do gate (2026-10-27): FAIL** só por lacunas de teste (mutantes N8, N14, N23, N24) → T51–T53, também do agente pela exceção do AD-021.
+
+### T51: `paraDecimal` — fração com zero à esquerda (Major)
+
+**What**: Nenhum teste formata um valor cuja fração tem zero à esquerda, e `padStart` → `padEnd` em `paraDecimal` passa despercebido (N8). Com o mutante, R$ 1,05 sai `"1.50"` no detalhe, na fila, na consulta pública e na auditoria. Acrescentar o caso pelo read model.
+**Where**: `src/domain/fivo/application/use-cases/consultar-campanha-da-empresa.spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-01 (Criação AC17), CAMP-02
+**Autor**: 🤖 agente (exceção AD-021, ciclo de correção do gate)
+
+**Done when**:
+
+- [ ] Campanha com regra `POR_UNIDADE` `'0.05'` e meta `'1.05'` → `regraDoacao).toEqual({ tipo: POR_UNIDADE, valor: '0.05' })` e `meta).toBe('1.05')`
+- [ ] Campanha com regra `PERCENTUAL` `'0.01'` → `percentual: '0.01'`
+- [ ] Mutante N8 (`U/campanha-detalhe.ts:65`, `padStart` → `padEnd`) morre
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): cobre fração com zero à esquerda no detalhe da campanha`
+
+---
+
+### T52: Fim vencido herdado do compromisso aprovado (Major)
+
+**What**: O design (`design.md:158`) manda checar a vigência do compromisso **mesclado** ao abrir a alteração, mas os testes da T49 sempre enviam a vigência. Falta o caso em que a empresa altera só a regra ou a beneficiada de uma campanha `APROVADA` cuja vigência aprovada já venceu (N14).
+**Where**: `src/domain/fivo/entities/campanha.spec.ts`; `src/domain/fivo/application/use-cases/editar-campanha.spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-08 (Alteração AC5)
+**Autor**: 🤖 agente (exceção AD-021, ciclo de correção do gate)
+
+**Done when**:
+
+- [ ] Entidade: campanha `APROVADA` com vigência aprovada de fim = hoje (ou antes), `editarCompromisso({ regraDoacao }, hoje)` → `VigenciaVencidaError`, sem pendência e com `compromissoVigente()` intacto
+- [ ] Entidade: a mesma campanha com `editarCompromisso({ vigencia: <fim amanhã> }, hoje)` → alteração aberta (a vigência nova substitui a vencida)
+- [ ] Caso de uso (fake timers): campanha `APROVADA` com fim aprovado já vencido em SP + edição só da regra → `VigenciaVencidaError`, `expectNadaGravado`
+- [ ] Mutante N14 (`E/campanha.ts:428`, `proposto.vigencia` → `parcial.vigencia?`) morre
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): cobre alteração sobre vigência aprovada vencida`
+
+---
+
+### T53: Data-hora da aprovação da campanha (Minor)
+
+**What**: Submissão AC7 pede autor **e data-hora** da decisão, e AC15 pede data-hora em **toda** transição. A aprovação da campanha só confere `toBeInstanceOf(Date)`, e `new Date(0)` sobrevive na entidade (N24) e na auditoria (N23). A T45 copiou a lista de lacunas da rodada 1 e não incluiu `CAMPANHA_APROVADA`.
+**Where**: `src/domain/fivo/entities/campanha.spec.ts`; `src/domain/fivo/application/use-cases/aprovar-campanha.spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-05 (Submissão AC7), CAMP-06 (Submissão AC15)
+**Autor**: 🤖 agente (exceção AD-021, ciclo de correção do gate)
+
+**Done when**:
+
+- [ ] `campanha.spec.ts` (aprovar): `jest.useFakeTimers({ now })` + `decididoEm).toEqual(now)`
+- [ ] `aprovar-campanha.spec.ts` (sucesso): `depois.decididoEm).toEqual(agora)` e `registro.criadoEm).toEqual(agora)`, no lugar de `toBeInstanceOf(Date)`
+- [ ] Varredura: nenhuma asserção de data-hora de decisão ou auditoria em `campanha*.spec.ts`, `*-campanha.spec.ts` e `*-alteracao-campanha.spec.ts` fica em `toBeInstanceOf(Date)`
+- [ ] Mutantes N23 (`U/aprovar-campanha.ts:83`) e N24 (`E/campanha.ts:270`) morrem
+- [ ] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): data-hora exata na aprovação de campanha`
 
 ---
 
