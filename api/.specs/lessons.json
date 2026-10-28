@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 29,
+  "next_id": 31,
   "lessons": [
     {
       "id": "L-001",
@@ -217,17 +217,19 @@
       "text": "A fix task for a conjunctive AC must list every operation the AC names, not only the ones in the previous gap list",
       "signal": "surviving_mutant",
       "scope": "domain-tests",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "catalogo-instituicoes"
+        "catalogo-instituicoes",
+        "campanhas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "validation-dominio.md rodada 2, mutantes N28 N29, P1-Causas AC6 (domain-tests)"
+        "validation-dominio.md rodada 2, mutantes N28 N29, P1-Causas AC6 (domain-tests)",
+        "validation-dominio.md rodada 2, mutantes N23 N24, Submissão AC7 AC15 (T45 omitiu CAMPANHA_APROVADA) (domain-tests)"
       ],
       "created": "2026-10-14T01:02:45Z",
-      "last_seen": "2026-10-14T01:02:45Z"
+      "last_seen": "2026-10-28T00:21:23Z"
     },
     {
       "id": "L-013",
@@ -518,6 +520,42 @@
       ],
       "created": "2026-10-27T23:36:11Z",
       "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-029",
+      "key": "surviving_mutant::when formatting integer cents as decimal text test a value whose fraction has a leading zero such as 105 to 1 05",
+      "text": "When formatting integer cents as decimal text, test a value whose fraction has a leading zero, such as 105 to 1.05",
+      "signal": "surviving_mutant",
+      "scope": "domain/fivo/application/use-cases",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md rodada 2, mutante N8 (use-cases/campanha-detalhe.ts:65 padStart -> padEnd) (domain/fivo/application/use-cases)"
+      ],
+      "created": "2026-10-28T00:21:23Z",
+      "last_seen": "2026-10-28T00:21:23Z"
+    },
+    {
+      "id": "L-030",
+      "key": "surviving_mutant::when a rule validates the result of merging a partial update test the case where the violating value comes from the stored state not from the input",
+      "text": "When a rule validates the result of merging a partial update, test the case where the violating value comes from the stored state, not from the input",
+      "signal": "surviving_mutant",
+      "scope": "domain-entities",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md rodada 2, mutante N14 (entities/campanha.ts:428), Alteração AC5 (domain-entities)"
+      ],
+      "created": "2026-10-28T00:21:23Z",
+      "last_seen": "2026-10-28T00:21:23Z"
     }
   ]
 }

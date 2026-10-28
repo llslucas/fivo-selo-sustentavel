@@ -1,216 +1,248 @@
-# Campanhas — Validação do domínio, rodada 1 (gate de handoff AD-021)
-
 **Verdict**: FAIL
 
-**Veredito**: ❌ **FAIL**. O gate `quick` está verde (tsc 0, eslint 0, unit 566/566), e a maior parte da regra de negócio está correta e bem testada: VOs de limite, máquina de estados da `Campanha`, CAS por `versao` contra o double real, fila, consulta pública e guardas de empresa e admin. O handoff para a Fase 7 continua **bloqueado** por três motivos:
+# Campanhas — Validação do domínio, rodada 2 (gate de handoff AD-021)
 
-1. **Bloqueador estrutural (Alteração AC6/AC8, AD-006c).** `aprovarAlteracao` e `rejeitarAlteracao` zeram `alteracaoPendente` antes do `salvar` (`entities/campanha.ts:298`, `:321`). O repositório recebe a campanha sem a alteração decidida e não tem como gravar status, `decididoPor`, `decididoEm` e `motivo` em `campanha_alteracao`. A T29 não consegue cumprir a porta como ela está.
-2. **Lacunas de comportamento.** A alteração pendente aceita data de fim já vencida (Alteração AC5 exige as validações de datas da submissão). `EditarCampanhaUseCase` não recebe `capaArquivoId`, então a capa não é editável por caso de uso (Criação AC15, Alteração AC1), e a T34 depende disso. A edição e a consulta devolvem dois tipos `CampanhaDetalhe` diferentes (Done-when da T19).
-3. **Testes que não discriminam.** O sensor teve 44 mutantes: 31 mortos, **12 sobreviventes** e 1 equivalente. O caso mais grave é `RejeitarAlteracaoCampanha`: o e-mail, a auditoria e o CAS podem ser removidos sem que nenhum teste falhe. Também sobrevivem mensagens literais citadas pela spec, timestamps de auditoria, a vigência com fim anterior ao início e o limite de 20 caracteres do motivo na `Campanha`. A T11 (`IMAGEM_CAMPANHA`) não tem nenhum teste.
+**Veredito**: ❌ **FAIL**. A Fase 6b fez o que prometeu: os 12 sobreviventes da rodada 1 morreram, o bloqueador estrutural (T46) está resolvido com um contrato de porta coerente, e 11 dos 13 ACs com lacuna fecharam. O gate `quick` está verde (tsc 0, eslint 0, unit 595/595), e nenhum teste foi apagado ou enfraquecido. O handoff para a Fase 7 continua **bloqueado** por quatro mutantes sobreviventes, todos com efeito observável:
 
-As lacunas viraram as tasks humanas **T41–T50** (seção Fix Plans).
+1. **Formatação de dinheiro (N8, Major).** `paraDecimal` (`U/campanha-detalhe.ts:65`), agora a definição única de toda a feature (T48), aceita `padStart` → `padEnd` sem falhar nenhum teste. Com o mutante, R$ 1,05 sai como `"1.50"` no detalhe, na fila, na consulta pública e na auditoria. Nenhum teste usa fração com zero à esquerda.
+2. **Checagem de fim vencido sobre o compromisso mesclado (N14, Major).** O design emendado (`design.md:158`, `3c03bb3`) manda checar a vigência do compromisso **mesclado**. Trocar por uma checagem só da vigência enviada sobrevive: nenhum teste abre alteração de regra ou beneficiada numa campanha aprovada cuja vigência atual já venceu. Alteração AC5 fica com um ramo sem evidência.
+3. **Data-hora da aprovação da campanha (N23, N24, Minor).** `Campanha.aprovar` com `decididoEm = new Date(0)` e a auditoria `CAMPANHA_APROVADA` com `criadoEm: new Date(0)` sobrevivem. Os testes só conferem `toBeInstanceOf(Date)`. A rodada 1 deixou passar essas duas (marcou Submissão AC7 ✅ e não listou `CAMPANHA_APROVADA` na T45). A correção é desta rodada.
+
+As lacunas viram as tasks **T51–T53** (seção Fix Plans). O contrato da T46 está ok, com duas notas não bloqueantes para a T29.
 
 **Data**: 2026-10-27
 **Spec**: `.specs/features/campanhas/spec.md`
-**Diff range**: `397f8bc..d756ffa` (`397f8bc` = merge do planejamento; `d756ffa` = HEAD de `feat/campanhas-infra`). Superfície: `src/domain/**`, `src/core/**` (sem mudança), `test/repositories/**` e `test/factories/**`, com 59 arquivos, +6726/−270 e 40 commits. Nenhum arquivo fora dessa superfície mudou, e nenhum teste foi apagado.
-**Verifier**: sub-agente independente (autor ≠ verificador), somente leitura sobre `src/` e `test/`. Ele escreve só este arquivo e o que `lessons.py` gerar.
-**Rodada**: 1 de 3. Escopo: P1 do `api` (CAMP-01…08, CAMP-11 → T1–T27). CAMP-09, CAMP-10 e `web` ficam fora. Sem UAT (backend). Gate e2e não rodado (a infra de campanhas ainda não existe).
+**Diff range**: correção `c51d6dc..3c03bb3` (11 commits, um por task + emenda do design; 24 arquivos, +995/−367). Domínio total `397f8bc..3c03bb3`.
+**Verifier**: sub-agente independente (autor ≠ verificador), somente leitura sobre `src/` e `test/`. Escreve só este arquivo e o que `lessons.py` gerar.
+**Rodada**: 2 de 3. Escopo: P1 do `api` (CAMP-01…08, CAMP-11 → T1–T27 + T41–T50). CAMP-09, CAMP-10 e `web` ficam fora. Sem UAT (backend). Gate e2e não rodado (infra ainda não existe).
 
-> Nota de autoria: a T18 (`criar-campanha.ts` + spec) foi escrita pelo agente sob a exceção registrada no AD-021 (`STATE.md`, "Exceção de autoria (2026-10-27)"). As demais T1–T27 são humanas. Vários checkboxes de `tasks.md` estão desmarcados porque humanos não editam specs. Isso não é lacuna: a conclusão abaixo foi conferida no código.
+Caminhos abreviados: `E/` = `src/domain/fivo/entities/`, `U/` = `src/domain/fivo/application/use-cases/`, `ER/` = `src/domain/fivo/application/errors/`.
+
+---
+
+## Histórico
+
+| Rodada | Diff | Verdict | Resumo |
+| ------ | ---- | ------- | ------ |
+| 1 | `397f8bc..d756ffa` | ❌ FAIL | Gate verde (566 unit). 46 ACs P1 de domínio: 33 ✅, 13 com lacuna. Sensor: 44 mutantes, 31 mortos, 12 sobreviventes (M8, M13, M22–M27, M37–M39, M42), 1 equivalente (M30). Bloqueador: a alteração decidida sumia do agregado antes do `salvar`. Abriu T41–T50 (Fase 6b) |
+| 2 | `c51d6dc..3c03bb3` | ❌ FAIL | Este relatório. 43/46 ✅. Sensor: 38 mutantes, 33 mortos, 4 sobreviventes, 1 equivalente. Abre T51–T53 |
 
 ---
 
 ## Gate Check
 
-- **Gate command** (`tasks.md`, Quick): `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`. Cada etapa rodou em separado, com a saída redirecionada para arquivo no scratchpad.
+- **Gate command** (`tasks.md`, Quick): `cd api && npx tsc -p tsconfig.json --noEmit && npx eslint "{src,test}/**/*.ts" && npx jest`. Cada etapa rodou em separado, com a saída em arquivo no scratchpad.
 
 | Etapa | Exit | Resultado |
 | ----- | ---- | --------- |
 | `tsc --noEmit` | 0 | ok |
 | `eslint` | 0 | nenhum erro, nenhum aviso |
-| `jest` (unit) | 0 | 63 suites, **566/566**, 0 skip |
+| `jest` (unit) | 0 | 63 suites, **595/595**, 0 skip |
 
-- **Contagem de testes**: 335 unit em `397f8bc` (43 suites, medido num worktree descartável) → 566 em HEAD (63 suites), **+231**.
-- **Integridade**: `git diff --diff-filter=D 397f8bc..HEAD -- src test` vem vazio. O único spec reescrito é `criar-campanha.spec.ts`, que pertence ao retrabalho previsto na T18. Nenhuma asserção de outra feature foi tocada.
+- **Contagem de testes**: 335 antes da feature (`397f8bc`, medido na rodada 1) → 566 na rodada 1 → **595** agora (+29 na correção, +260 na feature).
+- **Integridade** (`git diff c51d6dc..HEAD -- '*.spec.ts'`): nenhum arquivo apagado; nenhum `it(` removido (26 linhas de teste novas). As asserções removidas foram trocadas por formas **mais fortes**: os `expect.objectContaining` das auditorias viraram `toEqual` com o retrato completo (`U/aprovar-alteracao-campanha.spec.ts:197-208`, `U/editar-campanha.spec.ts:358-370`); o `toContain(campo)` sobre a mensagem de `CamposPendentesError` virou `message).toBe(...)` + `campos).toEqual([...])` (`E/campanha.spec.ts:238-247`); o setup de `rejeitar-alteracao-campanha.spec.ts` ganhou empresa e dono e um `expectNadaGravado` que confere pendência, versão, auditoria, e-mail e histórico. As demais remoções são a troca mecânica da assinatura `editarCompromisso(parcial)` → `editarCompromisso(parcial, hoje)`.
 
 ---
 
-## Task Completion (T1–T27)
+## Task Completion
 
-| Task | Status | Notas |
-| ---- | ------ | ----- |
-| T1 Erros | ⚠️ Parcial | Status e mensagens batem, com uma exceção: `CamposPendentesError` concatena a lista na mensagem (`errors/campos-pendentes.error.ts:7-9`: `` `Preencha ... análise: ${JSON.stringify(campos)}` ``). O Done-when e o design pedem a mensagem fixa "Preencha os campos obrigatórios antes de enviar para análise", com `campos` no corpo. → T43 |
-| T2 `NomeCampanha` | ✅ | 2/81 rejeitados, 3/80 aceitos, `" ab "` rejeitado, mensagem conferida |
-| T3 `DescricaoCampanha` | ✅ | 2000/2001, `<script>` devolvido idêntico |
-| T4 `ValorMonetario` | ✅ | Conversões e as 8 rejeições da Done-when. Sem `parseFloat` (`valor-monetario.ts:25-26`, concatenação de strings) |
-| T5 `Percentual` | ✅ | — |
-| T6 `RegraDoacao` | ✅ | — (a mensagem de `InvalidRuleValueError` nunca é asserida; ver Criação AC7) |
-| T7 `Beneficiada` | ✅ | Mensagem conferida |
-| T8 `DataCalendario` | ✅ | `2026-10-16T02:30Z` → `2026-10-15` |
-| T9 `Vigencia` | ⚠️ Parcial | "Fim igual **ou anterior** ao início → erro": só o caso igual tem teste (M8 sobreviveu). → T41 |
-| T10 `Compromisso` | ✅ | `mesclar` imutável; `equals` distingue cada campo |
-| T11 `IMAGEM_CAMPANHA` | ❌ | O tipo existe (`arquivo.ts:51,58,65`), mas `arquivo.spec.ts` não tem nenhum caso de `IMAGEM_CAMPANHA` (`grep` vazio em `src` e `test`). → T50 |
-| T12 `AlteracaoCompromisso` | ✅ | Motivo 19/20, trim, dupla decisão, sem setter |
-| T13 `Campanha` rascunho/submissão | ✅ | — |
-| T14 `Campanha` decisões | ✅ | Aprovar e rejeitar ok nos 4 estados. O limite de 20 caracteres em `Campanha.rejeitar` não tem o lado aceito (M13). → T42 |
-| T15 `Campanha` alteração | ✅ na Done-when | Mas a alteração decidida some do agregado antes do `salvar` (ver bloqueador). → T46 |
-| T16 Porta/double/factory | ✅ | CAS, `listarEmAnalise` e cópias defensivas. A porta não tem como receber a alteração decidida. → T46 |
-| T17 Templates | ✅ | — |
-| T18 `CriarCampanha` | ✅ | Um teste por VO, "nada gravado" em todo erro, guarda não chamada sem beneficiada |
-| T19 `EditarCampanha` | ❌ | "Devolve o detalhe da campanha (**mesmo read model de T21**)": a edição devolve `campanha-detalhe.ts:31` (`alteracaoPendente.criadaEm`, sem `criadaEm`/`atualizadaEm`). A consulta devolve `consultar-campanha-da-empresa.ts:42` (`alteracaoPendente.abertaEm`, `criadaEm`, `atualizadaEm`). Também falta `capaArquivoId` na entrada, e a alteração não valida fim ≤ hoje. → T47, T48, T49 |
-| T20 `SubmeterCampanha` | ✅ | Fake timers em SP, CAS real e spy, auditoria com `criadoEm` exato |
-| T21 `ConsultarCampanhaDaEmpresa` | ✅ | — |
-| T22 `ListarFilaCampanhas` | ✅ | Três itens intercalados |
-| T23 `AprovarCampanha` | ✅ | CAS exercitado contra o double (`RepositorioComGravacaoConcorrente`) |
-| T24 `RejeitarCampanha` | ⚠️ | A Done-when está cumprida, mas a auditoria não confere `criadoEm` (M25). → T45 |
-| T25 `AprovarAlteracaoCampanha` | ⚠️ | A auditoria confere só o tipo da regra (M27) e não confere `criadoEm` (M42). → T45 |
-| T26 `RejeitarAlteracaoCampanha` | ❌ | O setup não cria empresa nem dono, então o e-mail nunca é tentado: a "falha do Mailer" passa por vacuidade. A auditoria só confere `tipo`, e o CAS não tem teste (M22, M23, M24). → T44 |
-| T27 `BuscarCampanhaPublica` | ✅ | `toEqual` exato prova a omissão de `id`, motivo e pendência |
+T1–T27: sem mudança de status em relação à rodada 1, exceto pelas tasks que a Fase 6b reabriu (abaixo). T41–T50 conferidas no código, item a item.
+
+| Task | Status | Evidência |
+| ---- | ------ | --------- |
+| T41 `Vigencia` fim anterior | ✅ | `E/vigencia.spec.ts:21-33` (422 + mensagem); `U/criar-campanha.spec.ts:211-222` (nada gravado). M8 morto |
+| T42 `Campanha.rejeitar` 20 caracteres | ✅ | `E/campanha.spec.ts:336-347` (20 aceito, motivo gravado), `:349-363` (19 + espaços recusado, estado `EM_ANALISE`). M13 morto |
+| T43 Mensagens literais | ✅ | `E/regra-doacao.spec.ts:37-42`, `:55-60`; `U/editar-campanha.spec.ts:459-463` e `:558-562` (409 + texto); `ER/campos-pendentes.error.ts:7` com texto fixo, conferido em `E/campanha.spec.ts:240-241` e `U/submeter-campanha.spec.ts:217-220`. M37, M38, M39 mortos |
+| T44 `RejeitarAlteracao` | ✅ | E-mail `U/rejeitar-alteracao-campanha.spec.ts:206-218` (`toEqual` exato); auditoria completa com `criadoEm` `:178-204`; falha do Mailer com dono real e `console.error` `:238-263`; CAS contra o double `:265-282`; nada gravado nos três erros `:120-160`. M22, M23, M24 mortos |
+| T45 Auditoria data-hora e retrato | ✅ na Done-when | `criadoEm` igual ao relógio em `U/rejeitar-campanha.spec.ts:109`, `U/editar-campanha.spec.ts:291` e `:356`, `U/aprovar-alteracao-campanha.spec.ts:196`. Retrato completo sem `objectContaining` em `U/editar-campanha.spec.ts:358-370` e `U/aprovar-alteracao-campanha.spec.ts:197-208`. M25, M26, M27, M42 mortos. **Mas** a Done-when copiou a lista de lacunas da rodada 1 e não incluiu `CAMPANHA_APROVADA`, que também viola Submissão AC15 (N23) → T53 |
+| T46 Alteração decidida | ✅ | `E/campanha.ts:71`, `:163-165`, `:317`, `:341`; porta `ports/database/campanha-repository.ts:10-25`; double `test/repositories/in-memory-campanha-repository.ts:61`, `:88`, `:102-120`; `E/campanha.spec.ts:622-702`; `U/aprovar-alteracao-campanha.spec.ts:211-228`; `U/rejeitar-alteracao-campanha.spec.ts:220-236`; `E/campanha.spec.ts:721-735` segue verde. Ver "Contrato da T46" |
+| T47 Capa na edição | ✅ | `U/editar-campanha.ts:61`, `:244-247`; `U/editar-campanha.spec.ts:469-499` (rascunho e `APROVADA`: gravada, sem alteração, sem auditoria, `versao + 1`), `:501-521` (`EM_ANALISE` → 409, nada gravado). N7 morto |
+| T48 Read model e retrato únicos | ✅ | Uma só `CampanhaDetalhe` (`U/campanha-detalhe.ts:43`), um só `paraDecimal` (`:63`) e um só `descreverCompromisso` (`:87`); `grep` não acha outra definição. `U/editar-campanha.spec.ts:523-548` confere edição e consulta com `toStrictEqual`. As três auditorias de alteração gravam o mesmo retrato. Resta a diferença de nome de chave (ver "Diferença de nome de chave") e o `paraDecimal` sem teste de fração com zero à esquerda (N8 → T51) |
+| T49 Fim vencido na alteração | ✅ na Done-when | `E/campanha.ts:426-430`; `U/editar-campanha.spec.ts:379-398` (fim = hoje em SP na virada UTC → `VigenciaVencidaError`, nada gravado), `:400-422` (fim = amanhã → aberta), `:424-447` (regra inválida → 422, nada gravado); `E/campanha.spec.ts:513-541`. N15, N16, N17 mortos. **Mas** o ramo "vigência vencida que vem do compromisso aprovado" não tem teste (N14 → T52) |
+| T50 `IMAGEM_CAMPANHA` | ✅ | `E/arquivo.spec.ts:331-338` (PNG, JPEG), `:340-360` (SVG, PDF: 422 + mensagem literal), `:362-368` (5 MB aceito), `:370-380` (5 MB + 1 recusado, mensagem literal), `:382-386` (300×200 aceito). N19, N20, N21 mortos |
+
+### Desvios relatados pelo autor (julgamento independente)
+
+| # | Desvio | Julgamento |
+| - | ------ | ---------- |
+| 1 | T49 mudou a assinatura para `editarCompromisso(parcial, hoje)` e tocou `criar-campanha.ts` | **Aceito.** A T49 deixou a escolha entre entidade e caso de uso a critério do grupo; pôr a regra na entidade segue o AD-017 (regra de estado → entidade). A mudança em `U/criar-campanha.ts:205-208` é só a nova assinatura, sem efeito: em `RASCUNHO`, `hoje` é ignorado (`E/campanha.ts:223-233`), o que respeita a spec (data só é checada na submissão). O design (`design.md:156-158`) foi emendado com a assinatura nova |
+| 2 | T48 unificou o retrato em string decimal, com chaves ausentes em vez de `null`; sobra `compromissoNovo` × `compromissoProposto` | **Aceito, não bloqueia.** O formato do valor (SP3) está resolvido. A diferença de chave é anterior à correção, tem semântica (na aprovação, o proposto vira o novo vigente) e nenhum consumidor lê `dados` da auditoria. Follow-up abaixo |
+| 3 | T45 trocou o fixture de sucesso de `AprovarAlteracaoCampanha` para mudar os três campos | **Aceito e necessário.** Com o fixture antigo (só a regra muda), M27 (novo com beneficiada e vigência do anterior) era indistinguível. O cenário antigo continua coberto em `U/aprovar-alteracao-campanha.spec.ts:211-228`. É um reforço, não um enfraquecimento |
+| 4 | T46: `alteracaoDecidida` não é limpa depois do `salvar` | **Aceito.** Ver "Contrato da T46": não há regravação errada nem vazamento por nenhum caminho de caso de uso |
+
+---
+
+## Contrato da T46
+
+**Veredito: ok.**
+
+- **A porta documenta a gravação.** O JSDoc de `salvar` (`ports/database/campanha-repository.ts:10-25`) diz o que grava (campanha com `versao + 1`, `alteracaoDecidida`, `alteracaoPendente`), em que ordem (a decidida **antes** da pendente, para liberar a regra de uma pendente por vez), que as duas gravações são idempotentes pelo `id` e que `false` não grava nada. O design (`design.md:163-164`, `:183`, `:208`, `:278`) e a Done-when da T29 (`tasks.md`, T29) repetem o mesmo contrato, incluindo o e2e com decisão e abertura no mesmo `salvar`.
+- **O double reflete o contrato.** Grava a decidida só depois do CAS (N5, que move a gravação para antes do CAS, morre em `U/aprovar-alteracao-campanha.spec.ts:299` e `U/rejeitar-alteracao-campanha.spec.ts:265`). Deduplica pelo `id` (`in-memory-campanha-repository.ts:111-119`). Não reconstrói `alteracaoDecidida` ao ler (`copiar`, `:29-56`), então toda campanha carregada nasce `null`, como diz o design. A ordem "decidida antes da pendente" não tem efeito observável em memória (não há índice parcial); quem prova é o e2e da T29.
+- **`alteracaoDecidida` não limpa não causa regravação errada.** Sequência pedida (decidir → `salvar` → abrir nova → `salvar` → decidir de novo → `salvar`) na mesma instância: o segundo `salvar` regrava A1 com os mesmos valores (idempotente pelo `id`) e insere A2 pendente; a segunda decisão troca o slot para A2, e o terceiro `salvar` grava A2. Nada é perdido ou sobrescrito com valor errado. Entre instâncias não há vazamento, porque cada caso de uso carrega a campanha do repositório (slot `null`) e chama `salvar` uma única vez. `E/campanha.spec.ts:682-702` prova que o slot sobrevive à abertura de uma nova alteração (N3, que limpa o slot ao abrir, morre).
+
+**Notas para a T29 (não bloqueiam):**
+
+1. **Slot único.** Duas decisões na mesma instância sem `salvar` entre elas perdem a primeira. Nenhum caso de uso faz isso (uma transição por `salvar`), mas a regra não está escrita. Basta uma linha no JSDoc: "uma decisão por `salvar`".
+2. **"Atualiza" × upsert.** O design e a T29 dizem que o `salvar` **atualiza** a linha da decidida pelo `id`; o double faz **upsert**. Uma alteração aberta e decidida na mesma instância, sem `salvar` no meio, não teria linha no Postgres, e o `update` perderia a decisão em silêncio, enquanto o double a registraria. Também não é alcançável por caso de uso. Recomendação: a T29 usa upsert também para a decidida, alinhada ao double.
+
+**N6** (o double sempre acrescenta ao histórico, sem deduplicar) sobrevive e é **equivalente no domínio**: só é observável salvando duas vezes a mesma instância com `alteracaoDecidida` preenchida, e nenhum caso de uso faz isso. A idempotência real fica com o e2e da T29.
+
+---
+
+## Diferença de nome de chave (T48 × Alteração AC10 × SP3)
+
+`ALTERACAO_CAMPANHA_ABERTA` (`U/editar-campanha.ts:311-312`) e `_REJEITADA` (`U/rejeitar-alteracao-campanha.ts:68-69`) gravam `compromissoAnterior` + `compromissoProposto`; `_APROVADA` (`U/aprovar-alteracao-campanha.ts:88-89`) grava `compromissoAnterior` + `compromissoNovo`. O retrato em si é o mesmo (`descreverCompromisso`, string decimal, chaves ausentes).
+
+- **Alteração AC10** pede "valores anteriores e novos": os três eventos gravam os dois, conferidos por `toEqual` (`U/editar-campanha.spec.ts:358-370`, `U/aprovar-alteracao-campanha.spec.ts:197-208`, `U/rejeitar-alteracao-campanha.spec.ts:192-204`). ✅
+- **SP3** era sobre o formato do valor (string decimal na abertura, centavos na decisão). Resolvido pela T48. ✅
+- **A Done-when da T48** pede "o mesmo formato", e o formato do retrato é o mesmo. O nome da chave do envelope não é formato do retrato e já existia antes da correção.
+
+**Conclusão**: não bloqueia. Fica como follow-up: quem for consultar o histórico por SQL precisa tratar as duas chaves. Se o grupo quiser uniformizar, `compromissoProposto` nos três eventos é a escolha mais barata (dois testes mudam).
 
 ---
 
 ## Spec-Anchored Acceptance Criteria
 
-Legenda: ✅ evidência no valor da spec; ❌ sem evidência ou evidência parcial; ⚠️ spec-precision gap; **infra — T28+** = AC só de HTTP, persistência ou OpenAPI (não conta como lacuna).
-Caminhos abreviados: `E/` = `src/domain/fivo/entities/`, `U/` = `src/domain/fivo/application/use-cases/`.
+Legenda: ✅ evidência no valor da spec; ❌ sem evidência ou evidência parcial; ⚠️ spec-precision gap; **infra — T28+** = AC só de HTTP, persistência ou OpenAPI (não conta como lacuna). "r1" indica o resultado da rodada 1.
 
 ### P1: Criação da campanha (CAMP-01…04)
 
 | AC | Spec-defined outcome | `file:line` + asserção | Result |
 | -- | -------------------- | ---------------------- | ------ |
-| AC1 empresa não aprovada | 403 "Cadastro ainda não aprovado", nada gravado, em criar, editar e submeter | `U/criar-campanha.spec.ts:133-136` `message).toBe('Cadastro ainda não aprovado')` + `items).toHaveLength(0)`. `U/submeter-campanha.spec.ts:180-183` (mensagem + `expectNadaGravado`). `U/editar-campanha.spec.ts:132-134` `toBeInstanceOf(NotAllowedError)` + nome e versão intactos + auditoria vazia. 403 = mapeamento `NotAllowedError` (infra) | ✅ |
-| AC2 cria `RASCUNHO` | estado `RASCUNHO`; id interno + id público (201 é infra) | `E/campanha.spec.ts:102` `status).toBe(RASCUNHO)`. `U/criar-campanha.spec.ts:86-93` `idPublico).not.toBe(id)` + gravados | ✅ |
-| AC3 nome 3–80 com trim | 422 "O nome deve ter entre 3 e 80 caracteres" | `E/nome-campanha.spec.ts:26-31` (2, 81), `:15-24` (3, 80), `:33-38` (`' ab '`), `:45-48` `status).toBe(422)` + mensagem literal | ✅ |
-| AC4 descrição ≤ 2000 | 422 "A descrição deve ter no máximo 2000 caracteres" | `E/descricao-campanha.spec.ts:5-17` (2000 aceito), `:19-33` (2001 + 422 + mensagem) | ✅ |
-| AC5 valor por unidade | 0,01–999.999,99, ≤ 2 casas, senão 422 | `E/valor-monetario.spec.ts:5-19` (`'0.01'`→1, `'999999.99'`→99999999), `:34-42` (`'0'`, `'0.00'`, `'1000000'`, `'1.234'`…), `:49` `status).toBe(422)`. Mutantes M1–M3 mortos | ✅ / ⚠️ SP1 |
-| AC6 percentual | 0,01–100,00, ≤ 2 casas, senão 422 | `E/percentual.spec.ts:5-22` (`'0.01'`, `'100'`), `:24-38` (`'0'`, `'100.01'`, `'1.234'`; 422 + mensagem). M4 morto | ✅ / ⚠️ SP1 |
-| AC7 valor do outro tipo | 422 "O Valor da regra deve corresponder à regra selecionada." | `E/regra-doacao.spec.ts:32-38`, `:45-51` só `toBeInstanceOf(InvalidRuleValueError)`. **Nenhum teste confere o texto**, e M39 (mensagem trocada) sobreviveu à suíte unit inteira | ❌ → T43 |
-| AC8 meta | mesmos limites do valor, 422 | `U/criar-campanha.spec.ts:155-161` (`meta: '0'` → `ValorMonetarioInvalidoError` + nada gravado). Limites via o VO de AC5 | ✅ / ⚠️ SP1 |
-| AC9 instituição e causa juntas | 422 "Informe exatamente uma beneficiada: instituição ou causa" | `E/beneficiada.spec.ts:27-35`, `:44-53` (422 + mensagem). `U/criar-campanha.spec.ts:253-267` (nada gravado) | ✅ |
-| AC10 beneficiada indisponível | 422 "Instituição ou causa indisponível" | `U/criar-campanha.spec.ts:211-237` (instituição `SUSPENSA`, causa `INATIVA`, nada gravado). Mensagem: `U/assegurar-beneficiada-disponivel.spec.ts:111,123,136,147` (catálogo, mesma classe) | ✅ |
-| AC11 fim ≤ início | 422 para fim **anterior ou igual** | `E/vigencia.spec.ts:12-19` e `U/criar-campanha.spec.ts:201-209` cobrem só **igual**. Fim anterior ao início não tem teste: M8 (`fim.equals(inicio) \|\| fim.ehAnteriorA(inicio)` → `fim.equals(inicio)`) sobreviveu | ❌ → T41 / ⚠️ SP1 |
-| AC12 início no passado | aceito | `E/vigencia.spec.ts:34-37` (`2020-01-01` aceito); nenhum caso de uso confere "hoje" na criação | ✅ |
-| AC13 capa PNG/JPEG ≤ 5 MB | 422 nos demais | Parte de domínio (`Arquivo.criar` com `IMAGEM_CAMPANHA`): **sem teste**. A parte de multer e sniff é infra (T31, T34) | ❌ → T50 |
-| AC14 storage fora | 503 "Storage indisponível no momento." | infra — T34 | infra |
-| AC15 rascunho edita todos os campos | todos os campos editáveis pela dona | `E/campanha.spec.ts:111-147` (entidade aceita os 7, incluindo `capaArquivoId`). `U/editar-campanha.spec.ts:164-200` (6 campos pelo caso de uso). **`EditarCampanhaUseCaseRequest` não tem `capaArquivoId`** (`U/editar-campanha.ts:52-63`); `grep capaArquivoId` em `editar-campanha.ts` vem vazio | ❌ → T47 |
-| AC16 id público imutável, distinto, não sequencial | `idPublico ≠ id`, UUID v4 | `E/campanha.spec.ts:105-106` `idPublico.equals(campanha.id)).toBe(false)`. Imutável: sem setter (`:596-604`) e `idPublico` igual depois de cada operação (`:443`, `:470`, `:523`, `:544`). Não sequencial por construção (`UniqueEntityId` = `randomUUID`) | ✅ |
-| AC17 consulta da dona | todos os campos, estado, motivo, pendência | `U/consultar-campanha-da-empresa.spec.ts:112-132` (`toEqual` completo com motivo) e `:212-221` (pendência com valores propostos) | ✅ |
-| AC18 campanha de outra empresa | 404 sem revelar | `U/consultar-campanha-da-empresa.spec.ts:242-268` (`toEqual(naoEncontrada)`, igual à inexistente). `U/editar-campanha.spec.ts:137-148`. `U/submeter-campanha.spec.ts:186-199` | ✅ |
+| AC1 empresa não aprovada | 403 "Cadastro ainda não aprovado", nada gravado, em criar, editar e submeter | `U/criar-campanha.spec.ts:121-137` (`message).toBe('Cadastro ainda não aprovado')` + `items).toHaveLength(0)`); `U/submeter-campanha.spec.ts:162-184`; `U/editar-campanha.spec.ts:124-142` (`NotAllowedError`, nome e versão intactos, auditoria vazia). 403 = mapeamento (infra) | ✅ |
+| AC2 cria `RASCUNHO` | estado `RASCUNHO`; id interno + id público | `E/campanha.spec.ts:94-110` `status).toBe(RASCUNHO)`; `U/criar-campanha.spec.ts:79-95` `idPublico).not.toBe(id)` | ✅ |
+| AC3 nome 3–80 com trim | 422 "O nome deve ter entre 3 e 80 caracteres" | `E/nome-campanha.spec.ts:15-48` (sem mudança desde r1) | ✅ |
+| AC4 descrição ≤ 2000 | 422 "A descrição deve ter no máximo 2000 caracteres" | `E/descricao-campanha.spec.ts:5-33` (sem mudança) | ✅ |
+| AC5 valor por unidade | 0,01–999.999,99, ≤ 2 casas, senão 422 | `E/valor-monetario.spec.ts:5-49` (sem mudança) | ✅ / ⚠️ SP1 |
+| AC6 percentual | 0,01–100,00, ≤ 2 casas, senão 422 | `E/percentual.spec.ts:5-38` (sem mudança) | ✅ / ⚠️ SP1 |
+| AC7 valor do outro tipo | 422 "O Valor da regra deve corresponder à regra selecionada." | `E/regra-doacao.spec.ts:37-42` e `:55-60` `status).toBe(422)` + `message).toBe('O Valor da regra deve corresponder à regra selecionada.')`. M39 morto | ✅ (r1 ❌) |
+| AC8 meta | mesmos limites do valor, 422 | `U/criar-campanha.spec.ts:155-161`; limites via VO de AC5 | ✅ / ⚠️ SP1 |
+| AC9 instituição e causa juntas | 422 "Informe exatamente uma beneficiada: instituição ou causa" | `E/beneficiada.spec.ts:27-53`; `U/criar-campanha.spec.ts:266-280` (nada gravado) | ✅ |
+| AC10 beneficiada indisponível | 422 "Instituição ou causa indisponível" | `U/criar-campanha.spec.ts:224-250`; mensagem em `U/assegurar-beneficiada-disponivel.spec.ts:111,123,136,147` | ✅ |
+| AC11 fim ≤ início | 422 para fim anterior **ou** igual | Igual: `E/vigencia.spec.ts:12-19`, `U/criar-campanha.spec.ts:201-209`. Anterior: `E/vigencia.spec.ts:21-33` (`status).toBe(422)` + mensagem), `U/criar-campanha.spec.ts:211-222` (nada gravado). M8 morto | ✅ (r1 ❌) / ⚠️ SP1 |
+| AC12 início no passado | aceito | `E/vigencia.spec.ts:48-51` (`2020-01-01`) | ✅ |
+| AC13 capa PNG/JPEG ≤ 5 MB | 422 nos demais | Domínio: `E/arquivo.spec.ts:331-386` (PNG/JPEG aceitos; SVG/PDF → 422 com mensagem; 5 MB aceito; 5 MB + 1 → 422). N19, N20, N21 mortos. Multer e sniff: infra — T31, T34 | ✅ (r1 ❌) |
+| AC14 storage fora | 503 "Storage indisponível no momento." | — | infra — T34 |
+| AC15 rascunho edita todos os campos | todos os campos editáveis pela dona | `E/campanha.spec.ts:111-150` (7 campos na entidade); `U/editar-campanha.spec.ts:171-211` (6 campos) + `:469-499` (`capaArquivoId` gravado; `depois.capaArquivoId?.toString()).toBe(novaCapa)`). N7 morto | ✅ (r1 ❌) |
+| AC16 id público imutável, distinto, não sequencial | `idPublico ≠ id`, UUID v4, igual depois de toda operação | `E/campanha.spec.ts:94-110`; sem setter `:758`; igualdade depois das operações em `E/campanha.spec.ts` (bloco `approved campaign changes`) | ✅ |
+| AC17 consulta da dona | todos os campos, estado, motivo, pendência | `U/consultar-campanha-da-empresa.spec.ts:84-133` (`toEqual` completo com motivo, `criadaEm`, `atualizadaEm`), `:183-222` (pendência com valores propostos e `abertaEm`); `U/editar-campanha.spec.ts:523-548` (edição devolve o mesmo modelo, `toStrictEqual`). N11, N12 mortos. Formato decimal com fração < 10: N8 sobreviveu → T51 | ✅ |
+| AC18 campanha de outra empresa | 404 sem revelar | `U/consultar-campanha-da-empresa.spec.ts:242-268`; `U/editar-campanha.spec.ts:144-156`; `U/submeter-campanha.spec.ts:186-199` | ✅ |
 
 ### P1: Submissão e aprovação (CAMP-05, CAMP-06)
 
 | AC | Spec-defined outcome | `file:line` + asserção | Result |
 | -- | -------------------- | ---------------------- | ------ |
-| AC1 submeter completo | `EM_ANALISE` + data-hora da submissão | `U/submeter-campanha.spec.ts:127-130` `status).toBe(EM_ANALISE)`, `submetidaEm).toEqual(agora)`, `versao).toBe(1)` | ✅ |
-| AC2 campos ausentes | 422 listando **todos** de uma vez | `U/submeter-campanha.spec.ts:216-223` `campos).toEqual(['descricao','beneficiada','regraDoacao','vigencia.inicio'])` + nada gravado | ✅ / ⚠️ SP1 (mensagem: ver T1) |
-| AC3 fim ≤ hoje | 422 | `U/submeter-campanha.spec.ts:226-236` (fim = hoje em SP, com UTC já no dia seguinte), `:238-246` (fim amanhã em SP aceito). `E/campanha.spec.ts:245-264`. M9, M10, M17 mortos | ✅ / ⚠️ SP1 |
-| AC4 beneficiada saiu do catálogo | 422 "Instituição ou causa indisponível" | `U/submeter-campanha.spec.ts:248-280` (instituição e causa; nada gravado). M35 morto | ✅ |
-| AC5 edição em análise | 409 "Campanha em análise não pode ser editada" | `U/editar-campanha.spec.ts:364-374` e `E/campanha.spec.ts:160-184`, só `toBeInstanceOf(CampanhaEmAnaliseError)`. **Texto nunca asserido**: M37 sobreviveu | ❌ → T43 |
-| AC6 fila | `EM_ANALISE` + alterações, mais antiga primeiro, com empresa, nome, beneficiada, regra, vigência, data e tipo | `U/listar-fila-campanhas.spec.ts:131-146` (`NOVA`, objeto exato), `:165-180` (`ALTERACAO` com valores propostos), `:210-214` (ordem intercalada), `:218-236` (exclusões). M32, M33 mortos | ✅ / ⚠️ SP2 |
-| AC7 aprovar | `APROVADA` + autor + data-hora | `U/aprovar-campanha.spec.ts:100-103` (`status`, `decididoPor.equals(admin.id)`, `decididoEm` `Date`) | ✅ |
-| AC8 apta ao selo | só em `APROVADA` | `U/aprovar-campanha.spec.ts:101`; `E/campanha.spec.ts:376-385` (4 estados) | ✅ |
-| AC9 beneficiada indisponível na aprovação | 409, estado inalterado | `U/aprovar-campanha.spec.ts:139-171` (`BeneficiadaIndisponivelNaDecisaoError`, status e versão intactos, auditoria vazia). M21 morto | ✅ |
-| AC10 motivo < 20 | 422 "O motivo deve ter no mínimo 20 caracteres", estado inalterado | `U/rejeitar-campanha.spec.ts:142-159` (19 caracteres, nada gravado). Mensagem: classe pré-existente, conferida em `test/http/admin-instituicoes.e2e-spec.ts:370`. O lado aceito (20) não é testado em `Campanha.rejeitar`: M13 (`< 20` → `< 21`) sobreviveu | ❌ → T42 |
-| AC11 rejeitar | `REJEITADA`, motivo persistido, e-mail com motivo | `U/rejeitar-campanha.spec.ts:93-94` (status + `motivoUltimaRejeicao`), `:109-115` `mailer.mensagens).toEqual([{ para, template: CAMPANHA_REJEITADA, dados: { nomeCampanha, motivo } }])`. A fila `email_pendente` é infra (T30) | ✅ |
-| AC12 editar `REJEITADA` | volta a `RASCUNHO`, preserva o motivo | `U/editar-campanha.spec.ts:267-281`; `E/campanha.spec.ts:186-217`. M14 morto | ✅ |
-| AC13 só 4 transições | 409 "Operação não permitida para o estado atual" | `E/campanha.spec.ts:285-296`, `:345-374`; `U/aprovar-campanha.spec.ts:173-191`; `U/rejeitar-campanha.spec.ts:177-186`. Mensagem: classe pré-existente, `test/http/admin-causas.e2e-spec.ts:25` | ✅ |
-| AC14 não-admin | 403 sem alterar estado | `U/listar-fila-campanhas.spec.ts:106-116`; `U/aprovar-campanha.spec.ts:118-130` (status, versão, auditoria); `U/rejeitar-campanha.spec.ts:118-133` (status, auditoria, e-mail) | ✅ |
-| AC15 auditoria de toda transição | autor, anterior, novo, motivo, **data-hora** | Submetida `U/submeter-campanha.spec.ts:133-144` (`criadoEm: agora`) ✅. Aprovada `U/aprovar-campanha.spec.ts:106-115` (`criadoEm` `Date`) ✅. **Rejeitada** `U/rejeitar-campanha.spec.ts:98-107`: sem `criadoEm` (M25 sobreviveu). **Reaberta** `U/editar-campanha.spec.ts:273-281`: sem `criadoEm` (M26 sobreviveu) | ❌ → T45 |
+| AC1 submeter completo | `EM_ANALISE` + data-hora da submissão | `U/submeter-campanha.spec.ts:118-146` `status).toBe(EM_ANALISE)`, `submetidaEm).toEqual(agora)` | ✅ |
+| AC2 campos ausentes | 422 listando todos de uma vez | `U/submeter-campanha.spec.ts:209-229` `status).toBe(422)` + `message).toBe('Preencha os campos obrigatórios antes de enviar para análise')` + `campos).toEqual([...4])`; `E/campanha.spec.ts:225-251`. N18 morto | ✅ |
+| AC3 fim ≤ hoje | 422 | `U/submeter-campanha.spec.ts:230-250` (virada UTC/SP); `E/campanha.spec.ts:253-273` | ✅ / ⚠️ SP1 |
+| AC4 beneficiada saiu do catálogo | 422 "Instituição ou causa indisponível" | `U/submeter-campanha.spec.ts:252-284` | ✅ |
+| AC5 edição em análise | 409 "Campanha em análise não pode ser editada" | `U/editar-campanha.spec.ts:550-564` `status).toBe(409)` + `message).toBe('Campanha em análise não pode ser editada')`; `:501-521` (capa). M37 morto | ✅ (r1 ❌) |
+| AC6 fila | `EM_ANALISE` + alterações, mais antiga primeiro, campos e tipo | `U/listar-fila-campanhas.spec.ts:118-147` (`NOVA`, objeto exato), `:149-181` (`ALTERACAO` com propostos), `:183-216` (ordem intercalada), `:218-` (exclusões). N9, N10 mortos | ✅ / ⚠️ SP2 |
+| AC7 aprovar | `APROVADA` + **autor e data-hora** da decisão | Estado e autor: `U/aprovar-campanha.spec.ts:100-102`. Data-hora: só `decididoEm).toBeInstanceOf(Date)` (`U/aprovar-campanha.spec.ts:103`, `E/campanha.spec.ts:317`). **N24** (`Campanha.aprovar` grava `new Date(0)`) sobreviveu | ❌ → T53 (r1 ✅, falha de verificação da r1) |
+| AC8 apta ao selo | só em `APROVADA` | `U/aprovar-campanha.spec.ts:101`; `E/campanha.spec.ts:413-434` (4 estados) | ✅ |
+| AC9 beneficiada indisponível na aprovação | 409, estado inalterado | `U/aprovar-campanha.spec.ts:139-171` | ✅ |
+| AC10 motivo < 20 | 422 "O motivo deve ter no mínimo 20 caracteres", estado inalterado | `U/rejeitar-campanha.spec.ts:149-166` (19, nada gravado); `E/campanha.spec.ts:336-347` (20 aceito), `:349-363` (19 + espaços recusado). Mensagem: classe pré-existente, `test/http/admin-instituicoes.e2e-spec.ts:370`. M13 morto | ✅ (r1 ❌) |
+| AC11 rejeitar | `REJEITADA`, motivo persistido, e-mail com motivo | `U/rejeitar-campanha.spec.ts:90-123` (status, `motivoUltimaRejeicao`, `mailer.mensagens).toEqual([...])`). Fila `email_pendente`: infra — T30 | ✅ |
+| AC12 editar `REJEITADA` | volta a `RASCUNHO`, preserva o motivo | `U/editar-campanha.spec.ts:265-297`; `E/campanha.spec.ts:192-224` | ✅ |
+| AC13 só 4 transições | 409 "Operação não permitida para o estado atual" | `E/campanha.spec.ts:293-304`, `:382-412`; `U/aprovar-campanha.spec.ts:173-191`; `U/rejeitar-campanha.spec.ts:184-193`. Mensagem: classe pré-existente, `test/http/admin-causas.e2e-spec.ts:25` | ✅ |
+| AC14 não-admin | 403 sem alterar estado | `U/listar-fila-campanhas.spec.ts:106-116`; `U/aprovar-campanha.spec.ts:118-130`; `U/rejeitar-campanha.spec.ts:125-140` | ✅ |
+| AC15 auditoria de **toda** transição | autor, anterior, novo, motivo, data-hora | Submetida `U/submeter-campanha.spec.ts:133-144` (`criadoEm: agora`) ✅. Rejeitada `U/rejeitar-campanha.spec.ts:109` `criadoEm).toEqual(agora)` ✅ (M25 morto). Reaberta `U/editar-campanha.spec.ts:291` ✅ (M26 morto). **Aprovada** `U/aprovar-campanha.spec.ts:115` só `criadoEm).toBeInstanceOf(Date)`: **N23** sobreviveu | ❌ → T53 (r1 ❌) |
 
 ### P1: Alteração de campanha aprovada (CAMP-07, CAMP-08)
 
 | AC | Spec-defined outcome | `file:line` + asserção | Result |
 | -- | -------------------- | ---------------------- | ------ |
-| AC1 nome, descrição, capa e meta na hora | aplicado, segue `APROVADA`, sem alteração | `E/campanha.spec.ts:424-444` (os 4, incluindo capa). `U/editar-campanha.spec.ts:286-302` (nome e meta). A **capa** não passa pelo caso de uso (ver Criação AC15) | ❌ → T47 |
-| AC2 compromisso abre alteração | pendente; campanha `APROVADA` com os valores anteriores | `E/campanha.spec.ts:446-471`; `U/editar-campanha.spec.ts:316-333` (regra aprovada `'1.00'`, pendente `'2.50'`, gravado). M19 morto | ✅ |
+| AC1 nome, descrição, capa e meta na hora | aplicado, segue `APROVADA`, sem alteração | `E/campanha.spec.ts:461-482` (os 4); `U/editar-campanha.spec.ts:300-316` (nome e meta), `:469-499` (capa em `APROVADA`: gravada, `status` igual, sem pendência, sem auditoria) | ✅ (r1 ❌) |
+| AC2 compromisso abre alteração | pendente; campanha `APROVADA` com os anteriores | `E/campanha.spec.ts:483-512`; `U/editar-campanha.spec.ts:318-377` | ✅ |
 | AC3 pública mostra o aprovado | só valores anteriores | `U/buscar-campanha-publica.spec.ts:195-218` | ✅ |
-| AC4 segunda alteração | 409 "Já existe uma alteração em análise" | `E/campanha.spec.ts:473-485`; `U/editar-campanha.spec.ts:349-361`, só a classe. **Texto nunca asserido**: M38 sobreviveu | ❌ → T43 |
-| AC5 mesmas validações de criação **e submissão** | beneficiada, regra e datas → 422 | Beneficiada, regra e VOs passam pelo mesmo código (`U/editar-campanha.ts:120-227`). Mas a validação de submissão "fim ≤ hoje → 422" (Submissão AC3) **não é aplicada** ao abrir a alteração: `Campanha.abrirAlteracao` (`E/campanha.ts:387-410`) e `EditarCampanhaUseCase` não chamam `fimJaPassouEm`. Nenhum teste exercita validação no caminho `APROVADA` | ❌ → T49 |
-| AC6 aprovar alteração | aplica, **registra autor e data-hora da decisão**, encerra a pendência | Aplica: `U/aprovar-alteracao-campanha.spec.ts:140-145` (`compromissoVigente().equals(proposto)`, pendência vazia). Autor só na auditoria (`:150`). `decididoPor`/`decididoEm` da alteração existem só em memória (`E/campanha.spec.ts:521-522`) e se perdem no `salvar` (`E/campanha.ts:298`). `criadoEm` da auditoria não é asserido (M42 sobreviveu) | ❌ → T46, T45 |
-| AC7 nova beneficiada indisponível | 409 sem aplicar | `U/aprovar-alteracao-campanha.spec.ts:183-233` (3 casos: compromisso intacto, pendência `EM_ANALISE`, versão, auditoria vazia). M40 morto | ✅ |
-| AC8 rejeitar alteração | descarta, mantém `APROVADA` com os anteriores, **persiste o motivo**, **enfileira e-mail** | Mantém: `U/rejeitar-alteracao-campanha.spec.ts:91-94` ✅. **Motivo persistido**: sem evidência na fronteira de persistência. A alteração é descartada antes do `salvar` (`E/campanha.ts:321`), e o `motivo` da auditoria não é asserido (M24 sobreviveu). **E-mail**: sem evidência. O setup não cria empresa nem dono (`:85-99`), e M23 (remover `mailer.enviar`) sobreviveu | ❌ → T44, T46 |
-| AC9 id público imutável | igual em toda edição e alteração | `E/campanha.spec.ts:443,470,523,544`; `U/editar-campanha.spec.ts:333`; `U/aprovar-alteracao-campanha.spec.ts:145` | ✅ |
-| AC10 auditoria de abertura e decisão | autor, valores anteriores e novos, motivo, data-hora | Abertura `U/editar-campanha.spec.ts:335-346` (autor + só a regra; sem `criadoEm`). Aprovação `U/aprovar-alteracao-campanha.spec.ts:147-164` (autor + só `regraDoacao.tipo`/`percentualCentesimos`; M27 e M42 sobreviveram). Rejeição `U/rejeitar-alteracao-campanha.spec.ts:95-98`: **só `tipo`** (M24 sobreviveu) | ❌ → T44, T45 / ⚠️ SP3 |
+| AC4 segunda alteração | 409 "Já existe uma alteração em análise" | `U/editar-campanha.spec.ts:449-466` `status).toBe(409)` + `message).toBe('Já existe uma alteração em análise')`; `E/campanha.spec.ts:542-558`. M38 morto | ✅ (r1 ❌) |
+| AC5 mesmas validações de criação **e submissão** | beneficiada, regra e datas → 422 | Fim informado = hoje em SP → `VigenciaVencidaError` (`U/editar-campanha.spec.ts:379-398`, `E/campanha.spec.ts:513-526`); amanhã → aberta (`:400-422`, `:528-541`); regra inválida → 422 sem gravar (`:424-447`). **Sem evidência** para o compromisso proposto que herda do aprovado uma vigência já vencida (só a regra ou a beneficiada mudam): o design (`design.md:158`) manda checar o compromisso mesclado, e **N14** (checa só a vigência enviada) sobreviveu | ❌ → T52 (r1 ❌) |
+| AC6 aprovar alteração | aplica, registra autor e data-hora da decisão, encerra a pendência | Aplica: `U/aprovar-alteracao-campanha.spec.ts:144-209` (`compromissoVigente().equals(proposto)`, pendência vazia, auditoria com `criadoEm).toEqual(agora)`). Decisão gravada: `:211-228` (`status` `APROVADA`, `decididoPor` = admin, `decididoEm).toEqual(agora)`). M42, N1, N4, N25 mortos | ✅ (r1 ❌) |
+| AC7 nova beneficiada indisponível | 409 sem aplicar | `U/aprovar-alteracao-campanha.spec.ts:246-297` (3 casos; histórico vazio) | ✅ |
+| AC8 rejeitar alteração | descarta, mantém `APROVADA`, persiste o motivo, enfileira e-mail | Mantém: `U/rejeitar-alteracao-campanha.spec.ts:162-177`. Motivo persistido: `:220-236` `decidida.motivo).toBe(MOTIVO_VALIDO)`. E-mail: `:206-218` `toEqual([{ para: EMAIL_DONO, template: ALTERACAO_CAMPANHA_REJEITADA, dados: { nomeCampanha, motivo } }])`; falha do Mailer `:238-263`. M23, N2, N26 mortos | ✅ (r1 ❌) |
+| AC9 id público imutável | igual em toda edição e alteração | `U/editar-campanha.spec.ts:349`; `U/aprovar-alteracao-campanha.spec.ts:189`; `U/rejeitar-alteracao-campanha.spec.ts:172`; `E/campanha.spec.ts` (bloco `approved campaign changes`) | ✅ |
+| AC10 auditoria de abertura e decisão | autor, anteriores e novos, motivo, data-hora | Abertura `U/editar-campanha.spec.ts:352-370` (autor, entidade, `criadoEm`, retrato completo). Aprovação `U/aprovar-alteracao-campanha.spec.ts:192-208`. Rejeição `U/rejeitar-alteracao-campanha.spec.ts:178-204` (com `motivo`). M24, M27, M42, N13, N22 mortos | ✅ (r1 ❌); SP3 resolvido |
 
 ### P1: Consulta pública (CAMP-11)
 
 | AC | Spec-defined outcome | `file:line` + asserção | Result |
 | -- | -------------------- | ---------------------- | ------ |
-| AC1 campanha aprovada de empresa aprovada | 200 com nome, descrição, capa, empresa, beneficiada (nome + tipo), regra, meta, vigência | `U/buscar-campanha-publica.spec.ts:126-143` (`toEqual` exato); causa por nome `:163-166` | ✅ / ⚠️ SP2 |
-| AC2 404 idêntico | inexistente, `RASCUNHO`, `EM_ANALISE`, `REJEITADA`, empresa não aprovada, id malformado → mesmo corpo | `U/buscar-campanha-publica.spec.ts:223-283` (6 casos; `toEqual(naoEncontrada)` + `message`). M29 morto; M30 equivalente no domínio (ver Sensor) | ✅ |
-| AC3 omitir id, motivo e pendência | ausentes | `U/buscar-campanha-publica.spec.ts:126` (`toEqual` exato reprova chave extra); o tipo `CampanhaPublica` (`U/buscar-campanha-publica.ts:17-27`) não tem esses campos | ✅ |
-| AC4 situação | `NAO_INICIADA` se início > hoje; senão `EM_ANDAMENTO` | `U/buscar-campanha-publica.spec.ts:169-180` (amanhã), `:182-193` (hoje). M31 morto | ✅ |
+| AC1 campanha aprovada de empresa aprovada | 200 com nome, descrição, capa, empresa, beneficiada, regra, meta, vigência | `U/buscar-campanha-publica.spec.ts:115-144` (`toEqual` exato, ainda verde depois do refactor da T48); causa `:146-167` | ✅ / ⚠️ SP2 |
+| AC2 404 idêntico | inexistente, `RASCUNHO`, `EM_ANALISE`, `REJEITADA`, empresa não aprovada, id malformado | `U/buscar-campanha-publica.spec.ts:220-283` | ✅ |
+| AC3 omitir id, motivo e pendência | ausentes | `U/buscar-campanha-publica.spec.ts:115-144` (`toEqual` exato); tipo `CampanhaPublica` (`U/buscar-campanha-publica.ts:23-33`) | ✅ |
+| AC4 situação | `NAO_INICIADA` se início > hoje; senão `EM_ANDAMENTO` | `U/buscar-campanha-publica.spec.ts:169-193` | ✅ |
 
-**Status**: ❌ Gaps presentes. Dos **46** critérios P1 com regra de domínio, 33 batem com a saída da spec e **13 têm lacuna**: Criação AC7, AC11, AC13, AC15; Submissão AC5, AC10, AC15; Alteração AC1, AC4, AC5, AC6, AC8, AC10. Criação AC14 é infra. ⚠️ 3 spec-precision gaps (abaixo).
+**Status**: ❌ Gaps presentes. Dos **46** critérios P1 com regra de domínio, **43** batem com a saída da spec e **3** têm lacuna: Submissão AC7, Submissão AC15 e Alteração AC5. Dos 13 que tinham lacuna na rodada 1, 11 fecharam. Submissão AC7 estava marcado ✅ na rodada 1 por engano. A amostragem dos 33 ✅ da rodada 1 cobriu os casos de uso tocados pela T48 (consultar, fila, pública, editar) e pela T49 (todas as chamadas de `editarCompromisso`): todos continuam ✅, exceto Submissão AC7. Criação AC14 é infra. ⚠️ SP1 e SP2 continuam abertos (não bloqueiam); SP3 foi resolvido.
 
 ---
 
 ## Edge Cases
 
-- [x] Beneficiada indisponível com campanha em análise → 409: `U/aprovar-campanha.spec.ts:139-171`. Com alteração em análise: `U/aprovar-alteracao-campanha.spec.ts:183-233`.
-- [x] Beneficiada de campanha `APROVADA` deixa de existir → campanha segue publicada: por construção (`BuscarCampanhaPublicaUseCase` não consulta a disponibilidade).
-- [x] Empresa suspensa → 404 na pública sem mudar o estado: `U/buscar-campanha-publica.spec.ts:256-266`.
-- [ ] Dois admins decidindo ao mesmo tempo → 409 na segunda: coberto em aprovar campanha (`aprovar-campanha.spec.ts:193-204`), rejeitar campanha (`rejeitar-campanha.spec.ts:188-200`) e aprovar alteração (`aprovar-alteracao-campanha.spec.ts:235-256`). **Rejeitar alteração não tem teste** (M22 sobreviveu). → T44
-- [x] Submissão duplicada → 409 e uma só submissão: `U/submeter-campanha.spec.ts:282-292` (`versao` 1, uma auditoria).
-- [x] Edição concorrente com decisão → 409: `U/editar-campanha.spec.ts:376-393` (CAS contra o double). M44 morto.
+- [x] Beneficiada indisponível com campanha em análise → 409: `U/aprovar-campanha.spec.ts:139-171`. Com alteração em análise: `U/aprovar-alteracao-campanha.spec.ts:246-297`.
+- [x] Beneficiada de campanha `APROVADA` deixa de existir → segue publicada: por construção (`BuscarCampanhaPublicaUseCase` não consulta disponibilidade).
+- [x] Empresa suspensa → 404 na pública sem mudar o estado: `U/buscar-campanha-publica.spec.ts:220-283` (caso "suspensa").
+- [x] Dois admins decidindo ao mesmo tempo → 409 na segunda: aprovar campanha `U/aprovar-campanha.spec.ts:193-`, rejeitar campanha `U/rejeitar-campanha.spec.ts:195-`, aprovar alteração `U/aprovar-alteracao-campanha.spec.ts:299-`, **rejeitar alteração `U/rejeitar-alteracao-campanha.spec.ts:265-282`** (novo; M22 morto).
+- [x] Submissão duplicada → 409 e uma só submissão: `U/submeter-campanha.spec.ts:286-296`.
+- [x] Edição concorrente com decisão → 409: `U/editar-campanha.spec.ts:566-`.
 - [x] HTML na descrição guardado como texto: `E/descricao-campanha.spec.ts:35-46`.
 
 ---
 
 ## Discrimination Sensor
 
-**Profundidade**: P0 expandido (regra de negócio central). Rodou num `git worktree add --detach <scratchpad>/wt-dominio HEAD` (`d756ffa`), com `node_modules` como link simbólico para o da árvore real. Cada mutante foi aplicado por script, com substituição exata e exigência de uma única ocorrência, testado com `npx jest --silent <spec ou diretório>` e revertido com `git checkout --` antes do próximo. Nenhuma morte veio de erro de compilação. O baseline de contagem rodou num segundo worktree em `397f8bc`. No fim, os links foram apagados e os worktrees removidos com `git worktree remove --force` + `git worktree prune`. **Isolamento**: o `git status --porcelain` da árvore real estava vazio antes e continuou vazio depois (`diff` idêntico). `git stash` não foi usado.
+**Profundidade**: P0 expandido. `git worktree add --detach <scratchpad>/wt-dominio-r2 HEAD` (`3c03bb3`), com `node_modules` como link simbólico para o da árvore real. Cada mutante foi aplicado por script, com substituição exata e exigência de uma única ocorrência, testado com a suíte unit inteira (`npx jest --silent`, 595 testes) e revertido com `git checkout --`, com conferência byte a byte do arquivo restaurado. Nenhuma morte veio de erro de compilação (nenhum "Test suite failed to run"). No fim, o link foi apagado, o worktree removido com `git worktree remove --force` e `git worktree prune` rodou. **Isolamento**: o `git status --porcelain` da árvore real estava vazio antes e continuou vazio depois (`diff` idêntico). `git stash` não foi usado.
 
-| # | File:line | Mutação | Resultado (asserção que matou) |
-| - | --------- | ------- | ------------------------------ |
-| M1 | `E/valor-monetario.ts:28` | `centavos < MINIMO` → `< 0` | ✅ `valor-monetario.spec` "error for \"0\"" |
-| M2 | `E/valor-monetario.ts:26` | `padEnd` → `padStart` | ✅ "convert \"1.5\" to 150" |
-| M3 | `E/valor-monetario.ts:5` | regex aceita 3 casas | ✅ "error for \"1.234\"" |
-| M4 | `E/percentual.ts:26` | teto 10000 → 10001 | ✅ rejeição de `"100.01"` |
-| M5 | `E/nome-campanha.ts:18` | sem `trim` | ✅ "should trim surrounding spaces" |
-| M6 | `E/nome-campanha.ts:20` | `> 80` → `> 81` | ✅ "reject a name with 81" |
-| M7 | `E/descricao-campanha.ts:11` | `>` → `>=` | ✅ "exatos 2000 caracteres" |
-| **M8** | `E/vigencia.ts:22` | aceita fim **anterior** ao início | ❌ **sobreviveu** → T41 |
-| M9 | `E/vigencia.ts:40` | `fimJaPassouEm` sem o caso igual | ✅ `campanha.spec` "end date is today" |
-| M10 | `E/data-calendario.ts:31` | fuso `UTC` | ✅ `hojeEm` madrugada |
-| M11 | `E/data-calendario.ts:18-21` | sem a checagem de round-trip | ✅ "30 de fevereiro" |
-| M12 | `E/regra-doacao.ts:42-44` | `POR_UNIDADE` aceita `percentual` | ✅ `criar-campanha.spec` regra inválida |
-| **M13** | `E/campanha.ts:266` | motivo `< 20` → `< 21` | ❌ **sobreviveu** → T42 |
-| M14 | `E/campanha.ts:416` | `REJEITADA` não volta a `RASCUNHO` | ✅ `campanha.spec:186` |
-| M15 | `E/campanha.ts:295` | `aprovarAlteracao` não copia a beneficiada | ✅ `aprovar-alteracao-campanha.spec:180` |
-| M16 | `E/campanha.ts:390-392` | sem guarda de alteração pendente | ✅ `campanha.spec:483` |
-| M17 | `E/campanha.ts:234` | `submeter` ignora fim vencido | ✅ `campanha.spec:245` |
-| M18 | `E/campanha.ts:273` | `rejeitar` não grava o motivo | ✅ `rejeitar-campanha.spec:94` |
-| M19 | `E/campanha.ts:205` | `APROVADA` aplica o compromisso direto | ✅ `campanha.spec:446` |
-| M20 | `test/repositories/in-memory-campanha-repository.ts:81` | CAS desligado no double | ✅ `aprovar-campanha.spec:193` |
-| M21 | `U/aprovar-campanha.ts:51` | ignora beneficiada indisponível | ✅ `aprovar-campanha.spec:139` |
-| **M22** | `U/rejeitar-alteracao-campanha.ts:72` | ignora `salvar` = `false` | ❌ **sobreviveu** → T44 |
-| **M23** | `U/rejeitar-alteracao-campanha.ts:98-102` | remove `mailer.enviar` | ❌ **sobreviveu** → T44 |
-| **M24** | `U/rejeitar-alteracao-campanha.ts:84-85` | auditoria sem `motivo` e com o proposto = anterior | ❌ **sobreviveu** → T44 |
-| **M25** | `U/rejeitar-campanha.ts:76` | `criadoEm: new Date(0)` | ❌ **sobreviveu** → T45 |
-| **M26** | `U/editar-campanha.ts:286` | `CAMPANHA_REABERTA` com `criadoEm: new Date(0)` | ❌ **sobreviveu** → T45 |
-| **M27** | `U/aprovar-alteracao-campanha.ts:107` | `compromissoNovo` com beneficiada e vigência do anterior | ❌ **sobreviveu** → T45 |
-| M28 | `U/editar-campanha.ts:214-217` | nunca consulta a beneficiada | ✅ `editar-campanha.spec:217` |
-| M29 | `U/buscar-campanha-publica.ts:73` | ignora empresa não aprovada | ✅ caso "suspensa" |
-| M30 | `U/buscar-campanha-publica.ts:59` | sem checagem de UUID | ⚪ **equivalente** (abaixo) |
-| M31 | `U/buscar-campanha-publica.ts:109` | situação calculada por `inicio < hoje` | ✅ "starts today" |
-| M32 | `U/listar-fila-campanhas.ts:70` | ordem invertida | ✅ ordem intercalada |
-| M33 | `U/listar-fila-campanhas.ts:80-82` | alteração mostra os valores vigentes | ✅ item `ALTERACAO` |
-| M34 | `U/consultar-campanha-da-empresa.ts:123` | sem checagem de dona | ✅ "belongs to another empresa" |
-| M35 | `U/submeter-campanha.ts:83` | ignora beneficiada indisponível | ✅ instituição suspensa |
-| M36 | `U/rejeitar-campanha.ts:91` | e-mail com `motivo: ''` | ✅ `rejeitar-campanha.spec:109` |
-| **M37** | `errors/campanha-em-analise.error.ts:7` | mensagem trocada | ❌ **sobreviveu** → T43 |
-| **M38** | `errors/alteracao-ja-pendente.error.ts:7` | mensagem trocada | ❌ **sobreviveu** → T43 |
-| **M39** | `errors/invalid-rule-value.error.ts:7` | mensagem trocada (suíte unit inteira) | ❌ **sobreviveu** → T43 |
-| M40 | `U/aprovar-alteracao-campanha.ts:72` | nunca confere a nova beneficiada | ✅ instituição suspensa |
-| M41 | `U/editar-campanha.ts:292` | não audita a abertura | ✅ `editar-campanha.spec:335` |
-| **M42** | `U/aprovar-alteracao-campanha.ts:109` | `criadoEm: new Date(0)` | ❌ **sobreviveu** → T45 |
-| M43 | `U/criar-campanha.ts:181` | nunca consulta a beneficiada | ✅ instituição suspensa |
-| M44 | `U/editar-campanha.ts:267-269` | ignora `salvar` = `false` | ✅ edição concorrente |
+### Reexecução dos 12 sobreviventes da rodada 1
 
-**Result**: 44 injetados, **31 mortos**, **12 sobreviventes**, 1 equivalente. Sensor ❌ FAIL.
+| # | File:line | Mutação | Resultado (teste que matou) |
+| - | --------- | ------- | --------------------------- |
+| M8 | `E/vigencia.ts:22` | aceita fim anterior ao início | ✅ `criar-campanha.spec:211`, `vigencia.spec:21` |
+| M13 | `E/campanha.ts:284` | motivo `< 20` → `< 21` | ✅ `campanha.spec:336` |
+| M22 | `U/rejeitar-alteracao-campanha.ts:57-59` | ignora `salvar` = `false` | ✅ `rejeitar-alteracao-campanha.spec:265` |
+| M23 | `U/rejeitar-alteracao-campanha.ts:81` | nunca envia o e-mail | ✅ `rejeitar-alteracao-campanha.spec:206`, `:238` |
+| M24 | `U/rejeitar-alteracao-campanha.ts:69-70` | auditoria sem `motivo`, proposto = anterior | ✅ `rejeitar-alteracao-campanha.spec:178` |
+| M25 | `U/rejeitar-campanha.ts:76` | `criadoEm: new Date(0)` | ✅ `rejeitar-campanha.spec:90` |
+| M26 | `U/editar-campanha.ts:297` | `CAMPANHA_REABERTA` com `new Date(0)` | ✅ `editar-campanha.spec:265` |
+| M27 | `U/aprovar-alteracao-campanha.ts:89` | `compromissoNovo` com beneficiada e vigência do anterior | ✅ `aprovar-alteracao-campanha.spec:144` |
+| M37 | `ER/campanha-em-analise.error.ts:7` | mensagem trocada | ✅ `editar-campanha.spec:550` |
+| M38 | `ER/alteracao-ja-pendente.error.ts:7` | mensagem trocada | ✅ `editar-campanha.spec:449` |
+| M39 | `ER/invalid-rule-value.error.ts:7` | sem o ponto final | ✅ `regra-doacao.spec:33`, `:50` |
+| M42 | `U/aprovar-alteracao-campanha.ts:91` | `criadoEm: new Date(0)` | ✅ `aprovar-alteracao-campanha.spec:144` |
 
-**Por que M30 é equivalente no domínio.** Com o double, `findByIdPublico('nao-e-um-uuid')` devolve `null`, e o caso de uso responde o mesmo `ResourceNotFoundError` com ou sem a checagem de formato. A checagem só ganha efeito observável no Postgres, onde um texto que não é UUID numa coluna `uuid` faria a consulta falhar. **Nota para a T38**: o e2e precisa cobrir id malformado → 404 com o mesmo corpo.
+### Mutantes novos (código de `c51d6dc..HEAD` e amostragem de ACs ✅)
+
+| # | Task | File:line | Mutação | Resultado |
+| - | ---- | --------- | ------- | --------- |
+| N1 | T46 | `E/campanha.ts:317` | `aprovarAlteracao` não preenche `alteracaoDecidida` | ✅ `campanha.spec:641` |
+| N2 | T46 | `E/campanha.ts:341` | `rejeitarAlteracao` não preenche `alteracaoDecidida` | ✅ `campanha.spec:662` |
+| N3 | T46 | `E/campanha.ts:426` | abrir alteração limpa o slot da decidida | ✅ `campanha.spec:682` |
+| N4 | T46 | `in-memory-campanha-repository.ts:88` | double não grava a decidida | ✅ `rejeitar-alteracao-campanha.spec:220`, `aprovar-alteracao-campanha.spec:211` |
+| N5 | T46 | `in-memory-campanha-repository.ts:81` | double grava a decidida antes do CAS | ✅ `aprovar-alteracao-campanha.spec:299`, `rejeitar-alteracao-campanha.spec:265` |
+| N6 | T46 | `in-memory-campanha-repository.ts:115` | double sempre acrescenta ao histórico (sem idempotência) | ⚪ **equivalente no domínio** (ver Contrato da T46) |
+| N7 | T47 | `U/editar-campanha.ts:245` | capa gravada com id aleatório | ✅ `editar-campanha.spec:469` |
+| N8 | T48 | `U/campanha-detalhe.ts:65` | `paraDecimal`: `padStart` → `padEnd` (105 → `"1.50"`) | ❌ **sobreviveu** → T51 |
+| N9 | T48 | `U/campanha-detalhe.ts:82` | retrato sem `fim` | ✅ `listar-fila-campanhas.spec:118` e outros 3 |
+| N10 | T48 | `U/campanha-detalhe.ts:74` | percentual sai na chave `valor` | ✅ `listar-fila-campanhas.spec:149` e outros 5 |
+| N11 | T48 | `U/campanha-detalhe.ts:127` | `atualizadaEm: null` | ✅ `editar-campanha.spec:171` |
+| N12 | T48 | `U/campanha-detalhe.ts:123` | `abertaEm` = criação da campanha | ✅ `consultar-campanha-da-empresa.spec:183` |
+| N13 | T48 | `U/rejeitar-alteracao-campanha.ts:68` | auditoria: anterior = proposto | ✅ `rejeitar-alteracao-campanha.spec:178` |
+| N14 | T49 | `E/campanha.ts:428` | checa só `parcial.vigencia`, não o compromisso mesclado | ❌ **sobreviveu** → T52 |
+| N15 | T49 | `E/campanha.ts:428` | `fimJaPassouEm` → `fim < hoje` (aceita fim = hoje) | ✅ `campanha.spec:513`, `editar-campanha.spec:379` |
+| N16 | T49 | `E/campanha.ts:428` | checagem desligada | ✅ `campanha.spec:513`, `editar-campanha.spec:379` |
+| N17 | T49 | `U/editar-campanha.ts:264` | "hoje" pela data UTC em vez de SP | ✅ `editar-campanha.spec:400` |
+| N18 | T43 | `ER/campos-pendentes.error.ts:7` | lista de volta na mensagem | ✅ `campanha.spec:225`, `submeter-campanha.spec:209` |
+| N19 | T50 | `E/arquivo.ts:58` | limite da capa 5 MB + 1 | ✅ `arquivo.spec:370` |
+| N20 | T50 | `E/arquivo.ts:51` | capa aceita SVG | ✅ `arquivo.spec:340` |
+| N21 | T50 | `E/arquivo.ts:65` | capa com checagem de 512×512 | ✅ `arquivo.spec:382` |
+| N22 | T45 | `U/aprovar-alteracao-campanha.ts:88` | auditoria: anterior = proposto | ✅ `aprovar-alteracao-campanha.spec:144` |
+| N23 | amostra (Submissão AC15) | `U/aprovar-campanha.ts:83` | `CAMPANHA_APROVADA` com `criadoEm: new Date(0)` | ❌ **sobreviveu** → T53 |
+| N24 | amostra (Submissão AC7) | `E/campanha.ts:270` | `Campanha.aprovar` grava `decididoEm = new Date(0)` | ❌ **sobreviveu** → T53 |
+| N25 | amostra (Alteração AC6) | `E/alteracao-compromisso.ts:86` | `AlteracaoCompromisso.aprovar` com `decididoEm = new Date(0)` | ✅ `aprovar-alteracao-campanha.spec:211` |
+| N26 | amostra (Alteração AC8) | `E/alteracao-compromisso.ts:106` | motivo truncado em 20 caracteres | ✅ `campanha.spec:601` |
+
+**Result**: 38 injetados (12 reexecutados + 26 novos), **33 mortos**, **4 sobreviventes** (N8, N14, N23, N24), 1 equivalente (N6). Sensor ❌ FAIL.
+
+**Por que N8, N14, N23 e N24 não são equivalentes.** N8: `ConsultarCampanhaDaEmpresa` com meta R$ 1,05 devolveria `"1.50"`. N14: uma campanha `APROVADA` com fim já vencido e uma edição só da regra abre a alteração no mutante e devolve `VigenciaVencidaError` no original, e o caminho é alcançável por `EditarCampanhaUseCase`. N23 e N24: o registro e a campanha gravariam 1970-01-01 como data-hora da decisão.
 
 ---
 
@@ -218,215 +250,102 @@ Caminhos abreviados: `E/` = `src/domain/fivo/entities/`, `U/` = `src/domain/fivo
 
 | Princípio | Status | Nota |
 | --------- | ------ | ---- |
-| AD-017: valor restrito → VO | ✅ | Os 9 VOs do design existem e validam no lugar certo. Nenhum caso de uso refaz regra de VO |
-| AD-017: regra de estado → entidade | ✅ | Transições, campos pendentes, motivo e alteração pendente ficam na `Campanha` e na `AlteracaoCompromisso`, sem setter público (testado em `E/campanha.spec.ts:596-604` e `E/alteracao-compromisso.spec.ts:176-194`) |
-| AD-017: regra entre registros → caso de uso | ✅ | Empresa aprovada, beneficiada disponível, dona e "hoje" em SP ficam nos casos de uso |
-| Aderência ao design | ❌ | (a) A alteração decidida não chega ao `salvar`, e o design não diz como a T29 grava a decisão em `campanha_alteracao` (T46). (b) Dois `CampanhaDetalhe` incompatíveis (T48). (c) `EditarCampanha` sem capa (T47). (d) Mensagem de `CamposPendentesError` diferente do design (T43) |
-| Código mínimo / sem duplicação | ❌ | `paraDecimal` aparece 4 vezes (`U/campanha-detalhe.ts:47`, `U/consultar-campanha-da-empresa.ts:72`, `U/listar-fila-campanhas.ts:39`, `U/buscar-campanha-publica.ts:41`). `descreverCompromisso` aparece 3 vezes em **duas formas**: string decimal em `U/campanha-detalhe.ts:70` e centavos em `U/aprovar-alteracao-campanha.ts:23` e `U/rejeitar-alteracao-campanha.ts:23`. Por isso os registros de auditoria do mesmo agregado gravam valores em formatos diferentes. → T48 |
-| Sem flexibilidade especulativa | ⚠️ | `Campanha.verificarSePodeEditar` (`E/campanha.ts:376-382`) tem um ramo `TransicaoInvalidaError` inalcançável com os 4 estados atuais (pensado para `ENCERRADA`, CAMP-09). É cosmético e não gera task |
-| Mudanças cirúrgicas | ✅ | Todo o diff está na superfície de domínio; nada fora de campanhas mudou |
-| Segue padrões existentes | ✅ | Either, `@Injectable`, doubles com cópia, `RepositorioComGravacaoConcorrente` (lição L-006 aplicada). Mistura de títulos de teste em inglês e português (cosmético) |
-| Spec-anchored outcome check | ❌ | Mensagens literais de AC7, Submissão AC5 e Alteração AC4 não são conferidas (lição L-001 se repete) |
-| Cobertura por camada (domínio 1:1; "nada gravado" em todo erro) | ❌ | `RejeitarAlteracao` sem e-mail, sem auditoria completa e sem CAS. `IMAGEM_CAMPANHA` sem teste. Nos demais casos de uso, "nada gravado" está conferido em todos os caminhos de erro (versão, estado e auditoria) |
-| Todo teste mapeia para AC / edge / Done-when | ✅ | Nenhum teste órfão encontrado |
+| AD-017: valor restrito → VO; estado → entidade; entre registros → caso de uso | ✅ | A checagem de fim vencido da T49 ficou na entidade (`E/campanha.ts:426-430`), e "hoje" em SP vem do caso de uso (`U/editar-campanha.ts:262-265`). O slot da decidida é estado do agregado |
+| Aderência ao design | ✅ | Design emendado (`design.md:156-164`, `:183`, `:208`, `:278`) e Done-when da T29 batem com o código. Divergência menor "atualiza" × upsert: nota para a T29 |
+| Código mínimo / sem duplicação | ✅ | `paraDecimal`, `descreverRegra`, `descreverVigencia` e `descreverCompromisso` têm uma definição só (`U/campanha-detalhe.ts:63-98`). As 4 cópias e as 2 formas da rodada 1 sumiram |
+| Mudanças cirúrgicas | ✅ | 24 arquivos, todos na superfície do domínio de campanhas ou nas specs. `criar-campanha.ts` mudou só para a nova assinatura |
+| Segue padrões existentes | ✅ | `RepositorioComGravacaoConcorrente` reaproveitado na rejeição de alteração (L-006); fake timers no limite UTC/SP; `expectNadaGravado` |
+| Spec-anchored outcome check | ❌ | Submissão AC7 e AC15 (data-hora da aprovação) e Alteração AC5 (fim vencido herdado) |
+| Cobertura por camada (domínio 1:1; nada gravado em todo erro) | ❌ | `paraDecimal` sem fração com zero à esquerda (N8). "Nada gravado" agora conferido em todos os erros, inclusive na rejeição de alteração |
+| Todo teste mapeia para AC / edge / Done-when | ✅ | Os testes novos citam T41–T50 ou um AC. O `toStrictEqual` de `U/editar-campanha.spec.ts:547` é tautológico depois da unificação, mas fixa a Done-when da T19 contra regressão |
 | Guidelines documentadas | ✅ | Nenhuma no projeto; strong defaults da Test Coverage Matrix de `tasks.md` |
-| Senior engineer aprovaria? | ❌ | Não antes de T44, T46, T47, T48 e T49 |
+| Senior engineer aprovaria? | ⚠️ | Sim, depois de T51–T53. Detalhe cosmético: `consoleError.mockRestore()` em `U/rejeitar-alteracao-campanha.spec.ts:263` fica fora de `finally`, então uma falha antes dele vaza o spy para o próximo teste do arquivo |
 
 ---
 
 ## Spec-Precision Gaps
 
-| # | AC | Problema | Efeito |
+| # | AC | Problema | Estado |
 | - | -- | -------- | ------ |
-| SP1 | Criação AC5, AC6, AC8, AC11; Submissão AC2, AC3 | A spec define só "HTTP 422", sem o texto. O design fixa as mensagens (`ValorMonetarioInvalidoError`, `PercentualInvalidoError`, `VigenciaInvalidaError`, `VigenciaVencidaError`, `CamposPendentesError`). Os testes ancoram no design em AC5 e AC6 e não ancoram em AC11 nem em Submissão AC3 | Não bloqueia. A T43 alinha as mensagens ao design; o dono da spec decide se as copia para os ACs |
-| SP2 | Submissão AC6 ("empresa"); Consulta pública AC1 ("nome da empresa", "imagem de capa quando houver") | Termo guarda-chuva. O design resolve como `nomeFantasia` e `temCapa: boolean` | Não bloqueia; a implementação segue o design |
-| SP3 | Alteração AC10 ("valores anteriores e novos") | A spec não diz o formato do retrato na auditoria. A abertura grava string decimal e a decisão grava centavos | Não bloqueia sozinho; a T48 unifica o formato |
+| SP1 | Criação AC5, AC6, AC8, AC11; Submissão AC3 | A spec define só "HTTP 422", sem texto; o design fixa as mensagens | Aberto, não bloqueia. Os testes ancoram no design (AC11 agora confere o texto) |
+| SP2 | Submissão AC6 ("empresa"); Consulta AC1 ("nome da empresa", "imagem de capa quando houver") | Termo guarda-chuva; o design resolve como `nomeFantasia` e `temCapa` | Aberto, não bloqueia |
+| SP3 | Alteração AC10 ("valores anteriores e novos") | Formato do retrato na auditoria | **Resolvido** pela T48. Resta a diferença de nome de chave (`compromissoNovo` × `compromissoProposto`), que não bloqueia (ver seção própria) |
 
 ---
 
 ## Fix Plans
 
-Tasks humanas (AD-021): o agente não escreve código em `src/domain/**`, `test/repositories/**` ou `test/factories/**` desta feature. Formato de `tasks.md`. Prioridade: Blocker > Major > Minor.
+Autoria: 🤖 agente, dentro da exceção do AD-021 para o ciclo de correção do gate (até 3 rodadas). Formato de `tasks.md`. Ordem: T52, T51, T53. Depois delas, rodada 3, a última antes de escalar ao usuário.
 
-### T41: `Vigencia` — fim anterior ao início (Minor)
+### T51: `paraDecimal` — fração com zero à esquerda (Major)
 
-**What**: Cobrir o ramo "fim anterior ao início" da vigência, que hoje só é testado no caso igual.
-**Where**: `src/domain/fivo/entities/vigencia.spec.ts`; `src/domain/fivo/application/use-cases/criar-campanha.spec.ts`
+**What**: Nenhum teste formata um valor cuja fração tem zero à esquerda, e `padStart` → `padEnd` em `paraDecimal` passa despercebido (N8). Com o mutante, R$ 1,05 sai `"1.50"` no detalhe, na fila, na consulta pública e na auditoria. Acrescentar o caso pelo read model.
+**Where**: `src/domain/fivo/application/use-cases/consultar-campanha-da-empresa.spec.ts`
 **Depends on**: None
-**Requirement**: CAMP-01 (Criação AC11)
-**Autor**: 👤 humano
+**Requirement**: CAMP-01 (Criação AC17), CAMP-02
+**Autor**: 🤖 agente (exceção AD-021, ciclo de correção do gate)
 
 **Done when**:
 
-- [ ] `vigencia.spec.ts` tem caso com fim um dia **antes** do início → `isLeft()` incondicional + `toBeInstanceOf(VigenciaInvalidaError)` + `status` 422 + mensagem "A data de fim deve ser posterior à data de início"
-- [ ] `criar-campanha.spec.ts` tem o mesmo caso pelo caso de uso, com "nada gravado"
-- [ ] Mutante M8 (`E/vigencia.ts:22`, remover `|| fim.ehAnteriorA(inicio)`) morre
-
-**Tests**: unit
-**Gate**: quick
-
-### T42: `Campanha.rejeitar` — limite de 20 caracteres nos dois lados (Minor)
-
-**What**: Testar em `Campanha.rejeitar` o motivo de exatamente 20 caracteres (aceito) e de 19 com espaços nas pontas (recusado). Hoje isso só é testado em `AlteracaoCompromisso`.
-**Where**: `src/domain/fivo/entities/campanha.spec.ts`
-**Depends on**: None
-**Requirement**: CAMP-05 (Submissão AC10)
-**Autor**: 👤 humano
-
-**Done when**:
-
-- [ ] `'a'.repeat(20)` → `REJEITADA` e `motivoUltimaRejeicao` igual ao texto
-- [ ] `` `   ${'a'.repeat(19)}   ` `` → `MotivoInsuficienteError`, estado `EM_ANALISE`
-- [ ] Mutante M13 (`E/campanha.ts:266`, `< 20` → `< 21`) morre
-
-**Tests**: unit
-**Gate**: quick
-
-### T43: Mensagens literais da spec e de `CamposPendentesError` (Major)
-
-**What**: Conferir o texto exato das mensagens que a spec cita e alinhar `CamposPendentesError` ao design.
-**Where**: `src/domain/fivo/application/errors/campos-pendentes.error.ts`; `src/domain/fivo/entities/regra-doacao.spec.ts`; `src/domain/fivo/entities/campanha.spec.ts`; `src/domain/fivo/application/use-cases/editar-campanha.spec.ts`; `src/domain/fivo/application/use-cases/submeter-campanha.spec.ts`
-**Depends on**: None
-**Requirement**: CAMP-02 (Criação AC7), CAMP-05 (Submissão AC2, AC5), CAMP-08 (Alteração AC4)
-**Autor**: 👤 humano
-
-**Done when**:
-
-- [ ] `regra-doacao.spec.ts` confere `status` 422 e `message` "O Valor da regra deve corresponder à regra selecionada." (com o ponto final)
-- [ ] `editar-campanha.spec.ts` confere `message` "Campanha em análise não pode ser editada" e "Já existe uma alteração em análise", com `status` 409
-- [ ] `CamposPendentesError.message` é exatamente "Preencha os campos obrigatórios antes de enviar para análise", e a lista fica só em `campos`. `campanha.spec.ts:232-240` troca o `toContain(campo)` sobre a mensagem por `message).toBe(...)` + `campos).toEqual([...])`
-- [ ] Mutantes M37, M38 e M39 morrem
-
-**Tests**: unit
-**Gate**: quick
-
-### T44: `RejeitarAlteracaoCampanhaUseCase` — e-mail, auditoria completa e concorrência (Major)
-
-**What**: Reescrever o setup do spec com empresa e usuário dono, e conferir o efeito de cada ramo pelo valor.
-**Where**: `src/domain/fivo/application/use-cases/rejeitar-alteracao-campanha.spec.ts`
-**Depends on**: T46 (a asserção de motivo persistido usa o contrato novo)
-**Requirement**: CAMP-08 (Alteração AC8, AC10; edge case de decisão simultânea)
-**Autor**: 👤 humano
-
-**Done when**:
-
-- [ ] Sucesso: `mailer.mensagens).toEqual([{ para: <e-mail do dono>, template: TemplateEmail.ALTERACAO_CAMPANHA_REJEITADA, dados: { nomeCampanha, motivo } }])`
-- [ ] Sucesso: auditoria com `tipo`, `usuarioId` do admin, `entidadeId`, `dados` completos (compromisso anterior, compromisso proposto e `motivo`) e `criadoEm` igual ao relógio fixado (`jest.useFakeTimers`)
-- [ ] Falha do `Mailer` com dono existente: a decisão fica gravada e `console.error` é chamado (a falha precisa ser exercitada de verdade)
-- [ ] Concorrência contra o double (`RepositorioComGravacaoConcorrente`) → `TransicaoInvalidaError`, pendência `EM_ANALISE`, auditoria vazia, nenhum e-mail
-- [ ] Não-admin, motivo curto e sem pendência: além do estado e da auditoria, `mailer.mensagens` vazio e `versao` inalterada
-- [ ] Mutantes M22, M23 e M24 morrem
-
-**Tests**: unit
-**Gate**: quick
-
-### T45: Auditoria com data-hora e retrato completo (Minor)
-
-**What**: Conferir `criadoEm` e o retrato inteiro dos compromissos nas auditorias que hoje só conferem tipo ou autor.
-**Where**: `src/domain/fivo/application/use-cases/rejeitar-campanha.spec.ts`; `editar-campanha.spec.ts`; `aprovar-alteracao-campanha.spec.ts`
-**Depends on**: T48 (formato único do retrato)
-**Requirement**: CAMP-06 (Submissão AC15), CAMP-08 (Alteração AC6, AC10)
-**Autor**: 👤 humano
-
-**Done when**:
-
-- [ ] `CAMPANHA_REJEITADA`, `CAMPANHA_REABERTA`, `ALTERACAO_CAMPANHA_ABERTA` e `ALTERACAO_CAMPANHA_APROVADA` conferem `criadoEm` igual ao relógio fixado
-- [ ] `ALTERACAO_CAMPANHA_ABERTA` e `ALTERACAO_CAMPANHA_APROVADA` conferem o retrato completo (beneficiada, regra e vigência) do anterior e do novo com `toEqual`, sem `objectContaining`
-- [ ] Mutantes M25, M26, M27 e M42 morrem
-
-**Tests**: unit
-**Gate**: quick
-
-### T46: Persistir a alteração decidida (Blocker)
-
-**What**: Hoje `aprovarAlteracao` e `rejeitarAlteracao` põem `alteracaoPendente = null` (`E/campanha.ts:298`, `:321`) antes do `salvar`, e a decisão se perde: status, `decididoPor`, `decididoEm` e `motivo`. O agregado precisa entregar ao repositório a alteração decidida junto com a campanha, para que a T29 grave a linha de `campanha_alteracao` (AD-006c) e libere o índice parcial de "uma pendente". Uma saída possível é uma propriedade da `Campanha` com a última alteração decidida e ainda não gravada, lida pelo `salvar`. A forma fica a critério do grupo, desde que a porta documente o contrato.
-**Where**: `src/domain/fivo/entities/campanha.ts`; `src/domain/fivo/application/ports/database/campanha-repository.ts` (JSDoc do `salvar`); `test/repositories/in-memory-campanha-repository.ts`; `campanha.spec.ts`; `aprovar-alteracao-campanha.spec.ts`; `rejeitar-alteracao-campanha.spec.ts`
-**Depends on**: None
-**Requirement**: CAMP-08 (Alteração AC6, AC8), AD-006c
-**Autor**: 👤 humano. A emenda de `design.md` (§`Campanha`, §Portas e Data Models) e da Done-when da T29 é feita pelo agente no handoff, porque humanos não editam specs.
-
-**Done when**:
-
-- [ ] Depois de decidir, a campanha continua sem pendência (`alteracaoPendente` vazio, `compromissoVigente()` correto), e a alteração decidida fica acessível ao `salvar` com status, `decididoPor`, `decididoEm` e, na rejeição, `motivo`
-- [ ] O double guarda as alterações decididas (histórico), e os specs de aprovar e rejeitar alteração conferem pelo repositório: status `APROVADA`/`REJEITADA`, `decididoPor` = admin, `decididoEm` igual ao relógio fixado e `motivo` literal na rejeição
-- [ ] Uma nova alteração aberta depois da decisão continua aceita (`E/campanha.spec.ts:563-574` segue verde)
+- [ ] Campanha com regra `POR_UNIDADE` `'0.05'` e meta `'1.05'` → `regraDoacao).toEqual({ tipo: POR_UNIDADE, valor: '0.05' })` e `meta).toBe('1.05')`
+- [ ] Campanha com regra `PERCENTUAL` `'0.01'` → `percentual: '0.01'`
+- [ ] Mutante N8 (`U/campanha-detalhe.ts:65`, `padStart` → `padEnd`) morre
 - [ ] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
+**Commit**: `test(api): cobre fração com zero à esquerda no detalhe da campanha`
 
-### T47: `EditarCampanhaUseCase` — capa (Major)
+### T52: Fim vencido herdado do compromisso aprovado (Major)
 
-**What**: Aceitar `capaArquivoId` na edição, para que a T34 (`PUT /campanhas/:id/capa`) troque a capa pelo caso de uso, com o portão de empresa aprovada, a checagem de dona, o 409 em análise e o CAS.
-**Where**: `src/domain/fivo/application/use-cases/editar-campanha.ts` + spec
-**Depends on**: None
-**Requirement**: CAMP-01 (Criação AC15), CAMP-07 (Alteração AC1)
-**Autor**: 👤 humano
-
-**Done when**:
-
-- [ ] `EditarCampanhaUseCaseRequest.capaArquivoId?: string`, repassado a `editarTextos`
-- [ ] Rascunho e `APROVADA`: a capa é aplicada e gravada (`findById` mostra o id novo), sem abrir alteração e sem auditoria
-- [ ] `EM_ANALISE` → `CampanhaEmAnaliseError`, nada gravado
-- [ ] Gate `quick` passa
-
-**Tests**: unit
-**Gate**: quick
-
-### T48: Um só read model de detalhe e um só retrato de compromisso (Major)
-
-**What**: A T19 exige o mesmo read model da T21, mas há dois `CampanhaDetalhe` incompatíveis (`U/campanha-detalhe.ts:31` e `U/consultar-campanha-da-empresa.ts:42`). Unificar num só módulo, usado pela edição e pela consulta, e remover as cópias de `paraDecimal` e `descreverCompromisso`, para que toda auditoria do agregado use o mesmo formato.
-**Where**: `src/domain/fivo/application/use-cases/campanha-detalhe.ts`, `consultar-campanha-da-empresa.ts`, `editar-campanha.ts`, `listar-fila-campanhas.ts`, `buscar-campanha-publica.ts`, `aprovar-alteracao-campanha.ts`, `rejeitar-alteracao-campanha.ts` + specs afetados
-**Depends on**: None
-**Requirement**: CAMP-01 (Criação AC17), CAMP-08 (Alteração AC10); Done-when da T19
-**Autor**: 👤 humano
-
-**Done when**:
-
-- [ ] Existe uma única interface `CampanhaDetalhe`, devolvida por `EditarCampanhaUseCase` e por `ConsultarCampanhaDaEmpresaUseCase`. Um teste da edição confere o detalhe com `toEqual` idêntico ao da consulta para a mesma campanha
-- [ ] `paraDecimal` e o retrato do compromisso têm uma única definição. `ALTERACAO_CAMPANHA_ABERTA`, `_APROVADA` e `_REJEITADA` gravam o mesmo formato
-- [ ] Gate `quick` passa
-
-**Tests**: unit
-**Gate**: quick
-
-### T49: Alteração pendente com data de fim vencida (Major)
-
-**What**: A Alteração AC5 pede que a alteração passe pelas mesmas validações de datas da submissão. Abrir uma alteração cuja vigência proposta tenha fim ≤ hoje (America/Sao_Paulo) precisa devolver `VigenciaVencidaError` (422), sem gravar.
-**Where**: `src/domain/fivo/entities/campanha.ts` (`editarCompromisso`/`abrirAlteracao` recebendo `hoje`) ou `src/domain/fivo/application/use-cases/editar-campanha.ts`, a critério do grupo seguindo o AD-017; specs correspondentes
+**What**: O design (`design.md:158`) manda checar a vigência do compromisso **mesclado** ao abrir a alteração, mas os testes da T49 sempre enviam a vigência. Falta o caso em que a empresa altera só a regra ou a beneficiada de uma campanha `APROVADA` cuja vigência aprovada já venceu (N14).
+**Where**: `src/domain/fivo/entities/campanha.spec.ts`; `src/domain/fivo/application/use-cases/editar-campanha.spec.ts`
 **Depends on**: None
 **Requirement**: CAMP-08 (Alteração AC5)
-**Autor**: 👤 humano
+**Autor**: 🤖 agente (exceção AD-021, ciclo de correção do gate)
 
 **Done when**:
 
-- [ ] Campanha `APROVADA` + vigência proposta com fim = hoje em SP (fake timers no limite UTC/SP) → `VigenciaVencidaError`, sem pendência, `versao` e auditoria intactas
-- [ ] Fim = amanhã em SP → alteração aberta
-- [ ] Um teste de validação de VO (regra inválida) no caminho `APROVADA` → 422 sem gravar
+- [ ] Entidade: campanha `APROVADA` com vigência aprovada de fim = hoje (ou antes), `editarCompromisso({ regraDoacao }, hoje)` → `VigenciaVencidaError`, sem pendência e com `compromissoVigente()` intacto
+- [ ] Entidade: a mesma campanha com `editarCompromisso({ vigencia: <fim amanhã> }, hoje)` → alteração aberta (a vigência nova substitui a vencida)
+- [ ] Caso de uso (fake timers): campanha `APROVADA` com fim aprovado já vencido em SP + edição só da regra → `VigenciaVencidaError`, `expectNadaGravado`
+- [ ] Mutante N14 (`E/campanha.ts:428`, `proposto.vigencia` → `parcial.vigencia?`) morre
 - [ ] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
+**Commit**: `test(api): cobre alteração sobre vigência aprovada vencida`
 
-### T50: `Arquivo` — testes de `IMAGEM_CAMPANHA` (Major)
+### T53: Data-hora da aprovação da campanha (Minor)
 
-**What**: Cumprir a Done-when da T11, que não tem nenhum teste.
-**Where**: `src/domain/fivo/entities/arquivo.spec.ts`
+**What**: Submissão AC7 pede autor **e data-hora** da decisão, e AC15 pede data-hora em **toda** transição. A aprovação da campanha só confere `toBeInstanceOf(Date)`, e `new Date(0)` sobrevive na entidade (N24) e na auditoria (N23). A T45 copiou a lista de lacunas da rodada 1 e não incluiu `CAMPANHA_APROVADA`.
+**Where**: `src/domain/fivo/entities/campanha.spec.ts`; `src/domain/fivo/application/use-cases/aprovar-campanha.spec.ts`
 **Depends on**: None
-**Requirement**: CAMP-01 (Criação AC13)
-**Autor**: 👤 humano
+**Requirement**: CAMP-05 (Submissão AC7), CAMP-06 (Submissão AC15)
+**Autor**: 🤖 agente (exceção AD-021, ciclo de correção do gate)
 
 **Done when**:
 
-- [ ] PNG e JPEG aceitos; SVG e PDF rejeitados com o erro de formato
-- [ ] 5 MB exatos aceitos; 5 MB + 1 byte rejeitado
-- [ ] Imagem menor que 512×512 aceita (sem checagem de dimensão)
+- [ ] `campanha.spec.ts` (aprovar): `jest.useFakeTimers({ now })` + `decididoEm).toEqual(now)`
+- [ ] `aprovar-campanha.spec.ts` (sucesso): `depois.decididoEm).toEqual(agora)` e `registro.criadoEm).toEqual(agora)`, no lugar de `toBeInstanceOf(Date)`
+- [ ] Varredura: nenhuma asserção de data-hora de decisão ou auditoria em `campanha*.spec.ts`, `*-campanha.spec.ts` e `*-alteracao-campanha.spec.ts` fica em `toBeInstanceOf(Date)`
+- [ ] Mutantes N23 (`U/aprovar-campanha.ts:83`) e N24 (`E/campanha.ts:270`) morrem
 - [ ] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
+**Commit**: `test(api): data-hora exata na aprovação de campanha`
 
-**Re-verificação**: depois de T41–T50, rodada 2 deste gate. Os mutantes M8, M13, M22–M27, M37–M39 e M42 rodam de novo, junto com mutantes novos sobre T46–T49.
+**Re-verificação**: rodada 3 deste gate depois de T51–T53. N8, N14, N23 e N24 rodam de novo, junto com mutantes novos sobre o que as três tasks tocarem.
+
+---
+
+## Follow-ups não bloqueantes
+
+1. **T29**: (a) usar upsert também para a linha da `alteracaoDecidida`, alinhado ao double; (b) e2e salvando duas vezes a mesma instância depois da decisão, para provar a idempotência que o JSDoc promete (o lugar de N6); (c) JSDoc "uma decisão por `salvar`".
+2. **Nome de chave da auditoria de alteração**: `compromissoNovo` (`_APROVADA`) × `compromissoProposto` (`_ABERTA`, `_REJEITADA`). Uniformizar se algum consumidor ler `dados`.
+3. **T38**: o e2e cobre `idPublico` malformado → 404 com o mesmo corpo (M30, rodada 1).
+4. `consoleError.mockRestore()` em `finally` em `U/rejeitar-alteracao-campanha.spec.ts:241-263`.
 
 ---
 
@@ -434,29 +353,31 @@ Tasks humanas (AD-021): o agente não escreve código em `src/domain/**`, `test/
 
 `spec.md` não foi editado. Status proposto:
 
-| Requirement | Status anterior | Status proposto |
-| ----------- | --------------- | --------------- |
-| CAMP-01 | In Tasks | ❌ Needs Fix (T41, T47, T48, T50) |
-| CAMP-02 | In Tasks | ❌ Needs Fix (T43) |
-| CAMP-03 | In Tasks | ✅ Domínio verificado · infra em Tasks |
-| CAMP-04 | In Tasks | ✅ Domínio verificado · infra em Tasks |
-| CAMP-05 | In Tasks | ❌ Needs Fix (T42, T43) |
-| CAMP-06 | In Tasks | ❌ Needs Fix (T45) |
-| CAMP-07 | In Tasks | ❌ Needs Fix (T47) |
-| CAMP-08 | In Tasks | ❌ Needs Fix (T43, T44, T45, T46, T48, T49) |
-| CAMP-11 | In Tasks | ✅ Domínio verificado · infra em Tasks (T38 cobre id malformado no Postgres) |
+| Requirement | Status anterior (r1) | Status proposto |
+| ----------- | -------------------- | --------------- |
+| CAMP-01 | ❌ Needs Fix (T41, T47, T48, T50) | ❌ Needs Fix (T51) |
+| CAMP-02 | ❌ Needs Fix (T43) | ❌ Needs Fix (T51) |
+| CAMP-03 | ✅ Domínio verificado | ✅ Domínio verificado · infra em Tasks |
+| CAMP-04 | ✅ Domínio verificado | ✅ Domínio verificado · infra em Tasks |
+| CAMP-05 | ❌ Needs Fix (T42, T43) | ❌ Needs Fix (T53) |
+| CAMP-06 | ❌ Needs Fix (T45) | ❌ Needs Fix (T53) |
+| CAMP-07 | ❌ Needs Fix (T47) | ✅ Domínio verificado · infra em Tasks |
+| CAMP-08 | ❌ Needs Fix (T43–T46, T48, T49) | ❌ Needs Fix (T52) |
+| CAMP-11 | ✅ Domínio verificado | ✅ Domínio verificado · infra em Tasks (T38 cobre id malformado no Postgres) |
 | CAMP-09, CAMP-10 | Deferred | Deferred |
 
 ---
 
 ## Summary
 
-**Overall**: ❌ Not Ready. O domínio P1 de `campanhas` não passa o gate de handoff do AD-021, e a Fase 7 (T28–T40) continua bloqueada.
+**Overall**: ❌ Not Ready. O domínio P1 de `campanhas` não passa o gate de handoff do AD-021 na rodada 2, e a Fase 7 (T28–T40) continua bloqueada.
 
-**Spec-anchored check**: 46 critérios P1 de domínio avaliados. 33 batem com a saída da spec e 13 têm lacuna. 3 spec-precision gaps sinalizados.
-**Sensor**: 44 injetados, 31 mortos, 12 sobreviventes, 1 equivalente (M30).
-**Gate**: tsc 0 · eslint 0 · unit 566/566 (335 → 566).
+**Spec-anchored check**: 46 critérios P1 de domínio. 43 batem com a saída da spec, 3 têm lacuna (Submissão AC7, Submissão AC15, Alteração AC5). SP1 e SP2 abertos, SP3 resolvido.
+**Sensor**: 38 injetados (12 reexecutados + 26 novos), 33 mortos, 4 sobreviventes (N8, N14, N23, N24), 1 equivalente (N6).
+**Gate**: tsc 0 · eslint 0 · unit 595/595 (335 → 566 → 595). Nenhum teste apagado ou enfraquecido.
+**Contrato T46**: ok, com duas notas para a T29.
+**Lições**: L-012 recorreu (N23/N24: a T45 copiou a lista de lacunas e omitiu `CAMPANHA_APROVADA`) e foi promovida a confirmed. L-029 (N8) e L-030 (N14) entram como candidatas. SP1 e SP2 já viraram lições na rodada 1 (L-011, L-019) e não foram registrados de novo.
 
-**O que funciona**: VOs de limite (dinheiro e percentual sem ponto flutuante, nome com trim, data com round-trip e fuso de SP); máquina de estados com "nada gravado" em cada erro; CAS por `versao` provado contra o double em editar, aprovar, rejeitar e aprovar alteração; fila com ordem intercalada; consulta pública com 404 idêntico nos 6 casos e omissão provada por `toEqual` exato; `RejeitarCampanha` com e-mail conferido pelo valor.
+**O que funciona**: a alteração decidida chega ao `salvar` com status, autor, data-hora e motivo, e o double a guarda como histórico só depois do CAS; a rejeição de alteração tem e-mail, auditoria completa e CAS provados pelo valor; capa editável pelo caso de uso; um só read model e um só retrato; fim vencido na alteração com virada UTC/SP; mensagens literais da spec conferidas; `IMAGEM_CAMPANHA` coberta nos dois lados dos limites.
 
-**Próximos passos**: (1) o grupo executa T46 primeiro (bloqueador), depois T44, T47, T48, T49 e T50, e por fim T41, T42, T43 e T45; (2) o agente emenda `design.md` e a Done-when da T29 conforme a T46; (3) rodada 2 desta verificação.
+**Próximos passos**: (1) T52, T51 e T53 (só testes, nenhuma mudança de código esperada); (2) rodada 3, a última antes de escalar ao usuário.

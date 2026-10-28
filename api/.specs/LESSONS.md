@@ -32,6 +32,12 @@ Corroborated across multiple features. Safe to apply as guidance.
 - evidence: validation-dominio.md P1-Autocadastro AC8 (arquivo.spec.ts:247 toContain) (specs) (+1 more)
 - last seen: 2026-10-27T23:36:01Z
 
+### L-012 - A fix task for a conjunctive AC must list every operation the AC names, not only the ones in the previous gap list
+- signal: `surviving_mutant` · recurrence: 2 feature(s) · scope: `domain-tests` · harmful: 0
+- features: catalogo-instituicoes, campanhas
+- evidence: validation-dominio.md rodada 2, mutantes N28 N29, P1-Causas AC6 (domain-tests) (+1 more)
+- last seen: 2026-10-28T00:21:23Z
+
 ### L-019 - When an AC lists fields to show or collect, name the exact attribute instead of an umbrella term like nome, link or site ou canal
 - signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `specs` · harmful: 0
 - features: catalogo-instituicoes, campanhas
@@ -83,12 +89,6 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: catalogo-instituicoes
 - evidence: test/http/domain-exception-filter.e2e-spec.ts:65 (422 vs 409 after T1) (error-mapping)
 - last seen: 2026-10-14T00:26:51Z
-
-### L-012 - A fix task for a conjunctive AC must list every operation the AC names, not only the ones in the previous gap list
-- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain-tests` · harmful: 0
-- features: catalogo-instituicoes
-- evidence: validation-dominio.md rodada 2, mutantes N28 N29, P1-Causas AC6 (domain-tests)
-- last seen: 2026-10-14T01:02:45Z
 
 ### L-013 - When a change is justified by 'otherwise X breaks', add a test that fails under X or label the change as robustness
 - signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
@@ -179,6 +179,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: campanhas
 - evidence: validation-dominio.md SP3, Alteração AC10 (string decimal na abertura, centavos na decisão) (specs)
 - last seen: 2026-10-27T23:36:11Z
+
+### L-029 - When formatting integer cents as decimal text, test a value whose fraction has a leading zero, such as 105 to 1.05
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain/fivo/application/use-cases` · harmful: 0
+- features: campanhas
+- evidence: validation-dominio.md rodada 2, mutante N8 (use-cases/campanha-detalhe.ts:65 padStart -> padEnd) (domain/fivo/application/use-cases)
+- last seen: 2026-10-28T00:21:23Z
+
+### L-030 - When a rule validates the result of merging a partial update, test the case where the violating value comes from the stored state, not from the input
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain-entities` · harmful: 0
+- features: campanhas
+- evidence: validation-dominio.md rodada 2, mutante N14 (entities/campanha.ts:428), Alteração AC5 (domain-entities)
+- last seen: 2026-10-28T00:21:23Z
 
 ## Quarantined (failed when applied - ignore)
 
