@@ -1668,9 +1668,9 @@ Aberta pela rodada 1 da verificação final. T54 e T55 não têm dependência en
 
 **Done when**:
 
-- [ ] Sem motivo → 422 `{ statusCode: 422, message: 'Campo obrigatório', errors: [{ campo: 'motivo', mensagem: 'Campo obrigatório' }] }`, pendência `EM_ANALISE` mantida, linha da campanha inalterada e nenhum e-mail
-- [ ] Mutante S33 (sem o pipe zod) morre
-- [ ] Gate `full` passa
+- [x] Sem motivo → 422 `{ statusCode: 422, message: 'Campo obrigatório', errors: [{ campo: 'motivo', mensagem: 'Campo obrigatório' }] }`, pendência `EM_ANALISE` mantida, linha da campanha inalterada e nenhum e-mail
+- [x] Mutante S33 (sem o pipe zod) morre
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

@@ -798,6 +798,25 @@ describe('Fila e decisões de campanha no painel do admin (e2e)', () => {
         expect(transporte.mensagens).toEqual([]);
       });
 
+      it('sem motivo → 422, pendência mantida e nenhum e-mail', async () => {
+        const id = await comAlteracao({
+          regraDoacao: { tipo: 'POR_UNIDADE', valor: '2.00' },
+        });
+        const antes = await linha(id);
+
+        const resposta = await rejeitarAlteracao(id, {});
+
+        expect(resposta.status).toBe(422);
+        expect(resposta.body).toEqual({
+          statusCode: 422,
+          message: 'Campo obrigatório',
+          errors: [{ campo: 'motivo', mensagem: 'Campo obrigatório' }],
+        });
+        expect(await linha(id)).toEqual(antes);
+        expect((await alteracoes())[0].status).toBe('EM_ANALISE');
+        expect(transporte.mensagens).toEqual([]);
+      });
+
       it('sem alteração pendente → 409, nada gravado e nenhum e-mail', async () => {
         const { id } = await cenario.criarAprovada(
           dona.token,
