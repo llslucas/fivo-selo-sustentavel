@@ -153,9 +153,9 @@ graph TD
 - **Métodos** (todos devolvem `Either`; nenhum setter público):
   - `static criar({ empresaId, nome })` → `RASCUNHO`, `idPublico` novo, `versao = 0`.
   - `editarTextos({ nome?, descricao?, capaArquivoId?, meta? })` — em `RASCUNHO` e `APROVADA` aplica; em `REJEITADA` aplica e volta para `RASCUNHO`; em `EM_ANALISE` → `CampanhaEmAnaliseError` (409, "Campanha em análise não pode ser editada").
-  - `editarCompromisso({ beneficiada?, regraDoacao?, vigencia? })`:
+  - `editarCompromisso({ beneficiada?, regraDoacao?, vigencia? }, hoje: DataCalendario)`:
     - em `RASCUNHO` ou `REJEITADA`, aplica direto (`REJEITADA → RASCUNHO`);
-    - em `APROVADA`, abre uma `AlteracaoCompromisso` com o compromisso atual mesclado ao novo, ou devolve `AlteracaoJaPendenteError` (409, "Já existe uma alteração em análise");
+    - em `APROVADA`, abre uma `AlteracaoCompromisso` com o compromisso atual mesclado ao novo, ou devolve `AlteracaoJaPendenteError` (409, "Já existe uma alteração em análise"). Se a vigência do compromisso mesclado tiver `fimJaPassouEm(hoje)`, devolve `VigenciaVencidaError` (422) sem abrir a alteração, a mesma validação de datas da submissão (Alteração AC5; emenda da T49, 2026-10-27);
     - em `EM_ANALISE`, devolve `CampanhaEmAnaliseError`.
   - `submeter(hoje: DataCalendario)` — só em `RASCUNHO` (senão `TransicaoInvalidaError`). Se faltar campo, devolve `CamposPendentesError` (422) com a lista completa: `descricao`, `beneficiada`, `regraDoacao`, `vigencia.inicio`. Se `vigencia.fimJaPassouEm(hoje)`, devolve `VigenciaVencidaError` (422, "A data de fim deve ser posterior à data atual"). Em caso de sucesso, passa a `EM_ANALISE` e grava `submetidaEm`.
   - `aprovar(adminId)` — `EM_ANALISE → APROVADA`; grava `decididoPor`/`decididoEm`.
