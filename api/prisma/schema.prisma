@@ -45,6 +45,30 @@ enum CausaStatus {
   @@map("causa_status")
 }
 
+enum CampanhaStatus {
+  RASCUNHO
+  EM_ANALISE
+  APROVADA
+  REJEITADA
+
+  @@map("campanha_status")
+}
+
+enum AlteracaoCampanhaStatus {
+  EM_ANALISE
+  APROVADA
+  REJEITADA
+
+  @@map("alteracao_campanha_status")
+}
+
+enum TipoRegraDoacao {
+  POR_UNIDADE
+  PERCENTUAL
+
+  @@map("tipo_regra_doacao")
+}
+
 enum TipoArquivo {
   LOGO_EMPRESA
   LOGO_INSTITUICAO
@@ -101,8 +125,9 @@ model Empresa {
   criadoEm                DateTime      @map("criado_em")
   atualizadoEm            DateTime?     @map("atualizado_em")
 
-  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  logo    Arquivo? @relation(fields: [logoArquivoId], references: [id])
+  usuario   Usuario?   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  logo      Arquivo?   @relation(fields: [logoArquivoId], references: [id])
+  campanhas Campanha[]
 
   // Fila de aprovação: filtra por status e ordena por data de cadastro (EMP-04 AC1).
   @@index([status, criadoEm], map: "empresa_status_criado_em_idx")
@@ -122,6 +147,7 @@ model Causa {
   atualizadoEm DateTime?   @map("atualizado_em")
 
   instituicoes Instituicao[]
+  campanhas    Campanha[]
 
   @@map("causa")
 }
@@ -157,10 +183,11 @@ model Instituicao {
   criadoEm           DateTime          @map("criado_em")
   atualizadoEm       DateTime?         @map("atualizado_em")
 
-  usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  causa     Causa    @relation(fields: [causaId], references: [id])
-  logo      Arquivo? @relation("LogoInstituicao", fields: [logoArquivoId], references: [id])
-  documento Arquivo  @relation("DocumentoInstituicao", fields: [documentoArquivoId], references: [id])
+  usuario   Usuario?   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  causa     Causa      @relation(fields: [causaId], references: [id])
+  logo      Arquivo?   @relation("LogoInstituicao", fields: [logoArquivoId], references: [id])
+  documento Arquivo    @relation("DocumentoInstituicao", fields: [documentoArquivoId], references: [id])
+  campanhas Campanha[]
 
   // Fila de análise: filtra por status e ordena por data de cadastro (INST-04).
   @@index([status, criadoEm], map: "instituicao_status_criado_em_idx")
@@ -229,8 +256,75 @@ model Arquivo {
   empresas                Empresa[]
   logosDeInstituicao      Instituicao[] @relation("LogoInstituicao")
   documentosDeInstituicao Instituicao[] @relation("DocumentoInstituicao")
+  campanha                Campanha?
 
   @@map("arquivo")
+}
+
+// Campanha de impacto social (CAMP-01…08, CAMP-11). Dinheiro em centavos e
+// percentual em centésimos de ponto (inteiros); vigência em datas de
+// calendário (`@db.Date`). O CHECK de beneficiada (instituição ou causa, nunca
+// as duas) está em SQL manual na migration `campanhas`.
+model Campanha {
+  id                        String           @id
+  idPublico                 String           @unique @map("id_publico")
+  empresaId                 String           @map("empresa_id")
+  nome                      String
+  descricao                 String?
+  capaArquivoId             String?          @unique @map("capa_arquivo_id")
+  instituicaoId             String?          @map("instituicao_id")
+  causaId                   String?          @map("causa_id")
+  regraTipo                 TipoRegraDoacao? @map("regra_tipo")
+  regraValorCentavos        Int?             @map("regra_valor_centavos")
+  regraPercentualCentesimos Int?             @map("regra_percentual_centesimos")
+  metaCentavos              Int?             @map("meta_centavos")
+  dataInicio                DateTime?        @map("data_inicio") @db.Date
+  dataFim                   DateTime?        @map("data_fim") @db.Date
+  status                    CampanhaStatus
+  submetidaEm               DateTime?        @map("submetida_em")
+  decididoPor               String?          @map("decidido_por")
+  decididoEm                DateTime?        @map("decidido_em")
+  motivoUltimaRejeicao      String?          @map("motivo_ultima_rejeicao")
+  versao                    Int              @default(0)
+  criadoEm                  DateTime         @map("criado_em")
+  atualizadoEm              DateTime?        @map("atualizado_em")
+
+  empresa     Empresa             @relation(fields: [empresaId], references: [id])
+  instituicao Instituicao?        @relation(fields: [instituicaoId], references: [id])
+  causa       Causa?              @relation(fields: [causaId], references: [id])
+  capa        Arquivo?            @relation(fields: [capaArquivoId], references: [id])
+  alteracoes  CampanhaAlteracao[]
+
+  @@index([status])
+  @@index([empresaId])
+  @@map("campanha")
+}
+
+// Alteração de compromisso de campanha aprovada (CAMP-08), com histórico das
+// decisões. O compromisso anterior não vira coluna: enquanto a alteração está
+// pendente, é o que está na campanha. O CHECK de beneficiada (exatamente uma)
+// e o índice único parcial "uma alteração EM_ANALISE por campanha" estão em
+// SQL manual na migration `campanhas`.
+model CampanhaAlteracao {
+  id                        String                  @id
+  campanhaId                String                  @map("campanha_id")
+  instituicaoId             String?                 @map("instituicao_id")
+  causaId                   String?                 @map("causa_id")
+  regraTipo                 TipoRegraDoacao         @map("regra_tipo")
+  regraValorCentavos        Int?                    @map("regra_valor_centavos")
+  regraPercentualCentesimos Int?                    @map("regra_percentual_centesimos")
+  dataInicio                DateTime                @map("data_inicio") @db.Date
+  dataFim                   DateTime?               @map("data_fim") @db.Date
+  status                    AlteracaoCampanhaStatus
+  motivo                    String?
+  decididoPor               String?                 @map("decidido_por")
+  decididoEm                DateTime?               @map("decidido_em")
+  criadoEm                  DateTime                @map("criado_em")
+
+  campanha Campanha @relation(fields: [campanhaId], references: [id])
+
+  @@index([campanhaId])
+  @@map("campanha_alteracao")
 }
 
 // Fila de reenvio de e-mail transacional (EMP-01 AC9, EMP-04). Só templates sem

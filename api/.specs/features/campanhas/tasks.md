@@ -1276,10 +1276,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Modelos, enums e relações iguais ao design §Data Models; `id_publico` e `capa_arquivo_id` únicos; `@db.Date` nas datas
-- [ ] Migration criada com `prisma migrate dev --create-only`, com o CHECK e o índice parcial acrescentados à mão, e aplicada; nenhuma migration existente editada
-- [ ] Um segundo `prisma migrate dev` não gera migration nova (sem drift); se gerar por causa do índice parcial, remover o índice, registrar no design e seguir só com o CHECK
-- [ ] Gate `build` passa
+- [x] Modelos, enums e relações iguais ao design §Data Models; `id_publico` e `capa_arquivo_id` únicos; `@db.Date` nas datas
+- [x] Migration criada com `prisma migrate dev --create-only`, com o CHECK e o índice parcial acrescentados à mão, e aplicada; nenhuma migration existente editada
+- [x] Um segundo `prisma migrate dev` não gera migration nova (sem drift); se gerar por causa do índice parcial, remover o índice, registrar no design e seguir só com o CHECK
+- [x] Gate `build` passa
 
 **Tests**: none (schema — build gate)
 **Gate**: build
