@@ -202,13 +202,16 @@ export class Campanha extends Entity<CampanhaProps> {
   }
 
   // Em APROVADA o compromisso não muda na hora: vira uma alteração pendente e a
-  // versão aprovada continua valendo até o admin decidir.
-  editarCompromisso({
-    beneficiada,
-    regraDoacao,
-    vigencia,
-  }: EditarCompromissoProps): Either<
-    CampanhaEmAnaliseError | TransicaoInvalidaError | AlteracaoJaPendenteError,
+  // versão aprovada continua valendo até o admin decidir. `hoje` só é usado
+  // nesse caso: a alteração passa pela mesma checagem de fim da submissão.
+  editarCompromisso(
+    { beneficiada, regraDoacao, vigencia }: EditarCompromissoProps,
+    hoje: DataCalendario,
+  ): Either<
+    | CampanhaEmAnaliseError
+    | TransicaoInvalidaError
+    | AlteracaoJaPendenteError
+    | VigenciaVencidaError,
     void
   > {
     const podeEditar = this.verificarSePodeEditar();
@@ -218,7 +221,7 @@ export class Campanha extends Entity<CampanhaProps> {
     }
 
     if (this._props.status === CampanhaStatus.APROVADA) {
-      return this.abrirAlteracao({ beneficiada, regraDoacao, vigencia });
+      return this.abrirAlteracao({ beneficiada, regraDoacao, vigencia }, hoje);
     }
 
     if (beneficiada !== undefined) this._props.beneficiada = beneficiada;
@@ -403,7 +406,11 @@ export class Campanha extends Entity<CampanhaProps> {
 
   private abrirAlteracao(
     parcial: EditarCompromissoProps,
-  ): Either<TransicaoInvalidaError | AlteracaoJaPendenteError, void> {
+    hoje: DataCalendario,
+  ): Either<
+    TransicaoInvalidaError | AlteracaoJaPendenteError | VigenciaVencidaError,
+    void
+  > {
     if (this._props.alteracaoPendente) {
       return left(new AlteracaoJaPendenteError());
     }
@@ -416,9 +423,15 @@ export class Campanha extends Entity<CampanhaProps> {
       return left(new TransicaoInvalidaError());
     }
 
+    const proposto = anterior.mesclar(parcial);
+
+    if (proposto.vigencia.fimJaPassouEm(hoje)) {
+      return left(new VigenciaVencidaError());
+    }
+
     this._props.alteracaoPendente = AlteracaoCompromisso.create({
       campanhaId: this.id,
-      proposto: anterior.mesclar(parcial),
+      proposto,
       anterior,
     });
     this._props.updatedAt = new Date();

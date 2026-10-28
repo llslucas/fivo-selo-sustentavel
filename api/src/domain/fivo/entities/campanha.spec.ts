@@ -133,11 +133,14 @@ describe('Campanha', () => {
     const novaRegra = regraDoacao();
     const novaVigencia = vigencia('2026-11-01', '2026-12-31');
 
-    const result = campanha.editarCompromisso({
-      beneficiada: novaBeneficiada,
-      regraDoacao: novaRegra,
-      vigencia: novaVigencia,
-    });
+    const result = campanha.editarCompromisso(
+      {
+        beneficiada: novaBeneficiada,
+        regraDoacao: novaRegra,
+        vigencia: novaVigencia,
+      },
+      hoje,
+    );
 
     expect(result.isRight()).toBe(true);
     expect(campanha.status).toBe(CampanhaStatus.RASCUNHO);
@@ -175,7 +178,10 @@ describe('Campanha', () => {
       status: CampanhaStatus.EM_ANALISE,
     });
 
-    const result = campanha.editarCompromisso({ beneficiada: beneficiada() });
+    const result = campanha.editarCompromisso(
+      { beneficiada: beneficiada() },
+      hoje,
+    );
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(CampanhaEmAnaliseError);
@@ -208,7 +214,7 @@ describe('Campanha', () => {
     });
     const novaRegra = regraDoacao();
 
-    const result = campanha.editarCompromisso({ regraDoacao: novaRegra });
+    const result = campanha.editarCompromisso({ regraDoacao: novaRegra }, hoje);
 
     expect(result.isRight()).toBe(true);
     expect(campanha.status).toBe(CampanhaStatus.RASCUNHO);
@@ -449,9 +455,12 @@ describe('Campanha', () => {
       const anterior = campanha.compromissoVigente()!;
       const novaBeneficiada = beneficiada();
 
-      const result = campanha.editarCompromisso({
-        beneficiada: novaBeneficiada,
-      });
+      const result = campanha.editarCompromisso(
+        {
+          beneficiada: novaBeneficiada,
+        },
+        hoje,
+      );
 
       expect(result.isRight()).toBe(true);
       expect(campanha.status).toBe(CampanhaStatus.APROVADA);
@@ -470,14 +479,46 @@ describe('Campanha', () => {
       expect(campanha.idPublico).toBe(idPublico);
     });
 
+    it('does not open a change whose proposed end date is today', () => {
+      const campanha = campanhaAprovada();
+      const anterior = campanha.compromissoVigente()!;
+
+      const result = campanha.editarCompromisso(
+        { vigencia: vigencia('2026-10-01', '2026-10-21') },
+        hoje,
+      );
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(VigenciaVencidaError);
+      expect(campanha.alteracaoPendente).toBeFalsy();
+      expect(campanha.compromissoVigente()?.equals(anterior)).toBe(true);
+    });
+
+    it('opens a change whose proposed end date is tomorrow', () => {
+      const campanha = campanhaAprovada();
+
+      const result = campanha.editarCompromisso(
+        { vigencia: vigencia('2026-10-01', '2026-10-22') },
+        hoje,
+      );
+
+      expect(result.isRight()).toBe(true);
+      expect(
+        campanha.alteracaoPendente?.proposto.vigencia.fim?.toString(),
+      ).toBe('2026-10-22');
+    });
+
     it('does not open a second change request while one is pending', () => {
       const campanha = campanhaAprovada();
-      campanha.editarCompromisso({ beneficiada: beneficiada() });
+      campanha.editarCompromisso({ beneficiada: beneficiada() }, hoje);
       const pendente = campanha.alteracaoPendente;
 
-      const result = campanha.editarCompromisso({
-        vigencia: vigencia('2026-11-01', '2027-01-31'),
-      });
+      const result = campanha.editarCompromisso(
+        {
+          vigencia: vigencia('2026-11-01', '2027-01-31'),
+        },
+        hoje,
+      );
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(AlteracaoJaPendenteError);
@@ -486,7 +527,7 @@ describe('Campanha', () => {
 
     it('still applies text edits while a change request is pending', () => {
       const campanha = campanhaAprovada();
-      campanha.editarCompromisso({ beneficiada: beneficiada() });
+      campanha.editarCompromisso({ beneficiada: beneficiada() }, hoje);
       const pendente = campanha.alteracaoPendente;
 
       const result = campanha.editarTextos({ nome: nome('Nome novo') });
@@ -501,10 +542,13 @@ describe('Campanha', () => {
       const idPublico = campanha.idPublico;
       const novaRegra = regraDoacao();
       const novaVigencia = vigencia('2026-11-01', '2027-01-31');
-      campanha.editarCompromisso({
-        regraDoacao: novaRegra,
-        vigencia: novaVigencia,
-      });
+      campanha.editarCompromisso(
+        {
+          regraDoacao: novaRegra,
+          vigencia: novaVigencia,
+        },
+        hoje,
+      );
       const alteracao = campanha.alteracaoPendente!;
       const adminId = new UniqueEntityId();
 
@@ -527,7 +571,7 @@ describe('Campanha', () => {
       const campanha = campanhaAprovada();
       const idPublico = campanha.idPublico;
       const anterior = campanha.compromissoVigente()!;
-      campanha.editarCompromisso({ beneficiada: beneficiada() });
+      campanha.editarCompromisso({ beneficiada: beneficiada() }, hoje);
       const alteracao = campanha.alteracaoPendente!;
       const adminId = new UniqueEntityId();
 
@@ -558,14 +602,14 @@ describe('Campanha', () => {
       it('has no decided change while the change is still pending', () => {
         const campanha = campanhaAprovada();
 
-        campanha.editarCompromisso({ beneficiada: beneficiada() });
+        campanha.editarCompromisso({ beneficiada: beneficiada() }, hoje);
 
         expect(campanha.alteracaoDecidida).toBeNull();
       });
 
       it('keeps the approved change reachable with status, who decided and when', () => {
         const campanha = campanhaAprovada();
-        campanha.editarCompromisso({ regraDoacao: regraDoacao() });
+        campanha.editarCompromisso({ regraDoacao: regraDoacao() }, hoje);
         const alteracao = campanha.alteracaoPendente!;
         const adminId = new UniqueEntityId();
 
@@ -587,7 +631,7 @@ describe('Campanha', () => {
       it('keeps the rejected change reachable with status, who decided, when and the reason', () => {
         const campanha = campanhaAprovada();
         const anterior = campanha.compromissoVigente()!;
-        campanha.editarCompromisso({ beneficiada: beneficiada() });
+        campanha.editarCompromisso({ beneficiada: beneficiada() }, hoje);
         const alteracao = campanha.alteracaoPendente!;
         const adminId = new UniqueEntityId();
 
@@ -606,13 +650,16 @@ describe('Campanha', () => {
 
       it('keeps the decided change reachable when a new change is opened afterwards', () => {
         const campanha = campanhaAprovada();
-        campanha.editarCompromisso({ beneficiada: beneficiada() });
+        campanha.editarCompromisso({ beneficiada: beneficiada() }, hoje);
         const primeira = campanha.alteracaoPendente!;
         campanha.rejeitarAlteracao(new UniqueEntityId(), MOTIVO_ALTERACAO);
 
-        const result = campanha.editarCompromisso({
-          regraDoacao: regraDoacao(),
-        });
+        const result = campanha.editarCompromisso(
+          {
+            regraDoacao: regraDoacao(),
+          },
+          hoje,
+        );
 
         expect(result.isRight()).toBe(true);
         expect(campanha.alteracaoDecidida).toBe(primeira);
@@ -625,7 +672,7 @@ describe('Campanha', () => {
 
     it('does not reject the change with a reason shorter than 20 characters', () => {
       const campanha = campanhaAprovada();
-      campanha.editarCompromisso({ beneficiada: beneficiada() });
+      campanha.editarCompromisso({ beneficiada: beneficiada() }, hoje);
       const alteracao = campanha.alteracaoPendente!;
 
       const result = campanha.rejeitarAlteracao(
@@ -642,10 +689,13 @@ describe('Campanha', () => {
 
     it('accepts a new change request after the previous one was decided', () => {
       const campanha = campanhaAprovada();
-      campanha.editarCompromisso({ beneficiada: beneficiada() });
+      campanha.editarCompromisso({ beneficiada: beneficiada() }, hoje);
       campanha.rejeitarAlteracao(new UniqueEntityId(), MOTIVO_ALTERACAO);
 
-      const result = campanha.editarCompromisso({ regraDoacao: regraDoacao() });
+      const result = campanha.editarCompromisso(
+        { regraDoacao: regraDoacao() },
+        hoje,
+      );
 
       expect(result.isRight()).toBe(true);
       expect(campanha.alteracaoPendente?.status).toBe(

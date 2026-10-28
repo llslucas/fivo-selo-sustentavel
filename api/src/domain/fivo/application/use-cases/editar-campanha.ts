@@ -27,6 +27,7 @@ import { PercentualInvalidoError } from '../errors/percentual-invalido.error';
 import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
 import { ValorMonetarioInvalidoError } from '../errors/valor-monetario-invalido.error';
 import { VigenciaInvalidaError } from '../errors/vigencia-invalida.error';
+import { VigenciaVencidaError } from '../errors/vigencia-vencida.error';
 import { CampanhaRepository } from '../ports/database/campanha-repository';
 import { RegistroAuditoriaRepository } from '../ports/registro-auditoria-repository';
 import { AssegurarBeneficiadaDisponivelUseCase } from './assegurar-beneficiada-disponivel';
@@ -75,6 +76,7 @@ export type EditarCampanhaUseCaseResponse = Either<
   | PercentualInvalidoError
   | DataInvalidaError
   | VigenciaInvalidaError
+  | VigenciaVencidaError
   | BeneficiadaAmbiguaError
   | BeneficiadaIndisponivelError
   | CampanhaEmAnaliseError
@@ -255,11 +257,12 @@ export class EditarCampanhaUseCase {
       regra !== undefined ||
       vigenciaCampanha !== undefined
     ) {
-      const compromisso = campanha.editarCompromisso({
-        beneficiada,
-        regraDoacao: regra,
-        vigencia: vigenciaCampanha,
-      });
+      // Em APROVADA, a alteração aberta passa pela checagem de fim vencido
+      // da submissão, com "hoje" em America/Sao_Paulo.
+      const compromisso = campanha.editarCompromisso(
+        { beneficiada, regraDoacao: regra, vigencia: vigenciaCampanha },
+        DataCalendario.hojeEm(new Date()),
+      );
 
       if (compromisso.isLeft()) {
         return left(compromisso.value);

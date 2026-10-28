@@ -1159,10 +1159,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Campanha `APROVADA` + vigência proposta com fim = hoje em SP (fake timers no limite UTC/SP) → `VigenciaVencidaError`, sem pendência, `versao` e auditoria intactas
-- [ ] Fim = amanhã em SP → alteração aberta
-- [ ] Um teste de validação de VO (regra inválida) no caminho `APROVADA` → 422 sem gravar
-- [ ] Gate `quick` passa
+- [x] Campanha `APROVADA` + vigência proposta com fim = hoje em SP (fake timers no limite UTC/SP) → `VigenciaVencidaError`, sem pendência, `versao` e auditoria intactas
+- [x] Fim = amanhã em SP → alteração aberta
+- [x] Um teste de validação de VO (regra inválida) no caminho `APROVADA` → 422 sem gravar
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

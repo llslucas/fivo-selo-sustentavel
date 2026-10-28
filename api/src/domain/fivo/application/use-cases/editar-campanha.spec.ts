@@ -20,7 +20,9 @@ import { AlteracaoJaPendenteError } from '../errors/alteracao-ja-pendente.error'
 import { BeneficiadaIndisponivelError } from '../errors/beneficiada-indisponivel.error';
 import { CampanhaEmAnaliseError } from '../errors/campanha-em-analise.error';
 import { NomeCampanhaInvalidoError } from '../errors/nome-campanha-invalido.error';
+import { InvalidRuleValueError } from '../errors/invalid-rule-value.error';
 import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
+import { VigenciaVencidaError } from '../errors/vigencia-vencida.error';
 import { AssegurarBeneficiadaDisponivelUseCase } from './assegurar-beneficiada-disponivel';
 import { AssegurarEmpresaAprovadaUseCase } from './assegurar-empresa-aprovada';
 import { ConsultarCampanhaDaEmpresaUseCase } from './consultar-campanha-da-empresa';
@@ -353,6 +355,79 @@ describe('EditarCampanhaUseCase', () => {
           regraDoacao: { tipo: TipoRegraDoacao.POR_UNIDADE, valor: '2.50' },
         }) as unknown,
       });
+    });
+
+    // 02:00 UTC de 01/01/2027 ainda é 31/12/2026 em America/Sao_Paulo.
+    const virada = new Date('2027-01-01T02:00:00Z');
+
+    it('rejects a change whose proposed end date is today in Sao Paulo with VigenciaVencidaError, saving nothing', async () => {
+      jest.useFakeTimers({ now: virada });
+      const campanha = await guardar(
+        CampanhaFactory.aprovada({ empresaId: empresa.id }),
+      );
+      const vigenteAntes = campanha.compromissoVigente()!;
+
+      const response = await sut.execute(
+        pedido(campanha, {
+          vigencia: { inicio: '2026-10-01', fim: '2026-12-31' },
+        }),
+      );
+
+      expect(response.isLeft()).toBe(true);
+      expect(response.value).toBeInstanceOf(VigenciaVencidaError);
+      const depois = await salva(campanha);
+      expect(depois.alteracaoPendente).toBeFalsy();
+      expect(depois.compromissoVigente()?.equals(vigenteAntes)).toBe(true);
+      expectNadaGravado(campanha);
+    });
+
+    it('opens a change whose proposed end date is tomorrow in Sao Paulo', async () => {
+      jest.useFakeTimers({ now: virada });
+      const campanha = await guardar(
+        CampanhaFactory.aprovada({ empresaId: empresa.id }),
+      );
+
+      const response = await sut.execute(
+        pedido(campanha, {
+          vigencia: { inicio: '2026-10-01', fim: '2027-01-01' },
+        }),
+      );
+
+      expect(response.isRight()).toBe(true);
+      const depois = await salva(campanha);
+      expect(depois.alteracaoPendente?.proposto.vigencia.fim?.toString()).toBe(
+        '2027-01-01',
+      );
+      expect(depois.versao).toBe(campanha.versao + 1);
+      expect(registroAuditoriaRepository.items).toHaveLength(1);
+      expect(registroAuditoriaRepository.items[0].tipo).toBe(
+        'ALTERACAO_CAMPANHA_ABERTA',
+      );
+    });
+
+    it('rejects an invalid donation rule with a 422 error, saving nothing', async () => {
+      const campanha = await guardar(
+        CampanhaFactory.aprovada({ empresaId: empresa.id }),
+      );
+      const regraAntes = campanha.regraDoacao!;
+
+      const response = await sut.execute(
+        pedido(campanha, {
+          regraDoacao: {
+            tipo: TipoRegraDoacao.POR_UNIDADE,
+            valor: '1.00',
+            percentual: '10',
+          },
+        }),
+      );
+
+      expect(response.isLeft()).toBe(true);
+      expect(response.value).toBeInstanceOf(InvalidRuleValueError);
+      expect((response.value as InvalidRuleValueError).status).toBe(422);
+      const depois = await salva(campanha);
+      expect(depois.alteracaoPendente).toBeFalsy();
+      expect(depois.regraDoacao?.equals(regraAntes)).toBe(true);
+      expectNadaGravado(campanha);
     });
 
     it('rejects a second commitment change while one is pending with AlteracaoJaPendenteError', async () => {

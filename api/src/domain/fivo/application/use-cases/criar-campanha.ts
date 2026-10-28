@@ -202,11 +202,10 @@ export class CriarCampanhaUseCase {
       meta: metaMonetaria,
     });
 
-    campanha.editarCompromisso({
-      beneficiada,
-      regraDoacao: regra,
-      vigencia: vigenciaCampanha,
-    });
+    campanha.editarCompromisso(
+      { beneficiada, regraDoacao: regra, vigencia: vigenciaCampanha },
+      DataCalendario.hojeEm(new Date()),
+    );
 
     await this.campanhaRepository.create(campanha);
 
