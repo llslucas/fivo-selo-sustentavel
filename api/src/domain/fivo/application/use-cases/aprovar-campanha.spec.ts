@@ -48,6 +48,11 @@ describe('AprovarCampanhaUseCase', () => {
   let sut: AprovarCampanhaUseCase;
 
   const admin = UserFactory.create({ role: UserRole.ADMIN });
+  const agora = new Date('2026-10-21T15:00:00Z');
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
 
   function criarSut(): AprovarCampanhaUseCase {
     return new AprovarCampanhaUseCase(
@@ -92,6 +97,7 @@ describe('AprovarCampanhaUseCase', () => {
 
   it('should approve a campaign under review, make it apt for a seal and audit the decision', async () => {
     const { campanha } = await criarEmAnalise();
+    jest.useFakeTimers({ now: agora });
 
     const response = await sut.execute(campanha.id.toString(), admin);
 
@@ -100,7 +106,7 @@ describe('AprovarCampanhaUseCase', () => {
     expect(depois.status).toBe(CampanhaStatus.APROVADA);
     expect(depois.estaAptaASelo()).toBe(true);
     expect(depois.decididoPor?.equals(admin.id)).toBe(true);
-    expect(depois.decididoEm).toBeInstanceOf(Date);
+    expect(depois.decididoEm).toEqual(agora);
     expect(depois.versao).toBe(campanha.versao + 1);
 
     expect(registroAuditoriaRepository.items).toHaveLength(1);
@@ -112,7 +118,7 @@ describe('AprovarCampanhaUseCase', () => {
       estadoAnterior: CampanhaStatus.EM_ANALISE,
       estadoNovo: CampanhaStatus.APROVADA,
     });
-    expect(registro.criadoEm).toBeInstanceOf(Date);
+    expect(registro.criadoEm).toEqual(agora);
   });
 
   it('should reject with NotAllowedError (403) and change nothing when the user is not an admin', async () => {

@@ -1246,11 +1246,11 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `campanha.spec.ts` (aprovar): `jest.useFakeTimers({ now })` + `decididoEm).toEqual(now)`
-- [ ] `aprovar-campanha.spec.ts` (sucesso): `depois.decididoEm).toEqual(agora)` e `registro.criadoEm).toEqual(agora)`, no lugar de `toBeInstanceOf(Date)`
-- [ ] Varredura: nenhuma asserção de data-hora de decisão ou auditoria em `campanha*.spec.ts`, `*-campanha.spec.ts` e `*-alteracao-campanha.spec.ts` fica em `toBeInstanceOf(Date)`
-- [ ] Mutantes N23 (`U/aprovar-campanha.ts:83`) e N24 (`E/campanha.ts:270`) morrem
-- [ ] Gate `quick` passa
+- [x] `campanha.spec.ts` (aprovar): `jest.useFakeTimers({ now })` + `decididoEm).toEqual(now)`
+- [x] `aprovar-campanha.spec.ts` (sucesso): `depois.decididoEm).toEqual(agora)` e `registro.criadoEm).toEqual(agora)`, no lugar de `toBeInstanceOf(Date)`
+- [x] Varredura: nenhuma asserção de data-hora de decisão ou auditoria em `campanha*.spec.ts`, `*-campanha.spec.ts` e `*-alteracao-campanha.spec.ts` fica em `toBeInstanceOf(Date)`
+- [x] Mutantes N23 (`U/aprovar-campanha.ts:83`) e N24 (`E/campanha.ts:270`) morrem
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

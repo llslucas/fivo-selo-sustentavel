@@ -90,6 +90,11 @@ const MOTIVO_ALTERACAO = 'A nova beneficiada nao combina com a campanha';
 
 describe('Campanha', () => {
   const hoje = data('2026-10-21');
+  const agoraDecisao = new Date('2026-10-21T15:00:00Z');
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
 
   it('is born as RASCUNHO with a public id different from the id', () => {
     const empresaId = new UniqueEntityId();
@@ -308,13 +313,14 @@ describe('Campanha', () => {
       status: CampanhaStatus.EM_ANALISE,
     });
     const adminId = new UniqueEntityId();
+    jest.useFakeTimers({ now: agoraDecisao });
 
     const result = campanha.aprovar(adminId);
 
     expect(result.isRight()).toBe(true);
     expect(campanha.status).toBe(CampanhaStatus.APROVADA);
     expect(campanha.decididoPor).toEqual(adminId);
-    expect(campanha.decididoEm).toBeInstanceOf(Date);
+    expect(campanha.decididoEm).toEqual(agoraDecisao);
   });
 
   it('rejects a campaign under review and records the reason', () => {
@@ -323,13 +329,14 @@ describe('Campanha', () => {
     });
     const adminId = new UniqueEntityId();
     const motivo = 'A regra de doacao nao esta clara para o consumidor';
+    jest.useFakeTimers({ now: agoraDecisao });
 
     const result = campanha.rejeitar(adminId, motivo);
 
     expect(result.isRight()).toBe(true);
     expect(campanha.status).toBe(CampanhaStatus.REJEITADA);
     expect(campanha.decididoPor).toEqual(adminId);
-    expect(campanha.decididoEm).toBeInstanceOf(Date);
+    expect(campanha.decididoEm).toEqual(agoraDecisao);
     expect(campanha.motivoUltimaRejeicao).toBe(motivo);
   });
 
