@@ -186,6 +186,7 @@
 - **Next step**: Fase 7 (T28–T31), depois as Fases 8 e 9 (T32–T40), com 2 workers sequenciais (escolha do usuário).
 - **Follow-ups** (não bloqueiam):
   - T29 recebeu upsert da decidida, idempotência e comparação coluna a coluna na Done-when.
+  - Grupo: acrescentar ao JSDoc de `CampanhaRepository.salvar` a regra "uma decisão por instância e por `salvar`" (P13), já registrada no `design.md` §Portas.
   - T38 cobre `idPublico` malformado → 404.
   - As auditorias de alteração usam duas chaves: `compromissoNovo` em `_APROVADA` e `compromissoProposto` em `_ABERTA`/`_REJEITADA`.
   - `consoleError.mockRestore()` fora de `finally` em `rejeitar-alteracao-campanha.spec.ts` (cosmético, grupo).

@@ -1309,7 +1309,7 @@ T39 → T40
 - [x] Binding em `database.module.ts`; `limparBanco` inclui as duas tabelas novas
 - [x] e2e em `test/database/`: ida e volta completa; `2026-01-01` volta `2026-01-01`; dois `salvar` com a mesma versão → só um grava; segunda alteração `EM_ANALISE` barrada pelo índice (ou pela versão, se T28 removeu o índice); `listarEmAnalise` traz os dois tipos; CHECK barra instituição e causa juntas
 - [x] e2e de decisão: aprovar e rejeitar alteração gravam a linha com `status` `APROVADA`/`REJEITADA`, `decidido_por`, `decidido_em` e `motivo` (na rejeição), e a campanha recarregada vem sem pendência; uma nova alteração aberta depois da decisão é gravada sem violar o índice parcial, inclusive quando decisão e abertura vão no mesmo `salvar`
-- [ ] Idempotência: salvar duas vezes a mesma instância depois da decisão não duplica nem altera a linha decidida (N6 da verificação do domínio); o JSDoc da porta diz "uma decisão por instância e por `salvar`" (P13)
+- [x] Idempotência: salvar duas vezes a mesma instância depois da decisão não duplica nem altera a linha decidida (N6 da verificação do domínio); a regra "uma decisão por instância e por `salvar`" (P13) fica no `design.md` §Portas — o JSDoc da porta é código de domínio (AD-021) e fica como follow-up do grupo
 - [x] A ida e volta confere cada data-hora e cada campo opcional coluna a coluna, sem `equals` de agregado, inclusive o `criado_em` da alteração que ordena a fila
 - [x] Gate `full` passa
 

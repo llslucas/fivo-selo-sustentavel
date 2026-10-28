@@ -180,7 +180,7 @@ graph TD
 - `CampanhaRepository` (**retrabalho**):
   - `findById(id)`, `findByIdPublico(idPublico)`;
   - `create(campanha)`;
-  - `salvar(campanha, versaoEsperada): Promise<boolean>`, que grava numa só transação a campanha (incrementando `versao`), a `alteracaoDecidida` (atualiza a linha da alteração pelo `id` com status, `decididoPor`, `decididoEm` e `motivo`) e a `alteracaoPendente` (insere ou atualiza pelo `id`), nessa ordem, para que a decisão libere o índice parcial antes de uma nova pendente. As gravações de alteração são idempotentes pelo `id`. Devolve `false` sem gravar nada quando a versão difere;
+  - `salvar(campanha, versaoEsperada): Promise<boolean>`, que grava numa só transação a campanha (incrementando `versao`), a `alteracaoDecidida` (`upsert` da linha da alteração pelo `id` com status, `decididoPor`, `decididoEm` e `motivo`) e a `alteracaoPendente` (insere ou atualiza pelo `id`), nessa ordem, para que a decisão libere o índice parcial antes de uma nova pendente. As gravações de alteração são idempotentes pelo `id`. Cabe **uma decisão por instância e por `salvar`**: decidir duas vezes na mesma instância sem `salvar` no meio perde a primeira decisão, e nenhum caso de uso faz isso (cada um carrega, decide uma vez e salva uma vez). Devolve `false` sem gravar nada quando a versão difere;
   - `listarEmAnalise(): Promise<Campanha[]>`, que traz as campanhas `EM_ANALISE` e as `APROVADA` com alteração pendente.
 - `Mailer`: `TemplateEmail.CAMPANHA_REJEITADA` e `TemplateEmail.ALTERACAO_CAMPANHA_REJEITADA`, ambos com `dados: { nomeCampanha, motivo }`.
 - Reusadas sem mudança: `EmpresaRepository`, `UserRepository`, `InstituicaoRepository`, `CausaRepository`, `RegistroAuditoriaRepository`.
@@ -205,7 +205,7 @@ graph TD
 | Peça | Local | Detalhe |
 | ---- | ----- | ------- |
 | Schema e migration | `prisma/schema.prisma`, `prisma/migrations/<ts>_campanhas` | modelos `Campanha` e `CampanhaAlteracao`, enums novos, valor `IMAGEM_CAMPANHA` em `tipo_arquivo`, SQL manual com CHECK e índice parcial (ver Data Models) |
-| `PrismaCampanhaMapper` + `PrismaCampanhaRepository` | `src/infra/database/prisma/` | `salvar` faz `updateMany where { id, versao: esperada }` com `versao + 1`; na mesma transação, grava a decisão da `alteracaoDecidida` na linha dela e depois faz `upsert` da `alteracaoPendente`; o mapper carrega só a alteração `EM_ANALISE` como `alteracaoPendente`; `DataCalendario` ↔ `@db.Date` sem deslocamento de fuso |
+| `PrismaCampanhaMapper` + `PrismaCampanhaRepository` | `src/infra/database/prisma/` | `salvar` faz `updateMany where { id, versao: esperada }` com `versao + 1`; na mesma transação, faz `upsert` da decisão da `alteracaoDecidida` na linha dela e depois faz `upsert` da `alteracaoPendente`; o mapper carrega só a alteração `EM_ANALISE` como `alteracaoPendente`; `DataCalendario` ↔ `@db.Date` sem deslocamento de fuso |
 | Binding da porta | `src/infra/database/database.module.ts` | `{ provide: CampanhaRepository, useClass: PrismaCampanhaRepository }` |
 | `Arquivo` / `ArquivoService` | `entities/arquivo.ts` (as três tabelas por tipo), `arquivo.service.ts` | `IMAGEM_CAMPANHA`; `buscarAcesso` reconhece a empresa dona da campanha |
 | Templates de e-mail | `src/infra/mail/` | `TEMPLATES_ENFILEIRAVEIS` inclui os dois novos |
