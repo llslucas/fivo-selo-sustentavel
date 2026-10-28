@@ -2,7 +2,7 @@
 
 API da plataforma que permite a empresas associarem uma ação social à venda de seus produtos, com transparência para o consumidor. Contexto do produto em [`../docs/proposta-inicial.md`](../docs/proposta-inicial.md).
 
-Estado atual: feature **cadastro-empresa** implementada e validada (cadastro, autenticação por sessão, moderação pelo admin, troca de e-mail, recuperação de senha e upload de arquivos). Feature **catalogo-instituicoes** implementada no recorte P1 (autocadastro da instituição com documento de validação, fila e decisões do admin, curadoria de causas, catálogo de beneficiadas para a empresa). As demais features (campanhas, selo e QR Code, páginas públicas, transparência) ainda serão construídas — ver [`.specs/STATE.md`](.specs/STATE.md).
+Estado atual: feature **cadastro-empresa** implementada e validada (cadastro, autenticação por sessão, moderação pelo admin, troca de e-mail, recuperação de senha e upload de arquivos). Feature **catalogo-instituicoes** implementada no recorte P1 (autocadastro da instituição com documento de validação, fila e decisões do admin, curadoria de causas, catálogo de beneficiadas para a empresa). Feature **campanhas** implementada no recorte P1 do `api` (rascunho, submissão, fila e decisões do admin, alteração de campanha aprovada e consulta pública); encerramento e duplicação ficam para depois. As demais features (selo e QR Code, páginas públicas, transparência) ainda serão construídas — ver [`.specs/STATE.md`](.specs/STATE.md).
 
 ## Stack
 
@@ -141,10 +141,28 @@ Referência viva: `/docs` (Swagger UI) ou [`openapi.json`](openapi.json). Resumo
 | `GET /admin/instituicoes`            | admin    | Fila de instituições pendentes, com o documento e o sinal de CNPJ igual ao de uma empresa |
 | `POST /admin/instituicoes/:id/{aprovacao,rejeicao,suspensao,reativacao,inativacao}` | admin | Moderação de instituição (aprovação responde 503 se o documento estiver ilegível) |
 | `GET /beneficiadas?busca=`           | empresa aprovada | Catálogo: instituições aprovadas e causas ativas, busca sem acento a partir de 2 caracteres |
+| `POST /campanhas`                    | empresa aprovada | Cria campanha em `RASCUNHO` (só o nome é obrigatório); devolve `id` e `idPublico` |
+| `GET /campanhas/:id`                 | empresa  | Detalhe da própria campanha, com motivo da última rejeição e alteração pendente |
+| `PATCH /campanhas/:id`               | empresa aprovada | Edita a campanha; o efeito depende do estado (ver abaixo) |
+| `PUT /campanhas/:id/capa`            | empresa aprovada | Envia ou troca a capa, multipart com `capa` (PNG/JPEG até 5 MB) |
+| `POST /campanhas/:id/submissao`      | empresa aprovada | Envia o rascunho para análise; 422 lista os campos pendentes em `errors` |
+| `GET /admin/campanhas/fila`          | admin    | Campanhas em análise e alterações pendentes, da submissão mais antiga para a mais recente |
+| `POST /admin/campanhas/:id/{aprovacao,rejeicao}` | admin | Decide a campanha em análise (rejeição com motivo de 20+ caracteres e e-mail à empresa) |
+| `POST /admin/campanhas/:id/alteracao/{aprovacao,rejeicao}` | admin | Decide a alteração pendente da campanha aprovada |
+| `GET /campanhas/publicas/:idPublico` | público  | Versão aprovada de uma campanha publicada |
+| `GET /campanhas/publicas/:idPublico/capa` | público | Capa de uma campanha publicada |
 
 A autenticação é por **cookie de sessão** (`fivo_sessao`, expira após 8 h de inatividade). No Swagger UI, faça login em `POST /sessoes` e o navegador reaproveita o cookie.
 
 O documento de validação da instituição só é baixado (`GET /arquivos/:id`) pelo admin e pela própria instituição; qualquer outro usuário recebe 403. Ele nunca sai em `GET /beneficiadas`.
+
+### Ciclo de vida da campanha
+
+A campanha nasce em `RASCUNHO` com só o nome. Cada campo informado é validado na hora: valores e percentual vão como string decimal (`"1.50"`), datas como `AAAA-MM-DD`, e a beneficiada é uma instituição aprovada ou uma causa ativa, nunca as duas. A submissão exige descrição, beneficiada, regra de doação e data de início, e leva a campanha a `EM_ANALISE`, quando a empresa não edita mais. O admin aprova (`APROVADA`) ou rejeita com motivo (`REJEITADA`). Uma campanha rejeitada volta a `RASCUNHO` na primeira edição, com o motivo preservado no detalhe. Campanha de outra empresa responde 404, e só empresa `APROVADA` cria, edita ou submete.
+
+Em campanha `APROVADA`, nome, descrição, meta e capa mudam na hora. Beneficiada, regra de doação e vigência abrem uma **alteração pendente**: a campanha segue `APROVADA` com os valores anteriores até o admin decidir a alteração pela fila, e só cabe uma pendente por vez (a segunda responde 409). Toda transição e toda decisão ficam no registro de auditoria. Decisões concorrentes e edição contra decisão são resolvidas por versão: a primeira vale e a outra recebe 409.
+
+A **consulta pública** pelo `idPublico` responde só a campanha `APROVADA` de empresa `APROVADA`, com os valores aprovados e a situação (`NAO_INICIADA` ou `EM_ANDAMENTO`). Rascunho, análise, rejeição, empresa suspensa e identificador malformado recebem o mesmo 404. A capa só é servida nas mesmas condições.
 
 E-mails ainda não são enviados de verdade: o transporte atual é o `LogMailer`, que escreve a mensagem no log da API. Tokens de recuperação de senha e troca de e-mail aparecem lá durante o desenvolvimento.
 

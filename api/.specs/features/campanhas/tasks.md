@@ -1617,9 +1617,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `npm run openapi:export` atualizado e commitado
-- [ ] README descreve o fluxo rascunho → análise → aprovada, a alteração pendente e a consulta pública
-- [ ] Gate `build` passa
+- [x] `npm run openapi:export` atualizado e commitado
+- [x] README descreve o fluxo rascunho → análise → aprovada, a alteração pendente e a consulta pública
+- [x] Gate `build` passa
 
 **Tests**: e2e (paridade OpenAPI já existente)
 **Gate**: build
