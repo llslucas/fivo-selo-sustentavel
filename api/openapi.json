@@ -13,6 +13,69 @@
         ],
         "type": "object"
       },
+      "CriarCampanha": {
+        "properties": {
+          "causaId": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "instituicaoId": {
+            "type": "string"
+          },
+          "meta": {
+            "description": "String decimal com até 2 casas, ex.: \"1.50\"",
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "regraDoacao": {
+            "properties": {
+              "percentual": {
+                "description": "String decimal com até 2 casas, ex.: \"1.50\"",
+                "type": "string"
+              },
+              "tipo": {
+                "enum": [
+                  "POR_UNIDADE",
+                  "PERCENTUAL"
+                ],
+                "type": "string"
+              },
+              "valor": {
+                "description": "String decimal com até 2 casas, ex.: \"1.50\"",
+                "type": "string"
+              }
+            },
+            "required": [
+              "tipo"
+            ],
+            "type": "object"
+          },
+          "vigencia": {
+            "properties": {
+              "fim": {
+                "description": "Data de calendário AAAA-MM-DD",
+                "type": "string"
+              },
+              "inicio": {
+                "description": "Data de calendário AAAA-MM-DD",
+                "type": "string"
+              }
+            },
+            "required": [
+              "inicio"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "nome"
+        ],
+        "type": "object"
+      },
       "CriarCausa": {
         "properties": {
           "descricao": {
@@ -1821,6 +1884,368 @@
         "summary": "Catálogo de beneficiadas: instituições aprovadas e causas ativas (empresa aprovada)",
         "tags": [
           "beneficiadas"
+        ]
+      }
+    },
+    "/campanhas": {
+      "post": {
+        "operationId": "CampanhasController_criar",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CriarCampanha"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "idPublico": {
+                      "description": "Identificador público imutável e não sequencial",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "idPublico"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Campanha criada em RASCUNHO"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Empresa não encontrada"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Nome, descrição, regra, meta ou datas inválidos, ou beneficiada ambígua ou indisponível"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Cria uma campanha em rascunho (empresa aprovada)",
+        "tags": [
+          "campanhas"
+        ]
+      }
+    },
+    "/campanhas/{id}": {
+      "get": {
+        "operationId": "CampanhasController_detalhar",
+        "parameters": [
+          {
+            "description": "Id interno da campanha",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "alteracaoPendente": {
+                      "description": "Compromisso proposto em análise; os valores aprovados seguem nos campos acima",
+                      "nullable": true,
+                      "properties": {
+                        "abertaEm": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "beneficiada": {
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "tipo": {
+                              "enum": [
+                                "INSTITUICAO",
+                                "CAUSA"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "tipo",
+                            "id"
+                          ],
+                          "type": "object"
+                        },
+                        "regraDoacao": {
+                          "properties": {
+                            "percentual": {
+                              "description": "Percentual sobre o preço em string decimal (`\"12.50\"`)",
+                              "type": "string"
+                            },
+                            "tipo": {
+                              "enum": [
+                                "POR_UNIDADE",
+                                "PERCENTUAL"
+                              ],
+                              "type": "string"
+                            },
+                            "valor": {
+                              "description": "R$ por unidade em string decimal (`\"1.50\"`)",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "tipo"
+                          ],
+                          "type": "object"
+                        },
+                        "vigencia": {
+                          "properties": {
+                            "fim": {
+                              "format": "date",
+                              "type": "string"
+                            },
+                            "inicio": {
+                              "format": "date",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "inicio"
+                          ],
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "beneficiada",
+                        "regraDoacao",
+                        "vigencia",
+                        "abertaEm"
+                      ],
+                      "type": "object"
+                    },
+                    "atualizadaEm": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "beneficiada": {
+                      "nullable": true,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "tipo": {
+                          "enum": [
+                            "INSTITUICAO",
+                            "CAUSA"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "tipo",
+                        "id"
+                      ],
+                      "type": "object"
+                    },
+                    "capaArquivoId": {
+                      "description": "Bytes em `GET /arquivos/{capaArquivoId}`",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "criadaEm": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "descricao": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "idPublico": {
+                      "type": "string"
+                    },
+                    "meta": {
+                      "description": "R$ em string decimal",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "motivoUltimaRejeicao": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "nome": {
+                      "type": "string"
+                    },
+                    "regraDoacao": {
+                      "nullable": true,
+                      "properties": {
+                        "percentual": {
+                          "description": "Percentual sobre o preço em string decimal (`\"12.50\"`)",
+                          "type": "string"
+                        },
+                        "tipo": {
+                          "enum": [
+                            "POR_UNIDADE",
+                            "PERCENTUAL"
+                          ],
+                          "type": "string"
+                        },
+                        "valor": {
+                          "description": "R$ por unidade em string decimal (`\"1.50\"`)",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "tipo"
+                      ],
+                      "type": "object"
+                    },
+                    "status": {
+                      "enum": [
+                        "RASCUNHO",
+                        "EM_ANALISE",
+                        "APROVADA",
+                        "REJEITADA"
+                      ],
+                      "type": "string"
+                    },
+                    "submetidaEm": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "vigencia": {
+                      "nullable": true,
+                      "properties": {
+                        "fim": {
+                          "format": "date",
+                          "type": "string"
+                        },
+                        "inicio": {
+                          "format": "date",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "inicio"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "idPublico",
+                    "nome",
+                    "descricao",
+                    "capaArquivoId",
+                    "beneficiada",
+                    "regraDoacao",
+                    "meta",
+                    "vigencia",
+                    "status",
+                    "submetidaEm",
+                    "motivoUltimaRejeicao",
+                    "alteracaoPendente",
+                    "criadaEm",
+                    "atualizadaEm"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Campanha da empresa"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Campanha não encontrada (inclusive de outra empresa)"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Detalhe de uma campanha da empresa, com motivo da última rejeição e alteração pendente",
+        "tags": [
+          "campanhas"
         ]
       }
     },

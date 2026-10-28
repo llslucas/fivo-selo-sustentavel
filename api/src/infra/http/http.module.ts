@@ -3,9 +3,12 @@ import { APP_FILTER } from '@nestjs/core';
 
 import { AprovarEmpresaUseCase } from '@domain/fivo/application/use-cases/aprovar-empresa';
 import { AprovarInstituicaoUseCase } from '@domain/fivo/application/use-cases/aprovar-instituicao';
+import { AssegurarBeneficiadaDisponivelUseCase } from '@domain/fivo/application/use-cases/assegurar-beneficiada-disponivel';
 import { AssegurarEmpresaAprovadaUseCase } from '@domain/fivo/application/use-cases/assegurar-empresa-aprovada';
 import { AutenticarUsuarioUseCase } from '@domain/fivo/application/use-cases/autenticar-usuario';
 import { ConfirmarTrocaEmailUseCase } from '@domain/fivo/application/use-cases/confirmar-troca-email';
+import { ConsultarCampanhaDaEmpresaUseCase } from '@domain/fivo/application/use-cases/consultar-campanha-da-empresa';
+import { CriarCampanhaUseCase } from '@domain/fivo/application/use-cases/criar-campanha';
 import { CriarCausaUseCase } from '@domain/fivo/application/use-cases/criar-causa';
 import { CriarEmpresaUseCase } from '@domain/fivo/application/use-cases/criar-empresa';
 import { CriarInstituicaoUseCase } from '@domain/fivo/application/use-cases/criar-instituicao';
@@ -38,6 +41,7 @@ import { AutenticacaoController } from './controllers/autenticacao.controller';
 import { BeneficiadasController } from './controllers/beneficiadas.controller';
 import { CadastroEmpresaController } from './controllers/cadastro-empresa.controller';
 import { CadastroInstituicaoController } from './controllers/cadastro-instituicao.controller';
+import { CampanhasController } from './controllers/campanhas.controller';
 import { CausasController } from './controllers/causas.controller';
 import { DomainExceptionFilter } from './domain-exception.filter';
 import { SenhaController } from './controllers/senha.controller';
@@ -55,6 +59,7 @@ import { SenhaController } from './controllers/senha.controller';
     BeneficiadasController,
     ArquivoController,
     SenhaController,
+    CampanhasController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
@@ -82,6 +87,9 @@ import { SenhaController } from './controllers/senha.controller';
     InativarInstituicaoUseCase,
     AssegurarEmpresaAprovadaUseCase,
     ListarBeneficiadasUseCase,
+    AssegurarBeneficiadaDisponivelUseCase,
+    CriarCampanhaUseCase,
+    ConsultarCampanhaDaEmpresaUseCase,
   ],
 })
 export class HttpModule {}

@@ -1389,11 +1389,11 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `POST /campanhas` → 201 `{ id, idPublico }`; valores como string decimal e datas `AAAA-MM-DD` no DTO
-- [ ] e2e: 401 sem sessão; 403 ADMIN e empresa não aprovada (mensagem exata); 422 em cada limite de AC3–AC11 com a mensagem da spec; 201 com início no passado
-- [ ] e2e: `GET /campanhas/:id` 200 da dona e 404 para outra empresa
-- [ ] OpenAPI documentado (paridade verde)
-- [ ] Gate `full` passa
+- [x] `POST /campanhas` → 201 `{ id, idPublico }`; valores como string decimal e datas `AAAA-MM-DD` no DTO
+- [x] e2e: 401 sem sessão; 403 ADMIN e empresa não aprovada (mensagem exata); 422 em cada limite de AC3–AC11 com a mensagem da spec; 201 com início no passado
+- [x] e2e: `GET /campanhas/:id` 200 da dona e 404 para outra empresa
+- [x] OpenAPI documentado (paridade verde)
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
