@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Either, left, right } from '@core/either';
+import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
 import { Beneficiada } from '@domain/fivo/entities/beneficiada';
@@ -26,6 +27,7 @@ import { PercentualInvalidoError } from '../errors/percentual-invalido.error';
 import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
 import { ValorMonetarioInvalidoError } from '../errors/valor-monetario-invalido.error';
 import { VigenciaInvalidaError } from '../errors/vigencia-invalida.error';
+import { VigenciaVencidaError } from '../errors/vigencia-vencida.error';
 import { CampanhaRepository } from '../ports/database/campanha-repository';
 import { RegistroAuditoriaRepository } from '../ports/registro-auditoria-repository';
 import { AssegurarBeneficiadaDisponivelUseCase } from './assegurar-beneficiada-disponivel';
@@ -48,13 +50,15 @@ export interface EditarCampanhaUseCaseVigencia {
 }
 
 // Mesmos campos da criação (T18), todos opcionais: só o que vier é alterado.
-// `usuarioId` é quem fez a edição, para a auditoria.
+// `usuarioId` é quem fez a edição, para a auditoria. `capaArquivoId` é o
+// arquivo de capa já gravado (a troca da capa passa por aqui).
 export interface EditarCampanhaUseCaseRequest {
   empresaId: string;
   usuarioId: string;
   campanhaId: string;
   nome?: string;
   descricao?: string;
+  capaArquivoId?: string;
   instituicaoId?: string;
   causaId?: string;
   regraDoacao?: EditarCampanhaUseCaseRegraDoacao;
@@ -72,6 +76,7 @@ export type EditarCampanhaUseCaseResponse = Either<
   | PercentualInvalidoError
   | DataInvalidaError
   | VigenciaInvalidaError
+  | VigenciaVencidaError
   | BeneficiadaAmbiguaError
   | BeneficiadaIndisponivelError
   | CampanhaEmAnaliseError
@@ -95,6 +100,7 @@ export class EditarCampanhaUseCase {
     campanhaId,
     nome,
     descricao,
+    capaArquivoId,
     instituicaoId,
     causaId,
     regraDoacao,
@@ -235,6 +241,10 @@ export class EditarCampanhaUseCase {
     const textos = campanha.editarTextos({
       nome: nomeCampanha,
       descricao: descricaoCampanha,
+      capaArquivoId:
+        capaArquivoId !== undefined
+          ? new UniqueEntityId(capaArquivoId)
+          : undefined,
       meta: metaMonetaria,
     });
 
@@ -247,11 +257,12 @@ export class EditarCampanhaUseCase {
       regra !== undefined ||
       vigenciaCampanha !== undefined
     ) {
-      const compromisso = campanha.editarCompromisso({
-        beneficiada,
-        regraDoacao: regra,
-        vigencia: vigenciaCampanha,
-      });
+      // Em APROVADA, a alteração aberta passa pela checagem de fim vencido
+      // da submissão, com "hoje" em America/Sao_Paulo.
+      const compromisso = campanha.editarCompromisso(
+        { beneficiada, regraDoacao: regra, vigencia: vigenciaCampanha },
+        DataCalendario.hojeEm(new Date()),
+      );
 
       if (compromisso.isLeft()) {
         return left(compromisso.value);

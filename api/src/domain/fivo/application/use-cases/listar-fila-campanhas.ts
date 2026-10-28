@@ -6,13 +6,18 @@ import {
 } from '@domain/fivo/entities/beneficiada';
 import { Campanha } from '@domain/fivo/entities/campanha';
 import { Compromisso } from '@domain/fivo/entities/compromisso';
-import { TipoRegraDoacao } from '@domain/fivo/entities/regra-doacao';
 import { User, UserRole } from '@domain/fivo/entities/user';
 import { Injectable } from '@nestjs/common';
 import { CampanhaRepository } from '../ports/database/campanha-repository';
 import { CausaRepository } from '../ports/database/causa-repository';
 import { EmpresaRepository } from '../ports/database/empresa-repository';
 import { InstituicaoRepository } from '../ports/database/instituicao-repository';
+import {
+  descreverRegra,
+  descreverVigencia,
+  RegraDoacaoDetalhe,
+  VigenciaDetalhe,
+} from './campanha-detalhe';
 
 export type TipoItemFilaCampanhas = 'NOVA' | 'ALTERACAO';
 
@@ -22,10 +27,8 @@ export interface ItemFilaCampanhas {
   empresa: string;
   nome: string;
   beneficiada: { tipo: TipoBeneficiada; nome: string };
-  /** Valores em string decimal: `"1.50"` (R$) e `"12.50"` (%). */
-  regraDoacao: { tipo: TipoRegraDoacao; valor?: string; percentual?: string };
-  /** Datas `AAAA-MM-DD`. */
-  vigencia: { inicio: string; fim?: string };
+  regraDoacao: RegraDoacaoDetalhe;
+  vigencia: VigenciaDetalhe;
   submetidoEm: Date;
 }
 
@@ -34,13 +37,6 @@ export type ListarFilaCampanhasUseCaseResponse = Either<
   NotAllowedError,
   ItemFilaCampanhas[]
 >;
-
-// Centavos e centésimos de ponto viram texto sem passar por número decimal.
-function paraDecimal(centesimos: number): string {
-  const inteira = Math.floor(centesimos / 100);
-  const fracao = String(centesimos % 100).padStart(2, '0');
-  return `${inteira}.${fracao}`;
-}
 
 @Injectable()
 export class ListarFilaCampanhasUseCase {
@@ -102,19 +98,8 @@ export class ListarFilaCampanhasUseCase {
         tipo: compromisso.beneficiada.tipo,
         nome: await this.nomeDaBeneficiada(compromisso.beneficiada),
       },
-      regraDoacao: {
-        tipo: regraDoacao.tipo,
-        valor: regraDoacao.valor
-          ? paraDecimal(regraDoacao.valor.centavos)
-          : undefined,
-        percentual: regraDoacao.percentual
-          ? paraDecimal(regraDoacao.percentual.percentual)
-          : undefined,
-      },
-      vigencia: {
-        inicio: vigencia.inicio.toString(),
-        fim: vigencia.fim?.toString(),
-      },
+      regraDoacao: descreverRegra(regraDoacao),
+      vigencia: descreverVigencia(vigencia),
       submetidoEm: alteracao
         ? alteracao.createdAt
         : (campanha.submetidaEm ?? campanha.createdAt),

@@ -214,6 +214,10 @@ describe('SubmeterCampanhaUseCase', () => {
 
     expect(response.isLeft()).toBe(true);
     expect(response.value).toBeInstanceOf(CamposPendentesError);
+    expect((response.value as CamposPendentesError).status).toBe(422);
+    expect((response.value as CamposPendentesError).message).toBe(
+      'Preencha os campos obrigatórios antes de enviar para análise',
+    );
     expect((response.value as CamposPendentesError).campos).toEqual([
       'descricao',
       'beneficiada',

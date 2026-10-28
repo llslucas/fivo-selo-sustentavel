@@ -7,25 +7,37 @@ import {
 } from '@domain/fivo/entities/regra-doacao';
 import { Vigencia } from '@domain/fivo/entities/vigencia';
 
-// Detalhe de uma campanha para a empresa dona: valores em string decimal e
-// datas de vigência em AAAA-MM-DD. Usado pela edição (T19) e pela consulta
-// da empresa (T21).
+// Read model do detalhe de uma campanha para a empresa dona, devolvido pela
+// edição (T19) e pela consulta da empresa (T21). Também define o retrato do
+// compromisso usado na fila, na consulta pública e em toda auditoria de
+// alteração: valores em string decimal e datas em AAAA-MM-DD.
 
-export interface CampanhaDetalheRegraDoacao {
+export interface BeneficiadaDetalhe {
+  tipo: TipoBeneficiada;
+  id: string;
+}
+
+/** Valores em string decimal: `"1.50"` (R$) e `"12.50"` (%). */
+export interface RegraDoacaoDetalhe {
   tipo: TipoRegraDoacao;
   valor?: string;
   percentual?: string;
 }
 
-export interface CampanhaDetalheVigencia {
+/** Datas `AAAA-MM-DD`. */
+export interface VigenciaDetalhe {
   inicio: string;
   fim?: string;
 }
 
-export interface CampanhaDetalheCompromisso {
-  beneficiada: { tipo: TipoBeneficiada; id: string };
-  regraDoacao: CampanhaDetalheRegraDoacao;
-  vigencia: CampanhaDetalheVigencia;
+export interface CompromissoDetalhe {
+  beneficiada: BeneficiadaDetalhe;
+  regraDoacao: RegraDoacaoDetalhe;
+  vigencia: VigenciaDetalhe;
+}
+
+export interface AlteracaoPendenteDetalhe extends CompromissoDetalhe {
+  abertaEm: Date;
 }
 
 export interface CampanhaDetalhe {
@@ -34,23 +46,27 @@ export interface CampanhaDetalhe {
   nome: string;
   descricao: string | null;
   capaArquivoId: string | null;
-  beneficiada: { tipo: TipoBeneficiada; id: string } | null;
-  regraDoacao: CampanhaDetalheRegraDoacao | null;
+  beneficiada: BeneficiadaDetalhe | null;
+  regraDoacao: RegraDoacaoDetalhe | null;
   meta: string | null;
-  vigencia: CampanhaDetalheVigencia | null;
+  vigencia: VigenciaDetalhe | null;
   status: CampanhaStatus;
   submetidaEm: Date | null;
   motivoUltimaRejeicao: string | null;
-  alteracaoPendente: (CampanhaDetalheCompromisso & { criadaEm: Date }) | null;
+  /** Só os valores propostos; os atuais já estão nos campos acima. */
+  alteracaoPendente: AlteracaoPendenteDetalhe | null;
+  criadaEm: Date;
+  atualizadaEm: Date | null;
 }
 
-function paraDecimal(centesimos: number): string {
+// Centavos e centésimos de ponto viram texto sem passar por número decimal.
+export function paraDecimal(centesimos: number): string {
   const inteira = Math.floor(centesimos / 100);
   const fracao = String(centesimos % 100).padStart(2, '0');
   return `${inteira}.${fracao}`;
 }
 
-function descreverRegra(regra: RegraDoacao): CampanhaDetalheRegraDoacao {
+export function descreverRegra(regra: RegraDoacao): RegraDoacaoDetalhe {
   return {
     tipo: regra.tipo,
     ...(regra.valor && { valor: paraDecimal(regra.valor.centavos) }),
@@ -60,16 +76,17 @@ function descreverRegra(regra: RegraDoacao): CampanhaDetalheRegraDoacao {
   };
 }
 
-function descreverVigencia(vigencia: Vigencia): CampanhaDetalheVigencia {
+export function descreverVigencia(vigencia: Vigencia): VigenciaDetalhe {
   return {
     inicio: vigencia.inicio.toString(),
     ...(vigencia.fim && { fim: vigencia.fim.toString() }),
   };
 }
 
+/** Retrato do compromisso em primitivos, igual em toda a feature. */
 export function descreverCompromisso(
   compromisso: Compromisso,
-): CampanhaDetalheCompromisso {
+): CompromissoDetalhe {
   return {
     beneficiada: {
       tipo: compromisso.beneficiada.tipo,
@@ -103,8 +120,10 @@ export function montarCampanhaDetalhe(campanha: Campanha): CampanhaDetalhe {
     alteracaoPendente: alteracao
       ? {
           ...descreverCompromisso(alteracao.proposto),
-          criadaEm: alteracao.createdAt,
+          abertaEm: alteracao.createdAt,
         }
       : null,
+    criadaEm: campanha.createdAt,
+    atualizadaEm: campanha.updatedAt ?? null,
   };
 }

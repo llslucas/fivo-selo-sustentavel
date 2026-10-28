@@ -5,7 +5,13 @@ import { AlteracaoStatus } from '@domain/fivo/entities/alteracao-compromisso';
 import { Beneficiada } from '@domain/fivo/entities/beneficiada';
 import { Campanha, CampanhaStatus } from '@domain/fivo/entities/campanha';
 import { CausaStatus } from '@domain/fivo/entities/causa';
+import { DataCalendario } from '@domain/fivo/entities/data-calendario';
 import { InstituicaoStatus } from '@domain/fivo/entities/instituicao';
+import {
+  RegraDoacao,
+  TipoRegraDoacao,
+} from '@domain/fivo/entities/regra-doacao';
+import { Vigencia } from '@domain/fivo/entities/vigencia';
 import { UserRole } from '@domain/fivo/entities/user';
 import { CampanhaFactory } from '@test/factories/campanha-factory';
 import { CausaFactory } from '@test/factories/causa-factory';
@@ -93,6 +99,10 @@ describe('AprovarAlteracaoCampanhaUseCase', () => {
     return campanha;
   }
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   async function salva(campanha: Campanha): Promise<Campanha> {
     return (await campanhaRepository.findById(campanha.id.toString()))!;
   }
@@ -109,6 +119,7 @@ describe('AprovarAlteracaoCampanhaUseCase', () => {
     expect(depois.alteracaoPendente?.status).toBe(AlteracaoStatus.EM_ANALISE);
     expect(depois.versao).toBe(campanha.versao);
     expect(registroAuditoriaRepository.items).toHaveLength(0);
+    expect(campanhaRepository.alteracoesDecididas).toHaveLength(0);
   });
 
   it('should reject with ResourceNotFoundError (404) when the campaign does not exist', async () => {
@@ -131,8 +142,41 @@ describe('AprovarAlteracaoCampanhaUseCase', () => {
   });
 
   it('should apply the proposed commitment, clear the pending change and audit both commitments', async () => {
-    const campanha = await criarComAlteracaoDeRegra();
-    const { anterior, proposto } = campanha.alteracaoPendente!;
+    const agora = new Date('2026-10-21T15:00:00Z');
+    jest.useFakeTimers({ now: agora });
+    // A alteração troca beneficiada, regra e vigência ao mesmo tempo.
+    const instituicao = InstituicaoFactory.create({
+      status: InstituicaoStatus.APROVADA,
+    });
+    await instituicaoRepository.create(instituicao);
+    const base = CampanhaFactory.aprovada();
+    const propostoInicial = base.compromissoVigente()!.mesclar({
+      beneficiada: valor(
+        Beneficiada.criar({ instituicaoId: instituicao.id.toString() }),
+      ),
+      regraDoacao: valor(
+        RegraDoacao.criar({
+          tipo: TipoRegraDoacao.PERCENTUAL,
+          percentual: '10',
+        }),
+      ),
+      vigencia: valor(
+        Vigencia.criar({
+          inicio: valor(DataCalendario.criar('2026-11-01')),
+          fim: valor(DataCalendario.criar('2027-01-31')),
+        }),
+      ),
+    });
+    const campanha = CampanhaFactory.aprovadaComAlteracao(
+      {
+        beneficiada: base.beneficiada,
+        regraDoacao: base.regraDoacao,
+        vigencia: base.vigencia,
+      },
+      { proposto: propostoInicial },
+    );
+    await campanhaRepository.create(campanha);
+    const { proposto } = campanha.alteracaoPendente!;
 
     const response = await sut.execute(campanha.id.toString(), admin);
 
@@ -149,19 +193,38 @@ describe('AprovarAlteracaoCampanhaUseCase', () => {
     expect(registro.tipo).toBe('ALTERACAO_CAMPANHA_APROVADA');
     expect(registro.usuarioId).toBe(admin.id.toString());
     expect(registro.entidadeId).toBe(campanha.id.toString());
+    expect(registro.criadoEm).toEqual(agora);
     expect(registro.dados).toEqual({
-      compromissoAnterior: expect.objectContaining({
-        regraDoacao: expect.objectContaining({
-          tipo: anterior.regraDoacao.tipo,
-        }) as unknown,
-      }) as unknown,
-      compromissoNovo: expect.objectContaining({
-        regraDoacao: expect.objectContaining({
-          tipo: proposto.regraDoacao.tipo,
-          percentualCentesimos: 1000,
-        }) as unknown,
-      }) as unknown,
+      compromissoAnterior: {
+        beneficiada: { tipo: 'INSTITUICAO', id: base.beneficiada!.id },
+        regraDoacao: { tipo: TipoRegraDoacao.POR_UNIDADE, valor: '1.00' },
+        vigencia: { inicio: '2026-10-01' },
+      },
+      compromissoNovo: {
+        beneficiada: { tipo: 'INSTITUICAO', id: instituicao.id.toString() },
+        regraDoacao: { tipo: TipoRegraDoacao.PERCENTUAL, percentual: '10.00' },
+        vigencia: { inicio: '2026-11-01', fim: '2027-01-31' },
+      },
     });
+  });
+
+  it('should save the decided change with status APROVADA, the admin and the decision time', async () => {
+    const agora = new Date('2026-10-21T15:00:00Z');
+    jest.useFakeTimers({ now: agora });
+    const campanha = await criarComAlteracaoDeRegra();
+    const alteracao = campanha.alteracaoPendente!;
+
+    const response = await sut.execute(campanha.id.toString(), admin);
+
+    expect(response.isRight()).toBe(true);
+    expect(campanhaRepository.alteracoesDecididas).toHaveLength(1);
+    const [decidida] = campanhaRepository.alteracoesDecididas;
+    expect(decidida.id.equals(alteracao.id)).toBe(true);
+    expect(decidida.campanhaId.equals(campanha.id)).toBe(true);
+    expect(decidida.status).toBe(AlteracaoStatus.APROVADA);
+    expect(decidida.decididoPor?.equals(admin.id)).toBe(true);
+    expect(decidida.decididoEm).toEqual(agora);
+    expect(decidida.motivo).toBeFalsy();
   });
 
   it('should apply a new beneficiary that is still available', async () => {
@@ -229,6 +292,7 @@ describe('AprovarAlteracaoCampanhaUseCase', () => {
       expect(depois.alteracaoPendente?.status).toBe(AlteracaoStatus.EM_ANALISE);
       expect(depois.versao).toBe(campanha.versao);
       expect(registroAuditoriaRepository.items).toHaveLength(0);
+      expect(campanhaRepository.alteracoesDecididas).toHaveLength(0);
     },
   );
 
@@ -253,5 +317,6 @@ describe('AprovarAlteracaoCampanhaUseCase', () => {
     expect(depois.compromissoVigente()?.equals(original)).toBe(true);
     expect(depois.alteracaoPendente?.status).toBe(AlteracaoStatus.EM_ANALISE);
     expect(registroAuditoriaRepository.items).toHaveLength(0);
+    expect(campanhaRepository.alteracoesDecididas).toHaveLength(0);
   });
 });

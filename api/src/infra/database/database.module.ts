@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 
+import { CampanhaRepository } from '@domain/fivo/application/ports/database/campanha-repository';
 import { CausaRepository } from '@domain/fivo/application/ports/database/causa-repository';
 import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
 import { InstituicaoRepository } from '@domain/fivo/application/ports/database/instituicao-repository';
@@ -9,6 +10,7 @@ import { SessaoRepository } from '@domain/fivo/application/ports/sessao-reposito
 import { UnitOfWork } from '@domain/fivo/application/ports/unit-of-work';
 import { TokenSenhaRepository } from '@domain/fivo/application/ports/token-senha-repository';
 
+import { PrismaCampanhaRepository } from './prisma/prisma-campanha-repository';
 import { PrismaCausaRepository } from './prisma/prisma-causa-repository';
 import { PrismaEmpresaRepository } from './prisma/prisma-empresa-repository';
 import { PrismaInstituicaoRepository } from './prisma/prisma-instituicao-repository';
@@ -37,6 +39,7 @@ import { PrismaUserRepository } from './prisma/prisma-user-repository';
       useClass: PrismaRegistroAuditoriaRepository,
     },
     { provide: TokenSenhaRepository, useClass: PrismaTokenSenhaRepository },
+    { provide: CampanhaRepository, useClass: PrismaCampanhaRepository },
   ],
   exports: [
     PrismaService,
@@ -48,6 +51,7 @@ import { PrismaUserRepository } from './prisma/prisma-user-repository';
     SessaoRepository,
     RegistroAuditoriaRepository,
     TokenSenhaRepository,
+    CampanhaRepository,
   ],
 })
 export class DatabaseModule {}

@@ -65,6 +65,11 @@ export interface EditarCompromissoProps {
 }
 
 export class Campanha extends Entity<CampanhaProps> {
+  // Alteração decidida nesta instância e ainda não gravada. Não faz parte das
+  // props porque não é reconstruída da persistência: só existe entre a decisão
+  // e o `salvar`, que grava a decisão na linha da alteração.
+  private _alteracaoDecidida: AlteracaoCompromisso | null = null;
+
   static create(
     props: Optional<
       CampanhaProps,
@@ -149,6 +154,16 @@ export class Campanha extends Entity<CampanhaProps> {
     return this._props.alteracaoPendente;
   }
 
+  /**
+   * Última alteração decidida (aprovada ou rejeitada) por esta instância, com
+   * status, `decididoPor`, `decididoEm` e, na rejeição, `motivo`. O
+   * `CampanhaRepository.salvar` lê daqui para gravar a decisão. Uma campanha
+   * carregada do repositório começa sem alteração decidida.
+   */
+  get alteracaoDecidida(): AlteracaoCompromisso | null {
+    return this._alteracaoDecidida;
+  }
+
   get versao(): number {
     return this._props.versao;
   }
@@ -187,13 +202,16 @@ export class Campanha extends Entity<CampanhaProps> {
   }
 
   // Em APROVADA o compromisso não muda na hora: vira uma alteração pendente e a
-  // versão aprovada continua valendo até o admin decidir.
-  editarCompromisso({
-    beneficiada,
-    regraDoacao,
-    vigencia,
-  }: EditarCompromissoProps): Either<
-    CampanhaEmAnaliseError | TransicaoInvalidaError | AlteracaoJaPendenteError,
+  // versão aprovada continua valendo até o admin decidir. `hoje` só é usado
+  // nesse caso: a alteração passa pela mesma checagem de fim da submissão.
+  editarCompromisso(
+    { beneficiada, regraDoacao, vigencia }: EditarCompromissoProps,
+    hoje: DataCalendario,
+  ): Either<
+    | CampanhaEmAnaliseError
+    | TransicaoInvalidaError
+    | AlteracaoJaPendenteError
+    | VigenciaVencidaError,
     void
   > {
     const podeEditar = this.verificarSePodeEditar();
@@ -203,7 +221,7 @@ export class Campanha extends Entity<CampanhaProps> {
     }
 
     if (this._props.status === CampanhaStatus.APROVADA) {
-      return this.abrirAlteracao({ beneficiada, regraDoacao, vigencia });
+      return this.abrirAlteracao({ beneficiada, regraDoacao, vigencia }, hoje);
     }
 
     if (beneficiada !== undefined) this._props.beneficiada = beneficiada;
@@ -296,12 +314,13 @@ export class Campanha extends Entity<CampanhaProps> {
     this._props.regraDoacao = regraDoacao;
     this._props.vigencia = vigencia;
     this._props.alteracaoPendente = null;
+    this._alteracaoDecidida = alteracao;
     this._props.updatedAt = new Date();
 
     return right(void 0);
   }
 
-  // O motivo fica na alteração; o compromisso da campanha não muda.
+  // O motivo fica na alteração decidida; o compromisso da campanha não muda.
   rejeitarAlteracao(
     adminId: UniqueEntityId,
     motivo: string,
@@ -319,6 +338,7 @@ export class Campanha extends Entity<CampanhaProps> {
     }
 
     this._props.alteracaoPendente = null;
+    this._alteracaoDecidida = alteracao;
     this._props.updatedAt = new Date();
 
     return right(void 0);
@@ -386,7 +406,11 @@ export class Campanha extends Entity<CampanhaProps> {
 
   private abrirAlteracao(
     parcial: EditarCompromissoProps,
-  ): Either<TransicaoInvalidaError | AlteracaoJaPendenteError, void> {
+    hoje: DataCalendario,
+  ): Either<
+    TransicaoInvalidaError | AlteracaoJaPendenteError | VigenciaVencidaError,
+    void
+  > {
     if (this._props.alteracaoPendente) {
       return left(new AlteracaoJaPendenteError());
     }
@@ -399,9 +423,15 @@ export class Campanha extends Entity<CampanhaProps> {
       return left(new TransicaoInvalidaError());
     }
 
+    const proposto = anterior.mesclar(parcial);
+
+    if (proposto.vigencia.fimJaPassouEm(hoje)) {
+      return left(new VigenciaVencidaError());
+    }
+
     this._props.alteracaoPendente = AlteracaoCompromisso.create({
       campanhaId: this.id,
-      proposto: anterior.mesclar(parcial),
+      proposto,
       anterior,
     });
     this._props.updatedAt = new Date();

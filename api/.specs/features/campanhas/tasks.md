@@ -137,6 +137,15 @@ T17 → T26
 T16 → T27
 ```
 
+### Phase 6b: Hardening do domínio 🤖 (exceção AD-021)
+
+Aberta pela rodada 1 do gate de handoff. T41, T42, T43, T46, T47, T49 e T50 não têm dependência dentro da fase. A rodada 2 do gate deu FAIL e acrescentou T51–T53, sem dependência entre si. A rodada 3 do gate deu **PASS** (2026-10-27).
+
+```
+T46 → T44
+T48 → T45
+```
+
 ### Phase 7: Persistência, arquivo e e-mail 🤖
 
 T28 não tem dependência dentro do código de infra; depende do gate de handoff.
@@ -183,6 +192,11 @@ T38 → T39
 T39 → T40
 ```
 
+### Phase 9b: Correções da verificação final 🤖
+
+Aberta pela rodada 1 da verificação final. T54 e T55 não têm dependência entre si. A rodada 2 acrescentou T56, também sem dependência.
+
+
 ---
 
 ## Task Breakdown
@@ -203,10 +217,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] 422: `NomeCampanhaInvalidoError` ("O nome deve ter entre 3 e 80 caracteres"), `DescricaoCampanhaInvalidaError` ("A descrição deve ter no máximo 2000 caracteres"), `ValorMonetarioInvalidoError`, `PercentualInvalidoError`, `DataInvalidaError`, `VigenciaInvalidaError` ("A data de fim deve ser posterior à data de início"), `VigenciaVencidaError` ("A data de fim deve ser posterior à data atual"), `CamposPendentesError` (com `campos: string[]` público)
-- [ ] 409: `CampanhaEmAnaliseError` ("Campanha em análise não pode ser editada"), `AlteracaoJaPendenteError` ("Já existe uma alteração em análise"), `BeneficiadaIndisponivelNaDecisaoError` ("A beneficiada não está mais disponível no catálogo")
-- [ ] Mensagens de `ValorMonetarioInvalidoError` e `PercentualInvalidoError` iguais às do design §Value objects; `DataInvalidaError` = "Data inválida. Use o formato AAAA-MM-DD"; `CamposPendentesError` = "Preencha os campos obrigatórios antes de enviar para análise"
-- [ ] Gate `quick` passa
+- [x] 422: `NomeCampanhaInvalidoError` ("O nome deve ter entre 3 e 80 caracteres"), `DescricaoCampanhaInvalidaError` ("A descrição deve ter no máximo 2000 caracteres"), `ValorMonetarioInvalidoError`, `PercentualInvalidoError`, `DataInvalidaError`, `VigenciaInvalidaError` ("A data de fim deve ser posterior à data de início"), `VigenciaVencidaError` ("A data de fim deve ser posterior à data atual"), `CamposPendentesError` (com `campos: string[]` público)
+- [x] 409: `CampanhaEmAnaliseError` ("Campanha em análise não pode ser editada"), `AlteracaoJaPendenteError` ("Já existe uma alteração em análise"), `BeneficiadaIndisponivelNaDecisaoError` ("A beneficiada não está mais disponível no catálogo")
+- [x] Mensagens de `ValorMonetarioInvalidoError` e `PercentualInvalidoError` iguais às do design §Value objects; `DataInvalidaError` = "Data inválida. Use o formato AAAA-MM-DD"; `CamposPendentesError` = "Preencha os campos obrigatórios antes de enviar para análise"
+- [x] Gate `quick` passa
 
 **Tests**: none (erros — build gate; as mensagens são asseridas nos testes dos VOs e casos de uso)
 **Gate**: quick
@@ -232,9 +246,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `NomeCampanha.criar(bruto)` devolve `Either<NomeCampanhaInvalidoError, NomeCampanha>`; o valor guardado já vem sem espaços nas pontas
-- [ ] `nome-campanha.spec.ts` cobre 2 e 81 caracteres (rejeitados), 3 e 80 (aceitos), e `"  ab  "` (rejeitado depois do trim)
-- [ ] Gate `quick` passa
+- [x] `NomeCampanha.criar(bruto)` devolve `Either<NomeCampanhaInvalidoError, NomeCampanha>`; o valor guardado já vem sem espaços nas pontas
+- [x] `nome-campanha.spec.ts` cobre 2 e 81 caracteres (rejeitados), 3 e 80 (aceitos), e `"  ab  "` (rejeitado depois do trim)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -260,9 +274,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] 2000 caracteres aceitos, 2001 rejeitados com a mensagem de T1
-- [ ] `<script>alert(1)</script>` é aceito e devolvido idêntico
-- [ ] Gate `quick` passa
+- [x] 2000 caracteres aceitos, 2001 rejeitados com a mensagem de T1
+- [x] `<script>alert(1)</script>` é aceito e devolvido idêntico
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -288,10 +302,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `ValorMonetario.deDecimal(texto)` aceita `^\d{1,6}(\.\d{1,2})?$`; expõe `centavos: number`; `"1.5"` → 150, `"0.01"` → 1, `"999999.99"` → 99999999
-- [ ] Rejeita `"0"`, `"0.00"`, `"1000000"`, `"1.234"`, `"-1"`, `"1,50"`, `"abc"` e string vazia
-- [ ] Nenhuma conta passa por `number` com casas decimais (sem `parseFloat * 100`)
-- [ ] Gate `quick` passa
+- [x] `ValorMonetario.deDecimal(texto)` aceita `^\d{1,6}(\.\d{1,2})?$`; expõe `centavos: number`; `"1.5"` → 150, `"0.01"` → 1, `"999999.99"` → 99999999
+- [x] Rejeita `"0"`, `"0.00"`, `"1000000"`, `"1.234"`, `"-1"`, `"1,50"`, `"abc"` e string vazia
+- [x] Nenhuma conta passa por `number` com casas decimais (sem `parseFloat * 100`)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -317,9 +331,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `"0.01"` → 1, `"100"` → 10000, `"12.5"` → 1250
-- [ ] Rejeita `"0"`, `"100.01"`, `"1.234"`, `"-5"` e string vazia
-- [ ] Gate `quick` passa
+- [x] `"0.01"` → 1, `"100"` → 10000, `"12.5"` → 1250
+- [x] Rejeita `"0"`, `"100.01"`, `"1.234"`, `"-5"` e string vazia
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -374,9 +388,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Os dois ids ou nenhum → `BeneficiadaAmbiguaError` ("Informe exatamente uma beneficiada: instituição ou causa")
-- [ ] Expõe `tipo` (`INSTITUICAO` | `CAUSA`) e `id`
-- [ ] Gate `quick` passa
+- [x] Os dois ids ou nenhum → `BeneficiadaAmbiguaError` ("Informe exatamente uma beneficiada: instituição ou causa")
+- [x] Expõe `tipo` (`INSTITUICAO` | `CAUSA`) e `id`
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -484,9 +498,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `IMAGEM_CAMPANHA`: formatos `image/png` e `image/jpeg` (sem SVG), limite 5 MB, sem checagem de 512×512
-- [ ] `arquivo.spec.ts` cobre PNG e JPEG aceitos, SVG e PDF rejeitados, 5 MB aceito e 5 MB + 1 byte rejeitado
-- [ ] Gate `quick` passa
+- [x] `IMAGEM_CAMPANHA`: formatos `image/png` e `image/jpeg` (sem SVG), limite 5 MB, sem checagem de 512×512
+- [x] `arquivo.spec.ts` cobre PNG e JPEG aceitos, SVG e PDF rejeitados, 5 MB aceito e 5 MB + 1 byte rejeitado
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -574,12 +588,12 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `aprovar(adminId)`: `EM_ANALISE → APROVADA`, grava `decididoPor`/`decididoEm`
-- [ ] `rejeitar(adminId, motivo)`: `EM_ANALISE → REJEITADA`, motivo com trim ≥ 20 (`MotivoInsuficienteError` sem mudar estado), grava `motivoUltimaRejeicao`
-- [ ] Aprovar ou rejeitar em `RASCUNHO`, `APROVADA` ou `REJEITADA` → `TransicaoInvalidaError`
-- [ ] `estaAptaASelo()` e `estaPublicada()` são `true` só em `APROVADA` (teste em cada um dos 4 estados)
-- [ ] `compromissoVigente()` devolve `Compromisso` quando os três campos existem e `null` caso contrário
-- [ ] Gate `quick` passa
+- [x] `aprovar(adminId)`: `EM_ANALISE → APROVADA`, grava `decididoPor`/`decididoEm`
+- [x] `rejeitar(adminId, motivo)`: `EM_ANALISE → REJEITADA`, motivo com trim ≥ 20 (`MotivoInsuficienteError` sem mudar estado), grava `motivoUltimaRejeicao`
+- [x] Aprovar ou rejeitar em `RASCUNHO`, `APROVADA` ou `REJEITADA` → `TransicaoInvalidaError`
+- [x] `estaAptaASelo()` e `estaPublicada()` são `true` só em `APROVADA` (teste em cada um dos 4 estados)
+- [x] `compromissoVigente()` devolve `Compromisso` quando os três campos existem e `null` caso contrário
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -689,12 +703,12 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Empresa não aprovada → `NotAllowedError('Cadastro ainda não aprovado')` e nada gravado
-- [ ] Só nome → `RASCUNHO` com `{ id, idPublico }` devolvidos
-- [ ] Cada VO inválido devolve o erro do VO e nada é gravado (um teste por VO)
-- [ ] Beneficiada indisponível → `BeneficiadaIndisponivelError`; beneficiada dupla → `BeneficiadaAmbiguaError`; ausente não chama a guarda
-- [ ] `@Injectable()`; `criar-campanha.spec.ts` reescrito, um ramo por teste
-- [ ] Gate `quick` passa
+- [x] Empresa não aprovada → `NotAllowedError('Cadastro ainda não aprovado')` e nada gravado
+- [x] Só nome → `RASCUNHO` com `{ id, idPublico }` devolvidos
+- [x] Cada VO inválido devolve o erro do VO e nada é gravado (um teste por VO)
+- [x] Beneficiada indisponível → `BeneficiadaIndisponivelError`; beneficiada dupla → `BeneficiadaAmbiguaError`; ausente não chama a guarda
+- [x] `@Injectable()`; `criar-campanha.spec.ts` reescrito, um ramo por teste
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -970,6 +984,287 @@ T39 → T40
 
 ---
 
+### Hardening do domínio (Fase 6b)
+
+> Aberta pela rodada 1 do gate de handoff (`validation-dominio.md`, 2026-10-27, FAIL: 13 ACs com lacuna, 12 mutantes sobreviventes). Executada pelo agente por exceção do AD-021. Ordem: T46, T44, T47, T48, T49, T50, T41, T42, T43, T45. Depois dela, rodada 2 do gate; a Fase 7 só começa com PASS.
+
+### T41: `Vigencia` — fim anterior ao início (Minor)
+
+**What**: Cobrir o ramo "fim anterior ao início" da vigência, que hoje só é testado no caso igual.
+**Where**: `src/domain/fivo/entities/vigencia.spec.ts`; `src/domain/fivo/application/use-cases/criar-campanha.spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-01 (Criação AC11)
+**Autor**: 🤖 agente (exceção AD-021, 2026-10-27)
+
+**Done when**:
+
+- [x] `vigencia.spec.ts` tem caso com fim um dia **antes** do início → `isLeft()` incondicional + `toBeInstanceOf(VigenciaInvalidaError)` + `status` 422 + mensagem "A data de fim deve ser posterior à data de início"
+- [x] `criar-campanha.spec.ts` tem o mesmo caso pelo caso de uso, com "nada gravado"
+- [x] Mutante M8 (`E/vigencia.ts:22`, remover `|| fim.ehAnteriorA(inicio)`) morre
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): cobre vigência com fim anterior ao início`
+
+---
+
+### T42: `Campanha.rejeitar` — limite de 20 caracteres nos dois lados (Minor)
+
+**What**: Testar em `Campanha.rejeitar` o motivo de exatamente 20 caracteres (aceito) e de 19 com espaços nas pontas (recusado). Hoje isso só é testado em `AlteracaoCompromisso`.
+**Where**: `src/domain/fivo/entities/campanha.spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-05 (Submissão AC10)
+**Autor**: 🤖 agente (exceção AD-021, 2026-10-27)
+
+**Done when**:
+
+- [x] `'a'.repeat(20)` → `REJEITADA` e `motivoUltimaRejeicao` igual ao texto
+- [x] `` `   ${'a'.repeat(19)}   ` `` → `MotivoInsuficienteError`, estado `EM_ANALISE`
+- [x] Mutante M13 (`E/campanha.ts:266`, `< 20` → `< 21`) morre
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): cobre limite de 20 caracteres em Campanha.rejeitar`
+
+---
+
+### T43: Mensagens literais da spec e de `CamposPendentesError` (Major)
+
+**What**: Conferir o texto exato das mensagens que a spec cita e alinhar `CamposPendentesError` ao design.
+**Where**: `src/domain/fivo/application/errors/campos-pendentes.error.ts`; `src/domain/fivo/entities/regra-doacao.spec.ts`; `src/domain/fivo/entities/campanha.spec.ts`; `src/domain/fivo/application/use-cases/editar-campanha.spec.ts`; `src/domain/fivo/application/use-cases/submeter-campanha.spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-02 (Criação AC7), CAMP-05 (Submissão AC2, AC5), CAMP-08 (Alteração AC4)
+**Autor**: 🤖 agente (exceção AD-021, 2026-10-27)
+
+**Done when**:
+
+- [x] `regra-doacao.spec.ts` confere `status` 422 e `message` "O Valor da regra deve corresponder à regra selecionada." (com o ponto final)
+- [x] `editar-campanha.spec.ts` confere `message` "Campanha em análise não pode ser editada" e "Já existe uma alteração em análise", com `status` 409
+- [x] `CamposPendentesError.message` é exatamente "Preencha os campos obrigatórios antes de enviar para análise", e a lista fica só em `campos`. `campanha.spec.ts:232-240` troca o `toContain(campo)` sobre a mensagem por `message).toBe(...)` + `campos).toEqual([...])`
+- [x] Mutantes M37, M38 e M39 morrem
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(api): mensagens literais de campanha e CamposPendentesError`
+
+---
+
+### T44: `RejeitarAlteracaoCampanhaUseCase` — e-mail, auditoria completa e concorrência (Major)
+
+**What**: Reescrever o setup do spec com empresa e usuário dono, e conferir o efeito de cada ramo pelo valor.
+**Where**: `src/domain/fivo/application/use-cases/rejeitar-alteracao-campanha.spec.ts`
+**Depends on**: T46 (a asserção de motivo persistido usa o contrato novo)
+**Requirement**: CAMP-08 (Alteração AC8, AC10; edge case de decisão simultânea)
+**Autor**: 🤖 agente (exceção AD-021, 2026-10-27)
+
+**Done when**:
+
+- [x] Sucesso: `mailer.mensagens).toEqual([{ para: <e-mail do dono>, template: TemplateEmail.ALTERACAO_CAMPANHA_REJEITADA, dados: { nomeCampanha, motivo } }])`
+- [x] Sucesso: auditoria com `tipo`, `usuarioId` do admin, `entidadeId`, `dados` completos (compromisso anterior, compromisso proposto e `motivo`) e `criadoEm` igual ao relógio fixado (`jest.useFakeTimers`)
+- [x] Falha do `Mailer` com dono existente: a decisão fica gravada e `console.error` é chamado (a falha precisa ser exercitada de verdade)
+- [x] Concorrência contra o double (`RepositorioComGravacaoConcorrente`) → `TransicaoInvalidaError`, pendência `EM_ANALISE`, auditoria vazia, nenhum e-mail
+- [x] Não-admin, motivo curto e sem pendência: além do estado e da auditoria, `mailer.mensagens` vazio e `versao` inalterada
+- [x] Mutantes M22, M23 e M24 morrem
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): e-mail, auditoria e concorrência na rejeição de alteração`
+
+---
+
+### T45: Auditoria com data-hora e retrato completo (Minor)
+
+**What**: Conferir `criadoEm` e o retrato inteiro dos compromissos nas auditorias que hoje só conferem tipo ou autor.
+**Where**: `src/domain/fivo/application/use-cases/rejeitar-campanha.spec.ts`; `editar-campanha.spec.ts`; `aprovar-alteracao-campanha.spec.ts`
+**Depends on**: T48 (formato único do retrato)
+**Requirement**: CAMP-06 (Submissão AC15), CAMP-08 (Alteração AC6, AC10)
+**Autor**: 🤖 agente (exceção AD-021, 2026-10-27)
+
+**Done when**:
+
+- [x] `CAMPANHA_REJEITADA`, `CAMPANHA_REABERTA`, `ALTERACAO_CAMPANHA_ABERTA` e `ALTERACAO_CAMPANHA_APROVADA` conferem `criadoEm` igual ao relógio fixado
+- [x] `ALTERACAO_CAMPANHA_ABERTA` e `ALTERACAO_CAMPANHA_APROVADA` conferem o retrato completo (beneficiada, regra e vigência) do anterior e do novo com `toEqual`, sem `objectContaining`
+- [x] Mutantes M25, M26, M27 e M42 morrem
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): data-hora e retrato completo nas auditorias de campanha`
+
+---
+
+### T46: Persistir a alteração decidida (Blocker)
+
+**What**: Hoje `aprovarAlteracao` e `rejeitarAlteracao` põem `alteracaoPendente = null` (`E/campanha.ts:298`, `:321`) antes do `salvar`, e a decisão se perde: status, `decididoPor`, `decididoEm` e `motivo`. O agregado precisa entregar ao repositório a alteração decidida junto com a campanha, para que a T29 grave a linha de `campanha_alteracao` (AD-006c) e libere o índice parcial de "uma pendente". Uma saída possível é uma propriedade da `Campanha` com a última alteração decidida e ainda não gravada, lida pelo `salvar`. A forma fica a critério do grupo, desde que a porta documente o contrato.
+**Where**: `src/domain/fivo/entities/campanha.ts`; `src/domain/fivo/application/ports/database/campanha-repository.ts` (JSDoc do `salvar`); `test/repositories/in-memory-campanha-repository.ts`; `campanha.spec.ts`; `aprovar-alteracao-campanha.spec.ts`; `rejeitar-alteracao-campanha.spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-08 (Alteração AC6, AC8), AD-006c
+**Autor**: 🤖 agente (exceção AD-021, 2026-10-27), incluindo a emenda de `design.md` (§`Campanha`, §Portas e Data Models) e da Done-when da T29
+
+**Done when**:
+
+- [x] Depois de decidir, a campanha continua sem pendência (`alteracaoPendente` vazio, `compromissoVigente()` correto), e a alteração decidida fica acessível ao `salvar` com status, `decididoPor`, `decididoEm` e, na rejeição, `motivo`
+- [x] O double guarda as alterações decididas (histórico), e os specs de aprovar e rejeitar alteração conferem pelo repositório: status `APROVADA`/`REJEITADA`, `decididoPor` = admin, `decididoEm` igual ao relógio fixado e `motivo` literal na rejeição
+- [x] Uma nova alteração aberta depois da decisão continua aceita (`E/campanha.spec.ts:563-574` segue verde)
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(api): persiste a alteração de compromisso decidida`
+
+---
+
+### T47: `EditarCampanhaUseCase` — capa (Major)
+
+**What**: Aceitar `capaArquivoId` na edição, para que a T34 (`PUT /campanhas/:id/capa`) troque a capa pelo caso de uso, com o portão de empresa aprovada, a checagem de dona, o 409 em análise e o CAS.
+**Where**: `src/domain/fivo/application/use-cases/editar-campanha.ts` + spec
+**Depends on**: None
+**Requirement**: CAMP-01 (Criação AC15), CAMP-07 (Alteração AC1)
+**Autor**: 🤖 agente (exceção AD-021, 2026-10-27)
+
+**Done when**:
+
+- [x] `EditarCampanhaUseCaseRequest.capaArquivoId?: string`, repassado a `editarTextos`
+- [x] Rascunho e `APROVADA`: a capa é aplicada e gravada (`findById` mostra o id novo), sem abrir alteração e sem auditoria
+- [x] `EM_ANALISE` → `CampanhaEmAnaliseError`, nada gravado
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `feat(api): edição da capa da campanha pelo caso de uso`
+
+---
+
+### T48: Um só read model de detalhe e um só retrato de compromisso (Major)
+
+**What**: A T19 exige o mesmo read model da T21, mas há dois `CampanhaDetalhe` incompatíveis (`U/campanha-detalhe.ts:31` e `U/consultar-campanha-da-empresa.ts:42`). Unificar num só módulo, usado pela edição e pela consulta, e remover as cópias de `paraDecimal` e `descreverCompromisso`, para que toda auditoria do agregado use o mesmo formato.
+**Where**: `src/domain/fivo/application/use-cases/campanha-detalhe.ts`, `consultar-campanha-da-empresa.ts`, `editar-campanha.ts`, `listar-fila-campanhas.ts`, `buscar-campanha-publica.ts`, `aprovar-alteracao-campanha.ts`, `rejeitar-alteracao-campanha.ts` + specs afetados
+**Depends on**: None
+**Requirement**: CAMP-01 (Criação AC17), CAMP-08 (Alteração AC10); Done-when da T19
+**Autor**: 🤖 agente (exceção AD-021, 2026-10-27)
+
+**Done when**:
+
+- [x] Existe uma única interface `CampanhaDetalhe`, devolvida por `EditarCampanhaUseCase` e por `ConsultarCampanhaDaEmpresaUseCase`. Um teste da edição confere o detalhe com `toEqual` idêntico ao da consulta para a mesma campanha
+- [x] `paraDecimal` e o retrato do compromisso têm uma única definição. `ALTERACAO_CAMPANHA_ABERTA`, `_APROVADA` e `_REJEITADA` gravam o mesmo formato
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `refactor(api): unifica read model de detalhe e retrato de compromisso`
+
+---
+
+### T49: Alteração pendente com data de fim vencida (Major)
+
+**What**: A Alteração AC5 pede que a alteração passe pelas mesmas validações de datas da submissão. Abrir uma alteração cuja vigência proposta tenha fim ≤ hoje (America/Sao_Paulo) precisa devolver `VigenciaVencidaError` (422), sem gravar.
+**Where**: `src/domain/fivo/entities/campanha.ts` (`editarCompromisso`/`abrirAlteracao` recebendo `hoje`) ou `src/domain/fivo/application/use-cases/editar-campanha.ts`, a critério do grupo seguindo o AD-017; specs correspondentes
+**Depends on**: None
+**Requirement**: CAMP-08 (Alteração AC5)
+**Autor**: 🤖 agente (exceção AD-021, 2026-10-27)
+
+**Done when**:
+
+- [x] Campanha `APROVADA` + vigência proposta com fim = hoje em SP (fake timers no limite UTC/SP) → `VigenciaVencidaError`, sem pendência, `versao` e auditoria intactas
+- [x] Fim = amanhã em SP → alteração aberta
+- [x] Um teste de validação de VO (regra inválida) no caminho `APROVADA` → 422 sem gravar
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `fix(api): rejeita alteração com data de fim vencida`
+
+---
+
+### T50: `Arquivo` — testes de `IMAGEM_CAMPANHA` (Major)
+
+**What**: Cumprir a Done-when da T11, que não tem nenhum teste.
+**Where**: `src/domain/fivo/entities/arquivo.spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-01 (Criação AC13)
+**Autor**: 🤖 agente (exceção AD-021, 2026-10-27)
+
+**Done when**:
+
+- [x] PNG e JPEG aceitos; SVG e PDF rejeitados com o erro de formato
+- [x] 5 MB exatos aceitos; 5 MB + 1 byte rejeitado
+- [x] Imagem menor que 512×512 aceita (sem checagem de dimensão)
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): cobre tipo IMAGEM_CAMPANHA em Arquivo`
+
+---
+
+> **Rodada 2 do gate (2026-10-27): FAIL** só por lacunas de teste (mutantes N8, N14, N23, N24) → T51–T53, também do agente pela exceção do AD-021.
+
+### T51: `paraDecimal` — fração com zero à esquerda (Major)
+
+**What**: Nenhum teste formata um valor cuja fração tem zero à esquerda, e `padStart` → `padEnd` em `paraDecimal` passa despercebido (N8). Com o mutante, R$ 1,05 sai `"1.50"` no detalhe, na fila, na consulta pública e na auditoria. Acrescentar o caso pelo read model.
+**Where**: `src/domain/fivo/application/use-cases/consultar-campanha-da-empresa.spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-01 (Criação AC17), CAMP-02
+**Autor**: 🤖 agente (exceção AD-021, ciclo de correção do gate)
+
+**Done when**:
+
+- [x] Campanha com regra `POR_UNIDADE` `'0.05'` e meta `'1.05'` → `regraDoacao).toEqual({ tipo: POR_UNIDADE, valor: '0.05' })` e `meta).toBe('1.05')`
+- [x] Campanha com regra `PERCENTUAL` `'0.01'` → `percentual: '0.01'`
+- [x] Mutante N8 (`U/campanha-detalhe.ts:65`, `padStart` → `padEnd`) morre
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): cobre fração com zero à esquerda no detalhe da campanha`
+
+---
+
+### T52: Fim vencido herdado do compromisso aprovado (Major)
+
+**What**: O design (`design.md:158`) manda checar a vigência do compromisso **mesclado** ao abrir a alteração, mas os testes da T49 sempre enviam a vigência. Falta o caso em que a empresa altera só a regra ou a beneficiada de uma campanha `APROVADA` cuja vigência aprovada já venceu (N14).
+**Where**: `src/domain/fivo/entities/campanha.spec.ts`; `src/domain/fivo/application/use-cases/editar-campanha.spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-08 (Alteração AC5)
+**Autor**: 🤖 agente (exceção AD-021, ciclo de correção do gate)
+
+**Done when**:
+
+- [x] Entidade: campanha `APROVADA` com vigência aprovada de fim = hoje (ou antes), `editarCompromisso({ regraDoacao }, hoje)` → `VigenciaVencidaError`, sem pendência e com `compromissoVigente()` intacto
+- [x] Entidade: a mesma campanha com `editarCompromisso({ vigencia: <fim amanhã> }, hoje)` → alteração aberta (a vigência nova substitui a vencida)
+- [x] Caso de uso (fake timers): campanha `APROVADA` com fim aprovado já vencido em SP + edição só da regra → `VigenciaVencidaError`, `expectNadaGravado`
+- [x] Mutante N14 (`E/campanha.ts:428`, `proposto.vigencia` → `parcial.vigencia?`) morre
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): cobre alteração sobre vigência aprovada vencida`
+
+---
+
+### T53: Data-hora da aprovação da campanha (Minor)
+
+**What**: Submissão AC7 pede autor **e data-hora** da decisão, e AC15 pede data-hora em **toda** transição. A aprovação da campanha só confere `toBeInstanceOf(Date)`, e `new Date(0)` sobrevive na entidade (N24) e na auditoria (N23). A T45 copiou a lista de lacunas da rodada 1 e não incluiu `CAMPANHA_APROVADA`.
+**Where**: `src/domain/fivo/entities/campanha.spec.ts`; `src/domain/fivo/application/use-cases/aprovar-campanha.spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-05 (Submissão AC7), CAMP-06 (Submissão AC15)
+**Autor**: 🤖 agente (exceção AD-021, ciclo de correção do gate)
+
+**Done when**:
+
+- [x] `campanha.spec.ts` (aprovar): `jest.useFakeTimers({ now })` + `decididoEm).toEqual(now)`
+- [x] `aprovar-campanha.spec.ts` (sucesso): `depois.decididoEm).toEqual(agora)` e `registro.criadoEm).toEqual(agora)`, no lugar de `toBeInstanceOf(Date)`
+- [x] Varredura: nenhuma asserção de data-hora de decisão ou auditoria em `campanha*.spec.ts`, `*-campanha.spec.ts` e `*-alteracao-campanha.spec.ts` fica em `toBeInstanceOf(Date)`
+- [x] Mutantes N23 (`U/aprovar-campanha.ts:83`) e N24 (`E/campanha.ts:270`) morrem
+- [x] Gate `quick` passa
+
+**Tests**: unit
+**Gate**: quick
+**Commit**: `test(api): data-hora exata na aprovação de campanha`
+
+---
+
+> **Rodada 3 do gate (2026-10-27): PASS ✅** (`validation-dominio.md`): 46/46 ACs P1 de domínio, sensor acumulado de 83 mutantes distintos, com 80 mortos, 0 sobreviventes e 3 equivalentes (M30, N6, P13). A Fase 7 está liberada.
+
 ### T28: Schema Prisma e migration de campanhas
 
 **What**: Modelar `Campanha` e `CampanhaAlteracao`, enums novos e `IMAGEM_CAMPANHA`, com o SQL manual do design.
@@ -986,10 +1281,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Modelos, enums e relações iguais ao design §Data Models; `id_publico` e `capa_arquivo_id` únicos; `@db.Date` nas datas
-- [ ] Migration criada com `prisma migrate dev --create-only`, com o CHECK e o índice parcial acrescentados à mão, e aplicada; nenhuma migration existente editada
-- [ ] Um segundo `prisma migrate dev` não gera migration nova (sem drift); se gerar por causa do índice parcial, remover o índice, registrar no design e seguir só com o CHECK
-- [ ] Gate `build` passa
+- [x] Modelos, enums e relações iguais ao design §Data Models; `id_publico` e `capa_arquivo_id` únicos; `@db.Date` nas datas
+- [x] Migration criada com `prisma migrate dev --create-only`, com o CHECK e o índice parcial acrescentados à mão, e aplicada; nenhuma migration existente editada
+- [x] Um segundo `prisma migrate dev` não gera migration nova (sem drift); se gerar por causa do índice parcial, remover o índice, registrar no design e seguir só com o CHECK
+- [x] Gate `build` passa
 
 **Tests**: none (schema — build gate)
 **Gate**: build
@@ -999,7 +1294,7 @@ T39 → T40
 
 ### T29: `PrismaCampanhaRepository` e mapper
 
-**What**: Adaptador da porta com bloqueio otimista por `versao` e gravação da alteração na mesma transação.
+**What**: Adaptador da porta com bloqueio otimista por `versao` e gravação das alterações (decidida e pendente) na mesma transação.
 **Where**: `src/infra/database/prisma/repositories/prisma-campanha-repository.ts`
 **Depends on**: T28, T16
 **Reuses**: `prisma-instituicao-repository.ts`, `PrismaTransactionContext`
@@ -1013,11 +1308,15 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Mapper reconstrói todos os VOs; dado persistido inválido lança erro
-- [ ] `salvar` = `updateMany where { id, versao }` com `versao + 1` e `upsert` da alteração, em uma transação; devolve `false` sem gravar quando a versão difere
-- [ ] Binding em `database.module.ts`; `limparBanco` inclui as duas tabelas novas
-- [ ] e2e em `test/database/`: ida e volta completa; `2026-01-01` volta `2026-01-01`; dois `salvar` com a mesma versão → só um grava; segunda alteração `EM_ANALISE` barrada pelo índice (ou pela versão, se T28 removeu o índice); `listarEmAnalise` traz os dois tipos; CHECK barra instituição e causa juntas
-- [ ] Gate `full` passa
+- [x] Mapper reconstrói todos os VOs; dado persistido inválido lança erro
+- [x] `salvar` = `updateMany where { id, versao }` com `versao + 1`; na mesma transação, se houver `campanha.alteracaoDecidida`, faz `upsert` da linha dela em `campanha_alteracao` (pelo `id`, como o double) com `status`, `decidido_por`, `decidido_em` e `motivo`, e **depois** faz `upsert` da `alteracaoPendente`; devolve `false` sem gravar nada quando a versão difere (contrato no JSDoc da porta, emenda da T46)
+- [x] O mapper carrega como `alteracaoPendente` só a linha `EM_ANALISE`; as decididas ficam como histórico e não voltam ao agregado
+- [x] Binding em `database.module.ts`; `limparBanco` inclui as duas tabelas novas
+- [x] e2e em `test/database/`: ida e volta completa; `2026-01-01` volta `2026-01-01`; dois `salvar` com a mesma versão → só um grava; segunda alteração `EM_ANALISE` barrada pelo índice (ou pela versão, se T28 removeu o índice); `listarEmAnalise` traz os dois tipos; CHECK barra instituição e causa juntas
+- [x] e2e de decisão: aprovar e rejeitar alteração gravam a linha com `status` `APROVADA`/`REJEITADA`, `decidido_por`, `decidido_em` e `motivo` (na rejeição), e a campanha recarregada vem sem pendência; uma nova alteração aberta depois da decisão é gravada sem violar o índice parcial, inclusive quando decisão e abertura vão no mesmo `salvar`
+- [x] Idempotência: salvar duas vezes a mesma instância depois da decisão não duplica nem altera a linha decidida (N6 da verificação do domínio); a regra "uma decisão por instância e por `salvar`" (P13) fica no `design.md` §Portas — o JSDoc da porta é código de domínio (AD-021) e fica como follow-up do grupo
+- [x] A ida e volta confere cada data-hora e cada campo opcional coluna a coluna, sem `equals` de agregado, inclusive o `criado_em` da alteração que ordena a fila
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1041,8 +1340,8 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Transporte falhando com `CAMPANHA_REJEITADA` e com `ALTERACAO_CAMPANHA_REJEITADA` → mensagem enfileirada (um teste por template)
-- [ ] Gate `quick` passa
+- [x] Transporte falhando com `CAMPANHA_REJEITADA` e com `ALTERACAO_CAMPANHA_REJEITADA` → mensagem enfileirada (um teste por template)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -1066,10 +1365,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `uploadImagem({ tipo: IMAGEM_CAMPANHA, ... })` grava PNG e JPEG; SVG e PDF → `ArquivoInvalidoError`
-- [ ] `buscarAcesso` devolve o usuário dono da empresa da campanha que referencia a capa
-- [ ] e2e em `test/arquivo/` cobre os formatos e dono x não-dono
-- [ ] Gate `full` passa
+- [x] `uploadImagem({ tipo: IMAGEM_CAMPANHA, ... })` grava PNG e JPEG; SVG e PDF → `ArquivoInvalidoError`
+- [x] `buscarAcesso` devolve o usuário dono da empresa da campanha que referencia a capa
+- [x] e2e em `test/arquivo/` cobre os formatos e dono x não-dono
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1095,11 +1394,11 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `POST /campanhas` → 201 `{ id, idPublico }`; valores como string decimal e datas `AAAA-MM-DD` no DTO
-- [ ] e2e: 401 sem sessão; 403 ADMIN e empresa não aprovada (mensagem exata); 422 em cada limite de AC3–AC11 com a mensagem da spec; 201 com início no passado
-- [ ] e2e: `GET /campanhas/:id` 200 da dona e 404 para outra empresa
-- [ ] OpenAPI documentado (paridade verde)
-- [ ] Gate `full` passa
+- [x] `POST /campanhas` → 201 `{ id, idPublico }`; valores como string decimal e datas `AAAA-MM-DD` no DTO
+- [x] e2e: 401 sem sessão; 403 ADMIN e empresa não aprovada (mensagem exata); 422 em cada limite de AC3–AC11 com a mensagem da spec; 201 com início no passado
+- [x] e2e: `GET /campanhas/:id` 200 da dona e 404 para outra empresa
+- [x] OpenAPI documentado (paridade verde)
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1125,10 +1424,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] e2e: rascunho editável; 409 em análise com a mensagem exata; `REJEITADA` editada volta a `RASCUNHO` com motivo preservado no detalhe
-- [ ] e2e: em `APROVADA`, descrição aplicada na hora; regra nova abre alteração (detalhe mostra pendência) e a segunda → 409 "Já existe uma alteração em análise"
-- [ ] e2e: 404 para campanha alheia; 422 nos limites
-- [ ] Gate `full` passa
+- [x] e2e: rascunho editável; 409 em análise com a mensagem exata; `REJEITADA` editada volta a `RASCUNHO` com motivo preservado no detalhe
+- [x] e2e: em `APROVADA`, descrição aplicada na hora; regra nova abre alteração (detalhe mostra pendência) e a segunda → 409 "Já existe uma alteração em análise"
+- [x] e2e: 404 para campanha alheia; 422 nos limites
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1154,10 +1453,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Limite do multer `5 * 1024 * 1024 + 1`; e2e com 5 MB exatos aceito e 5 MB + 1 byte → 422
-- [ ] e2e: SVG → 422; storage fora do ar (fake) → 503 "Storage indisponível no momento." e campanha sem capa nova
-- [ ] Troca de capa remove o arquivo antigo; falha no `salvar` remove o novo
-- [ ] Gate `full` passa
+- [x] Limite do multer `5 * 1024 * 1024 + 1`; e2e com 5 MB exatos aceito e 5 MB + 1 byte → 422
+- [x] e2e: SVG → 422; storage fora do ar (fake) → 503 "Storage indisponível no momento." e campanha sem capa nova
+- [x] Troca de capa remove o arquivo antigo; falha no `salvar` remove o novo
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1183,8 +1482,8 @@ T39 → T40
 
 **Done when**:
 
-- [ ] e2e: 204 e estado `EM_ANALISE`; 422 com todos os campos pendentes em `errors`; 422 com fim no passado; 422 com beneficiada suspensa depois de salva; 409 na segunda submissão
-- [ ] Gate `full` passa
+- [x] e2e: 204 e estado `EM_ANALISE`; 422 com todos os campos pendentes em `errors`; 422 com fim no passado; 422 com beneficiada suspensa depois de salva; 409 na segunda submissão
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1210,10 +1509,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] e2e: fila ordenada com os dois tipos; 403 para EMPRESA
-- [ ] e2e: aprovação 204 e consulta de auditoria; 409 com beneficiada inativada durante a análise
-- [ ] e2e: rejeição 204 com e-mail registrado no fake; 422 com motivo de 19 caracteres
-- [ ] Gate `full` passa
+- [x] e2e: fila ordenada com os dois tipos; 403 para EMPRESA
+- [x] e2e: aprovação 204 e consulta de auditoria; 409 com beneficiada inativada durante a análise
+- [x] e2e: rejeição 204 com e-mail registrado no fake; 422 com motivo de 19 caracteres
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1239,8 +1538,8 @@ T39 → T40
 
 **Done when**:
 
-- [ ] e2e: aprovar aplica a regra nova; rejeitar mantém a anterior e envia e-mail; 409 sem pendência; 409 com nova beneficiada indisponível
-- [ ] Gate `full` passa
+- [x] e2e: aprovar aplica a regra nova; rejeitar mantém a anterior e envia e-mail; 409 sem pendência; 409 com nova beneficiada indisponível
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1266,10 +1565,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] e2e: 200 sem cookie para campanha aprovada; o JSON não tem `id`, motivo nem pendência
-- [ ] e2e: 404 com corpo idêntico (comparado byte a byte) para inexistente, rascunho, em análise, rejeitada, empresa suspensa e `idPublico` malformado
-- [ ] e2e: capa 200 com `Content-Type` correto quando publicada; 404 em rascunho
-- [ ] Gate `full` passa
+- [x] e2e: 200 sem cookie para campanha aprovada; o JSON não tem `id`, motivo nem pendência
+- [x] e2e: 404 com corpo idêntico (comparado byte a byte) para inexistente, rascunho, em análise, rejeitada, empresa suspensa e `idPublico` malformado
+- [x] e2e: capa 200 com `Content-Type` correto quando publicada; 404 em rascunho
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1295,11 +1594,11 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `Promise.all` de aprovar + rejeitar a mesma campanha → um 204 e um 409; idem para alteração
-- [ ] `Promise.all` de duas submissões → um 204 e um 409
-- [ ] `Promise.all` de edição de texto + aprovação de alteração → o compromisso aprovado não é sobrescrito
-- [ ] Tabela papel × rota: anônimo 401, EMPRESA em rota de admin 403, ADMIN em rota de empresa 403, INSTITUICAO em ambas 403
-- [ ] Gate `full` passa
+- [x] `Promise.all` de aprovar + rejeitar a mesma campanha → um 204 e um 409; idem para alteração
+- [x] `Promise.all` de duas submissões → um 204 e um 409
+- [x] `Promise.all` de edição de texto + aprovação de alteração → o compromisso aprovado não é sobrescrito
+- [x] Tabela papel × rota: anônimo 401, EMPRESA em rota de admin 403, ADMIN em rota de empresa 403, INSTITUICAO em ambas 403
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
@@ -1323,13 +1622,83 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `npm run openapi:export` atualizado e commitado
-- [ ] README descreve o fluxo rascunho → análise → aprovada, a alteração pendente e a consulta pública
-- [ ] Gate `build` passa
+- [x] `npm run openapi:export` atualizado e commitado
+- [x] README descreve o fluxo rascunho → análise → aprovada, a alteração pendente e a consulta pública
+- [x] Gate `build` passa
 
 **Tests**: e2e (paridade OpenAPI já existente)
 **Gate**: build
 **Commit**: `docs(api): documenta campanhas no README e no OpenAPI`
+
+---
+
+### Correções da verificação final (Fase 9b)
+
+> Aberta pela rodada 1 da verificação final (`validation.md`, 2026-10-27, FAIL): 3 mutantes sobreviventes, todos lacunas só de teste na infra (S25, S32, S33).
+
+### T54: Capa pública — testar CSP e `Content-Disposition`
+
+**What**: No e2e da capa publicada, conferir `Content-Security-Policy` e `Content-Disposition`, que o controller define e nenhum teste confere.
+**Where**: `test/http/campanhas-publicas.e2e-spec.ts`
+**Depends on**: None
+**Reuses**: `test/http/arquivo.e2e-spec.ts:208-211`
+**Requirement**: CAMP-11
+**Autor**: 🤖 agente
+
+**Done when**:
+
+- [x] `content-security-policy` = `default-src 'none'; sandbox` e `content-disposition` casando `/^inline/`, no PNG e no JPEG
+- [x] Mutantes S25 (sem CSP) e S32 (`attachment`) morrem
+- [x] Gate `full` passa
+
+**Tests**: e2e
+**Gate**: full
+**Commit**: `test(api): cabeçalhos de segurança da capa pública de campanha`
+
+---
+
+### T55: Rejeição de alteração — 422 sem motivo
+
+**What**: e2e do corpo sem motivo em `POST /admin/campanhas/:id/alteracao/rejeicao`.
+**Where**: `test/http/admin-campanhas.e2e-spec.ts`
+**Depends on**: None
+**Reuses**: teste equivalente da rejeição de campanha (`test/http/admin-campanhas.e2e-spec.ts:440-453`)
+**Requirement**: CAMP-08
+**Autor**: 🤖 agente
+
+**Done when**:
+
+- [x] Sem motivo → 422 `{ statusCode: 422, message: 'Campo obrigatório', errors: [{ campo: 'motivo', mensagem: 'Campo obrigatório' }] }`, pendência `EM_ANALISE` mantida, linha da campanha inalterada e nenhum e-mail
+- [x] Mutante S33 (sem o pipe zod) morre
+- [x] Gate `full` passa
+
+**Tests**: e2e
+**Gate**: full
+**Commit**: `test(api): rejeição de alteração sem motivo`
+
+---
+
+> **Rodada 2 da verificação final (2026-10-27): FAIL** com S25, S32 e S33 mortos e 3 sobreviventes novos (S34, S45, S46), todos lacunas de teste → T56.
+
+### T56: Chaves fora do DTO nas rotas de campanha da empresa
+
+**What**: e2e que provam que `empresaId`, `campanhaId` e `usuarioId` enviados no corpo do POST e do PATCH são ignorados, e o 422 de forma no PATCH. Hoje só o descarte de chaves do zod impede gravar em outra empresa, e nenhum teste prova isso.
+**Where**: `test/http/campanhas.e2e-spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-01 (Criação AC18)
+**Autor**: 🤖 agente
+
+**Done when**:
+
+- [x] PATCH `{ nome: 123 }` → 422 `{ statusCode: 422, message: 'Informe um texto', errors: [{ campo: 'nome', mensagem: 'Informe um texto' }] }`, nada gravado
+- [x] PATCH na própria campanha com `empresaId`, `campanhaId` e `usuarioId` alheios no corpo → só a campanha da rota muda; a campanha alheia fica `toEqual(antes)`
+- [x] POST com `empresaId` alheio no corpo → a campanha é gravada na empresa da sessão
+- [x] Mutantes S34 (PATCH sem pipe), S45 e S46 (`z.looseObject` nos schemas de criar e editar) morrem
+- [x] Gate `full` passa
+
+**Tests**: e2e
+**Gate**: full
+**Commit**: `test(api): chaves fora do DTO nas rotas de campanha da empresa`
 
 ---
 
@@ -1403,7 +1772,7 @@ T39 → T40
 ```
 
 ```
-Fase 1 → Fase 2 → Fase 3 → Fase 4 → Fase 5 → Fase 6 → [gate de handoff] → Fase 7 → Fase 8 → Fase 9
+Fase 1 → Fase 2 → Fase 3 → Fase 4 → Fase 5 → Fase 6 → [gate de handoff, rodada 1: FAIL] → Fase 6b → [gate de handoff, rodada 2] → Fase 7 → Fase 8 → Fase 9
   👤 T1–T6   T7–T11   T12–T15   T16–T17   T18–T21   T22–T27                 🤖 T28–T31  T32–T38  T39–T40
 ```
 

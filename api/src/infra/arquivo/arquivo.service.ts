@@ -124,6 +124,7 @@ export class ArquivoService {
         empresas: { select: { usuarioId: true } },
         logosDeInstituicao: { select: { usuarioId: true } },
         documentosDeInstituicao: { select: { usuarioId: true } },
+        campanha: { select: { empresa: { select: { usuarioId: true } } } },
       },
     });
 
@@ -132,11 +133,13 @@ export class ArquivoService {
     }
 
     // Dono é o usuário da empresa ou da instituição que referencia o arquivo
-    // (logo ou documento de validação). Sem vínculo, só o ADMIN acessa.
+    // (logo, documento de validação ou capa de campanha da empresa). Sem
+    // vínculo, só o ADMIN acessa.
     const dono =
       registro.empresas[0] ??
       registro.logosDeInstituicao[0] ??
-      registro.documentosDeInstituicao[0];
+      registro.documentosDeInstituicao[0] ??
+      registro.campanha?.empresa;
 
     return { donoUsuarioId: dono?.usuarioId ?? null };
   }

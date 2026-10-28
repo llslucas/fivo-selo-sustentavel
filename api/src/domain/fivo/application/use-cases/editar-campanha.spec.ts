@@ -2,12 +2,14 @@ import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { Campanha, CampanhaStatus } from '@domain/fivo/entities/campanha';
+import { DataCalendario } from '@domain/fivo/entities/data-calendario';
 import { Empresa, EmpresaStatus } from '@domain/fivo/entities/empresa';
 import {
   Instituicao,
   InstituicaoStatus,
 } from '@domain/fivo/entities/instituicao';
 import { TipoRegraDoacao } from '@domain/fivo/entities/regra-doacao';
+import { Vigencia } from '@domain/fivo/entities/vigencia';
 import { CampanhaFactory } from '@test/factories/campanha-factory';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { InstituicaoFactory } from '@test/factories/instituicao-factory';
@@ -20,9 +22,12 @@ import { AlteracaoJaPendenteError } from '../errors/alteracao-ja-pendente.error'
 import { BeneficiadaIndisponivelError } from '../errors/beneficiada-indisponivel.error';
 import { CampanhaEmAnaliseError } from '../errors/campanha-em-analise.error';
 import { NomeCampanhaInvalidoError } from '../errors/nome-campanha-invalido.error';
+import { InvalidRuleValueError } from '../errors/invalid-rule-value.error';
 import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
+import { VigenciaVencidaError } from '../errors/vigencia-vencida.error';
 import { AssegurarBeneficiadaDisponivelUseCase } from './assegurar-beneficiada-disponivel';
 import { AssegurarEmpresaAprovadaUseCase } from './assegurar-empresa-aprovada';
+import { ConsultarCampanhaDaEmpresaUseCase } from './consultar-campanha-da-empresa';
 import {
   EditarCampanhaUseCase,
   EditarCampanhaUseCaseRequest,
@@ -85,6 +90,10 @@ describe('EditarCampanhaUseCase', () => {
     await instituicaoRepository.create(instituicao);
 
     montarSut();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   async function guardar(campanha: Campanha): Promise<Campanha> {
@@ -162,6 +171,8 @@ describe('EditarCampanhaUseCase', () => {
 
   describe('draft', () => {
     it('applies only the fields sent and returns the detail with decimal values', async () => {
+      const agora = new Date('2026-10-21T15:00:00Z');
+      jest.useFakeTimers({ now: agora });
       const campanha = await guardar(
         CampanhaFactory.create({ empresaId: empresa.id }),
       );
@@ -191,6 +202,8 @@ describe('EditarCampanhaUseCase', () => {
         submetidaEm: null,
         motivoUltimaRejeicao: null,
         alteracaoPendente: null,
+        criadaEm: agora,
+        atualizadaEm: agora,
       });
 
       const depois = await salva(campanha);
@@ -252,6 +265,8 @@ describe('EditarCampanhaUseCase', () => {
 
   describe('rejected campaign', () => {
     it('goes back to draft, keeps the rejection reason and audits CAMPANHA_REABERTA', async () => {
+      const agora = new Date('2026-10-21T15:00:00Z');
+      jest.useFakeTimers({ now: agora });
       const campanha = await guardar(
         CampanhaFactory.completa({
           empresaId: empresa.id,
@@ -275,6 +290,7 @@ describe('EditarCampanhaUseCase', () => {
       expect(registro.tipo).toBe('CAMPANHA_REABERTA');
       expect(registro.usuarioId).toBe(usuarioId);
       expect(registro.entidadeId).toBe(campanha.id.toString());
+      expect(registro.criadoEm).toEqual(agora);
       expect(registro.dados).toEqual({
         estadoAnterior: CampanhaStatus.REJEITADA,
         estadoNovo: CampanhaStatus.RASCUNHO,
@@ -302,6 +318,8 @@ describe('EditarCampanhaUseCase', () => {
     });
 
     it('opens a pending change for the commitment, keeps the approved values and audits it', async () => {
+      const agora = new Date('2026-10-21T15:00:00Z');
+      jest.useFakeTimers({ now: agora });
       const campanha = await guardar(
         CampanhaFactory.aprovada({ empresaId: empresa.id }),
       );
@@ -336,14 +354,131 @@ describe('EditarCampanhaUseCase', () => {
       const [registro] = registroAuditoriaRepository.items;
       expect(registro.tipo).toBe('ALTERACAO_CAMPANHA_ABERTA');
       expect(registro.usuarioId).toBe(usuarioId);
+      expect(registro.entidadeId).toBe(campanha.id.toString());
+      expect(registro.criadoEm).toEqual(agora);
+      // Só a regra muda; beneficiada e vigência do proposto vêm do aprovado.
+      const beneficiadaAprovada = {
+        tipo: 'INSTITUICAO',
+        id: campanha.beneficiada!.id,
+      };
       expect(registro.dados).toEqual({
-        compromissoAnterior: expect.objectContaining({
+        compromissoAnterior: {
+          beneficiada: beneficiadaAprovada,
           regraDoacao: { tipo: TipoRegraDoacao.POR_UNIDADE, valor: '1.00' },
-        }) as unknown,
-        compromissoProposto: expect.objectContaining({
+          vigencia: { inicio: '2026-10-01' },
+        },
+        compromissoProposto: {
+          beneficiada: beneficiadaAprovada,
           regraDoacao: { tipo: TipoRegraDoacao.POR_UNIDADE, valor: '2.50' },
-        }) as unknown,
+          vigencia: { inicio: '2026-10-01' },
+        },
       });
+    });
+
+    // 02:00 UTC de 01/01/2027 ainda é 31/12/2026 em America/Sao_Paulo.
+    const virada = new Date('2027-01-01T02:00:00Z');
+
+    it('rejects a change whose proposed end date is today in Sao Paulo with VigenciaVencidaError, saving nothing', async () => {
+      jest.useFakeTimers({ now: virada });
+      const campanha = await guardar(
+        CampanhaFactory.aprovada({ empresaId: empresa.id }),
+      );
+      const vigenteAntes = campanha.compromissoVigente()!;
+
+      const response = await sut.execute(
+        pedido(campanha, {
+          vigencia: { inicio: '2026-10-01', fim: '2026-12-31' },
+        }),
+      );
+
+      expect(response.isLeft()).toBe(true);
+      expect(response.value).toBeInstanceOf(VigenciaVencidaError);
+      const depois = await salva(campanha);
+      expect(depois.alteracaoPendente).toBeFalsy();
+      expect(depois.compromissoVigente()?.equals(vigenteAntes)).toBe(true);
+      expectNadaGravado(campanha);
+    });
+
+    it('rejects a change that only edits the rule when the approved end date is today in Sao Paulo, saving nothing', async () => {
+      jest.useFakeTimers({ now: virada });
+      const inicio = DataCalendario.criar('2026-10-01');
+      const fim = DataCalendario.criar('2026-12-31');
+      if (inicio.isLeft()) throw inicio.value;
+      if (fim.isLeft()) throw fim.value;
+      const vigenciaVencida = Vigencia.criar({
+        inicio: inicio.value,
+        fim: fim.value,
+      });
+      if (vigenciaVencida.isLeft()) throw vigenciaVencida.value;
+      const campanha = await guardar(
+        CampanhaFactory.aprovada({
+          empresaId: empresa.id,
+          vigencia: vigenciaVencida.value,
+        }),
+      );
+      const vigenteAntes = campanha.compromissoVigente()!;
+
+      const response = await sut.execute(
+        pedido(campanha, {
+          regraDoacao: { tipo: TipoRegraDoacao.POR_UNIDADE, valor: '2.50' },
+        }),
+      );
+
+      expect(response.isLeft()).toBe(true);
+      expect(response.value).toBeInstanceOf(VigenciaVencidaError);
+      const depois = await salva(campanha);
+      expect(depois.alteracaoPendente).toBeFalsy();
+      expect(depois.compromissoVigente()?.equals(vigenteAntes)).toBe(true);
+      expectNadaGravado(campanha);
+    });
+
+    it('opens a change whose proposed end date is tomorrow in Sao Paulo', async () => {
+      jest.useFakeTimers({ now: virada });
+      const campanha = await guardar(
+        CampanhaFactory.aprovada({ empresaId: empresa.id }),
+      );
+
+      const response = await sut.execute(
+        pedido(campanha, {
+          vigencia: { inicio: '2026-10-01', fim: '2027-01-01' },
+        }),
+      );
+
+      expect(response.isRight()).toBe(true);
+      const depois = await salva(campanha);
+      expect(depois.alteracaoPendente?.proposto.vigencia.fim?.toString()).toBe(
+        '2027-01-01',
+      );
+      expect(depois.versao).toBe(campanha.versao + 1);
+      expect(registroAuditoriaRepository.items).toHaveLength(1);
+      expect(registroAuditoriaRepository.items[0].tipo).toBe(
+        'ALTERACAO_CAMPANHA_ABERTA',
+      );
+    });
+
+    it('rejects an invalid donation rule with a 422 error, saving nothing', async () => {
+      const campanha = await guardar(
+        CampanhaFactory.aprovada({ empresaId: empresa.id }),
+      );
+      const regraAntes = campanha.regraDoacao!;
+
+      const response = await sut.execute(
+        pedido(campanha, {
+          regraDoacao: {
+            tipo: TipoRegraDoacao.POR_UNIDADE,
+            valor: '1.00',
+            percentual: '10',
+          },
+        }),
+      );
+
+      expect(response.isLeft()).toBe(true);
+      expect(response.value).toBeInstanceOf(InvalidRuleValueError);
+      expect((response.value as InvalidRuleValueError).status).toBe(422);
+      const depois = await salva(campanha);
+      expect(depois.alteracaoPendente).toBeFalsy();
+      expect(depois.regraDoacao?.equals(regraAntes)).toBe(true);
+      expectNadaGravado(campanha);
     });
 
     it('rejects a second commitment change while one is pending with AlteracaoJaPendenteError', async () => {
@@ -357,8 +492,94 @@ describe('EditarCampanhaUseCase', () => {
 
       expect(response.isLeft()).toBe(true);
       expect(response.value).toBeInstanceOf(AlteracaoJaPendenteError);
+      expect((response.value as AlteracaoJaPendenteError).status).toBe(409);
+      expect((response.value as AlteracaoJaPendenteError).message).toBe(
+        'Já existe uma alteração em análise',
+      );
       expectNadaGravado(campanha);
     });
+  });
+
+  describe('cover image', () => {
+    it.each([
+      ['a draft', CampanhaStatus.RASCUNHO],
+      ['an approved campaign', CampanhaStatus.APROVADA],
+    ])(
+      'applies and saves a new cover on %s without opening a change or auditing',
+      async (_caso, status) => {
+        const campanha = await guardar(
+          CampanhaFactory.completa({
+            empresaId: empresa.id,
+            status,
+            capaArquivoId: new UniqueEntityId(),
+          }),
+        );
+        const novaCapa = new UniqueEntityId().toString();
+
+        const response = await sut.execute(
+          pedido(campanha, { capaArquivoId: novaCapa }),
+        );
+
+        expect(response.isRight()).toBe(true);
+        if (response.isRight()) {
+          expect(response.value.capaArquivoId).toBe(novaCapa);
+        }
+        const depois = await salva(campanha);
+        expect(depois.capaArquivoId?.toString()).toBe(novaCapa);
+        expect(depois.status).toBe(status);
+        expect(depois.alteracaoPendente).toBeFalsy();
+        expect(depois.versao).toBe(campanha.versao + 1);
+        expect(registroAuditoriaRepository.items).toHaveLength(0);
+      },
+    );
+
+    it('rejects a new cover on a campaign under review with CampanhaEmAnaliseError, saving nothing', async () => {
+      const capaAtual = new UniqueEntityId();
+      const campanha = await guardar(
+        CampanhaFactory.emAnalise({
+          empresaId: empresa.id,
+          capaArquivoId: capaAtual,
+        }),
+      );
+
+      const response = await sut.execute(
+        pedido(campanha, { capaArquivoId: new UniqueEntityId().toString() }),
+      );
+
+      expect(response.isLeft()).toBe(true);
+      expect(response.value).toBeInstanceOf(CampanhaEmAnaliseError);
+      expect((await salva(campanha)).capaArquivoId?.equals(capaAtual)).toBe(
+        true,
+      );
+      expectNadaGravado(campanha);
+    });
+  });
+
+  it('returns the same detail read model as the company query for the same campaign', async () => {
+    const campanha = await guardar(
+      CampanhaFactory.aprovada({
+        empresaId: empresa.id,
+        capaArquivoId: new UniqueEntityId(),
+      }),
+    );
+
+    const edicao = await sut.execute(
+      pedido(campanha, {
+        descricao: 'Descricao revisada',
+        meta: '250',
+        vigencia: { inicio: '2026-10-01', fim: '2027-03-31' },
+      }),
+    );
+    const consulta = await new ConsultarCampanhaDaEmpresaUseCase(
+      campanhaRepository,
+    ).execute({
+      empresaId: empresa.id.toString(),
+      campanhaId: campanha.id.toString(),
+    });
+
+    expect(edicao.isRight()).toBe(true);
+    expect(consulta.isRight()).toBe(true);
+    expect(edicao.value).toStrictEqual(consulta.value);
   });
 
   it('rejects editing a campaign under review with CampanhaEmAnaliseError', async () => {
@@ -370,6 +591,10 @@ describe('EditarCampanhaUseCase', () => {
 
     expect(response.isLeft()).toBe(true);
     expect(response.value).toBeInstanceOf(CampanhaEmAnaliseError);
+    expect((response.value as CampanhaEmAnaliseError).status).toBe(409);
+    expect((response.value as CampanhaEmAnaliseError).message).toBe(
+      'Campanha em análise não pode ser editada',
+    );
     expectNadaGravado(campanha);
   });
 

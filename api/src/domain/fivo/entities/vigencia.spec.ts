@@ -18,6 +18,20 @@ describe('Vigencia Value Object', () => {
     expect(r.value).toBeInstanceOf(VigenciaInvalidaError);
   });
 
+  it('fim um dia antes do início → erro 422 com a mensagem da vigência', () => {
+    const r = Vigencia.criar({
+      inicio: data('2026-01-10'),
+      fim: data('2026-01-09'),
+    });
+    expect(r.isLeft()).toBe(true);
+    expect(r.value).toBeInstanceOf(VigenciaInvalidaError);
+    const erro = r.value as VigenciaInvalidaError;
+    expect(erro.status).toBe(422);
+    expect(erro.message).toBe(
+      'A data de fim deve ser posterior à data de início',
+    );
+  });
+
   it('fim um dia depois → aceito', () => {
     const r = Vigencia.criar({
       inicio: data('2026-01-10'),

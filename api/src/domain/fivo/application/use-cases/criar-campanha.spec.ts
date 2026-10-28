@@ -208,6 +208,19 @@ describe('CriarCampanhaUseCase', () => {
     expectNadaGravado();
   });
 
+  it('returns VigenciaInvalidaError and saves nothing when fim is one day before inicio', async () => {
+    const response = await sut.execute(
+      pedido({ vigencia: { inicio: '2026-11-01', fim: '2026-10-31' } }),
+    );
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(VigenciaInvalidaError);
+    expect((response.value as VigenciaInvalidaError).message).toBe(
+      'A data de fim deve ser posterior à data de início',
+    );
+    expectNadaGravado();
+  });
+
   it('returns BeneficiadaIndisponivelError and saves nothing when the instituicao is SUSPENSA', async () => {
     const suspensa = InstituicaoFactory.create({
       status: InstituicaoStatus.SUSPENSA,

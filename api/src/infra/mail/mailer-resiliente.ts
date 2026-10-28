@@ -14,6 +14,8 @@ const TEMPLATES_ENFILEIRAVEIS: ReadonlySet<TemplateEmail> = new Set([
   TemplateEmail.CADASTRO_RECEBIDO,
   TemplateEmail.CADASTRO_APROVADO,
   TemplateEmail.CADASTRO_REJEITADO,
+  TemplateEmail.CAMPANHA_REJEITADA,
+  TemplateEmail.ALTERACAO_CAMPANHA_REJEITADA,
 ]);
 
 @Injectable()

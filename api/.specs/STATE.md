@@ -174,8 +174,52 @@
 - **Date**: 2026-10-15
 - **Status**: active
 - **Exceção de autoria (2026-10-27)**: usuário autorizou explicitamente o agente a assumir a T18 de `campanhas` (`CriarCampanhaUseCase` — `src/domain/fivo/application/use-cases/criar-campanha.ts` + spec), incluindo a reescrita do caso de uso e dos testes unit correspondentes. As demais tasks de domínio T1–T27 continuam de autoria humana.
+- **Exceção de autoria (2026-10-27, gate de handoff)**: a rodada 1 da verificação do domínio deu FAIL (`validation-dominio.md`) e abriu as tasks de correção T41–T50 (Fase 6b). O usuário autorizou explicitamente o agente a aplicá-las, incluindo código em `src/domain/**`, `test/repositories/**` e `test/factories/**` e os testes correspondentes, além da emenda de `design.md` e da Done-when da T29 que a T46 exige. A autorização cobre o ciclo de correção e reverificação do gate (até 3 rodadas). As tasks T1–T27 continuam de autoria humana.
 
 ## Handoff
+
+### Handoff — `campanhas` P1 do `api` concluído (2026-10-27)
+
+- **Feature**: `campanhas` (`.specs/features/campanhas/`)
+- **Phase / Task**: Execute concluído; T1–T56 completas.
+  - Domínio (T1–T27 humanas + hardening T41–T53 do agente): gate de handoff PASS na rodada 3 (`validation-dominio.md`).
+  - Infra (T28–T40): feita por 2 workers.
+  - Verificação final: rodada 1 FAIL → T54, T55; rodada 2 FAIL → T56; rodada 3 **PASS** (`validation.md`, diff `397f8bc..65fc3bd`). `validate_state.py` sai com 0.
+  - CAMP-01…08 e CAMP-11 ✅ Verified no `spec.md`.
+- **Gate**: build, tsc e eslint verdes; unit 602/602; e2e 546/546 em 35 suites.
+- **Sensor**:
+  - domínio: 83 mutantes distintos, 80 mortos e 3 equivalentes;
+  - infra: 56 mutantes distintos, 55 mortos e 1 equivalente.
+- **In-progress**: nenhum
+- **Next step**: revisar e mergear a PR #241. Depois, as pendências marcadas na PR, numa branch nova; em seguida, CAMP-09/CAMP-10 ou o `web` de campanhas.
+- **Follow-ups** (não bloqueiam; detalhes em `validation.md`):
+  - F1: capa órfã quando duas trocas de capa são concorrentes.
+  - F2: os cabeçalhos da capa pública não estão documentados no OpenAPI.
+  - F3: o ramo `NotAllowedError` de `CampanhasController.executar` repassa a mensagem de qualquer `NotAllowedError` futuro.
+  - F5: pôr os ids da sessão depois do spread em `campanhas.controller.ts`, como defesa em profundidade.
+  - F6: `EditarCampanhaUseCase` aceita `capaArquivoId` sem conferir tipo nem dono (domínio, grupo).
+  - F7: o padrão de spread com ids da sessão também aparece em `cadastro-empresa`, `admin-causas` e `cadastro-instituicao`, não verificados.
+  - SP4: a spec não fixa a precedência entre 403, 422 e 503 no PUT da capa.
+  - Itens de domínio do grupo já listados no handoff do gate (JSDoc P13, chave única de compromisso nas auditorias, `mockRestore` em `finally`).
+- **Lições**: L-031…L-034 registradas como candidatas.
+- **Uncommitted files**: none
+- **Branch**: `feat/campanhas-infra`, enviada ao remoto com a PR #241 aberta contra `homologacao`
+
+### Handoff — gate de handoff do domínio de `campanhas` (2026-10-27)
+
+- **Feature**: `campanhas` (`.specs/features/campanhas/`)
+- **Phase / Task**: domínio T1–T27 verificado. O gate do AD-021 deu **PASS** na rodada 3 (`validation-dominio.md`, diff `397f8bc..dad822e`). A rodada 1 deu FAIL e abriu a Fase 6b (T41–T50). A rodada 2 deu FAIL só por lacunas de teste (T51–T53). O hardening foi todo aplicado pelo agente, com autorização do usuário registrada no AD-021. Os checkboxes de T1–T27 foram marcados no handoff.
+- **Gate**: tsc e eslint verdes; unit 600/600; e2e de base 337/337. Sensor acumulado com 83 mutantes distintos: 80 mortos, 0 sobreviventes e 3 equivalentes (M30, N6, P13).
+- **Next step**: Fase 7 (T28–T31), depois as Fases 8 e 9 (T32–T40), com 2 workers sequenciais (escolha do usuário).
+- **Follow-ups** (não bloqueiam):
+  - T29 recebeu upsert da decidida, idempotência e comparação coluna a coluna na Done-when.
+  - Grupo: acrescentar ao JSDoc de `CampanhaRepository.salvar` a regra "uma decisão por instância e por `salvar`" (P13), já registrada no `design.md` §Portas.
+  - T38 cobre `idPublico` malformado → 404.
+  - As auditorias de alteração usam duas chaves: `compromissoNovo` em `_APROVADA` e `compromissoProposto` em `_ABERTA`/`_REJEITADA`.
+  - `consoleError.mockRestore()` fora de `finally` em `rejeitar-alteracao-campanha.spec.ts` (cosmético, grupo).
+  - SP1 e SP2 da spec continuam abertos.
+- **Lições**: L-021…L-030 registradas como candidatas. L-001, L-007, L-009, L-011, L-012 e L-019 foram promovidas a confirmed.
+- **Branch**: `feat/campanhas-infra` (local, não enviada ao remoto)
 
 ### Handoff — planejamento de `campanhas` (2026-10-15)
 

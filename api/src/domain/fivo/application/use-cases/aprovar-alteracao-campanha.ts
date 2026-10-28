@@ -2,7 +2,6 @@ import { randomUUID } from 'node:crypto';
 import { Either, left, right } from '@core/either';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
-import { Compromisso } from '@domain/fivo/entities/compromisso';
 import { User, UserRole } from '@domain/fivo/entities/user';
 import { Injectable } from '@nestjs/common';
 import { BeneficiadaIndisponivelNaDecisaoError } from '../errors/beneficiada-indisponivel-na-decisao.error';
@@ -10,6 +9,7 @@ import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
 import { CampanhaRepository } from '../ports/database/campanha-repository';
 import { RegistroAuditoriaRepository } from '../ports/registro-auditoria-repository';
 import { AssegurarBeneficiadaDisponivelUseCase } from './assegurar-beneficiada-disponivel';
+import { descreverCompromisso } from './campanha-detalhe';
 
 export type AprovarAlteracaoCampanhaUseCaseResponse = Either<
   | NotAllowedError
@@ -18,24 +18,6 @@ export type AprovarAlteracaoCampanhaUseCaseResponse = Either<
   | BeneficiadaIndisponivelNaDecisaoError,
   void
 >;
-
-// Retrato do compromisso em primitivos, para o registro de auditoria.
-function descreverCompromisso(compromisso: Compromisso) {
-  const { beneficiada, regraDoacao, vigencia } = compromisso;
-
-  return {
-    beneficiada: { tipo: beneficiada.tipo, id: beneficiada.id },
-    regraDoacao: {
-      tipo: regraDoacao.tipo,
-      valorCentavos: regraDoacao.valor?.centavos ?? null,
-      percentualCentesimos: regraDoacao.percentual?.percentual ?? null,
-    },
-    vigencia: {
-      inicio: vigencia.inicio.toString(),
-      fim: vigencia.fim?.toString() ?? null,
-    },
-  };
-}
 
 @Injectable()
 export class AprovarAlteracaoCampanhaUseCase {
