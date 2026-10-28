@@ -26,10 +26,12 @@ import {
 
 import { Either } from '@core/either';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
+import { CamposPendentesError } from '@domain/fivo/application/errors/campos-pendentes.error';
 import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
 import { ConsultarCampanhaDaEmpresaUseCase } from '@domain/fivo/application/use-cases/consultar-campanha-da-empresa';
 import { CriarCampanhaUseCase } from '@domain/fivo/application/use-cases/criar-campanha';
 import { EditarCampanhaUseCase } from '@domain/fivo/application/use-cases/editar-campanha';
+import { SubmeterCampanhaUseCase } from '@domain/fivo/application/use-cases/submeter-campanha';
 import { TipoArquivo } from '@domain/fivo/entities/arquivo';
 import { UserRole } from '@domain/fivo/entities/user';
 import { ArquivoService } from '@infra/arquivo/arquivo.service';
@@ -182,6 +184,7 @@ export class CampanhasController {
     private readonly criarCampanha: CriarCampanhaUseCase,
     private readonly consultarCampanha: ConsultarCampanhaDaEmpresaUseCase,
     private readonly editarCampanha: EditarCampanhaUseCase,
+    private readonly submeterCampanha: SubmeterCampanhaUseCase,
     private readonly arquivoService: ArquivoService,
   ) {}
 
@@ -346,6 +349,35 @@ export class CampanhasController {
     }
   }
 
+  @ApiOperation({
+    summary:
+      'Envia o rascunho para análise do administrador (RASCUNHO → EM_ANALISE)',
+  })
+  @ApiParam(PARAMETRO_ID)
+  @ApiResponse({ status: 204, description: 'Campanha em análise' })
+  @ApiErro(404, 'Campanha não encontrada (inclusive de outra empresa)')
+  @ApiErro(409, 'Operação não permitida para o estado atual')
+  @ApiErro(
+    422,
+    'Campos obrigatórios pendentes (listados em `errors`), data de fim vencida ou beneficiada indisponível',
+  )
+  @Post(':id/submissao')
+  @HttpCode(204)
+  async submeter(
+    @Param('id') id: string,
+    @CurrentUser() usuario: UsuarioAutenticado,
+  ): Promise<void> {
+    const empresaId = await this.idDaEmpresaDe(usuario);
+
+    this.executar(
+      await this.submeterCampanha.execute({
+        empresaId,
+        usuarioId: usuario.id,
+        campanhaId: id,
+      }),
+    );
+  }
+
   private async descartar(arquivoId: string): Promise<void> {
     try {
       await this.arquivoService.remover(arquivoId);
@@ -376,6 +408,19 @@ export class CampanhasController {
       throw new ForbiddenException({
         statusCode: 403,
         message: resultado.value.message,
+      });
+    }
+
+    // Submissão AC2: todos os campos pendentes numa única resposta, no
+    // mesmo formato `errors` da validação de forma.
+    if (resultado.isLeft() && resultado.value instanceof CamposPendentesError) {
+      throw new UnprocessableEntityException({
+        statusCode: 422,
+        message: resultado.value.message,
+        errors: resultado.value.campos.map((campo) => ({
+          campo,
+          mensagem: 'Campo obrigatório',
+        })),
       });
     }
 

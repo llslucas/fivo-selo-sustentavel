@@ -2719,6 +2719,86 @@
         ]
       }
     },
+    "/campanhas/{id}/submissao": {
+      "post": {
+        "operationId": "CampanhasController_submeter",
+        "parameters": [
+          {
+            "description": "Id interno da campanha",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Campanha em análise"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Campanha não encontrada (inclusive de outra empresa)"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Operação não permitida para o estado atual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Campos obrigatórios pendentes (listados em `errors`), data de fim vencida ou beneficiada indisponível"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Envia o rascunho para análise do administrador (RASCUNHO → EM_ANALISE)",
+        "tags": [
+          "campanhas"
+        ]
+      }
+    },
     "/causas": {
       "get": {
         "operationId": "CausasController_listar",

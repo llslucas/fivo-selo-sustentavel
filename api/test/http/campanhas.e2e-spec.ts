@@ -1328,4 +1328,272 @@ describe('Campanhas da empresa (e2e)', () => {
       expect(await arquivosGravados()).toHaveLength(0);
     });
   });
+
+  describe('POST /campanhas/:id/submissao', () => {
+    const MENSAGEM_PENDENTES =
+      'Preencha os campos obrigatórios antes de enviar para análise';
+    const MENSAGEM_VENCIDA = 'A data de fim deve ser posterior à data atual';
+    const MENSAGEM_TRANSICAO = 'Operação não permitida para o estado atual';
+
+    async function linha(id: string) {
+      return contexto.prisma.campanha.findUniqueOrThrow({ where: { id } });
+    }
+
+    function submeter(id: string, token = dona.token) {
+      return comCookieDeSessao(
+        cenario.api().post(`/campanhas/${id}/submissao`),
+        token,
+      );
+    }
+
+    function pendencias(...campos: string[]) {
+      return campos.map((campo) => ({ campo, mensagem: 'Campo obrigatório' }));
+    }
+
+    it('rascunho completo → 204, EM_ANALISE com a data-hora da submissão e a transição auditada', async () => {
+      const { id } = await cenario.criarCampanha(
+        dona.token,
+        corpoCompleto(catalogo.instituicao),
+      );
+
+      const resposta = await submeter(id);
+
+      expect(resposta.status).toBe(204);
+      expect(resposta.text).toBe('');
+      const gravada = await linha(id);
+      expect(gravada.status).toBe('EM_ANALISE');
+      expect(
+        Math.abs(Date.now() - (gravada.submetidaEm as Date).getTime()),
+      ).toBeLessThan(60_000);
+      const detalhe = await comoDona(cenario.api().get(`/campanhas/${id}`));
+      expect(detalhe.body).toMatchObject({
+        status: 'EM_ANALISE',
+        submetidaEm: (gravada.submetidaEm as Date).toISOString(),
+      });
+      const [registro] = await contexto.prisma.registroAuditoria.findMany();
+      expect(registro).toMatchObject({
+        tipo: 'CAMPANHA_SUBMETIDA',
+        usuarioId: dona.usuario.id.toString(),
+        entidadeId: id,
+        dados: { estadoAnterior: 'RASCUNHO', estadoNovo: 'EM_ANALISE' },
+      });
+      expect(Math.abs(Date.now() - registro.criadoEm.getTime())).toBeLessThan(
+        60_000,
+      );
+    });
+
+    it('fim amanhã → 204', async () => {
+      const { id } = await cenario.criarCampanha(
+        dona.token,
+        corpoCompleto(catalogo.instituicao, {
+          vigencia: { inicio: '2020-01-01', fim: diaRelativo(1) },
+        }),
+      );
+
+      const resposta = await submeter(id);
+
+      expect(resposta.status).toBe(204);
+      expect((await linha(id)).status).toBe('EM_ANALISE');
+    });
+
+    it.each<[string, Record<string, unknown>, string[]]>([
+      [
+        'só com o nome',
+        { nome: 'Café' },
+        ['descricao', 'beneficiada', 'regraDoacao', 'vigencia.inicio'],
+      ],
+      [
+        'sem beneficiada e sem vigência',
+        {
+          nome: 'Café',
+          descricao: 'Descrição',
+          regraDoacao: { tipo: 'POR_UNIDADE', valor: '1.00' },
+        },
+        ['beneficiada', 'vigencia.inicio'],
+      ],
+    ])(
+      '%s → 422 listando todos os campos pendentes, nada gravado',
+      async (_rotulo, corpo, campos) => {
+        const { id } = await cenario.criarCampanha(dona.token, corpo);
+        const antes = await linha(id);
+
+        const resposta = await submeter(id);
+
+        expect(resposta.status).toBe(422);
+        expect(resposta.body).toEqual({
+          statusCode: 422,
+          message: MENSAGEM_PENDENTES,
+          errors: pendencias(...campos),
+        });
+        expect(await linha(id)).toEqual(antes);
+        expect(await contexto.prisma.registroAuditoria.count()).toBe(0);
+      },
+    );
+
+    it.each([
+      ['ontem', -1],
+      ['hoje', 0],
+    ])(
+      'fim %s → 422 "A data de fim deve ser posterior à data atual", nada gravado',
+      async (_rotulo, dias) => {
+        const { id } = await cenario.criarCampanha(
+          dona.token,
+          corpoCompleto(catalogo.instituicao, {
+            vigencia: { inicio: '2020-01-01', fim: diaRelativo(dias) },
+          }),
+        );
+        const antes = await linha(id);
+
+        const resposta = await submeter(id);
+
+        expect(resposta.status).toBe(422);
+        expect(resposta.body).toEqual({
+          statusCode: 422,
+          message: MENSAGEM_VENCIDA,
+        });
+        expect(await linha(id)).toEqual(antes);
+        expect(await contexto.prisma.registroAuditoria.count()).toBe(0);
+      },
+    );
+
+    it('instituição suspensa depois de salva → 422 "Instituição ou causa indisponível", nada gravado', async () => {
+      const { id } = await cenario.criarCampanha(
+        dona.token,
+        corpoCompleto(catalogo.instituicao),
+      );
+      await cenario.alterarStatusDaInstituicao(
+        catalogo.instituicao,
+        InstituicaoStatus.SUSPENSA,
+      );
+      const antes = await linha(id);
+
+      const resposta = await submeter(id);
+
+      expect(resposta.status).toBe(422);
+      expect(resposta.body).toEqual({
+        statusCode: 422,
+        message: MENSAGEM_INDISPONIVEL,
+      });
+      expect(await linha(id)).toEqual(antes);
+      expect(await contexto.prisma.registroAuditoria.count()).toBe(0);
+    });
+
+    it('causa inativada depois de salva → 422 "Instituição ou causa indisponível", nada gravado', async () => {
+      const { id } = await cenario.criarCampanha(dona.token, {
+        ...corpoCompleto(catalogo.instituicao),
+        instituicaoId: undefined,
+        causaId: catalogo.causa.id.toString(),
+      });
+      await contexto.prisma.causa.update({
+        where: { id: catalogo.causa.id.toString() },
+        data: { status: 'INATIVA' },
+      });
+      const antes = await linha(id);
+
+      const resposta = await submeter(id);
+
+      expect(resposta.status).toBe(422);
+      expect(resposta.body).toEqual({
+        statusCode: 422,
+        message: MENSAGEM_INDISPONIVEL,
+      });
+      expect(await linha(id)).toEqual(antes);
+    });
+
+    it('segunda submissão → 409 "Operação não permitida para o estado atual", uma só submissão registrada', async () => {
+      const { id } = await cenario.criarCampanha(
+        dona.token,
+        corpoCompleto(catalogo.instituicao),
+      );
+      await submeter(id);
+      const antes = await linha(id);
+
+      const resposta = await submeter(id);
+
+      expect(resposta.status).toBe(409);
+      expect(resposta.body).toEqual({
+        statusCode: 409,
+        message: MENSAGEM_TRANSICAO,
+      });
+      expect(await linha(id)).toEqual(antes);
+      expect(await contexto.prisma.registroAuditoria.count()).toBe(1);
+    });
+
+    it.each(['APROVADA', 'REJEITADA'] as const)(
+      'campanha %s → 409 "Operação não permitida para o estado atual", nada gravado',
+      async (status) => {
+        const { id } = await cenario.criarCampanha(
+          dona.token,
+          corpoCompleto(catalogo.instituicao),
+        );
+        await cenario.forcarEstado(
+          id,
+          status,
+          'Motivo da rejeição com mais de vinte caracteres.',
+        );
+        const antes = await linha(id);
+
+        const resposta = await submeter(id);
+
+        expect(resposta.status).toBe(409);
+        expect(resposta.body).toEqual({
+          statusCode: 409,
+          message: MENSAGEM_TRANSICAO,
+        });
+        expect(await linha(id)).toEqual(antes);
+      },
+    );
+
+    it('campanha de outra empresa → 404, nada gravado', async () => {
+      const outra = await cenario.criarEmpresa();
+      const { id } = await cenario.criarCampanha(
+        outra.token,
+        corpoCompleto(catalogo.instituicao),
+      );
+      const antes = await linha(id);
+
+      const resposta = await submeter(id);
+
+      expect(resposta.status).toBe(404);
+      expect(resposta.body).toEqual(NAO_ENCONTRADA);
+      expect(await linha(id)).toEqual(antes);
+    });
+
+    it('empresa suspensa → 403 "Cadastro ainda não aprovado", nada gravado', async () => {
+      const { id } = await cenario.criarCampanha(
+        dona.token,
+        corpoCompleto(catalogo.instituicao),
+      );
+      await cenario.alterarStatusDaEmpresa(
+        dona.empresa,
+        EmpresaStatus.SUSPENSA,
+      );
+      const antes = await linha(id);
+
+      const resposta = await submeter(id);
+
+      expect(resposta.status).toBe(403);
+      expect(resposta.body).toEqual({
+        statusCode: 403,
+        message: 'Cadastro ainda não aprovado',
+      });
+      expect(await linha(id)).toEqual(antes);
+    });
+
+    it('sem sessão → 401; ADMIN → 403; nada gravado', async () => {
+      const { id } = await cenario.criarCampanha(
+        dona.token,
+        corpoCompleto(catalogo.instituicao),
+      );
+      const antes = await linha(id);
+      const tokenAdmin = await cenario.sessaoComPapel(UserRole.ADMIN);
+
+      const anonima = await cenario.api().post(`/campanhas/${id}/submissao`);
+      const admin = await submeter(id, tokenAdmin);
+
+      expect(anonima.status).toBe(401);
+      expect(admin.status).toBe(403);
+      expect(await linha(id)).toEqual(antes);
+    });
+  });
 });

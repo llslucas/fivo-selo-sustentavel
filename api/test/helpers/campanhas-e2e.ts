@@ -217,6 +217,18 @@ export class CenarioCampanhas {
     }
     return resposta.body as { id: string; idPublico: string };
   }
+
+  async submeter(token: string, campanhaId: string): Promise<void> {
+    const resposta = await comCookieDeSessao(
+      this.api().post(`/campanhas/${campanhaId}/submissao`),
+      token,
+    );
+    if (resposta.status !== 204) {
+      throw new Error(
+        `submissão falhou: ${resposta.status} ${JSON.stringify(resposta.body)}`,
+      );
+    }
+  }
 }
 
 /** Corpo de criação com tudo o que a submissão exige. */

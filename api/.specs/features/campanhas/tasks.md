@@ -1477,8 +1477,8 @@ T39 → T40
 
 **Done when**:
 
-- [ ] e2e: 204 e estado `EM_ANALISE`; 422 com todos os campos pendentes em `errors`; 422 com fim no passado; 422 com beneficiada suspensa depois de salva; 409 na segunda submissão
-- [ ] Gate `full` passa
+- [x] e2e: 204 e estado `EM_ANALISE`; 422 com todos os campos pendentes em `errors`; 422 com fim no passado; 422 com beneficiada suspensa depois de salva; 409 na segunda submissão
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

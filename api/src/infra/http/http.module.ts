@@ -27,6 +27,7 @@ import { ReativarInstituicaoUseCase } from '@domain/fivo/application/use-cases/r
 import { RejeitarEmpresaUseCase } from '@domain/fivo/application/use-cases/rejeitar-empresa';
 import { RejeitarInstituicaoUseCase } from '@domain/fivo/application/use-cases/rejeitar-instituicao';
 import { SolicitarRecuperacaoSenhaUseCase } from '@domain/fivo/application/use-cases/solicitar-recuperacao-senha';
+import { SubmeterCampanhaUseCase } from '@domain/fivo/application/use-cases/submeter-campanha';
 import { SuspenderEmpresaUseCase } from '@domain/fivo/application/use-cases/suspender-empresa';
 import { SuspenderInstituicaoUseCase } from '@domain/fivo/application/use-cases/suspender-instituicao';
 import { ArquivoModule } from '@infra/arquivo/arquivo.module';
@@ -92,6 +93,7 @@ import { SenhaController } from './controllers/senha.controller';
     CriarCampanhaUseCase,
     ConsultarCampanhaDaEmpresaUseCase,
     EditarCampanhaUseCase,
+    SubmeterCampanhaUseCase,
   ],
 })
 export class HttpModule {}
