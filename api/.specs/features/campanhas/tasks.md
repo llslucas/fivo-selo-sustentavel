@@ -1690,11 +1690,11 @@ Aberta pela rodada 1 da verificação final. T54 e T55 não têm dependência en
 
 **Done when**:
 
-- [ ] PATCH `{ nome: 123 }` → 422 `{ statusCode: 422, message: 'Informe um texto', errors: [{ campo: 'nome', mensagem: 'Informe um texto' }] }`, nada gravado
-- [ ] PATCH na própria campanha com `empresaId`, `campanhaId` e `usuarioId` alheios no corpo → só a campanha da rota muda; a campanha alheia fica `toEqual(antes)`
-- [ ] POST com `empresaId` alheio no corpo → a campanha é gravada na empresa da sessão
-- [ ] Mutantes S34 (PATCH sem pipe), S45 e S46 (`z.looseObject` nos schemas de criar e editar) morrem
-- [ ] Gate `full` passa
+- [x] PATCH `{ nome: 123 }` → 422 `{ statusCode: 422, message: 'Informe um texto', errors: [{ campo: 'nome', mensagem: 'Informe um texto' }] }`, nada gravado
+- [x] PATCH na própria campanha com `empresaId`, `campanhaId` e `usuarioId` alheios no corpo → só a campanha da rota muda; a campanha alheia fica `toEqual(antes)`
+- [x] POST com `empresaId` alheio no corpo → a campanha é gravada na empresa da sessão
+- [x] Mutantes S34 (PATCH sem pipe), S45 e S46 (`z.looseObject` nos schemas de criar e editar) morrem
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

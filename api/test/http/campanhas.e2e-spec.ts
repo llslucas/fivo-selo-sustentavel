@@ -470,6 +470,25 @@ describe('Campanhas da empresa (e2e)', () => {
       expect(await contexto.prisma.campanha.count()).toBe(0);
     });
 
+    it('empresaId de outra empresa no corpo → 201 e a campanha fica na empresa da sessão', async () => {
+      const outra = await cenario.criarEmpresa();
+
+      const resposta = await comoDona(
+        cenario.api().post('/campanhas').send({
+          nome: 'Café que Educa',
+          empresaId: outra.empresa.id.toString(),
+        }),
+      );
+
+      expect(resposta.status).toBe(201);
+      expect(await linhasDeCampanha()).toEqual([
+        expect.objectContaining({
+          id: (resposta.body as { id: string }).id,
+          empresaId: dona.empresa.id.toString(),
+        }),
+      ]);
+    });
+
     it('sem sessão → 401, nada gravado', async () => {
       const resposta = await cenario
         .api()
@@ -1007,6 +1026,48 @@ describe('Campanhas da empresa (e2e)', () => {
       expect(resposta.status).toBe(404);
       expect(resposta.body).toEqual(NAO_ENCONTRADA);
       expect(await linha(id)).toEqual(antes);
+    });
+
+    it('nome que não é texto → 422 da validação de forma, nada gravado', async () => {
+      const { id } = await cenario.criarCampanha(dona.token, {
+        nome: 'Rascunho',
+      });
+      const antes = await linha(id);
+
+      const resposta = await editar(id, { nome: 123 });
+
+      expect(resposta.status).toBe(422);
+      expect(resposta.body).toEqual({
+        statusCode: 422,
+        message: 'Informe um texto',
+        errors: [{ campo: 'nome', mensagem: 'Informe um texto' }],
+      });
+      expect(await linha(id)).toEqual(antes);
+    });
+
+    it('ids de outra empresa no corpo → 200 só na campanha da rota; a alheia fica intacta', async () => {
+      const outra = await cenario.criarEmpresa();
+      const alheia = await cenario.criarCampanha(outra.token, {
+        nome: 'Campanha alheia',
+      });
+      const { id } = await cenario.criarCampanha(dona.token, {
+        nome: 'Rascunho',
+      });
+      const alheiaAntes = await linha(alheia.id);
+
+      const resposta = await editar(id, {
+        nome: 'Renomeada',
+        empresaId: outra.empresa.id.toString(),
+        campanhaId: alheia.id,
+        usuarioId: outra.usuario.id.toString(),
+      });
+
+      expect(resposta.status).toBe(200);
+      expect(await linha(id)).toMatchObject({
+        nome: 'Renomeada',
+        empresaId: dona.empresa.id.toString(),
+      });
+      expect(await linha(alheia.id)).toEqual(alheiaAntes);
     });
 
     it('empresa suspensa depois de criar → 403 "Cadastro ainda não aprovado", nada gravado', async () => {
