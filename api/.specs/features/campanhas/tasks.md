@@ -194,7 +194,7 @@ T39 → T40
 
 ### Phase 9b: Correções da verificação final 🤖
 
-Aberta pela rodada 1 da verificação final. T54 e T55 não têm dependência entre si.
+Aberta pela rodada 1 da verificação final. T54 e T55 não têm dependência entre si. A rodada 2 acrescentou T56, também sem dependência.
 
 
 ---
@@ -1675,6 +1675,30 @@ Aberta pela rodada 1 da verificação final. T54 e T55 não têm dependência en
 **Tests**: e2e
 **Gate**: full
 **Commit**: `test(api): rejeição de alteração sem motivo`
+
+---
+
+> **Rodada 2 da verificação final (2026-10-27): FAIL** com S25, S32 e S33 mortos e 3 sobreviventes novos (S34, S45, S46), todos lacunas de teste → T56.
+
+### T56: Chaves fora do DTO nas rotas de campanha da empresa
+
+**What**: e2e que provam que `empresaId`, `campanhaId` e `usuarioId` enviados no corpo do POST e do PATCH são ignorados, e o 422 de forma no PATCH. Hoje só o descarte de chaves do zod impede gravar em outra empresa, e nenhum teste prova isso.
+**Where**: `test/http/campanhas.e2e-spec.ts`
+**Depends on**: None
+**Requirement**: CAMP-01 (Criação AC18)
+**Autor**: 🤖 agente
+
+**Done when**:
+
+- [ ] PATCH `{ nome: 123 }` → 422 `{ statusCode: 422, message: 'Informe um texto', errors: [{ campo: 'nome', mensagem: 'Informe um texto' }] }`, nada gravado
+- [ ] PATCH na própria campanha com `empresaId`, `campanhaId` e `usuarioId` alheios no corpo → só a campanha da rota muda; a campanha alheia fica `toEqual(antes)`
+- [ ] POST com `empresaId` alheio no corpo → a campanha é gravada na empresa da sessão
+- [ ] Mutantes S34 (PATCH sem pipe), S45 e S46 (`z.looseObject` nos schemas de criar e editar) morrem
+- [ ] Gate `full` passa
+
+**Tests**: e2e
+**Gate**: full
+**Commit**: `test(api): chaves fora do DTO nas rotas de campanha da empresa`
 
 ---
 
