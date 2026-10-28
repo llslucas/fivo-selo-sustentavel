@@ -229,6 +229,30 @@ export class CenarioCampanhas {
       );
     }
   }
+
+  async aprovar(tokenAdmin: string, campanhaId: string): Promise<void> {
+    const resposta = await comCookieDeSessao(
+      this.api().post(`/admin/campanhas/${campanhaId}/aprovacao`),
+      tokenAdmin,
+    );
+    if (resposta.status !== 204) {
+      throw new Error(
+        `aprovação falhou: ${resposta.status} ${JSON.stringify(resposta.body)}`,
+      );
+    }
+  }
+
+  /** Cria, submete e aprova pelas rotas; devolve os ids da campanha. */
+  async criarAprovada(
+    token: string,
+    tokenAdmin: string,
+    corpo: Record<string, unknown>,
+  ): Promise<{ id: string; idPublico: string }> {
+    const campanha = await this.criarCampanha(token, corpo);
+    await this.submeter(token, campanha.id);
+    await this.aprovar(tokenAdmin, campanha.id);
+    return campanha;
+  }
 }
 
 /** Corpo de criação com tudo o que a submissão exige. */

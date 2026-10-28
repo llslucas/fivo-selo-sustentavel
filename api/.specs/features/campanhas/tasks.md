@@ -1504,10 +1504,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] e2e: fila ordenada com os dois tipos; 403 para EMPRESA
-- [ ] e2e: aprovação 204 e consulta de auditoria; 409 com beneficiada inativada durante a análise
-- [ ] e2e: rejeição 204 com e-mail registrado no fake; 422 com motivo de 19 caracteres
-- [ ] Gate `full` passa
+- [x] e2e: fila ordenada com os dois tipos; 403 para EMPRESA
+- [x] e2e: aprovação 204 e consulta de auditoria; 409 com beneficiada inativada durante a análise
+- [x] e2e: rejeição 204 com e-mail registrado no fake; 422 com motivo de 19 caracteres
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full

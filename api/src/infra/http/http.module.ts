@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 
+import { AprovarCampanhaUseCase } from '@domain/fivo/application/use-cases/aprovar-campanha';
 import { AprovarEmpresaUseCase } from '@domain/fivo/application/use-cases/aprovar-empresa';
 import { AprovarInstituicaoUseCase } from '@domain/fivo/application/use-cases/aprovar-instituicao';
 import { AssegurarBeneficiadaDisponivelUseCase } from '@domain/fivo/application/use-cases/assegurar-beneficiada-disponivel';
@@ -20,10 +21,12 @@ import { InativarInstituicaoUseCase } from '@domain/fivo/application/use-cases/i
 import { ListarBeneficiadasUseCase } from '@domain/fivo/application/use-cases/listar-beneficiadas';
 import { ListarCausasAtivasUseCase } from '@domain/fivo/application/use-cases/listar-causas-ativas';
 import { ListarFilaAprovacaoUseCase } from '@domain/fivo/application/use-cases/listar-fila-aprovacao';
+import { ListarFilaCampanhasUseCase } from '@domain/fivo/application/use-cases/listar-fila-campanhas';
 import { ListarFilaInstituicoesUseCase } from '@domain/fivo/application/use-cases/listar-fila-instituicoes';
 import { RedefinirSenhaUseCase } from '@domain/fivo/application/use-cases/redefinir-senha';
 import { ReativarEmpresaUseCase } from '@domain/fivo/application/use-cases/reativar-empresa';
 import { ReativarInstituicaoUseCase } from '@domain/fivo/application/use-cases/reativar-instituicao';
+import { RejeitarCampanhaUseCase } from '@domain/fivo/application/use-cases/rejeitar-campanha';
 import { RejeitarEmpresaUseCase } from '@domain/fivo/application/use-cases/rejeitar-empresa';
 import { RejeitarInstituicaoUseCase } from '@domain/fivo/application/use-cases/rejeitar-instituicao';
 import { SolicitarRecuperacaoSenhaUseCase } from '@domain/fivo/application/use-cases/solicitar-recuperacao-senha';
@@ -35,6 +38,7 @@ import { AuthModule } from '@infra/auth/auth.module';
 import { CryptographyModule } from '@infra/cryptography/cryptography.module';
 import { MailModule } from '@infra/mail/mail.module';
 
+import { AdminCampanhasController } from './controllers/admin-campanhas.controller';
 import { AdminCausasController } from './controllers/admin-causas.controller';
 import { AdminEmpresasController } from './controllers/admin-empresas.controller';
 import { AdminInstituicoesController } from './controllers/admin-instituicoes.controller';
@@ -62,6 +66,7 @@ import { SenhaController } from './controllers/senha.controller';
     ArquivoController,
     SenhaController,
     CampanhasController,
+    AdminCampanhasController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
@@ -94,6 +99,9 @@ import { SenhaController } from './controllers/senha.controller';
     ConsultarCampanhaDaEmpresaUseCase,
     EditarCampanhaUseCase,
     SubmeterCampanhaUseCase,
+    ListarFilaCampanhasUseCase,
+    AprovarCampanhaUseCase,
+    RejeitarCampanhaUseCase,
   ],
 })
 export class HttpModule {}

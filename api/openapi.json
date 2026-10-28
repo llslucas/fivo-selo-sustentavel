@@ -518,6 +518,17 @@
         ],
         "type": "object"
       },
+      "RejeicaoCampanha": {
+        "properties": {
+          "motivo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "motivo"
+        ],
+        "type": "object"
+      },
       "RejeicaoEmpresa": {
         "properties": {
           "motivo": {
@@ -568,6 +579,308 @@
   },
   "openapi": "3.0.0",
   "paths": {
+    "/admin/campanhas/fila": {
+      "get": {
+        "operationId": "AdminCampanhasController_fila",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "properties": {
+                      "beneficiada": {
+                        "properties": {
+                          "nome": {
+                            "type": "string"
+                          },
+                          "tipo": {
+                            "enum": [
+                              "INSTITUICAO",
+                              "CAUSA"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "tipo",
+                          "nome"
+                        ],
+                        "type": "object"
+                      },
+                      "campanhaId": {
+                        "type": "string"
+                      },
+                      "empresa": {
+                        "description": "Nome fantasia",
+                        "type": "string"
+                      },
+                      "nome": {
+                        "type": "string"
+                      },
+                      "regraDoacao": {
+                        "properties": {
+                          "percentual": {
+                            "description": "String decimal (`\"1.50\"`)",
+                            "type": "string"
+                          },
+                          "tipo": {
+                            "enum": [
+                              "POR_UNIDADE",
+                              "PERCENTUAL"
+                            ],
+                            "type": "string"
+                          },
+                          "valor": {
+                            "description": "String decimal (`\"1.50\"`)",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "tipo"
+                        ],
+                        "type": "object"
+                      },
+                      "submetidoEm": {
+                        "description": "Submissão da campanha ou abertura da alteração",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "tipo": {
+                        "enum": [
+                          "NOVA",
+                          "ALTERACAO"
+                        ],
+                        "type": "string"
+                      },
+                      "vigencia": {
+                        "properties": {
+                          "fim": {
+                            "format": "date",
+                            "type": "string"
+                          },
+                          "inicio": {
+                            "format": "date",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "inicio"
+                        ],
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "campanhaId",
+                      "tipo",
+                      "empresa",
+                      "nome",
+                      "beneficiada",
+                      "regraDoacao",
+                      "vigencia",
+                      "submetidoEm"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Campanhas novas e alterações, da submissão mais antiga para a mais recente. Na alteração, beneficiada, regra e vigência são os valores propostos"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Fila de campanhas em análise e de alterações pendentes (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/campanhas/{id}/aprovacao": {
+      "post": {
+        "operationId": "AdminCampanhasController_aprovar",
+        "parameters": [
+          {
+            "description": "Id interno da campanha",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Decisão registrada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Campanha não encontrada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Transição inválida, decisão concorrente ou beneficiada fora do catálogo"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Aprova a campanha em análise (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/campanhas/{id}/rejeicao": {
+      "post": {
+        "operationId": "AdminCampanhasController_rejeitar",
+        "parameters": [
+          {
+            "description": "Id interno da campanha",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejeicaoCampanha"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Decisão registrada; a empresa recebe o motivo por e-mail"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Campanha não encontrada"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Transição inválida ou decisão concorrente"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Motivo ausente ou com menos de 20 caracteres"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Rejeita a campanha em análise com motivo (somente ADMIN)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/admin/causas": {
       "post": {
         "operationId": "AdminCausasController_criar",
