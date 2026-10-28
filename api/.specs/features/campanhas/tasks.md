@@ -192,6 +192,11 @@ T38 → T39
 T39 → T40
 ```
 
+### Phase 9b: Correções da verificação final 🤖
+
+Aberta pela rodada 1 da verificação final. T54 e T55 não têm dependência entre si.
+
+
 ---
 
 ## Task Breakdown
@@ -1624,6 +1629,52 @@ T39 → T40
 **Tests**: e2e (paridade OpenAPI já existente)
 **Gate**: build
 **Commit**: `docs(api): documenta campanhas no README e no OpenAPI`
+
+---
+
+### Correções da verificação final (Fase 9b)
+
+> Aberta pela rodada 1 da verificação final (`validation.md`, 2026-10-27, FAIL): 3 mutantes sobreviventes, todos lacunas só de teste na infra (S25, S32, S33).
+
+### T54: Capa pública — testar CSP e `Content-Disposition`
+
+**What**: No e2e da capa publicada, conferir `Content-Security-Policy` e `Content-Disposition`, que o controller define e nenhum teste confere.
+**Where**: `test/http/campanhas-publicas.e2e-spec.ts`
+**Depends on**: None
+**Reuses**: `test/http/arquivo.e2e-spec.ts:208-211`
+**Requirement**: CAMP-11
+**Autor**: 🤖 agente
+
+**Done when**:
+
+- [ ] `content-security-policy` = `default-src 'none'; sandbox` e `content-disposition` casando `/^inline/`, no PNG e no JPEG
+- [ ] Mutantes S25 (sem CSP) e S32 (`attachment`) morrem
+- [ ] Gate `full` passa
+
+**Tests**: e2e
+**Gate**: full
+**Commit**: `test(api): cabeçalhos de segurança da capa pública de campanha`
+
+---
+
+### T55: Rejeição de alteração — 422 sem motivo
+
+**What**: e2e do corpo sem motivo em `POST /admin/campanhas/:id/alteracao/rejeicao`.
+**Where**: `test/http/admin-campanhas.e2e-spec.ts`
+**Depends on**: None
+**Reuses**: teste equivalente da rejeição de campanha (`test/http/admin-campanhas.e2e-spec.ts:440-453`)
+**Requirement**: CAMP-08
+**Autor**: 🤖 agente
+
+**Done when**:
+
+- [ ] Sem motivo → 422 `{ statusCode: 422, message: 'Campo obrigatório', errors: [{ campo: 'motivo', mensagem: 'Campo obrigatório' }] }`, pendência `EM_ANALISE` mantida, linha da campanha inalterada e nenhum e-mail
+- [ ] Mutante S33 (sem o pipe zod) morre
+- [ ] Gate `full` passa
+
+**Tests**: e2e
+**Gate**: full
+**Commit**: `test(api): rejeição de alteração sem motivo`
 
 ---
 
