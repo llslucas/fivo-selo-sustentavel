@@ -155,6 +155,48 @@ describe('ConsultarCampanhaDaEmpresaUseCase', () => {
     });
   });
 
+  it('keeps the leading zero of the fraction in valor and meta', async () => {
+    const campanha = CampanhaFactory.completa({
+      empresaId: empresa.id,
+      regraDoacao: regraPorUnidade('0.05'),
+      meta: valorMonetario('1.05'),
+    });
+    await campanhaRepository.create(campanha);
+
+    const response = await sut.execute({
+      empresaId: empresa.id.toString(),
+      campanhaId: campanha.id.toString(),
+    });
+
+    expect(response.isRight()).toBe(true);
+    if (response.isLeft()) throw response.value;
+    expect(response.value.regraDoacao).toEqual({
+      tipo: TipoRegraDoacao.POR_UNIDADE,
+      valor: '0.05',
+    });
+    expect(response.value.meta).toBe('1.05');
+  });
+
+  it('keeps the leading zero of the fraction in percentual', async () => {
+    const campanha = CampanhaFactory.completa({
+      empresaId: empresa.id,
+      regraDoacao: regraPercentual('0.01'),
+    });
+    await campanhaRepository.create(campanha);
+
+    const response = await sut.execute({
+      empresaId: empresa.id.toString(),
+      campanhaId: campanha.id.toString(),
+    });
+
+    expect(response.isRight()).toBe(true);
+    if (response.isLeft()) throw response.value;
+    expect(response.value.regraDoacao).toEqual({
+      tipo: TipoRegraDoacao.PERCENTUAL,
+      percentual: '0.01',
+    });
+  });
+
   it('returns null for the fields a rascunho has not filled yet', async () => {
     const campanha = CampanhaFactory.create({ empresaId: empresa.id });
     await campanhaRepository.create(campanha);

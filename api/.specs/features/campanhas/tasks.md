@@ -1203,10 +1203,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Campanha com regra `POR_UNIDADE` `'0.05'` e meta `'1.05'` → `regraDoacao).toEqual({ tipo: POR_UNIDADE, valor: '0.05' })` e `meta).toBe('1.05')`
-- [ ] Campanha com regra `PERCENTUAL` `'0.01'` → `percentual: '0.01'`
-- [ ] Mutante N8 (`U/campanha-detalhe.ts:65`, `padStart` → `padEnd`) morre
-- [ ] Gate `quick` passa
+- [x] Campanha com regra `POR_UNIDADE` `'0.05'` e meta `'1.05'` → `regraDoacao).toEqual({ tipo: POR_UNIDADE, valor: '0.05' })` e `meta).toBe('1.05')`
+- [x] Campanha com regra `PERCENTUAL` `'0.01'` → `percentual: '0.01'`
+- [x] Mutante N8 (`U/campanha-detalhe.ts:65`, `padStart` → `padEnd`) morre
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
