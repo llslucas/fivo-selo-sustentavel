@@ -1180,10 +1180,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] PNG e JPEG aceitos; SVG e PDF rejeitados com o erro de formato
-- [ ] 5 MB exatos aceitos; 5 MB + 1 byte rejeitado
-- [ ] Imagem menor que 512×512 aceita (sem checagem de dimensão)
-- [ ] Gate `quick` passa
+- [x] PNG e JPEG aceitos; SVG e PDF rejeitados com o erro de formato
+- [x] 5 MB exatos aceitos; 5 MB + 1 byte rejeitado
+- [x] Imagem menor que 512×512 aceita (sem checagem de dimensão)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

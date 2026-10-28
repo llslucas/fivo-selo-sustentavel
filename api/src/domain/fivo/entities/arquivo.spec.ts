@@ -1,4 +1,5 @@
-import { Arquivo, TipoArquivo } from './arquivo';
+import { ArquivoInvalidoError } from '../application/errors/arquivo-invalido-error';
+import { Arquivo, ArquivoInput, TipoArquivo } from './arquivo';
 
 describe('Arquivo', () => {
   it('should create a valid PNG logo file', () => {
@@ -310,5 +311,78 @@ describe('Arquivo', () => {
     });
 
     expect(result.isRight()).toBe(true);
+  });
+  describe('IMAGEM_CAMPANHA', () => {
+    const CINCO_MB = 5 * 1024 * 1024;
+
+    function capa(campos: Partial<ArquivoInput> = {}) {
+      return Arquivo.criar({
+        tipo: TipoArquivo.IMAGEM_CAMPANHA,
+        nomeOriginal: 'capa.png',
+        mime: 'image/png',
+        bytes: 1024,
+        largura: 1200,
+        altura: 630,
+        chaveStorage: 'campanha/capa.png',
+        ...campos,
+      });
+    }
+
+    it.each(['image/png', 'image/jpeg'])('accepts a %s cover', (mime) => {
+      const result = capa({ mime });
+
+      expect(result.isRight()).toBe(true);
+      if (result.isLeft()) throw result.value;
+      expect(result.value.tipo).toBe(TipoArquivo.IMAGEM_CAMPANHA);
+      expect(result.value.mime).toBe(mime);
+    });
+
+    it.each([
+      ['image/svg+xml', 'capa.svg'],
+      ['application/pdf', 'capa.pdf'],
+    ])('rejects a %s cover with the format error (422)', (mime, nome) => {
+      const result = capa({
+        mime,
+        nomeOriginal: nome,
+        svgConteudo:
+          mime === 'image/svg+xml'
+            ? '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" /></svg>'
+            : undefined,
+      });
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(ArquivoInvalidoError);
+      const erro = result.value as ArquivoInvalidoError;
+      expect(erro.status).toBe(422);
+      expect(erro.message).toBe(
+        `Arquivo inválido para IMAGEM_CAMPANHA: formato ${mime} fora da lista aceita. Formatos aceitos: image/png, image/jpeg`,
+      );
+    });
+
+    it('accepts a cover of exactly 5 MB', () => {
+      const result = capa({ bytes: CINCO_MB });
+
+      expect(result.isRight()).toBe(true);
+      if (result.isLeft()) throw result.value;
+      expect(result.value.bytes).toBe(CINCO_MB);
+    });
+
+    it('rejects a cover of 5 MB + 1 byte with the size error (422)', () => {
+      const result = capa({ bytes: CINCO_MB + 1 });
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(ArquivoInvalidoError);
+      const erro = result.value as ArquivoInvalidoError;
+      expect(erro.status).toBe(422);
+      expect(erro.message).toBe(
+        `Arquivo inválido: tamanho excede o limite de 5 MB (${CINCO_MB + 1} bytes).`,
+      );
+    });
+
+    it('accepts a cover smaller than 512x512 (no dimension check)', () => {
+      const result = capa({ largura: 300, altura: 200 });
+
+      expect(result.isRight()).toBe(true);
+    });
   });
 });
