@@ -1335,8 +1335,8 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Transporte falhando com `CAMPANHA_REJEITADA` e com `ALTERACAO_CAMPANHA_REJEITADA` → mensagem enfileirada (um teste por template)
-- [ ] Gate `quick` passa
+- [x] Transporte falhando com `CAMPANHA_REJEITADA` e com `ALTERACAO_CAMPANHA_REJEITADA` → mensagem enfileirada (um teste por template)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
