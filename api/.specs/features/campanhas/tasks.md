@@ -1589,11 +1589,11 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `Promise.all` de aprovar + rejeitar a mesma campanha → um 204 e um 409; idem para alteração
-- [ ] `Promise.all` de duas submissões → um 204 e um 409
-- [ ] `Promise.all` de edição de texto + aprovação de alteração → o compromisso aprovado não é sobrescrito
-- [ ] Tabela papel × rota: anônimo 401, EMPRESA em rota de admin 403, ADMIN em rota de empresa 403, INSTITUICAO em ambas 403
-- [ ] Gate `full` passa
+- [x] `Promise.all` de aprovar + rejeitar a mesma campanha → um 204 e um 409; idem para alteração
+- [x] `Promise.all` de duas submissões → um 204 e um 409
+- [x] `Promise.all` de edição de texto + aprovação de alteração → o compromisso aprovado não é sobrescrito
+- [x] Tabela papel × rota: anônimo 401, EMPRESA em rota de admin 403, ADMIN em rota de empresa 403, INSTITUICAO em ambas 403
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
