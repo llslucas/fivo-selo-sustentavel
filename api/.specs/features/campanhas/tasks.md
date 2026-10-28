@@ -139,7 +139,7 @@ T16 → T27
 
 ### Phase 6b: Hardening do domínio 🤖 (exceção AD-021)
 
-Aberta pela rodada 1 do gate de handoff. T41, T42, T43, T46, T47, T49 e T50 não têm dependência dentro da fase. A rodada 2 do gate deu FAIL e acrescentou T51–T53, sem dependência entre si. Termina com a rodada 3 do gate (`validation-dominio.md` em PASS).
+Aberta pela rodada 1 do gate de handoff. T41, T42, T43, T46, T47, T49 e T50 não têm dependência dentro da fase. A rodada 2 do gate deu FAIL e acrescentou T51–T53, sem dependência entre si. A rodada 3 do gate deu **PASS** (2026-10-27).
 
 ```
 T46 → T44
@@ -212,10 +212,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] 422: `NomeCampanhaInvalidoError` ("O nome deve ter entre 3 e 80 caracteres"), `DescricaoCampanhaInvalidaError` ("A descrição deve ter no máximo 2000 caracteres"), `ValorMonetarioInvalidoError`, `PercentualInvalidoError`, `DataInvalidaError`, `VigenciaInvalidaError` ("A data de fim deve ser posterior à data de início"), `VigenciaVencidaError` ("A data de fim deve ser posterior à data atual"), `CamposPendentesError` (com `campos: string[]` público)
-- [ ] 409: `CampanhaEmAnaliseError` ("Campanha em análise não pode ser editada"), `AlteracaoJaPendenteError` ("Já existe uma alteração em análise"), `BeneficiadaIndisponivelNaDecisaoError` ("A beneficiada não está mais disponível no catálogo")
-- [ ] Mensagens de `ValorMonetarioInvalidoError` e `PercentualInvalidoError` iguais às do design §Value objects; `DataInvalidaError` = "Data inválida. Use o formato AAAA-MM-DD"; `CamposPendentesError` = "Preencha os campos obrigatórios antes de enviar para análise"
-- [ ] Gate `quick` passa
+- [x] 422: `NomeCampanhaInvalidoError` ("O nome deve ter entre 3 e 80 caracteres"), `DescricaoCampanhaInvalidaError` ("A descrição deve ter no máximo 2000 caracteres"), `ValorMonetarioInvalidoError`, `PercentualInvalidoError`, `DataInvalidaError`, `VigenciaInvalidaError` ("A data de fim deve ser posterior à data de início"), `VigenciaVencidaError` ("A data de fim deve ser posterior à data atual"), `CamposPendentesError` (com `campos: string[]` público)
+- [x] 409: `CampanhaEmAnaliseError` ("Campanha em análise não pode ser editada"), `AlteracaoJaPendenteError` ("Já existe uma alteração em análise"), `BeneficiadaIndisponivelNaDecisaoError` ("A beneficiada não está mais disponível no catálogo")
+- [x] Mensagens de `ValorMonetarioInvalidoError` e `PercentualInvalidoError` iguais às do design §Value objects; `DataInvalidaError` = "Data inválida. Use o formato AAAA-MM-DD"; `CamposPendentesError` = "Preencha os campos obrigatórios antes de enviar para análise"
+- [x] Gate `quick` passa
 
 **Tests**: none (erros — build gate; as mensagens são asseridas nos testes dos VOs e casos de uso)
 **Gate**: quick
@@ -241,9 +241,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `NomeCampanha.criar(bruto)` devolve `Either<NomeCampanhaInvalidoError, NomeCampanha>`; o valor guardado já vem sem espaços nas pontas
-- [ ] `nome-campanha.spec.ts` cobre 2 e 81 caracteres (rejeitados), 3 e 80 (aceitos), e `"  ab  "` (rejeitado depois do trim)
-- [ ] Gate `quick` passa
+- [x] `NomeCampanha.criar(bruto)` devolve `Either<NomeCampanhaInvalidoError, NomeCampanha>`; o valor guardado já vem sem espaços nas pontas
+- [x] `nome-campanha.spec.ts` cobre 2 e 81 caracteres (rejeitados), 3 e 80 (aceitos), e `"  ab  "` (rejeitado depois do trim)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -269,9 +269,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] 2000 caracteres aceitos, 2001 rejeitados com a mensagem de T1
-- [ ] `<script>alert(1)</script>` é aceito e devolvido idêntico
-- [ ] Gate `quick` passa
+- [x] 2000 caracteres aceitos, 2001 rejeitados com a mensagem de T1
+- [x] `<script>alert(1)</script>` é aceito e devolvido idêntico
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -297,10 +297,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `ValorMonetario.deDecimal(texto)` aceita `^\d{1,6}(\.\d{1,2})?$`; expõe `centavos: number`; `"1.5"` → 150, `"0.01"` → 1, `"999999.99"` → 99999999
-- [ ] Rejeita `"0"`, `"0.00"`, `"1000000"`, `"1.234"`, `"-1"`, `"1,50"`, `"abc"` e string vazia
-- [ ] Nenhuma conta passa por `number` com casas decimais (sem `parseFloat * 100`)
-- [ ] Gate `quick` passa
+- [x] `ValorMonetario.deDecimal(texto)` aceita `^\d{1,6}(\.\d{1,2})?$`; expõe `centavos: number`; `"1.5"` → 150, `"0.01"` → 1, `"999999.99"` → 99999999
+- [x] Rejeita `"0"`, `"0.00"`, `"1000000"`, `"1.234"`, `"-1"`, `"1,50"`, `"abc"` e string vazia
+- [x] Nenhuma conta passa por `number` com casas decimais (sem `parseFloat * 100`)
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -326,9 +326,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `"0.01"` → 1, `"100"` → 10000, `"12.5"` → 1250
-- [ ] Rejeita `"0"`, `"100.01"`, `"1.234"`, `"-5"` e string vazia
-- [ ] Gate `quick` passa
+- [x] `"0.01"` → 1, `"100"` → 10000, `"12.5"` → 1250
+- [x] Rejeita `"0"`, `"100.01"`, `"1.234"`, `"-5"` e string vazia
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -383,9 +383,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Os dois ids ou nenhum → `BeneficiadaAmbiguaError` ("Informe exatamente uma beneficiada: instituição ou causa")
-- [ ] Expõe `tipo` (`INSTITUICAO` | `CAUSA`) e `id`
-- [ ] Gate `quick` passa
+- [x] Os dois ids ou nenhum → `BeneficiadaAmbiguaError` ("Informe exatamente uma beneficiada: instituição ou causa")
+- [x] Expõe `tipo` (`INSTITUICAO` | `CAUSA`) e `id`
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -493,9 +493,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `IMAGEM_CAMPANHA`: formatos `image/png` e `image/jpeg` (sem SVG), limite 5 MB, sem checagem de 512×512
-- [ ] `arquivo.spec.ts` cobre PNG e JPEG aceitos, SVG e PDF rejeitados, 5 MB aceito e 5 MB + 1 byte rejeitado
-- [ ] Gate `quick` passa
+- [x] `IMAGEM_CAMPANHA`: formatos `image/png` e `image/jpeg` (sem SVG), limite 5 MB, sem checagem de 512×512
+- [x] `arquivo.spec.ts` cobre PNG e JPEG aceitos, SVG e PDF rejeitados, 5 MB aceito e 5 MB + 1 byte rejeitado
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -583,12 +583,12 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `aprovar(adminId)`: `EM_ANALISE → APROVADA`, grava `decididoPor`/`decididoEm`
-- [ ] `rejeitar(adminId, motivo)`: `EM_ANALISE → REJEITADA`, motivo com trim ≥ 20 (`MotivoInsuficienteError` sem mudar estado), grava `motivoUltimaRejeicao`
-- [ ] Aprovar ou rejeitar em `RASCUNHO`, `APROVADA` ou `REJEITADA` → `TransicaoInvalidaError`
-- [ ] `estaAptaASelo()` e `estaPublicada()` são `true` só em `APROVADA` (teste em cada um dos 4 estados)
-- [ ] `compromissoVigente()` devolve `Compromisso` quando os três campos existem e `null` caso contrário
-- [ ] Gate `quick` passa
+- [x] `aprovar(adminId)`: `EM_ANALISE → APROVADA`, grava `decididoPor`/`decididoEm`
+- [x] `rejeitar(adminId, motivo)`: `EM_ANALISE → REJEITADA`, motivo com trim ≥ 20 (`MotivoInsuficienteError` sem mudar estado), grava `motivoUltimaRejeicao`
+- [x] Aprovar ou rejeitar em `RASCUNHO`, `APROVADA` ou `REJEITADA` → `TransicaoInvalidaError`
+- [x] `estaAptaASelo()` e `estaPublicada()` são `true` só em `APROVADA` (teste em cada um dos 4 estados)
+- [x] `compromissoVigente()` devolve `Compromisso` quando os três campos existem e `null` caso contrário
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -698,12 +698,12 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Empresa não aprovada → `NotAllowedError('Cadastro ainda não aprovado')` e nada gravado
-- [ ] Só nome → `RASCUNHO` com `{ id, idPublico }` devolvidos
-- [ ] Cada VO inválido devolve o erro do VO e nada é gravado (um teste por VO)
-- [ ] Beneficiada indisponível → `BeneficiadaIndisponivelError`; beneficiada dupla → `BeneficiadaAmbiguaError`; ausente não chama a guarda
-- [ ] `@Injectable()`; `criar-campanha.spec.ts` reescrito, um ramo por teste
-- [ ] Gate `quick` passa
+- [x] Empresa não aprovada → `NotAllowedError('Cadastro ainda não aprovado')` e nada gravado
+- [x] Só nome → `RASCUNHO` com `{ id, idPublico }` devolvidos
+- [x] Cada VO inválido devolve o erro do VO e nada é gravado (um teste por VO)
+- [x] Beneficiada indisponível → `BeneficiadaIndisponivelError`; beneficiada dupla → `BeneficiadaAmbiguaError`; ausente não chama a guarda
+- [x] `@Injectable()`; `criar-campanha.spec.ts` reescrito, um ramo por teste
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick
@@ -1258,6 +1258,8 @@ T39 → T40
 
 ---
 
+> **Rodada 3 do gate (2026-10-27): PASS ✅** (`validation-dominio.md`): 46/46 ACs P1 de domínio, sensor acumulado de 83 mutantes distintos, com 80 mortos, 0 sobreviventes e 3 equivalentes (M30, N6, P13). A Fase 7 está liberada.
+
 ### T28: Schema Prisma e migration de campanhas
 
 **What**: Modelar `Campanha` e `CampanhaAlteracao`, enums novos e `IMAGEM_CAMPANHA`, com o SQL manual do design.
@@ -1302,11 +1304,13 @@ T39 → T40
 **Done when**:
 
 - [ ] Mapper reconstrói todos os VOs; dado persistido inválido lança erro
-- [ ] `salvar` = `updateMany where { id, versao }` com `versao + 1`; na mesma transação, se houver `campanha.alteracaoDecidida`, atualiza a linha dela em `campanha_alteracao` (pelo `id`) com `status`, `decidido_por`, `decidido_em` e `motivo`, e **depois** faz `upsert` da `alteracaoPendente`; devolve `false` sem gravar nada quando a versão difere (contrato no JSDoc da porta, emenda da T46)
+- [ ] `salvar` = `updateMany where { id, versao }` com `versao + 1`; na mesma transação, se houver `campanha.alteracaoDecidida`, faz `upsert` da linha dela em `campanha_alteracao` (pelo `id`, como o double) com `status`, `decidido_por`, `decidido_em` e `motivo`, e **depois** faz `upsert` da `alteracaoPendente`; devolve `false` sem gravar nada quando a versão difere (contrato no JSDoc da porta, emenda da T46)
 - [ ] O mapper carrega como `alteracaoPendente` só a linha `EM_ANALISE`; as decididas ficam como histórico e não voltam ao agregado
 - [ ] Binding em `database.module.ts`; `limparBanco` inclui as duas tabelas novas
 - [ ] e2e em `test/database/`: ida e volta completa; `2026-01-01` volta `2026-01-01`; dois `salvar` com a mesma versão → só um grava; segunda alteração `EM_ANALISE` barrada pelo índice (ou pela versão, se T28 removeu o índice); `listarEmAnalise` traz os dois tipos; CHECK barra instituição e causa juntas
 - [ ] e2e de decisão: aprovar e rejeitar alteração gravam a linha com `status` `APROVADA`/`REJEITADA`, `decidido_por`, `decidido_em` e `motivo` (na rejeição), e a campanha recarregada vem sem pendência; uma nova alteração aberta depois da decisão é gravada sem violar o índice parcial, inclusive quando decisão e abertura vão no mesmo `salvar`
+- [ ] Idempotência: salvar duas vezes a mesma instância depois da decisão não duplica nem altera a linha decidida (N6 da verificação do domínio); o JSDoc da porta diz "uma decisão por instância e por `salvar`" (P13)
+- [ ] A ida e volta confere cada data-hora e cada campo opcional coluna a coluna, sem `equals` de agregado, inclusive o `criado_em` da alteração que ordena a fila
 - [ ] Gate `full` passa
 
 **Tests**: e2e

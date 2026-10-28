@@ -178,6 +178,21 @@
 
 ## Handoff
 
+### Handoff — gate de handoff do domínio de `campanhas` (2026-10-27)
+
+- **Feature**: `campanhas` (`.specs/features/campanhas/`)
+- **Phase / Task**: domínio T1–T27 verificado. O gate do AD-021 deu **PASS** na rodada 3 (`validation-dominio.md`, diff `397f8bc..dad822e`). A rodada 1 deu FAIL e abriu a Fase 6b (T41–T50). A rodada 2 deu FAIL só por lacunas de teste (T51–T53). O hardening foi todo aplicado pelo agente, com autorização do usuário registrada no AD-021. Os checkboxes de T1–T27 foram marcados no handoff.
+- **Gate**: tsc e eslint verdes; unit 600/600; e2e de base 337/337. Sensor acumulado com 83 mutantes distintos: 80 mortos, 0 sobreviventes e 3 equivalentes (M30, N6, P13).
+- **Next step**: Fase 7 (T28–T31), depois as Fases 8 e 9 (T32–T40), com 2 workers sequenciais (escolha do usuário).
+- **Follow-ups** (não bloqueiam):
+  - T29 recebeu upsert da decidida, idempotência e comparação coluna a coluna na Done-when.
+  - T38 cobre `idPublico` malformado → 404.
+  - As auditorias de alteração usam duas chaves: `compromissoNovo` em `_APROVADA` e `compromissoProposto` em `_ABERTA`/`_REJEITADA`.
+  - `consoleError.mockRestore()` fora de `finally` em `rejeitar-alteracao-campanha.spec.ts` (cosmético, grupo).
+  - SP1 e SP2 da spec continuam abertos.
+- **Lições**: L-021…L-030 registradas como candidatas. L-001, L-007, L-009, L-011, L-012 e L-019 foram promovidas a confirmed.
+- **Branch**: `feat/campanhas-infra` (local, não enviada ao remoto)
+
 ### Handoff — planejamento de `campanhas` (2026-10-15)
 
 - **Feature**: `campanhas` (`.specs/features/campanhas/`)
