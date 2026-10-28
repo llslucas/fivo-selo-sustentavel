@@ -191,7 +191,7 @@
   - domínio: 83 mutantes distintos, 80 mortos e 3 equivalentes;
   - infra: 56 mutantes distintos, 55 mortos e 1 equivalente.
 - **In-progress**: nenhum
-- **Next step**: o usuário decide sobre push e PR da branch. Depois, CAMP-09/CAMP-10 ou o `web` de campanhas.
+- **Next step**: revisar e mergear a PR #241. Depois, as pendências marcadas na PR, numa branch nova; em seguida, CAMP-09/CAMP-10 ou o `web` de campanhas.
 - **Follow-ups** (não bloqueiam; detalhes em `validation.md`):
   - F1: capa órfã quando duas trocas de capa são concorrentes.
   - F2: os cabeçalhos da capa pública não estão documentados no OpenAPI.
@@ -203,7 +203,7 @@
   - Itens de domínio do grupo já listados no handoff do gate (JSDoc P13, chave única de compromisso nas auditorias, `mockRestore` em `finally`).
 - **Lições**: L-031…L-034 registradas como candidatas.
 - **Uncommitted files**: none
-- **Branch**: `feat/campanhas-infra` (local, não enviada ao remoto)
+- **Branch**: `feat/campanhas-infra`, enviada ao remoto com a PR #241 aberta contra `homologacao`
 
 ### Handoff — gate de handoff do domínio de `campanhas` (2026-10-27)
 
