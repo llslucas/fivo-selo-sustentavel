@@ -441,6 +441,10 @@ describe('EditarCampanhaUseCase', () => {
 
       expect(response.isLeft()).toBe(true);
       expect(response.value).toBeInstanceOf(AlteracaoJaPendenteError);
+      expect((response.value as AlteracaoJaPendenteError).status).toBe(409);
+      expect((response.value as AlteracaoJaPendenteError).message).toBe(
+        'Já existe uma alteração em análise',
+      );
       expectNadaGravado(campanha);
     });
   });
@@ -536,6 +540,10 @@ describe('EditarCampanhaUseCase', () => {
 
     expect(response.isLeft()).toBe(true);
     expect(response.value).toBeInstanceOf(CampanhaEmAnaliseError);
+    expect((response.value as CampanhaEmAnaliseError).status).toBe(409);
+    expect((response.value as CampanhaEmAnaliseError).message).toBe(
+      'Campanha em análise não pode ser editada',
+    );
     expectNadaGravado(campanha);
   });
 

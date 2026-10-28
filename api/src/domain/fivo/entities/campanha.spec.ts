@@ -235,15 +235,17 @@ describe('Campanha', () => {
       'regraDoacao',
       'vigencia.inicio',
     ]);
-    const mensagem = (result.value as CamposPendentesError).message;
-    for (const campo of [
+    const erro = result.value as CamposPendentesError;
+    expect(erro.status).toBe(422);
+    expect(erro.message).toBe(
+      'Preencha os campos obrigatórios antes de enviar para análise',
+    );
+    expect(erro.campos).toEqual([
       'descricao',
       'beneficiada',
       'regraDoacao',
       'vigencia.inicio',
-    ]) {
-      expect(mensagem).toContain(campo);
-    }
+    ]);
     expect(campanha.status).toBe(CampanhaStatus.RASCUNHO);
     expect(campanha.submetidaEm).toBeUndefined();
   });

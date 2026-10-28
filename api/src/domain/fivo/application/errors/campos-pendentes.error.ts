@@ -4,8 +4,6 @@ export class CamposPendentesError extends Error implements UseCaseError {
   readonly status = 422;
 
   constructor(readonly campos: string[]) {
-    super(
-      `Preencha os campos obrigatórios antes de enviar para análise: ${JSON.stringify(campos)}`,
-    );
+    super('Preencha os campos obrigatórios antes de enviar para análise');
   }
 }

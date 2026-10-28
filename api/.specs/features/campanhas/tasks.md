@@ -1033,10 +1033,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `regra-doacao.spec.ts` confere `status` 422 e `message` "O Valor da regra deve corresponder à regra selecionada." (com o ponto final)
-- [ ] `editar-campanha.spec.ts` confere `message` "Campanha em análise não pode ser editada" e "Já existe uma alteração em análise", com `status` 409
-- [ ] `CamposPendentesError.message` é exatamente "Preencha os campos obrigatórios antes de enviar para análise", e a lista fica só em `campos`. `campanha.spec.ts:232-240` troca o `toContain(campo)` sobre a mensagem por `message).toBe(...)` + `campos).toEqual([...])`
-- [ ] Mutantes M37, M38 e M39 morrem
+- [x] `regra-doacao.spec.ts` confere `status` 422 e `message` "O Valor da regra deve corresponder à regra selecionada." (com o ponto final)
+- [x] `editar-campanha.spec.ts` confere `message` "Campanha em análise não pode ser editada" e "Já existe uma alteração em análise", com `status` 409
+- [x] `CamposPendentesError.message` é exatamente "Preencha os campos obrigatórios antes de enviar para análise", e a lista fica só em `campos`. `campanha.spec.ts:232-240` troca o `toContain(campo)` sobre a mensagem por `message).toBe(...)` + `campos).toEqual([...])`
+- [x] Mutantes M37, M38 e M39 morrem
 
 **Tests**: unit
 **Gate**: quick

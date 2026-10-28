@@ -34,7 +34,12 @@ describe('RegraDoacao Value Object', () => {
       tipo: TipoRegraDoacao.POR_UNIDADE,
       percentual: '5',
     });
+    expect(r.isLeft()).toBe(true);
     expect(r.value).toBeInstanceOf(InvalidRuleValueError);
+    expect((r.value as InvalidRuleValueError).status).toBe(422);
+    expect((r.value as InvalidRuleValueError).message).toBe(
+      'O Valor da regra deve corresponder à regra selecionada.',
+    );
   });
 
   it('PERCENTUAL sem percentual → InvalidRuleValueError', () => {
@@ -47,7 +52,12 @@ describe('RegraDoacao Value Object', () => {
       tipo: TipoRegraDoacao.PERCENTUAL,
       valor: '1.50',
     });
+    expect(r.isLeft()).toBe(true);
     expect(r.value).toBeInstanceOf(InvalidRuleValueError);
+    expect((r.value as InvalidRuleValueError).status).toBe(422);
+    expect((r.value as InvalidRuleValueError).message).toBe(
+      'O Valor da regra deve corresponder à regra selecionada.',
+    );
   });
 
   it('valor fora do limite → ValorMonetarioInvalidoError', () => {
