@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { criarEmpresaSchema } from '../cadastro-empresa.dto';
+import { criarEmpresaSchema } from '../empresas/cadastro-empresa.dto';
 import {
   componentesOpenApi,
   ERRO_RESPOSTA,

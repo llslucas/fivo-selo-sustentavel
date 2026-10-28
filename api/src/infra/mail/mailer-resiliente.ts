@@ -2,7 +2,7 @@ import {
   Mailer,
   MensagemEmail,
   TemplateEmail,
-} from '@domain/fivo/application/ports/mailer';
+} from '@domain/fivo/shared/ports/mailer';
 import { Injectable, Logger } from '@nestjs/common';
 
 import { EmailPendenteService } from './email-pendente.service';

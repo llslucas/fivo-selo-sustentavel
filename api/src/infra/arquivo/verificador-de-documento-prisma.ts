@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { VerificadorDeDocumento } from '@domain/fivo/application/ports/verificador-de-documento';
+import { VerificadorDeDocumento } from '@domain/fivo/catalogo/ports/verificador-de-documento';
 
 import { ArquivoService } from './arquivo.service';
 

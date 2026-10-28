@@ -4,31 +4,31 @@ import { Prisma } from '@prisma/client';
 
 import { Either } from '@core/either';
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { CampanhaRepository } from '@domain/fivo/application/ports/database/campanha-repository';
-import { CausaRepository } from '@domain/fivo/application/ports/database/causa-repository';
-import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
-import { InstituicaoRepository } from '@domain/fivo/application/ports/database/instituicao-repository';
+import { CampanhaRepository } from '@domain/fivo/campanhas/ports/campanha-repository';
+import { CausaRepository } from '@domain/fivo/catalogo/ports/causa-repository';
+import { EmpresaRepository } from '@domain/fivo/empresas/ports/empresa-repository';
+import { InstituicaoRepository } from '@domain/fivo/catalogo/ports/instituicao-repository';
 import {
   AlteracaoCompromisso,
   AlteracaoStatus,
-} from '@domain/fivo/entities/alteracao-compromisso';
-import { Beneficiada } from '@domain/fivo/entities/beneficiada';
+} from '@domain/fivo/campanhas/entities/alteracao-compromisso';
+import { Beneficiada } from '@domain/fivo/catalogo/entities/beneficiada';
 import {
   Campanha,
   CampanhaProps,
   CampanhaStatus,
-} from '@domain/fivo/entities/campanha';
-import { Compromisso } from '@domain/fivo/entities/compromisso';
-import { DataCalendario } from '@domain/fivo/entities/data-calendario';
-import { DescricaoCampanha } from '@domain/fivo/entities/descricao-campanha';
-import { DocumentoValidacao } from '@domain/fivo/entities/documento-validacao';
-import { NomeCampanha } from '@domain/fivo/entities/nome-campanha';
+} from '@domain/fivo/campanhas/entities/campanha';
+import { Compromisso } from '@domain/fivo/campanhas/entities/compromisso';
+import { DataCalendario } from '@domain/fivo/campanhas/entities/data-calendario';
+import { DescricaoCampanha } from '@domain/fivo/campanhas/entities/descricao-campanha';
+import { DocumentoValidacao } from '@domain/fivo/catalogo/entities/documento-validacao';
+import { NomeCampanha } from '@domain/fivo/campanhas/entities/nome-campanha';
 import {
   RegraDoacao,
   TipoRegraDoacao,
-} from '@domain/fivo/entities/regra-doacao';
-import { ValorMonetario } from '@domain/fivo/entities/valor-monetario';
-import { Vigencia } from '@domain/fivo/entities/vigencia';
+} from '@domain/fivo/campanhas/entities/regra-doacao';
+import { ValorMonetario } from '@domain/fivo/campanhas/entities/valor-monetario';
+import { Vigencia } from '@domain/fivo/campanhas/entities/vigencia';
 import { CampanhaFactory } from '@test/factories/campanha-factory';
 import { CausaFactory } from '@test/factories/causa-factory';
 import { cnpjValido } from '@test/factories/cnpj-factory';

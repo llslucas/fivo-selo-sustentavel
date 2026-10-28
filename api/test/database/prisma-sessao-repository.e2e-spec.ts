@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto';
 
-import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
+import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
 import {
   Sessao,
   SessaoRepository,
-} from '@domain/fivo/application/ports/sessao-repository';
-import { User } from '@domain/fivo/entities/user';
+} from '@domain/fivo/identidade/ports/sessao-repository';
+import { User } from '@domain/fivo/identidade/entities/user';
 import { UserFactory } from '@test/factories/user-factory';
 import {
   AppDeTeste,

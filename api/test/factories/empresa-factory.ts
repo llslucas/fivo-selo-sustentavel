@@ -1,6 +1,6 @@
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { Cnpj } from '@domain/fivo/entities/cnpj';
-import { Empresa, EmpresaProps } from '@domain/fivo/entities/empresa';
+import { Cnpj } from '@domain/fivo/shared/entities/cnpj';
+import { Empresa, EmpresaProps } from '@domain/fivo/empresas/entities/empresa';
 
 export class EmpresaFactory {
   static create(

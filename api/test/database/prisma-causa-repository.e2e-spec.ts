@@ -1,6 +1,6 @@
-import { CausaJaExisteError } from '@domain/fivo/application/errors/causa-ja-existe.error';
-import { CausaRepository } from '@domain/fivo/application/ports/database/causa-repository';
-import { CausaStatus } from '@domain/fivo/entities/causa';
+import { CausaJaExisteError } from '@domain/fivo/catalogo/errors/causa-ja-existe.error';
+import { CausaRepository } from '@domain/fivo/catalogo/ports/causa-repository';
+import { CausaStatus } from '@domain/fivo/catalogo/entities/causa';
 import { CausaFactory } from '@test/factories/causa-factory';
 import {
   AppDeTeste,

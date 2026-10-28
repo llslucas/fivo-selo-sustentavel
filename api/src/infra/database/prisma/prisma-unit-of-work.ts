@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { UnitOfWork } from '@domain/fivo/application/ports/unit-of-work';
+import { UnitOfWork } from '@domain/fivo/shared/ports/unit-of-work';
 
 import { PrismaTransactionContext } from './prisma-transaction-context';
 import { PrismaService } from './prisma.service';

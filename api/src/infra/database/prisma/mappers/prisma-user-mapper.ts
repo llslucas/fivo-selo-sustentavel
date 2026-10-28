@@ -1,8 +1,8 @@
 import { Prisma, UserRole as UserRolePrisma, Usuario } from '@prisma/client';
 
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { Senha } from '@domain/fivo/entities/senha';
-import { User, UserRole } from '@domain/fivo/entities/user';
+import { Senha } from '@domain/fivo/identidade/entities/senha';
+import { User, UserRole } from '@domain/fivo/identidade/entities/user';
 
 const ROLE_PARA_PRISMA: Record<UserRole, UserRolePrisma> = {
   [UserRole.ADMIN]: UserRolePrisma.ADMIN,

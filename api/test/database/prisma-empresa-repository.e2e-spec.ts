@@ -1,12 +1,12 @@
 import { randomUUID } from 'node:crypto';
 
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { EmpresaAlreadyExistsError } from '@domain/fivo/application/errors/empresa-already-exists.error';
-import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
-import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
-import { Cnpj } from '@domain/fivo/entities/cnpj';
-import { EmpresaStatus } from '@domain/fivo/entities/empresa';
-import { UserRole } from '@domain/fivo/entities/user';
+import { EmpresaJaExisteError } from '@domain/fivo/empresas/errors/empresa-ja-existe.error';
+import { EmpresaRepository } from '@domain/fivo/empresas/ports/empresa-repository';
+import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
+import { Cnpj } from '@domain/fivo/shared/entities/cnpj';
+import { EmpresaStatus } from '@domain/fivo/empresas/entities/empresa';
+import { UserRole } from '@domain/fivo/identidade/entities/user';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { UserFactory } from '@test/factories/user-factory';
 import {
@@ -348,14 +348,14 @@ describe('PrismaEmpresaRepository (e2e)', () => {
     expect(final!.tokenTrocaEmailHash).toBe('hash-do-token');
   });
 
-  it('create com CNPJ já cadastrado falha com EmpresaAlreadyExistsError (409)', async () => {
+  it('create com CNPJ já cadastrado falha com EmpresaJaExisteError (409)', async () => {
     const primeira = EmpresaFactory.create({ cnpj: cnpj(CNPJ_A) });
     const segunda = EmpresaFactory.create({ cnpj: cnpj(CNPJ_A) });
 
     await repository.create(primeira);
 
     await expect(repository.create(segunda)).rejects.toBeInstanceOf(
-      EmpresaAlreadyExistsError,
+      EmpresaJaExisteError,
     );
     await expect(repository.create(segunda)).rejects.toMatchObject({
       status: 409,

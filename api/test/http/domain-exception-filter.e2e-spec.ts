@@ -12,21 +12,21 @@ import { z } from 'zod';
 
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
-import { ArquivoInvalidoError } from '@domain/fivo/application/errors/arquivo-invalido-error';
-import { CnpjImutavelError } from '@domain/fivo/application/errors/cnpj-imutavel.error';
-import { ContaBloqueadaError } from '@domain/fivo/application/errors/conta-bloqueada.error';
-import { EmpresaAlreadyExistsError } from '@domain/fivo/application/errors/empresa-already-exists.error';
-import { InstituicaoAlreadyExistsError } from '@domain/fivo/application/errors/instituicao-already-exists.error';
-import { InvalidCnpjError } from '@domain/fivo/application/errors/invalid-cnpj.error';
-import { InvalidRuleValueError } from '@domain/fivo/application/errors/invalid-rule-value.error';
-import { MotivoInsuficienteError } from '@domain/fivo/application/errors/motivo-insuficiente.error';
-import { SenhaFracaError } from '@domain/fivo/application/errors/senha-fraca.error';
-import { StorageIndisponivelError } from '@domain/fivo/application/errors/storage-indisponivel-error';
-import { TokenConfirmacaoEmailInvalidoError } from '@domain/fivo/application/errors/token-confirmacao-email-invalido.error';
-import { TokenInvalidoError } from '@domain/fivo/application/errors/token-invalido.error';
-import { TransicaoInvalidaError } from '@domain/fivo/application/errors/transicao-invalida.error';
-import { UserAlreadyExistsError } from '@domain/fivo/application/errors/users-already-exists.error';
-import { CredenciaisInvalidasError } from '@domain/fivo/application/errors/wrong-credentials.error';
+import { ArquivoInvalidoError } from '@domain/fivo/shared/errors/arquivo-invalido.error';
+import { CnpjImutavelError } from '@domain/fivo/empresas/errors/cnpj-imutavel.error';
+import { ContaBloqueadaError } from '@domain/fivo/identidade/errors/conta-bloqueada.error';
+import { EmpresaJaExisteError } from '@domain/fivo/empresas/errors/empresa-ja-existe.error';
+import { InstituicaoJaExisteError } from '@domain/fivo/catalogo/errors/instituicao-ja-existe.error';
+import { CnpjInvalidoError } from '@domain/fivo/shared/errors/cnpj-invalido.error';
+import { ValorRegraInvalidoError } from '@domain/fivo/campanhas/errors/valor-regra-invalido.error';
+import { MotivoInsuficienteError } from '@domain/fivo/shared/errors/motivo-insuficiente.error';
+import { SenhaFracaError } from '@domain/fivo/identidade/errors/senha-fraca.error';
+import { StorageIndisponivelError } from '@domain/fivo/shared/errors/storage-indisponivel.error';
+import { TokenConfirmacaoEmailInvalidoError } from '@domain/fivo/empresas/errors/token-confirmacao-email-invalido.error';
+import { TokenInvalidoError } from '@domain/fivo/identidade/errors/token-invalido.error';
+import { TransicaoInvalidaError } from '@domain/fivo/shared/errors/transicao-invalida.error';
+import { UsuarioJaExisteError } from '@domain/fivo/identidade/errors/usuario-ja-existe.error';
+import { CredenciaisInvalidasError } from '@domain/fivo/identidade/errors/credenciais-invalidas.error';
 import { Public } from '@infra/auth/decorators/public.decorator';
 import { ZodValidationPipe } from '@infra/http/pipes/zod-validation.pipe';
 import {
@@ -39,10 +39,10 @@ const ERROS_DE_DOMINIO: Record<string, () => Error> = {
   'arquivo-invalido': () => new ArquivoInvalidoError('Logo acima de 5 MB'),
   'cnpj-imutavel': () => new CnpjImutavelError(),
   'conta-bloqueada': () => new ContaBloqueadaError(),
-  'empresa-ja-existe': () => new EmpresaAlreadyExistsError(),
-  'instituicao-ja-existe': () => new InstituicaoAlreadyExistsError(),
-  'cnpj-invalido': () => new InvalidCnpjError(),
-  'regra-invalida': () => new InvalidRuleValueError(),
+  'empresa-ja-existe': () => new EmpresaJaExisteError(),
+  'instituicao-ja-existe': () => new InstituicaoJaExisteError(),
+  'cnpj-invalido': () => new CnpjInvalidoError(),
+  'regra-invalida': () => new ValorRegraInvalidoError(),
   'motivo-insuficiente': () => new MotivoInsuficienteError(),
   'senha-fraca': () => new SenhaFracaError(),
   'storage-indisponivel': () => new StorageIndisponivelError(),
@@ -50,7 +50,7 @@ const ERROS_DE_DOMINIO: Record<string, () => Error> = {
   'token-confirmacao-email-invalido': () =>
     new TokenConfirmacaoEmailInvalidoError(),
   'transicao-invalida': () => new TransicaoInvalidaError(),
-  'usuario-ja-existe': () => new UserAlreadyExistsError(),
+  'usuario-ja-existe': () => new UsuarioJaExisteError(),
   'credenciais-invalidas': () => new CredenciaisInvalidasError(),
   'nao-permitido': () => new NotAllowedError(),
   'recurso-nao-encontrado': () => new ResourceNotFoundError('Empresa'),

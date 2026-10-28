@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { VerificadorDeDocumento } from '@domain/fivo/application/ports/verificador-de-documento';
+import { VerificadorDeDocumento } from '@domain/fivo/catalogo/ports/verificador-de-documento';
 
 import { StorageModule } from '../storage/storage.module';
 import { ArquivoService } from './arquivo.service';

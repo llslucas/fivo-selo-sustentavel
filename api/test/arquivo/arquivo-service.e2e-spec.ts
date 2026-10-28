@@ -1,12 +1,11 @@
 import { randomUUID } from 'node:crypto';
-import { writeFile } from 'node:fs/promises';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { ArquivoInvalidoError } from '@domain/fivo/application/errors/arquivo-invalido-error';
-import { StorageIndisponivelError } from '@domain/fivo/application/errors/storage-indisponivel-error';
-import { TipoArquivo } from '@domain/fivo/entities/arquivo';
+import { ArquivoInvalidoError } from '@domain/fivo/shared/errors/arquivo-invalido.error';
+import { StorageIndisponivelError } from '@domain/fivo/shared/errors/storage-indisponivel.error';
+import { TipoArquivo } from '@domain/fivo/shared/entities/arquivo';
 import { ArquivoService } from '@infra/arquivo/arquivo.service';
 import { LocalDiskStorage } from '@infra/storage/local-disk-storage';
 import { cnpjValido } from '@test/factories/cnpj-factory';

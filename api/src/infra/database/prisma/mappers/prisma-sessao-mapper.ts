@@ -1,6 +1,6 @@
 import { Prisma, Sessao as SessaoPrisma } from '@prisma/client';
 
-import { Sessao } from '@domain/fivo/application/ports/sessao-repository';
+import { Sessao } from '@domain/fivo/identidade/ports/sessao-repository';
 
 export class PrismaSessaoMapper {
   static toDomain(raw: SessaoPrisma): Sessao {

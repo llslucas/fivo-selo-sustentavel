@@ -1,4 +1,4 @@
-import { Mailer } from '@domain/fivo/application/ports/mailer';
+import { Mailer } from '@domain/fivo/shared/ports/mailer';
 import { Module } from '@nestjs/common';
 
 import { EmailPendenteService } from './email-pendente.service';

@@ -1,4 +1,4 @@
-import { Storage } from '@domain/fivo/application/ports/storage';
+import { Storage } from '@domain/fivo/shared/ports/storage';
 import { Module } from '@nestjs/common';
 
 import { LocalDiskStorage } from './local-disk-storage';
