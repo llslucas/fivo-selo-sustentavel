@@ -2,7 +2,6 @@ import { randomUUID } from 'node:crypto';
 import { Either, left, right } from '@core/either';
 import { NotAllowedError } from '@core/errors/not-allowed-error';
 import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
-import { Compromisso } from '@domain/fivo/entities/compromisso';
 import { User, UserRole } from '@domain/fivo/entities/user';
 import { Injectable } from '@nestjs/common';
 import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
@@ -12,6 +11,7 @@ import { EmpresaRepository } from '../ports/database/empresa-repository';
 import { UserRepository } from '../ports/database/user-repository';
 import { RegistroAuditoriaRepository } from '../ports/registro-auditoria-repository';
 import { Mailer, TemplateEmail } from '../ports/mailer';
+import { descreverCompromisso } from './campanha-detalhe';
 
 export type RejeitarAlteracaoCampanhaUseCaseResponse = Either<
   | NotAllowedError
@@ -20,21 +20,6 @@ export type RejeitarAlteracaoCampanhaUseCaseResponse = Either<
   | MotivoInsuficienteError,
   void
 >;
-function descreverCompromisso(compromisso: Compromisso) {
-  const { beneficiada, regraDoacao, vigencia } = compromisso;
-  return {
-    beneficiada: { tipo: beneficiada.tipo, id: beneficiada.id },
-    regraDoacao: {
-      tipo: regraDoacao.tipo,
-      valorCentavos: regraDoacao.valor?.centavos ?? null,
-      percentualCentesimos: regraDoacao.percentual?.percentual ?? null,
-    },
-    vigencia: {
-      inicio: vigencia.inicio.toString(),
-      fim: vigencia.fim?.toString() ?? null,
-    },
-  };
-}
 
 @Injectable()
 export class RejeitarAlteracaoCampanhaUseCase {

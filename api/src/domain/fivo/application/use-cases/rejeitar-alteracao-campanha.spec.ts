@@ -192,21 +192,13 @@ describe('RejeitarAlteracaoCampanhaUseCase', () => {
     expect(registro.dados).toEqual({
       compromissoAnterior: {
         beneficiada: { tipo: 'INSTITUICAO', id: INSTITUICAO_ID },
-        regraDoacao: {
-          tipo: 'POR_UNIDADE',
-          valorCentavos: 100,
-          percentualCentesimos: null,
-        },
-        vigencia: { inicio: '2026-10-01', fim: null },
+        regraDoacao: { tipo: 'POR_UNIDADE', valor: '1.00' },
+        vigencia: { inicio: '2026-10-01' },
       },
       compromissoProposto: {
         beneficiada: { tipo: 'INSTITUICAO', id: INSTITUICAO_ID },
-        regraDoacao: {
-          tipo: 'PERCENTUAL',
-          valorCentavos: null,
-          percentualCentesimos: 1000,
-        },
-        vigencia: { inicio: '2026-10-01', fim: null },
+        regraDoacao: { tipo: 'PERCENTUAL', percentual: '10.00' },
+        vigencia: { inicio: '2026-10-01' },
       },
       motivo: MOTIVO_VALIDO,
     });

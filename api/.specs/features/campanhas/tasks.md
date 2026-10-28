@@ -1139,9 +1139,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Existe uma única interface `CampanhaDetalhe`, devolvida por `EditarCampanhaUseCase` e por `ConsultarCampanhaDaEmpresaUseCase`. Um teste da edição confere o detalhe com `toEqual` idêntico ao da consulta para a mesma campanha
-- [ ] `paraDecimal` e o retrato do compromisso têm uma única definição. `ALTERACAO_CAMPANHA_ABERTA`, `_APROVADA` e `_REJEITADA` gravam o mesmo formato
-- [ ] Gate `quick` passa
+- [x] Existe uma única interface `CampanhaDetalhe`, devolvida por `EditarCampanhaUseCase` e por `ConsultarCampanhaDaEmpresaUseCase`. Um teste da edição confere o detalhe com `toEqual` idêntico ao da consulta para a mesma campanha
+- [x] `paraDecimal` e o retrato do compromisso têm uma única definição. `ALTERACAO_CAMPANHA_ABERTA`, `_APROVADA` e `_REJEITADA` gravam o mesmo formato
+- [x] Gate `quick` passa
 
 **Tests**: unit
 **Gate**: quick

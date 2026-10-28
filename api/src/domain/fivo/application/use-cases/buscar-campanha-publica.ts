@@ -5,12 +5,18 @@ import {
   TipoBeneficiada,
 } from '@domain/fivo/entities/beneficiada';
 import { DataCalendario } from '@domain/fivo/entities/data-calendario';
-import { TipoRegraDoacao } from '@domain/fivo/entities/regra-doacao';
 import { Injectable } from '@nestjs/common';
 import { CampanhaRepository } from '../ports/database/campanha-repository';
 import { CausaRepository } from '../ports/database/causa-repository';
 import { EmpresaRepository } from '../ports/database/empresa-repository';
 import { InstituicaoRepository } from '../ports/database/instituicao-repository';
+import {
+  descreverRegra,
+  descreverVigencia,
+  paraDecimal,
+  RegraDoacaoDetalhe,
+  VigenciaDetalhe,
+} from './campanha-detalhe';
 
 export type SituacaoCampanha = 'NAO_INICIADA' | 'EM_ANDAMENTO';
 
@@ -20,9 +26,9 @@ export interface CampanhaPublica {
   temCapa: boolean;
   empresa: string;
   beneficiada: { tipo: TipoBeneficiada; nome: string };
-  regraDoacao: { tipo: TipoRegraDoacao; valor?: string; percentual?: string };
+  regraDoacao: RegraDoacaoDetalhe;
   meta: string | null;
-  vigencia: { inicio: string; fim?: string };
+  vigencia: VigenciaDetalhe;
   situacao: SituacaoCampanha;
 }
 
@@ -37,12 +43,6 @@ export type BuscarCampanhaPublicaUseCaseResponse = Either<
 
 const FORMATO_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function paraDecimal(centesimos: number): string {
-  const inteira = Math.floor(centesimos / 100);
-  const fracao = String(centesimos % 100).padStart(2, '0');
-  return `${inteira}.${fracao}`;
-}
 
 @Injectable()
 export class BuscarCampanhaPublicaUseCase {
@@ -92,20 +92,9 @@ export class BuscarCampanhaPublicaUseCase {
         tipo: beneficiada.tipo,
         nome: await this.nomeDaBeneficiada(beneficiada),
       },
-      regraDoacao: {
-        tipo: regraDoacao.tipo,
-        valor: regraDoacao.valor
-          ? paraDecimal(regraDoacao.valor.centavos)
-          : undefined,
-        percentual: regraDoacao.percentual
-          ? paraDecimal(regraDoacao.percentual.percentual)
-          : undefined,
-      },
+      regraDoacao: descreverRegra(regraDoacao),
       meta: campanha.meta ? paraDecimal(campanha.meta.centavos) : null,
-      vigencia: {
-        inicio: vigencia.inicio.toString(),
-        fim: vigencia.fim?.toString(),
-      },
+      vigencia: descreverVigencia(vigencia),
       situacao: vigencia.naoIniciadaEm(hoje) ? 'NAO_INICIADA' : 'EM_ANDAMENTO',
     };
 

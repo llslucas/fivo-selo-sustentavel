@@ -163,7 +163,7 @@ describe('AprovarAlteracaoCampanhaUseCase', () => {
       compromissoNovo: expect.objectContaining({
         regraDoacao: expect.objectContaining({
           tipo: proposto.regraDoacao.tipo,
-          percentualCentesimos: 1000,
+          percentual: '10.00',
         }) as unknown,
       }) as unknown,
     });

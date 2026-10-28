@@ -23,6 +23,7 @@ import { NomeCampanhaInvalidoError } from '../errors/nome-campanha-invalido.erro
 import { TransicaoInvalidaError } from '../errors/transicao-invalida.error';
 import { AssegurarBeneficiadaDisponivelUseCase } from './assegurar-beneficiada-disponivel';
 import { AssegurarEmpresaAprovadaUseCase } from './assegurar-empresa-aprovada';
+import { ConsultarCampanhaDaEmpresaUseCase } from './consultar-campanha-da-empresa';
 import {
   EditarCampanhaUseCase,
   EditarCampanhaUseCaseRequest,
@@ -85,6 +86,10 @@ describe('EditarCampanhaUseCase', () => {
     await instituicaoRepository.create(instituicao);
 
     montarSut();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   async function guardar(campanha: Campanha): Promise<Campanha> {
@@ -162,6 +167,8 @@ describe('EditarCampanhaUseCase', () => {
 
   describe('draft', () => {
     it('applies only the fields sent and returns the detail with decimal values', async () => {
+      const agora = new Date('2026-10-21T15:00:00Z');
+      jest.useFakeTimers({ now: agora });
       const campanha = await guardar(
         CampanhaFactory.create({ empresaId: empresa.id }),
       );
@@ -191,6 +198,8 @@ describe('EditarCampanhaUseCase', () => {
         submetidaEm: null,
         motivoUltimaRejeicao: null,
         alteracaoPendente: null,
+        criadaEm: agora,
+        atualizadaEm: agora,
       });
 
       const depois = await salva(campanha);
@@ -414,6 +423,33 @@ describe('EditarCampanhaUseCase', () => {
       );
       expectNadaGravado(campanha);
     });
+  });
+
+  it('returns the same detail read model as the company query for the same campaign', async () => {
+    const campanha = await guardar(
+      CampanhaFactory.aprovada({
+        empresaId: empresa.id,
+        capaArquivoId: new UniqueEntityId(),
+      }),
+    );
+
+    const edicao = await sut.execute(
+      pedido(campanha, {
+        descricao: 'Descricao revisada',
+        meta: '250',
+        vigencia: { inicio: '2026-10-01', fim: '2027-03-31' },
+      }),
+    );
+    const consulta = await new ConsultarCampanhaDaEmpresaUseCase(
+      campanhaRepository,
+    ).execute({
+      empresaId: empresa.id.toString(),
+      campanhaId: campanha.id.toString(),
+    });
+
+    expect(edicao.isRight()).toBe(true);
+    expect(consulta.isRight()).toBe(true);
+    expect(edicao.value).toStrictEqual(consulta.value);
   });
 
   it('rejects editing a campaign under review with CampanhaEmAnaliseError', async () => {
