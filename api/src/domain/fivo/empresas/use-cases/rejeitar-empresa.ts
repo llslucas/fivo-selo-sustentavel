@@ -1,0 +1,99 @@
+import { randomUUID } from 'node:crypto';
+import { Either, left, right } from '@core/either';
+import { NotAllowedError } from '@core/errors/not-allowed-error';
+import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
+import {
+  TransicaoInvalidaError,
+  MotivoInsuficienteError,
+  RegistroAuditoriaRepository,
+  Mailer,
+  TemplateEmail,
+} from '@domain/fivo/shared';
+import { User, UserRole, UserRepository } from '@domain/fivo/identidade';
+import { Injectable } from '@nestjs/common';
+import { EmpresaRepository } from '../ports/empresa-repository';
+
+export type RejeitarEmpresaUseCaseResponse = Either<
+  | NotAllowedError
+  | ResourceNotFoundError
+  | TransicaoInvalidaError
+  | MotivoInsuficienteError,
+  void
+>;
+
+@Injectable()
+export class RejeitarEmpresaUseCase {
+  constructor(
+    private readonly empresaRepository: EmpresaRepository,
+    private readonly userRepository: UserRepository,
+    private readonly registroAuditoriaRepository: RegistroAuditoriaRepository,
+    private readonly mailer: Mailer,
+  ) {}
+
+  async execute(
+    empresaId: string,
+    user: User,
+    motivo: string,
+  ): Promise<RejeitarEmpresaUseCaseResponse> {
+    if (user.role !== UserRole.ADMIN) {
+      return left(new NotAllowedError());
+    }
+
+    const empresa = await this.empresaRepository.findById(empresaId);
+
+    if (!empresa) {
+      return left(new ResourceNotFoundError('Empresa não encontrada'));
+    }
+
+    const statusAnterior = empresa.status;
+    const result = empresa.rejeitar(user.id, motivo);
+
+    if (result.isLeft()) {
+      return left(result.value);
+    }
+
+    const aplicada = await this.empresaRepository.salvarTransicao(
+      empresa,
+      statusAnterior,
+    );
+
+    if (!aplicada) {
+      return left(new TransicaoInvalidaError());
+    }
+
+    await this.registroAuditoriaRepository.registrar({
+      id: randomUUID(),
+      tipo: 'EMPRESA_REJEITADA',
+      descricao: `Empresa ${empresa.razaoSocial} rejeitada`,
+      usuarioId: user.id.toString(),
+      entidadeId: empresa.id.toString(),
+      dados: {
+        estadoAnterior: statusAnterior,
+        estadoNovo: empresa.status,
+        motivo,
+      },
+      criadoEm: new Date(),
+    });
+
+    const empresaUser = empresa.usuarioId
+      ? await this.userRepository.findById(empresa.usuarioId.toString())
+      : null;
+
+    if (empresaUser) {
+      try {
+        await this.mailer.enviar({
+          para: empresaUser.email,
+          template: TemplateEmail.CADASTRO_REJEITADO,
+          dados: { motivo },
+        });
+      } catch (error) {
+        console.error(
+          'Falha ao enviar e-mail de rejeição de cadastro de empresa',
+          error,
+        );
+      }
+    }
+
+    return right(undefined);
+  }
+}

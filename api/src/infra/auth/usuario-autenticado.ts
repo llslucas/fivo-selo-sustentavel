@@ -1,6 +1,6 @@
 import type { Request } from 'express';
 
-import { UserRole } from '@domain/fivo/entities/user';
+import { UserRole } from '@domain/fivo/identidade/entities/user';
 
 export interface UsuarioAutenticado {
   id: string;

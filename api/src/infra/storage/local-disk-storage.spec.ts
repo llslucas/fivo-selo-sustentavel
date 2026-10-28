@@ -1,7 +1,7 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { StorageIndisponivelError } from '@domain/fivo/application/errors/storage-indisponivel-error';
+import { StorageIndisponivelError } from '@domain/fivo/shared/errors/storage-indisponivel.error';
 
 import { LocalDiskStorage } from './local-disk-storage';
 

@@ -1,4 +1,4 @@
-import { Hasher } from '@domain/fivo/application/ports/cryptography/hasher';
+import { Hasher } from '@domain/fivo/identidade/ports/hasher';
 import { Injectable } from '@nestjs/common';
 import * as argon2 from 'argon2';
 

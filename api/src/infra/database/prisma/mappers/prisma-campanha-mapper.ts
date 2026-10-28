@@ -12,19 +12,22 @@ import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import {
   AlteracaoCompromisso,
   AlteracaoStatus,
-} from '@domain/fivo/entities/alteracao-compromisso';
-import { Beneficiada } from '@domain/fivo/entities/beneficiada';
-import { Campanha, CampanhaStatus } from '@domain/fivo/entities/campanha';
-import { Compromisso } from '@domain/fivo/entities/compromisso';
-import { DataCalendario } from '@domain/fivo/entities/data-calendario';
-import { DescricaoCampanha } from '@domain/fivo/entities/descricao-campanha';
-import { NomeCampanha } from '@domain/fivo/entities/nome-campanha';
+} from '@domain/fivo/campanhas/entities/alteracao-compromisso';
+import { Beneficiada } from '@domain/fivo/catalogo/entities/beneficiada';
+import {
+  Campanha,
+  CampanhaStatus,
+} from '@domain/fivo/campanhas/entities/campanha';
+import { Compromisso } from '@domain/fivo/campanhas/entities/compromisso';
+import { DataCalendario } from '@domain/fivo/campanhas/entities/data-calendario';
+import { DescricaoCampanha } from '@domain/fivo/campanhas/entities/descricao-campanha';
+import { NomeCampanha } from '@domain/fivo/campanhas/entities/nome-campanha';
 import {
   RegraDoacao,
   TipoRegraDoacao,
-} from '@domain/fivo/entities/regra-doacao';
-import { ValorMonetario } from '@domain/fivo/entities/valor-monetario';
-import { Vigencia } from '@domain/fivo/entities/vigencia';
+} from '@domain/fivo/campanhas/entities/regra-doacao';
+import { ValorMonetario } from '@domain/fivo/campanhas/entities/valor-monetario';
+import { Vigencia } from '@domain/fivo/campanhas/entities/vigencia';
 
 export type CampanhaComAlteracoes = CampanhaPrisma & {
   alteracoes: CampanhaAlteracaoPrisma[];

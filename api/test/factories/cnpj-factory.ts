@@ -1,4 +1,4 @@
-import { Cnpj } from '@domain/fivo/entities/cnpj';
+import { Cnpj } from '@domain/fivo/shared/entities/cnpj';
 
 const PESOS_1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
 const PESOS_2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];

@@ -5,7 +5,7 @@ import {
 } from '@prisma/client';
 
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { Causa, CausaStatus } from '@domain/fivo/entities/causa';
+import { Causa, CausaStatus } from '@domain/fivo/catalogo/entities/causa';
 
 const STATUS_PARA_PRISMA: Record<CausaStatus, CausaStatusPrisma> = {
   [CausaStatus.ATIVA]: CausaStatusPrisma.ATIVA,

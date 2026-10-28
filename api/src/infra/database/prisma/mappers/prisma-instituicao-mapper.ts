@@ -5,12 +5,12 @@ import {
 } from '@prisma/client';
 
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { Cnpj } from '@domain/fivo/entities/cnpj';
-import { DocumentoValidacao } from '@domain/fivo/entities/documento-validacao';
+import { Cnpj } from '@domain/fivo/shared/entities/cnpj';
+import { DocumentoValidacao } from '@domain/fivo/catalogo/entities/documento-validacao';
 import {
   Instituicao,
   InstituicaoStatus,
-} from '@domain/fivo/entities/instituicao';
+} from '@domain/fivo/catalogo/entities/instituicao';
 
 const STATUS_PARA_PRISMA: Record<InstituicaoStatus, InstituicaoStatusPrisma> = {
   [InstituicaoStatus.PENDENTE_APROVACAO]:

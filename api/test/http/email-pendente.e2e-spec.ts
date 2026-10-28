@@ -1,10 +1,10 @@
 import request from 'supertest';
 
-import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
-import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
-import { Mailer, TemplateEmail } from '@domain/fivo/application/ports/mailer';
-import { EmpresaStatus } from '@domain/fivo/entities/empresa';
-import { UserRole } from '@domain/fivo/entities/user';
+import { EmpresaRepository } from '@domain/fivo/empresas/ports/empresa-repository';
+import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
+import { Mailer, TemplateEmail } from '@domain/fivo/shared/ports/mailer';
+import { EmpresaStatus } from '@domain/fivo/empresas/entities/empresa';
+import { UserRole } from '@domain/fivo/identidade/entities/user';
 import { SessionService } from '@infra/auth/session.service';
 import {
   EmailPendenteService,
@@ -13,7 +13,7 @@ import {
 } from '@infra/mail/email-pendente.service';
 import { EmailPendenteWorker } from '@infra/mail/email-pendente.worker';
 import { TransporteEmail } from '@infra/mail/transporte-email';
-import { FakeMailer } from '@test/cryptography/fake-mailer';
+import { FakeMailer } from '@test/doubles/fake-mailer';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { UserFactory } from '@test/factories/user-factory';
 import {

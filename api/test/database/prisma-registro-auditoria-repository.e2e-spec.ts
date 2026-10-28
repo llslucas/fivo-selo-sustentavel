@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
-import { RegistroAuditoriaRepository } from '@domain/fivo/application/ports/registro-auditoria-repository';
-import { PrismaRegistroAuditoriaRepository } from '@infra/database/prisma/prisma-registro-auditoria-repository';
+import { RegistroAuditoriaRepository } from '@domain/fivo/shared/ports/registro-auditoria-repository';
+import { PrismaRegistroAuditoriaRepository } from '@infra/database/prisma/repositories/prisma-registro-auditoria-repository';
 import {
   AppDeTeste,
   criarAppDeTeste,

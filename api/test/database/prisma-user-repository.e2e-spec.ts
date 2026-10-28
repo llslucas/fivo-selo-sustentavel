@@ -1,7 +1,7 @@
-import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
-import { UserAlreadyExistsError } from '@domain/fivo/application/errors/users-already-exists.error';
-import { Senha } from '@domain/fivo/entities/senha';
-import { UserRole } from '@domain/fivo/entities/user';
+import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
+import { UserAlreadyExistsError } from '@domain/fivo/identidade/errors/users-already-exists.error';
+import { Senha } from '@domain/fivo/identidade/entities/senha';
+import { UserRole } from '@domain/fivo/identidade/entities/user';
 import { UserFactory } from '@test/factories/user-factory';
 import {
   AppDeTeste,

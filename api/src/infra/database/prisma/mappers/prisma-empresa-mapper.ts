@@ -5,8 +5,8 @@ import {
 } from '@prisma/client';
 
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { Cnpj } from '@domain/fivo/entities/cnpj';
-import { Empresa, EmpresaStatus } from '@domain/fivo/entities/empresa';
+import { Cnpj } from '@domain/fivo/shared/entities/cnpj';
+import { Empresa, EmpresaStatus } from '@domain/fivo/empresas/entities/empresa';
 
 const STATUS_PARA_PRISMA: Record<EmpresaStatus, EmpresaStatusPrisma> = {
   [EmpresaStatus.PENDENTE_APROVACAO]: EmpresaStatusPrisma.PENDENTE_APROVACAO,

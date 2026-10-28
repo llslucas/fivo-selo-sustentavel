@@ -1,12 +1,12 @@
-import { EmpresaAlreadyExistsError } from '@domain/fivo/application/errors/empresa-already-exists.error';
-import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
-import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
-import { UnitOfWork } from '@domain/fivo/application/ports/unit-of-work';
-import { CriarEmpresaUseCase } from '@domain/fivo/application/use-cases/criar-empresa';
-import { Empresa } from '@domain/fivo/entities/empresa';
+import { EmpresaAlreadyExistsError } from '@domain/fivo/empresas/errors/empresa-already-exists.error';
+import { EmpresaRepository } from '@domain/fivo/empresas/ports/empresa-repository';
+import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
+import { UnitOfWork } from '@domain/fivo/shared/ports/unit-of-work';
+import { CriarEmpresaUseCase } from '@domain/fivo/empresas/use-cases/criar-empresa';
+import { Empresa } from '@domain/fivo/empresas/entities/empresa';
 import { PrismaEmpresaMapper } from '@infra/database/prisma/mappers/prisma-empresa-mapper';
-import { FakeHasher } from '@test/cryptography/fake-hasher';
-import { FakeMailer } from '@test/cryptography/fake-mailer';
+import { FakeHasher } from '@test/doubles/fake-hasher';
+import { FakeMailer } from '@test/doubles/fake-mailer';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import {
   AppDeTeste,

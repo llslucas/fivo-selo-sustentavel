@@ -1,7 +1,7 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { StorageIndisponivelError } from '@domain/fivo/application/errors/storage-indisponivel-error';
-import { Storage } from '@domain/fivo/application/ports/storage';
+import { StorageIndisponivelError } from '@domain/fivo/shared/errors/storage-indisponivel.error';
+import { Storage } from '@domain/fivo/shared/ports/storage';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()

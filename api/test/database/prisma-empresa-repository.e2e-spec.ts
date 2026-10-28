@@ -1,12 +1,12 @@
 import { randomUUID } from 'node:crypto';
 
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { EmpresaAlreadyExistsError } from '@domain/fivo/application/errors/empresa-already-exists.error';
-import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
-import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
-import { Cnpj } from '@domain/fivo/entities/cnpj';
-import { EmpresaStatus } from '@domain/fivo/entities/empresa';
-import { UserRole } from '@domain/fivo/entities/user';
+import { EmpresaAlreadyExistsError } from '@domain/fivo/empresas/errors/empresa-already-exists.error';
+import { EmpresaRepository } from '@domain/fivo/empresas/ports/empresa-repository';
+import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
+import { Cnpj } from '@domain/fivo/shared/entities/cnpj';
+import { EmpresaStatus } from '@domain/fivo/empresas/entities/empresa';
+import { UserRole } from '@domain/fivo/identidade/entities/user';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { UserFactory } from '@test/factories/user-factory';
 import {

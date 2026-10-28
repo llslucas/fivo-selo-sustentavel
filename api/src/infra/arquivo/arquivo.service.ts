@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { Either, left, right } from '@core/either';
-import { ArquivoInvalidoError } from '@domain/fivo/application/errors/arquivo-invalido-error';
-import { Storage } from '@domain/fivo/application/ports/storage';
-import { Arquivo, TipoArquivo } from '@domain/fivo/entities/arquivo';
+import { ArquivoInvalidoError } from '@domain/fivo/shared/errors/arquivo-invalido.error';
+import { Storage } from '@domain/fivo/shared/ports/storage';
+import { Arquivo, TipoArquivo } from '@domain/fivo/shared/entities/arquivo';
 import { Injectable } from '@nestjs/common';
 import { imageSize } from 'image-size';
 
