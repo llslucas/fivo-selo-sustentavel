@@ -230,17 +230,17 @@ A campanha é o objeto central da plataforma: é ela que conecta a empresa, a be
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| CAMP-01 | P1: Criação da campanha — dados, validações e acesso do dono | Tasks | Domínio verificado · infra em Tasks |
-| CAMP-02 | P1: Criação da campanha — regra de doação estruturada | Tasks | Domínio verificado · infra em Tasks |
-| CAMP-03 | P1: Criação da campanha — vínculo com beneficiada | Tasks | Domínio verificado · infra em Tasks |
-| CAMP-04 | P1: Criação da campanha — identificador público permanente | Tasks | Domínio verificado · infra em Tasks |
-| CAMP-05 | P1: Submissão e aprovação — fila e decisões do admin | Tasks | Domínio verificado · infra em Tasks |
-| CAMP-06 | P1: Submissão e aprovação — máquina de estados e auditoria | Tasks | Domínio verificado · infra em Tasks |
-| CAMP-07 | P1: Alteração de campanha aprovada — edição sem nova análise | Tasks | Domínio verificado · infra em Tasks |
-| CAMP-08 | P1: Alteração de campanha aprovada — reanálise de compromisso | Tasks | Domínio verificado · infra em Tasks |
+| CAMP-01 | P1: Criação da campanha — dados, validações e acesso do dono | Tasks | ✅ Verified |
+| CAMP-02 | P1: Criação da campanha — regra de doação estruturada | Tasks | ✅ Verified |
+| CAMP-03 | P1: Criação da campanha — vínculo com beneficiada | Tasks | ✅ Verified |
+| CAMP-04 | P1: Criação da campanha — identificador público permanente | Tasks | ✅ Verified |
+| CAMP-05 | P1: Submissão e aprovação — fila e decisões do admin | Tasks | ✅ Verified |
+| CAMP-06 | P1: Submissão e aprovação — máquina de estados e auditoria | Tasks | ✅ Verified |
+| CAMP-07 | P1: Alteração de campanha aprovada — edição sem nova análise | Tasks | ✅ Verified |
+| CAMP-08 | P1: Alteração de campanha aprovada — reanálise de compromisso | Tasks | ✅ Verified |
 | CAMP-09 | P2: Encerramento de campanha | - | Deferred (rodada posterior) |
 | CAMP-10 | P3: Duplicação de campanha | - | Deferred (rodada posterior) |
-| CAMP-11 | P1: Consulta pública da campanha | Tasks | Domínio verificado · infra em Tasks |
+| CAMP-11 | P1: Consulta pública da campanha | Tasks | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 

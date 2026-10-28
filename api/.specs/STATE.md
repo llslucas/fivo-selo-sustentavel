@@ -178,6 +178,33 @@
 
 ## Handoff
 
+### Handoff — `campanhas` P1 do `api` concluído (2026-10-27)
+
+- **Feature**: `campanhas` (`.specs/features/campanhas/`)
+- **Phase / Task**: Execute concluído; T1–T56 completas.
+  - Domínio (T1–T27 humanas + hardening T41–T53 do agente): gate de handoff PASS na rodada 3 (`validation-dominio.md`).
+  - Infra (T28–T40): feita por 2 workers.
+  - Verificação final: rodada 1 FAIL → T54, T55; rodada 2 FAIL → T56; rodada 3 **PASS** (`validation.md`, diff `397f8bc..65fc3bd`). `validate_state.py` sai com 0.
+  - CAMP-01…08 e CAMP-11 ✅ Verified no `spec.md`.
+- **Gate**: build, tsc e eslint verdes; unit 602/602; e2e 546/546 em 35 suites.
+- **Sensor**:
+  - domínio: 83 mutantes distintos, 80 mortos e 3 equivalentes;
+  - infra: 56 mutantes distintos, 55 mortos e 1 equivalente.
+- **In-progress**: nenhum
+- **Next step**: o usuário decide sobre push e PR da branch. Depois, CAMP-09/CAMP-10 ou o `web` de campanhas.
+- **Follow-ups** (não bloqueiam; detalhes em `validation.md`):
+  - F1: capa órfã quando duas trocas de capa são concorrentes.
+  - F2: os cabeçalhos da capa pública não estão documentados no OpenAPI.
+  - F3: o ramo `NotAllowedError` de `CampanhasController.executar` repassa a mensagem de qualquer `NotAllowedError` futuro.
+  - F5: pôr os ids da sessão depois do spread em `campanhas.controller.ts`, como defesa em profundidade.
+  - F6: `EditarCampanhaUseCase` aceita `capaArquivoId` sem conferir tipo nem dono (domínio, grupo).
+  - F7: o padrão de spread com ids da sessão também aparece em `cadastro-empresa`, `admin-causas` e `cadastro-instituicao`, não verificados.
+  - SP4: a spec não fixa a precedência entre 403, 422 e 503 no PUT da capa.
+  - Itens de domínio do grupo já listados no handoff do gate (JSDoc P13, chave única de compromisso nas auditorias, `mockRestore` em `finally`).
+- **Lições**: L-031…L-034 registradas como candidatas.
+- **Uncommitted files**: none
+- **Branch**: `feat/campanhas-infra` (local, não enviada ao remoto)
+
 ### Handoff — gate de handoff do domínio de `campanhas` (2026-10-27)
 
 - **Feature**: `campanhas` (`.specs/features/campanhas/`)
