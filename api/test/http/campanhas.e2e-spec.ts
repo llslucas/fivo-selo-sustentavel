@@ -1,3 +1,5 @@
+import { CampanhaRepository } from '@domain/fivo/application/ports/database/campanha-repository';
+import { Storage } from '@domain/fivo/application/ports/storage';
 import { Causa, CausaStatus } from '@domain/fivo/entities/causa';
 import { EmpresaStatus } from '@domain/fivo/entities/empresa';
 import {
@@ -5,11 +7,17 @@ import {
   InstituicaoStatus,
 } from '@domain/fivo/entities/instituicao';
 import { UserRole } from '@domain/fivo/entities/user';
+import { FakeStorage } from '@test/cryptography/fake-storage';
 import {
+  CINCO_MB,
   CenarioCampanhas,
   EmpresaDeTeste,
+  SVG,
   corpoCompleto,
   diaRelativo,
+  jpegBuffer,
+  pngBuffer,
+  pngComTamanho,
 } from '@test/helpers/campanhas-e2e';
 import {
   AppDeTeste,
@@ -50,6 +58,7 @@ describe('Campanhas da empresa (e2e)', () => {
   let cenario: CenarioCampanhas;
   let dona: EmpresaDeTeste;
   let catalogo: Catalogo;
+  const storage = new FakeStorage();
 
   function comoDona<T extends Parameters<typeof comCookieDeSessao>[0]>(
     requisicao: T,
@@ -62,12 +71,17 @@ describe('Campanhas da empresa (e2e)', () => {
   }
 
   beforeAll(async () => {
-    contexto = await criarAppDeTeste();
+    contexto = await criarAppDeTeste({
+      configurar: (construtor) =>
+        construtor.overrideProvider(Storage).useValue(storage),
+    });
     cenario = new CenarioCampanhas(contexto);
   });
 
   beforeEach(async () => {
     await limparBanco(contexto.prisma);
+    storage.arquivos.clear();
+    storage.resetFailure();
     dona = await cenario.criarEmpresa();
     catalogo = {
       instituicao: await cenario.criarInstituicao(),
@@ -1034,6 +1048,284 @@ describe('Campanhas da empresa (e2e)', () => {
       expect(anonima.status).toBe(401);
       expect(admin.status).toBe(403);
       expect(await linha(id)).toEqual(antes);
+    });
+  });
+
+  describe('PUT /campanhas/:id/capa', () => {
+    const MENSAGEM_LIMITE =
+      'Arquivo inválido: tamanho excede o limite de 5 MB.';
+
+    function enviarCapa(
+      id: string,
+      buffer: Buffer,
+      arquivo = 'capa.png',
+      token = dona.token,
+    ) {
+      return comCookieDeSessao(
+        cenario
+          .api()
+          .put(`/campanhas/${id}/capa`)
+          .attach('capa', buffer, arquivo),
+        token,
+      );
+    }
+
+    async function capaDe(id: string): Promise<string | null> {
+      const linha = await contexto.prisma.campanha.findUniqueOrThrow({
+        where: { id },
+      });
+      return linha.capaArquivoId;
+    }
+
+    async function arquivosGravados() {
+      return contexto.prisma.arquivo.findMany({
+        where: { tipo: 'IMAGEM_CAMPANHA' },
+      });
+    }
+
+    function objetosNoStorage(): number {
+      return storage.arquivos.size;
+    }
+
+    it.each([
+      ['PNG', 'capa.png', () => pngBuffer(), 'image/png'],
+      ['JPEG', 'capa.jpg', () => jpegBuffer(), 'image/jpeg'],
+    ])(
+      '%s → 204, capa gravada e vinculada à campanha',
+      async (_formato, arquivo, gerar, mime) => {
+        const { id } = await cenario.criarCampanha(dona.token, {
+          nome: 'Café',
+        });
+        const buffer = gerar();
+
+        const resposta = await enviarCapa(id, buffer, arquivo);
+
+        expect(resposta.status).toBe(204);
+        const [registro] = await arquivosGravados();
+        expect(registro).toMatchObject({ mime, bytes: buffer.length });
+        expect(await capaDe(id)).toBe(registro.id);
+        expect(storage.arquivos.get(registro.chaveStorage)?.buffer).toEqual(
+          buffer,
+        );
+        const detalhe = await comoDona(cenario.api().get(`/campanhas/${id}`));
+        expect(detalhe.body).toMatchObject({ capaArquivoId: registro.id });
+      },
+    );
+
+    it('capa de exatamente 5 MB → 204', async () => {
+      const { id } = await cenario.criarCampanha(dona.token, { nome: 'Café' });
+
+      const resposta = await enviarCapa(id, pngComTamanho(CINCO_MB));
+
+      expect(resposta.status).toBe(204);
+      const [registro] = await arquivosGravados();
+      expect(registro.bytes).toBe(CINCO_MB);
+      expect(await capaDe(id)).toBe(registro.id);
+    });
+
+    it('capa de 5 MB + 1 byte → 422 com o limite, nada gravado', async () => {
+      const { id } = await cenario.criarCampanha(dona.token, { nome: 'Café' });
+
+      const resposta = await enviarCapa(id, pngComTamanho(CINCO_MB + 1));
+
+      expect(resposta.status).toBe(422);
+      expect(resposta.body).toEqual({
+        statusCode: 422,
+        message: MENSAGEM_LIMITE,
+      });
+      expect(await capaDe(id)).toBeNull();
+      expect(await arquivosGravados()).toHaveLength(0);
+      expect(objetosNoStorage()).toBe(0);
+    });
+
+    it.each([
+      ['SVG', 'capa.svg', () => Buffer.from(SVG, 'utf-8'), 'image/svg+xml'],
+      [
+        'PDF chamado .png',
+        'capa.png',
+        () => Buffer.concat([Buffer.from('%PDF-1.7\n'), Buffer.alloc(256)]),
+        'application/pdf',
+      ],
+    ])(
+      '%s → 422 identificado pelo conteúdo, nada gravado',
+      async (_formato, arquivo, gerar, mime) => {
+        const { id } = await cenario.criarCampanha(dona.token, {
+          nome: 'Café',
+        });
+
+        const resposta = await enviarCapa(id, gerar(), arquivo);
+
+        expect(resposta.status).toBe(422);
+        expect(resposta.body).toEqual({
+          statusCode: 422,
+          message: `Arquivo inválido para IMAGEM_CAMPANHA: formato ${mime} fora da lista aceita. Formatos aceitos: image/png, image/jpeg`,
+        });
+        expect(await capaDe(id)).toBeNull();
+        expect(await arquivosGravados()).toHaveLength(0);
+        expect(objetosNoStorage()).toBe(0);
+      },
+    );
+
+    it('sem o arquivo → 422, nada gravado', async () => {
+      const { id } = await cenario.criarCampanha(dona.token, { nome: 'Café' });
+
+      const resposta = await comoDona(
+        cenario.api().put(`/campanhas/${id}/capa`).field('outro', 'x'),
+      );
+
+      expect(resposta.status).toBe(422);
+      expect(resposta.body).toEqual({
+        statusCode: 422,
+        message: 'Campo obrigatório',
+        errors: [{ campo: 'capa', mensagem: 'Campo obrigatório' }],
+      });
+      expect(await capaDe(id)).toBeNull();
+    });
+
+    it('storage fora do ar → 503 "Storage indisponível no momento." e a campanha mantém a capa anterior', async () => {
+      const { id } = await cenario.criarCampanha(dona.token, { nome: 'Café' });
+      await enviarCapa(id, pngBuffer());
+      const anterior = await capaDe(id);
+      storage.forceFailure();
+
+      const resposta = await enviarCapa(id, jpegBuffer(), 'nova.jpg');
+
+      expect(resposta.status).toBe(503);
+      expect(resposta.body).toEqual({
+        statusCode: 503,
+        message: 'Storage indisponível no momento.',
+      });
+      expect(await capaDe(id)).toBe(anterior);
+      expect((await arquivosGravados()).map(({ id }) => id)).toEqual([
+        anterior,
+      ]);
+    });
+
+    it('troca de capa → a anterior sai do banco e do storage', async () => {
+      const { id } = await cenario.criarCampanha(dona.token, { nome: 'Café' });
+      await enviarCapa(id, pngBuffer());
+      const anterior = await contexto.prisma.arquivo.findUniqueOrThrow({
+        where: { id: (await capaDe(id)) as string },
+      });
+
+      const resposta = await enviarCapa(id, jpegBuffer(), 'nova.jpg');
+
+      expect(resposta.status).toBe(204);
+      const atual = await capaDe(id);
+      expect(atual).not.toBe(anterior.id);
+      expect((await arquivosGravados()).map(({ id }) => id)).toEqual([atual]);
+      expect(storage.arquivos.has(anterior.chaveStorage)).toBe(false);
+      expect(objetosNoStorage()).toBe(1);
+    });
+
+    it('APROVADA → 204, capa aplicada na hora sem alteração pendente', async () => {
+      const { id } = await cenario.criarCampanha(
+        dona.token,
+        corpoCompleto(catalogo.instituicao),
+      );
+      await cenario.forcarEstado(id, 'APROVADA');
+
+      const resposta = await enviarCapa(id, pngBuffer());
+
+      expect(resposta.status).toBe(204);
+      const [registro] = await arquivosGravados();
+      expect(await capaDe(id)).toBe(registro.id);
+      expect(await contexto.prisma.campanhaAlteracao.count()).toBe(0);
+    });
+
+    it('EM_ANALISE → 409 e a capa nova é removida, a anterior fica', async () => {
+      const { id } = await cenario.criarCampanha(
+        dona.token,
+        corpoCompleto(catalogo.instituicao),
+      );
+      await enviarCapa(id, pngBuffer());
+      const anterior = await capaDe(id);
+      await cenario.forcarEstado(id, 'EM_ANALISE');
+
+      const resposta = await enviarCapa(id, jpegBuffer(), 'nova.jpg');
+
+      expect(resposta.status).toBe(409);
+      expect(resposta.body).toEqual({
+        statusCode: 409,
+        message: 'Campanha em análise não pode ser editada',
+      });
+      expect(await capaDe(id)).toBe(anterior);
+      expect((await arquivosGravados()).map(({ id }) => id)).toEqual([
+        anterior,
+      ]);
+      expect(objetosNoStorage()).toBe(1);
+    });
+
+    it('falha no salvar (versão concorrente) → 409 e a capa nova é removida', async () => {
+      const { id } = await cenario.criarCampanha(dona.token, { nome: 'Café' });
+      const salvar = jest
+        .spyOn(contexto.app.get(CampanhaRepository), 'salvar')
+        .mockResolvedValueOnce(false);
+
+      try {
+        const resposta = await enviarCapa(id, pngBuffer());
+
+        expect(resposta.status).toBe(409);
+        expect(resposta.body).toEqual({
+          statusCode: 409,
+          message: 'Operação não permitida para o estado atual',
+        });
+      } finally {
+        salvar.mockRestore();
+      }
+      expect(await capaDe(id)).toBeNull();
+      expect(await arquivosGravados()).toHaveLength(0);
+      expect(objetosNoStorage()).toBe(0);
+    });
+
+    it('campanha de outra empresa → 404, nada gravado', async () => {
+      const outra = await cenario.criarEmpresa();
+      const { id } = await cenario.criarCampanha(outra.token, {
+        nome: 'Campanha alheia',
+      });
+
+      const resposta = await enviarCapa(id, pngBuffer());
+
+      expect(resposta.status).toBe(404);
+      expect(resposta.body).toEqual(NAO_ENCONTRADA);
+      expect(await capaDe(id)).toBeNull();
+      expect(await arquivosGravados()).toHaveLength(0);
+      expect(objetosNoStorage()).toBe(0);
+    });
+
+    it('empresa suspensa → 403 "Cadastro ainda não aprovado", nada gravado', async () => {
+      const { id } = await cenario.criarCampanha(dona.token, { nome: 'Café' });
+      await cenario.alterarStatusDaEmpresa(
+        dona.empresa,
+        EmpresaStatus.SUSPENSA,
+      );
+
+      const resposta = await enviarCapa(id, pngBuffer());
+
+      expect(resposta.status).toBe(403);
+      expect(resposta.body).toEqual({
+        statusCode: 403,
+        message: 'Cadastro ainda não aprovado',
+      });
+      expect(await capaDe(id)).toBeNull();
+      expect(await arquivosGravados()).toHaveLength(0);
+      expect(objetosNoStorage()).toBe(0);
+    });
+
+    it('sem sessão → 401; ADMIN → 403; nada gravado', async () => {
+      const { id } = await cenario.criarCampanha(dona.token, { nome: 'Café' });
+      const tokenAdmin = await cenario.sessaoComPapel(UserRole.ADMIN);
+
+      const anonima = await cenario
+        .api()
+        .put(`/campanhas/${id}/capa`)
+        .attach('capa', pngBuffer(), 'capa.png');
+      const admin = await enviarCapa(id, pngBuffer(), 'capa.png', tokenAdmin);
+
+      expect(anonima.status).toBe(401);
+      expect(admin.status).toBe(403);
+      expect(await capaDe(id)).toBeNull();
+      expect(await arquivosGravados()).toHaveLength(0);
     });
   });
 });

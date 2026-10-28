@@ -2609,6 +2609,116 @@
         ]
       }
     },
+    "/campanhas/{id}/capa": {
+      "put": {
+        "operationId": "CampanhasController_trocarCapa",
+        "parameters": [
+          {
+            "description": "Id interno da campanha",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "capa": {
+                    "description": "PNG ou JPEG de até 5 MB, identificado pelo conteúdo",
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "capa"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Capa gravada"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Sessão ausente, inválida ou expirada"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Acesso negado"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Campanha não encontrada (inclusive de outra empresa)"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Campanha em análise ou edição concorrente"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Capa ausente, fora de PNG/JPEG ou acima de 5 MB"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Storage indisponível no momento."
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Envia ou troca a imagem de capa (aplicada na hora, inclusive em campanha aprovada)",
+        "tags": [
+          "campanhas"
+        ]
+      }
+    },
     "/causas": {
       "get": {
         "operationId": "CausasController_listar",

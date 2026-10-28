@@ -112,11 +112,11 @@ describe('Paridade rotas registradas ↔ documento OpenAPI (e2e)', () => {
     await contexto.encerrar();
   });
 
-  it('as 30 rotas registradas são exatamente as 30 operações documentadas', () => {
+  it('as 31 rotas registradas são exatamente as 31 operações documentadas', () => {
     const registradas = rotas.map((rota) => rota.chave).sort();
     const documentadas = [...operacoes.keys()].sort();
 
-    expect(registradas).toHaveLength(30);
+    expect(registradas).toHaveLength(31);
     expect(documentadas).toEqual(registradas);
   });
 

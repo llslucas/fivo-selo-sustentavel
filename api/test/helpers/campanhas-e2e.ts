@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
+import jpeg from 'jpeg-js';
+import { PNG } from 'pngjs';
 import request from 'supertest';
 
 import { CausaRepository } from '@domain/fivo/application/ports/database/causa-repository';
@@ -31,6 +33,28 @@ export function diaRelativo(dias: number): string {
   data.setUTCDate(data.getUTCDate() + dias);
   return data.toISOString().slice(0, 10);
 }
+
+export const CINCO_MB = 5 * 1024 * 1024;
+
+export function pngBuffer(largura = 100, altura = 100): Buffer {
+  const png = new PNG({ width: largura, height: altura });
+  png.data.fill(200);
+  return PNG.sync.write(png);
+}
+
+/** PNG pequeno completado com zeros até `tamanho` bytes. */
+export function pngComTamanho(tamanho: number): Buffer {
+  const png = pngBuffer();
+  return Buffer.concat([png, Buffer.alloc(tamanho - png.length)]);
+}
+
+export function jpegBuffer(largura = 100, altura = 80): Buffer {
+  const dados = Buffer.alloc(largura * altura * 4, 120);
+  return jpeg.encode({ data: dados, width: largura, height: altura }, 80).data;
+}
+
+export const SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>';
 
 export interface EmpresaDeTeste {
   usuario: User;

@@ -3,13 +3,21 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  HttpCode,
+  Logger,
   NotFoundException,
   Param,
   Patch,
   Post,
+  Put,
+  UnprocessableEntityException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -22,7 +30,9 @@ import { EmpresaRepository } from '@domain/fivo/application/ports/database/empre
 import { ConsultarCampanhaDaEmpresaUseCase } from '@domain/fivo/application/use-cases/consultar-campanha-da-empresa';
 import { CriarCampanhaUseCase } from '@domain/fivo/application/use-cases/criar-campanha';
 import { EditarCampanhaUseCase } from '@domain/fivo/application/use-cases/editar-campanha';
+import { TipoArquivo } from '@domain/fivo/entities/arquivo';
 import { UserRole } from '@domain/fivo/entities/user';
+import { ArquivoService } from '@infra/arquivo/arquivo.service';
 import { CurrentUser } from '@infra/auth/decorators/current-user.decorator';
 import { Roles } from '@infra/auth/decorators/roles.decorator';
 import type { UsuarioAutenticado } from '@infra/auth/usuario-autenticado';
@@ -33,6 +43,28 @@ import { desembrulhar } from '../desembrulhar';
 import { ApiErro, ApiProtegida } from '../openapi/decorators';
 import { esquemaOpenApi } from '../openapi/esquema-openapi';
 import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
+
+interface CapaEnviada {
+  originalname: string;
+  buffer: Buffer;
+}
+
+// O busboy corta o arquivo ao *atingir* `fileSize`; o +1 mantém aceita a capa
+// de exatamente 5 MB, e o limite em si é do domínio (`Arquivo.criar`). Acima
+// dele o `DomainExceptionFilter` responde 422 (Criação AC13).
+const LIMITE_CAPA_BYTES = 5 * 1024 * 1024 + 1;
+
+const CORPO_CAPA = {
+  type: 'object',
+  required: ['capa'],
+  properties: {
+    capa: {
+      type: 'string',
+      format: 'binary',
+      description: 'PNG ou JPEG de até 5 MB, identificado pelo conteúdo',
+    },
+  },
+};
 
 const CORPO_CRIAR_CAMPANHA = esquemaOpenApi(
   'CriarCampanha',
@@ -143,11 +175,14 @@ const RESPOSTA_CAMPANHA = {
 @Roles(UserRole.EMPRESA)
 @Controller('campanhas')
 export class CampanhasController {
+  private readonly logger = new Logger(CampanhasController.name);
+
   constructor(
     private readonly empresaRepository: EmpresaRepository,
     private readonly criarCampanha: CriarCampanhaUseCase,
     private readonly consultarCampanha: ConsultarCampanhaDaEmpresaUseCase,
     private readonly editarCampanha: EditarCampanhaUseCase,
+    private readonly arquivoService: ArquivoService,
   ) {}
 
   @ApiOperation({ summary: 'Cria uma campanha em rascunho (empresa aprovada)' })
@@ -243,6 +278,82 @@ export class CampanhasController {
         ...dados,
       }),
     );
+  }
+
+  @ApiOperation({
+    summary:
+      'Envia ou troca a imagem de capa (aplicada na hora, inclusive em campanha aprovada)',
+  })
+  @ApiParam(PARAMETRO_ID)
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ schema: CORPO_CAPA })
+  @ApiResponse({ status: 204, description: 'Capa gravada' })
+  @ApiErro(404, 'Campanha não encontrada (inclusive de outra empresa)')
+  @ApiErro(409, 'Campanha em análise ou edição concorrente')
+  @ApiErro(422, 'Capa ausente, fora de PNG/JPEG ou acima de 5 MB')
+  @ApiErro(503, 'Storage indisponível no momento.')
+  @Put(':id/capa')
+  @HttpCode(204)
+  @UseInterceptors(
+    FileInterceptor('capa', { limits: { fileSize: LIMITE_CAPA_BYTES } }),
+  )
+  async trocarCapa(
+    @Param('id') id: string,
+    @CurrentUser() usuario: UsuarioAutenticado,
+    @UploadedFile() capa?: CapaEnviada,
+  ): Promise<void> {
+    const empresaId = await this.idDaEmpresaDe(usuario);
+    const { capaArquivoId: capaAnterior } = this.executar(
+      await this.consultarCampanha.execute({ empresaId, campanhaId: id }),
+    );
+
+    if (!capa) {
+      throw new UnprocessableEntityException({
+        statusCode: 422,
+        message: 'Campo obrigatório',
+        errors: [{ campo: 'capa', mensagem: 'Campo obrigatório' }],
+      });
+    }
+
+    // Storage fora do ar sobe `StorageIndisponivelError` (503) antes de
+    // qualquer gravação: a campanha fica como estava (Criação AC14).
+    const { id: novaCapa } = desembrulhar(
+      await this.arquivoService.uploadImagem({
+        tipo: TipoArquivo.IMAGEM_CAMPANHA,
+        nomeOriginal: capa.originalname,
+        buffer: capa.buffer,
+      }),
+    );
+
+    try {
+      this.executar(
+        await this.editarCampanha.execute({
+          empresaId,
+          usuarioId: usuario.id,
+          campanhaId: id,
+          capaArquivoId: novaCapa,
+        }),
+      );
+    } catch (erro) {
+      // A campanha não aceitou a capa nova: ela não pode ficar órfã.
+      await this.descartar(novaCapa);
+      throw erro;
+    }
+
+    // Só depois do `salvar`, quando nada mais referencia a capa anterior.
+    if (capaAnterior) {
+      await this.descartar(capaAnterior);
+    }
+  }
+
+  private async descartar(arquivoId: string): Promise<void> {
+    try {
+      await this.arquivoService.remover(arquivoId);
+    } catch (erro) {
+      this.logger.warn(
+        `Falha ao descartar a capa órfã ${arquivoId}: ${String(erro)}`,
+      );
+    }
   }
 
   private async idDaEmpresaDe(usuario: UsuarioAutenticado): Promise<string> {

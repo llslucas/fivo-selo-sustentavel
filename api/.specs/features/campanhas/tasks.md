@@ -1448,10 +1448,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] Limite do multer `5 * 1024 * 1024 + 1`; e2e com 5 MB exatos aceito e 5 MB + 1 byte → 422
-- [ ] e2e: SVG → 422; storage fora do ar (fake) → 503 "Storage indisponível no momento." e campanha sem capa nova
-- [ ] Troca de capa remove o arquivo antigo; falha no `salvar` remove o novo
-- [ ] Gate `full` passa
+- [x] Limite do multer `5 * 1024 * 1024 + 1`; e2e com 5 MB exatos aceito e 5 MB + 1 byte → 422
+- [x] e2e: SVG → 422; storage fora do ar (fake) → 503 "Storage indisponível no momento." e campanha sem capa nova
+- [x] Troca de capa remove o arquivo antigo; falha no `salvar` remove o novo
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
