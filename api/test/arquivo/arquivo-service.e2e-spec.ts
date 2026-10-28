@@ -9,6 +9,7 @@ import { StorageIndisponivelError } from '@domain/fivo/application/errors/storag
 import { TipoArquivo } from '@domain/fivo/entities/arquivo';
 import { ArquivoService } from '@infra/arquivo/arquivo.service';
 import { LocalDiskStorage } from '@infra/storage/local-disk-storage';
+import { cnpjValido } from '@test/factories/cnpj-factory';
 import {
   AppDeTeste,
   criarAppDeTeste,
@@ -40,6 +41,13 @@ function jpegBuffer(largura: number, altura: number): Buffer {
 }
 
 const DEZ_MB = 10 * 1024 * 1024;
+const CINCO_MB = 5 * 1024 * 1024;
+
+/** PNG pequeno completado com zeros até `tamanho` bytes. */
+function pngComTamanho(tamanho: number): Buffer {
+  const png = pngBuffer(100, 100);
+  return Buffer.concat([png, Buffer.alloc(tamanho - png.length)]);
+}
 
 /** PDF mínimo (`%PDF-`) completado com zeros até `tamanho` bytes. */
 function pdfBuffer(tamanho = 1024): Buffer {
@@ -374,5 +382,183 @@ describe('ArquivoService (e2e)', () => {
     ).rejects.toBeInstanceOf(StorageIndisponivelError);
 
     expect(await contexto.prisma.arquivo.count()).toBe(0);
+  });
+
+  describe('capa de campanha (IMAGEM_CAMPANHA)', () => {
+    it.each([
+      ['PNG', 'capa.png', () => pngBuffer(100, 100), 'image/png'],
+      ['JPEG', 'capa.jpg', () => jpegBuffer(100, 80), 'image/jpeg'],
+    ])(
+      '%s é aceito sem dimensão mínima e gravado como IMAGEM_CAMPANHA',
+      async (_formato, nomeOriginal, gerar, mime) => {
+        const buffer = gerar();
+
+        const resultado = await service.uploadImagem({
+          tipo: TipoArquivo.IMAGEM_CAMPANHA,
+          nomeOriginal,
+          buffer,
+        });
+
+        if (resultado.isLeft()) throw new Error(resultado.value.message);
+
+        const linha = await contexto.prisma.arquivo.findUnique({
+          where: { id: resultado.value.id },
+        });
+        expect(linha?.tipo).toBe('IMAGEM_CAMPANHA');
+        expect(linha?.mime).toBe(mime);
+        expect(linha?.bytes).toBe(buffer.length);
+
+        const lido = await service.lerBytes(resultado.value.id);
+        expect(lido?.buffer.equals(buffer)).toBe(true);
+      },
+    );
+
+    it.each([
+      [
+        'SVG',
+        'capa.svg',
+        () => Buffer.from(SVG_VALIDO, 'utf-8'),
+        'image/svg+xml',
+      ],
+      ['PDF', 'capa.pdf', () => pdfBuffer(), 'application/pdf'],
+    ])(
+      '%s é rejeitado com ArquivoInvalidoError (422), sem linha nem objeto gravados',
+      async (_formato, nomeOriginal, gerar, mime) => {
+        const resultado = await service.uploadImagem({
+          tipo: TipoArquivo.IMAGEM_CAMPANHA,
+          nomeOriginal,
+          buffer: gerar(),
+        });
+
+        if (!resultado.isLeft()) throw new Error('esperava Left');
+        expect(resultado.value).toBeInstanceOf(ArquivoInvalidoError);
+        expect(resultado.value.status).toBe(422);
+        expect(resultado.value.message).toBe(
+          `Arquivo inválido para IMAGEM_CAMPANHA: formato ${mime} fora da lista aceita. Formatos aceitos: image/png, image/jpeg`,
+        );
+        expect(await contexto.prisma.arquivo.count()).toBe(0);
+      },
+    );
+
+    it('capa com exatamente 5 MB é aceita', async () => {
+      const resultado = await service.uploadImagem({
+        tipo: TipoArquivo.IMAGEM_CAMPANHA,
+        nomeOriginal: 'capa-limite.png',
+        buffer: pngComTamanho(CINCO_MB),
+      });
+
+      if (resultado.isLeft()) throw new Error(resultado.value.message);
+
+      const linha = await contexto.prisma.arquivo.findUnique({
+        where: { id: resultado.value.id },
+      });
+      expect(linha?.bytes).toBe(CINCO_MB);
+    });
+
+    it('capa com 5 MB + 1 byte é rejeitada com a mensagem do limite de 5 MB', async () => {
+      const resultado = await service.uploadImagem({
+        tipo: TipoArquivo.IMAGEM_CAMPANHA,
+        nomeOriginal: 'capa-grande.png',
+        buffer: pngComTamanho(CINCO_MB + 1),
+      });
+
+      if (!resultado.isLeft()) throw new Error('esperava Left');
+      expect(resultado.value).toBeInstanceOf(ArquivoInvalidoError);
+      expect(resultado.value.status).toBe(422);
+      expect(resultado.value.message).toBe(
+        `Arquivo inválido: tamanho excede o limite de 5 MB (${CINCO_MB + 1} bytes).`,
+      );
+      expect(await contexto.prisma.arquivo.count()).toBe(0);
+    });
+
+    describe('buscarAcesso', () => {
+      /** Empresa com usuário dono e uma campanha cuja capa é `capaId`. */
+      async function campanhaComCapa(
+        email: string,
+        sequenciaCnpj: number,
+        capaId: string,
+      ): Promise<string> {
+        const usuarioId = randomUUID();
+        const empresaId = randomUUID();
+        const agora = new Date();
+
+        await contexto.prisma.usuario.create({
+          data: {
+            id: usuarioId,
+            nome: 'Dona da empresa',
+            email,
+            senhaHash: 'hash',
+            role: 'EMPRESA',
+            criadoEm: agora,
+          },
+        });
+        await contexto.prisma.empresa.create({
+          data: {
+            id: empresaId,
+            usuarioId,
+            razaoSocial: 'Empresa Teste LTDA',
+            nomeFantasia: 'Empresa Teste',
+            cnpj: cnpjValido(sequenciaCnpj).valor,
+            telefone: '11999999999',
+            cep: '12345678',
+            logradouro: 'Rua Teste',
+            numero: '123',
+            bairro: 'Centro',
+            cidade: 'São Paulo',
+            uf: 'SP',
+            site: 'https://empresa.com.br',
+            contato: 'Maria',
+            status: 'APROVADA',
+            criadoEm: agora,
+          },
+        });
+        await contexto.prisma.campanha.create({
+          data: {
+            id: randomUUID(),
+            idPublico: randomUUID(),
+            empresaId,
+            nome: 'Campanha com capa',
+            capaArquivoId: capaId,
+            status: 'RASCUNHO',
+            criadoEm: agora,
+          },
+        });
+
+        return usuarioId;
+      }
+
+      async function enviarCapa(): Promise<string> {
+        const resultado = await service.uploadImagem({
+          tipo: TipoArquivo.IMAGEM_CAMPANHA,
+          nomeOriginal: 'capa.png',
+          buffer: pngBuffer(100, 100),
+        });
+        if (resultado.isLeft()) throw new Error(resultado.value.message);
+        return resultado.value.id;
+      }
+
+      it('devolve o usuário dono da empresa da campanha que referencia a capa, e não o de outra empresa', async () => {
+        const capaDaA = await enviarCapa();
+        const capaDaB = await enviarCapa();
+        const donoA = await campanhaComCapa('a@empresa.com.br', 1, capaDaA);
+        const donoB = await campanhaComCapa('b@empresa.com.br', 2, capaDaB);
+
+        expect(await service.buscarAcesso(capaDaA)).toEqual({
+          donoUsuarioId: donoA,
+        });
+        expect(await service.buscarAcesso(capaDaB)).toEqual({
+          donoUsuarioId: donoB,
+        });
+        expect(donoA).not.toBe(donoB);
+      });
+
+      it('capa sem campanha não tem dono: só o ADMIN acessa', async () => {
+        const capa = await enviarCapa();
+
+        expect(await service.buscarAcesso(capa)).toEqual({
+          donoUsuarioId: null,
+        });
+      });
+    });
   });
 });

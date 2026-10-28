@@ -1360,10 +1360,10 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `uploadImagem({ tipo: IMAGEM_CAMPANHA, ... })` grava PNG e JPEG; SVG e PDF → `ArquivoInvalidoError`
-- [ ] `buscarAcesso` devolve o usuário dono da empresa da campanha que referencia a capa
-- [ ] e2e em `test/arquivo/` cobre os formatos e dono x não-dono
-- [ ] Gate `full` passa
+- [x] `uploadImagem({ tipo: IMAGEM_CAMPANHA, ... })` grava PNG e JPEG; SVG e PDF → `ArquivoInvalidoError`
+- [x] `buscarAcesso` devolve o usuário dono da empresa da campanha que referencia a capa
+- [x] e2e em `test/arquivo/` cobre os formatos e dono x não-dono
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
