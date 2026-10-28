@@ -263,6 +263,8 @@ describe('EditarCampanhaUseCase', () => {
 
   describe('rejected campaign', () => {
     it('goes back to draft, keeps the rejection reason and audits CAMPANHA_REABERTA', async () => {
+      const agora = new Date('2026-10-21T15:00:00Z');
+      jest.useFakeTimers({ now: agora });
       const campanha = await guardar(
         CampanhaFactory.completa({
           empresaId: empresa.id,
@@ -286,6 +288,7 @@ describe('EditarCampanhaUseCase', () => {
       expect(registro.tipo).toBe('CAMPANHA_REABERTA');
       expect(registro.usuarioId).toBe(usuarioId);
       expect(registro.entidadeId).toBe(campanha.id.toString());
+      expect(registro.criadoEm).toEqual(agora);
       expect(registro.dados).toEqual({
         estadoAnterior: CampanhaStatus.REJEITADA,
         estadoNovo: CampanhaStatus.RASCUNHO,
@@ -313,6 +316,8 @@ describe('EditarCampanhaUseCase', () => {
     });
 
     it('opens a pending change for the commitment, keeps the approved values and audits it', async () => {
+      const agora = new Date('2026-10-21T15:00:00Z');
+      jest.useFakeTimers({ now: agora });
       const campanha = await guardar(
         CampanhaFactory.aprovada({ empresaId: empresa.id }),
       );
@@ -347,13 +352,24 @@ describe('EditarCampanhaUseCase', () => {
       const [registro] = registroAuditoriaRepository.items;
       expect(registro.tipo).toBe('ALTERACAO_CAMPANHA_ABERTA');
       expect(registro.usuarioId).toBe(usuarioId);
+      expect(registro.entidadeId).toBe(campanha.id.toString());
+      expect(registro.criadoEm).toEqual(agora);
+      // Só a regra muda; beneficiada e vigência do proposto vêm do aprovado.
+      const beneficiadaAprovada = {
+        tipo: 'INSTITUICAO',
+        id: campanha.beneficiada!.id,
+      };
       expect(registro.dados).toEqual({
-        compromissoAnterior: expect.objectContaining({
+        compromissoAnterior: {
+          beneficiada: beneficiadaAprovada,
           regraDoacao: { tipo: TipoRegraDoacao.POR_UNIDADE, valor: '1.00' },
-        }) as unknown,
-        compromissoProposto: expect.objectContaining({
+          vigencia: { inicio: '2026-10-01' },
+        },
+        compromissoProposto: {
+          beneficiada: beneficiadaAprovada,
           regraDoacao: { tipo: TipoRegraDoacao.POR_UNIDADE, valor: '2.50' },
-        }) as unknown,
+          vigencia: { inicio: '2026-10-01' },
+        },
       });
     });
 

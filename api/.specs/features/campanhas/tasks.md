@@ -1077,9 +1077,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `CAMPANHA_REJEITADA`, `CAMPANHA_REABERTA`, `ALTERACAO_CAMPANHA_ABERTA` e `ALTERACAO_CAMPANHA_APROVADA` conferem `criadoEm` igual ao relógio fixado
-- [ ] `ALTERACAO_CAMPANHA_ABERTA` e `ALTERACAO_CAMPANHA_APROVADA` conferem o retrato completo (beneficiada, regra e vigência) do anterior e do novo com `toEqual`, sem `objectContaining`
-- [ ] Mutantes M25, M26, M27 e M42 morrem
+- [x] `CAMPANHA_REJEITADA`, `CAMPANHA_REABERTA`, `ALTERACAO_CAMPANHA_ABERTA` e `ALTERACAO_CAMPANHA_APROVADA` conferem `criadoEm` igual ao relógio fixado
+- [x] `ALTERACAO_CAMPANHA_ABERTA` e `ALTERACAO_CAMPANHA_APROVADA` conferem o retrato completo (beneficiada, regra e vigência) do anterior e do novo com `toEqual`, sem `objectContaining`
+- [x] Mutantes M25, M26, M27 e M42 morrem
 
 **Tests**: unit
 **Gate**: quick

@@ -79,11 +79,17 @@ describe('RejeitarCampanhaUseCase', () => {
     return campanha;
   }
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   async function salva(campanha: Campanha): Promise<Campanha> {
     return (await campanhaRepository.findById(campanha.id.toString()))!;
   }
 
   it('should reject the campaign, keep the reason, audit it and e-mail the owner', async () => {
+    const agora = new Date('2026-10-21T15:00:00Z');
+    jest.useFakeTimers({ now: agora });
     const campanha = await criarEmAnalise();
 
     const response = await sut.execute(campanha.id.toString(), admin, motivo);
@@ -100,6 +106,7 @@ describe('RejeitarCampanhaUseCase', () => {
     expect(registro.tipo).toBe('CAMPANHA_REJEITADA');
     expect(registro.usuarioId).toBe(admin.id.toString());
     expect(registro.entidadeId).toBe(campanha.id.toString());
+    expect(registro.criadoEm).toEqual(agora);
     expect(registro.dados).toEqual({
       estadoAnterior: CampanhaStatus.EM_ANALISE,
       estadoNovo: CampanhaStatus.REJEITADA,
