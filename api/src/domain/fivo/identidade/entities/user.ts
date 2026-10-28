@@ -1,7 +1,6 @@
 import { Entity } from '@core/types/entities/entity';
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { Optional } from '@core/types/optional';
-import { Empresa } from '@domain/fivo/empresas';
 import { Senha } from './senha';
 
 export enum UserRole {
@@ -15,7 +14,6 @@ export interface UserProps {
   email: string;
   senha: Senha;
   role: UserRole;
-  empresa?: Empresa | null;
   falhasLogin: number;
   primeiraFalhaEm: Date | null;
   bloqueadoAte: Date | null;
