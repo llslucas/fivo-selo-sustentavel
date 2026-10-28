@@ -1013,9 +1013,9 @@ T39 → T40
 
 **Done when**:
 
-- [ ] `'a'.repeat(20)` → `REJEITADA` e `motivoUltimaRejeicao` igual ao texto
-- [ ] `` `   ${'a'.repeat(19)}   ` `` → `MotivoInsuficienteError`, estado `EM_ANALISE`
-- [ ] Mutante M13 (`E/campanha.ts:266`, `< 20` → `< 21`) morre
+- [x] `'a'.repeat(20)` → `REJEITADA` e `motivoUltimaRejeicao` igual ao texto
+- [x] `` `   ${'a'.repeat(19)}   ` `` → `MotivoInsuficienteError`, estado `EM_ANALISE`
+- [x] Mutante M13 (`E/campanha.ts:266`, `< 20` → `< 21`) morre
 
 **Tests**: unit
 **Gate**: quick

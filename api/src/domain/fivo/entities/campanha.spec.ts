@@ -331,6 +331,35 @@ describe('Campanha', () => {
     expect(campanha.motivoUltimaRejeicao).toBe(motivo);
   });
 
+  it('rejects a campaign with a reason of exactly 20 characters', () => {
+    const campanha = CampanhaFactory.create({
+      status: CampanhaStatus.EM_ANALISE,
+    });
+    const motivo = 'a'.repeat(20);
+
+    const result = campanha.rejeitar(new UniqueEntityId(), motivo);
+
+    expect(result.isRight()).toBe(true);
+    expect(campanha.status).toBe(CampanhaStatus.REJEITADA);
+    expect(campanha.motivoUltimaRejeicao).toBe(motivo);
+  });
+
+  it('does not reject with 19 characters surrounded by spaces', () => {
+    const campanha = CampanhaFactory.create({
+      status: CampanhaStatus.EM_ANALISE,
+    });
+
+    const result = campanha.rejeitar(
+      new UniqueEntityId(),
+      `   ${'a'.repeat(19)}   `,
+    );
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(MotivoInsuficienteError);
+    expect(campanha.status).toBe(CampanhaStatus.EM_ANALISE);
+    expect(campanha.motivoUltimaRejeicao).toBeUndefined();
+  });
+
   it('does not reject with a reason shorter than 20 characters after trimming', () => {
     const campanha = CampanhaFactory.create({
       status: CampanhaStatus.EM_ANALISE,
