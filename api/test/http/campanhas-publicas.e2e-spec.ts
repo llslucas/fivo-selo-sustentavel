@@ -352,6 +352,10 @@ describe('Consulta pública de campanha (e2e)', () => {
         expect(resposta.status).toBe(200);
         expect(resposta.headers['content-type']).toBe(mime);
         expect(resposta.headers['x-content-type-options']).toBe('nosniff');
+        expect(resposta.headers['content-security-policy']).toBe(
+          "default-src 'none'; sandbox",
+        );
+        expect(resposta.headers['content-disposition']).toMatch(/^inline/);
         expect(resposta.body).toEqual(buffer);
         const dados = await consultar(idPublico);
         expect(dados.body).toMatchObject({ temCapa: true });

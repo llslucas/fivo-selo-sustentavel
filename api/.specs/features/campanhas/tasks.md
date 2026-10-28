@@ -1647,9 +1647,9 @@ Aberta pela rodada 1 da verificação final. T54 e T55 não têm dependência en
 
 **Done when**:
 
-- [ ] `content-security-policy` = `default-src 'none'; sandbox` e `content-disposition` casando `/^inline/`, no PNG e no JPEG
-- [ ] Mutantes S25 (sem CSP) e S32 (`attachment`) morrem
-- [ ] Gate `full` passa
+- [x] `content-security-policy` = `default-src 'none'; sandbox` e `content-disposition` casando `/^inline/`, no PNG e no JPEG
+- [x] Mutantes S25 (sem CSP) e S32 (`attachment`) morrem
+- [x] Gate `full` passa
 
 **Tests**: e2e
 **Gate**: full
