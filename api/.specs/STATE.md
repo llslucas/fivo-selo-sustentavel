@@ -24,7 +24,7 @@
 - **Trade-off**: Introduz latência humana no onboarding e na publicação; exige um painel administrativo desde a v1.
 - **Scope**: `cadastro-empresa`, `catalogo-instituicoes`, `campanhas`, `transparencia-e-area-empresa`, painel administrativo.
 - **Date**: 2026-08-22 (emendada em 2026-08-29 para incluir o cadastro de instituição, ver AD-008)
-- **Status**: active
+- **Status**: active — emendada por AD-023 (2026-10-28): comprovante de doação sai da v1, então a moderação preventiva vale para empresa, instituição e campanha.
 
 ### AD-004
 - **Decision**: O selo digital é gerado a partir de **5 templates fixos** compostos server-side (logo da empresa + dados da campanha + QR Code), exportado em **PNG rasterizado (300 DPI)** e **PDF vetorial**. Nenhuma geração por IA na v1.
@@ -32,7 +32,7 @@
 - **Trade-off**: Menos flexibilidade visual para a empresa; a composição precisa de pipeline de renderização determinística (SVG → PNG/PDF) em vez de simples upload de imagem.
 - **Scope**: `selo-e-qrcode`.
 - **Date**: 2026-08-22
-- **Status**: active
+- **Status**: superseded by AD-023 (2026-10-28) — selo genérico único em SVG, sem modelos nem solicitação.
 
 ### AD-005
 - **Decision**: Os artefatos `.specs/` usam esqueleto de seções e palavras-chave EARS em inglês (`WHEN`, `WHILE`, `WHERE`, `IF/THEN`, `SHALL`) com o conteúdo redigido em português.
@@ -56,7 +56,7 @@
 - **Trade-off**: Uma entidade sem função de negócio imediata na v1; e a plataforma deixa de ter qualquer receita modelada, o que precisa ser retomado antes de um lançamento comercial.
 - **Scope**: `selo-e-qrcode`, `campanhas`, `transparencia-e-area-empresa`, `cadastro-empresa`, painel administrativo.
 - **Date**: 2026-08-29
-- **Status**: active — supersedes AD-002
+- **Status**: superseded by AD-023 (2026-10-28) — selo genérico único em SVG, sem modelos nem solicitação. Antes: active — supersedes AD-002
 
 ### AD-008
 - **Decision**: A instituição passa a ser um usuário autenticado da plataforma (papel `INSTITUICAO`), com autocadastro self-service que usa a mesma estrutura de dados da empresa (nome, CNPJ, e-mail, telefone, endereço, logo, senha) mais causa, descrição, site e **exatamente 1 documento de validação obrigatório** (PDF/JPG/PNG até 10 MB, sem tipo fixo exigido, com descrição livre opcional). O administrador aprova ou rejeita analisando esse documento, e a instituição tem área logada para acompanhar o status, corrigir dados e substituir o documento.
@@ -72,7 +72,7 @@
 - **Trade-off**: Um erro de escolha de modelo só se corrige criando outra campanha, com novo identificador público e novo QR — custo real de suporte que a v1 aceita em troca da fidelidade ao material impresso.
 - **Scope**: `selo-e-qrcode`, `campanhas` (duplicação de campanha), `transparencia-e-area-empresa` (área da empresa).
 - **Date**: 2026-08-29
-- **Status**: active
+- **Status**: superseded by AD-023 (2026-10-28) — selo genérico único em SVG, sem modelos nem solicitação. Antes: active
 
 ### AD-010
 - **Decision**: O projeto é um monorepo com back-end e front-end como apps separados: `api` (NestJS) e `web` (NextJS). Dentro de cada app, o código é organizado pelos mesmos nomes das 6 features. A separação entre camada de infra e camada de domínio é interna ao `api`, não uma divisão de repositório.
@@ -184,7 +184,27 @@
 - **Date**: 2026-10-28
 - **Status**: active
 
+### AD-023
+- **Decision**: As features `selo-e-qrcode`, `paginas-publicas` e `transparencia-e-area-empresa` são substituídas por uma só, `vitrine-e-selo`, com escopo mínimo: (a) selo genérico único — marca Fivo, texto fixo e QR Code — entregue como SVG gerado na hora a partir da campanha `APROVADA`, sem modelos, sem armazenamento e sem a entidade `solicitacao_selo`; (b) área da empresa reduzida a cards de campanha com nome, valor da regra de doação e status; (c) página pública por empresa em `/empresa/{slugEmpresa}`, com as campanhas `APROVADA` como subtópicos, e QR apontando para `/empresa/{slugEmpresa}/{slugCampanha}`, que abre a mesma página rolada até a campanha; (d) slug de empresa e de campanha gerado na primeira aprovação e imutável depois; (e) vitrine `/parceiros` ligada à API. Saem da v1: comprovantes de doação e sua moderação, painel admin consolidado, PNG/PDF do selo, histórico de selos, Open Graph, encerramento (CAMP-09) e duplicação (CAMP-10) de campanha.
+- **Reason**: Pedido do usuário em 2026-10-28 para agilizar a entrega. As três specs somavam cerca de 40 critérios; o recorte fecha o fluxo empresa → selo → QR → página pública com 9 requisitos. O selo é determinístico, então guardá-lo não acrescenta nada; o slug fixo na aprovação mantém o QR impresso válido mesmo com renomeação.
+- **Trade-off**: A promessa de transparência perde a prestação de contas (comprovantes) na v1. O slug é adivinhável, o que derruba a exigência de identificador não enumerável — aceito porque só o que está aprovado é público. A empresa não personaliza o selo.
+- **Scope**: `vitrine-e-selo` (nova); supersede AD-004, AD-007 e AD-009; emenda AD-003 (comprovante deixa de ser conteúdo moderado na v1) e `campanhas` (CAMP-09 e CAMP-10 saem da v1). Autoria: domínio e `web` pelo grupo (6 pessoas); o agente faz só a infra do `api`, depois do gate de handoff do domínio (mesma regra do AD-020/AD-021). O agente não escreve nem edita código em `web/**` desta feature; pode ler, revisar e rodar gates.
+- **Date**: 2026-10-28
+- **Status**: active
+
 ## Handoff
+
+### Handoff — planejamento de `vitrine-e-selo` (2026-10-28)
+
+- **Feature**: `vitrine-e-selo` (`.specs/features/vitrine-e-selo/`), que substitui `selo-e-qrcode`, `paginas-publicas` e `transparencia-e-area-empresa` (AD-023).
+- **Phase / Task**: spec aprovada pelo usuário (12 requisitos, VIT-01…12); `design.md` e `tasks.md` aprovados com a divisão em 6 pessoas e o cronograma; nenhuma task executada.
+- **Artefatos**: `spec.md` (`validate_spec.py` 0/0), `design.md` (contratos HTTP fixados para o `web`), `tasks.md` (44 tasks / 8 fases; `validate_tasks.py` 0 erros, 9 warnings esperados de `Tests: none`).
+- **Autoria**: domínio T1–T18 e `web` T29–T44 pelo grupo (6 pessoas, partes 1–6 em `tasks.md`); infra T19–T28 pelo agente depois do gate de handoff do domínio.
+- **Next step**: mergear a PR #243 (os links das issues apontam para `homologacao`); o grupo começa a onda 1 em qui 29/10. O agente entra no gate de handoff em sáb 07/11.
+- **Riscos registrados**: sem marca Fivo vetorial no projeto (wordmark em texto no selo); `WEB_URL` precisa estar configurado em produção.
+- **Issues**: uma por pessoa, #244–#249, no milestone `vitrine-e-selo` (nº 4, prazo 11/11); o usuário atribui os responsáveis.
+- **Uncommitted files**: none
+- **Branch**: `docs/vitrine-e-selo-planejamento`, enviada ao remoto com a PR #243 aberta contra `homologacao`
 
 ### Handoff — `campanhas` P1 do `api` concluído (2026-10-27)
 
