@@ -197,13 +197,14 @@
 ### Handoff — planejamento de `vitrine-e-selo` (2026-10-28)
 
 - **Feature**: `vitrine-e-selo` (`.specs/features/vitrine-e-selo/`), que substitui `selo-e-qrcode`, `paginas-publicas` e `transparencia-e-area-empresa` (AD-023).
-- **Phase / Task**: spec aprovada pelo usuário (12 requisitos, VIT-01…12); `design.md` e `tasks.md` em Draft, aguardando aprovação; nenhuma task executada.
+- **Phase / Task**: spec aprovada pelo usuário (12 requisitos, VIT-01…12); `design.md` e `tasks.md` aprovados com a divisão em 6 pessoas e o cronograma; nenhuma task executada.
 - **Artefatos**: `spec.md` (`validate_spec.py` 0/0), `design.md` (contratos HTTP fixados para o `web`), `tasks.md` (44 tasks / 8 fases; `validate_tasks.py` 0 erros, 9 warnings esperados de `Tests: none`).
 - **Autoria**: domínio T1–T18 e `web` T29–T44 pelo grupo (6 pessoas, partes 1–6 em `tasks.md`); infra T19–T28 pelo agente depois do gate de handoff do domínio.
-- **Next step**: usuário aprova design e tasks; o grupo começa a Fase 1 e, em paralelo, as Fases 6–8 do `web`.
+- **Next step**: mergear a PR #243 (os links das issues apontam para `homologacao`); o grupo começa a onda 1 em qui 29/10. O agente entra no gate de handoff em sáb 07/11.
 - **Riscos registrados**: sem marca Fivo vetorial no projeto (wordmark em texto no selo); `WEB_URL` precisa estar configurado em produção.
-- **Uncommitted files**: `STATE.md`, as três specs substituídas, `campanhas/spec.md`, `vitrine-e-selo/`.
-- **Branch**: `homologacao` (nada commitado)
+- **Issues**: uma por pessoa, #244–#249, no milestone `vitrine-e-selo` (nº 4, prazo 11/11); o usuário atribui os responsáveis.
+- **Uncommitted files**: none
+- **Branch**: `docs/vitrine-e-selo-planejamento`, enviada ao remoto com a PR #243 aberta contra `homologacao`
 
 ### Handoff — `campanhas` P1 do `api` concluído (2026-10-27)
 
