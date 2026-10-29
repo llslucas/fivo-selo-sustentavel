@@ -31,7 +31,7 @@ A campanha é o objeto central da plataforma: é ela que conecta a empresa, a be
 | Página HTML pública, logo da empresa, comprovantes e Open Graph | Pertencem a `paginas-publicas`, que consome a consulta pública desta feature |
 | Solicitação e geração do selo | Pertencem a `selo-e-qrcode`; esta feature só expõe se a campanha está apta |
 | Interface no `web` | Rodada posterior; esta rodada entrega o `api` |
-| Encerramento (CAMP-09) e duplicação (CAMP-10) | Rodada posterior; o MVP é demonstrável sem eles |
+| Encerramento (CAMP-09) e duplicação (CAMP-10) | Fora da v1 (AD-023, 2026-10-28); o MVP é demonstrável sem eles |
 
 ---
 
