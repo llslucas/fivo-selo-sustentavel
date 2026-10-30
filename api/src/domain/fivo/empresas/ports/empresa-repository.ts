@@ -7,6 +7,9 @@ export abstract class EmpresaRepository {
   abstract findByCnpj(cnpj: string): Promise<Empresa | null>;
   abstract findByUsuarioId(usuarioId: string): Promise<Empresa | null>;
   abstract findByTokenTrocaEmailHash(hash: string): Promise<Empresa | null>;
+  abstract findBySlug(slug: string): Promise<Empresa | null>;
+  /** Slugs que começam com `prefixo`; o filtro exato fica em `proximoSlugLivre`. */
+  abstract listarSlugsComPrefixo(prefixo: string): Promise<string[]>;
   abstract listarPorEstado(
     estado: string,
     ordem: OrdenacaoListaEmpresa,
@@ -25,7 +28,11 @@ export abstract class EmpresaRepository {
    * outra a partir de leituras obsoletas.
    */
   abstract salvarTrocaDeEmail(empresa: Empresa): Promise<void>;
-  /** Grava a transição só se o estado persistido ainda for `estadoEsperado`; `false` se outra decisão venceu. */
+  /**
+   * Grava a transição só se o estado persistido ainda for `estadoEsperado`;
+   * `false` se outra decisão venceu. Grava também o `slug` e lança
+   * `SlugEmUsoError` quando a unicidade do slug é violada.
+   */
   abstract salvarTransicao(
     empresa: Empresa,
     estadoEsperado: string,

@@ -73,6 +73,16 @@ export class InMemoryEmpresaRepository implements EmpresaRepository {
     return Promise.resolve(empresa ? copiar(empresa) : null);
   }
 
+  findBySlug(): Promise<Empresa | null> {
+    // Provisório: implementação real na T8.
+    return Promise.reject(new Error('não implementado: T8'));
+  }
+
+  listarSlugsComPrefixo(): Promise<string[]> {
+    // Provisório: implementação real na T8.
+    return Promise.reject(new Error('não implementado: T8'));
+  }
+
   listarPorEstado(
     estado: string,
     ordem: OrdenacaoListaEmpresa,
