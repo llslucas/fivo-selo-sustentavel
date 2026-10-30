@@ -17,6 +17,10 @@ interface WizardShellFormProps {
   onNext: () => void;
   nextLabel?: string;
   nextDisabled?: boolean;
+  // Botão extra ao lado do de avançar (ex.: "Salvar rascunho").
+  acaoSecundaria?: React.ReactNode;
+  // Mensagem logo acima dos botões (ex.: erro da API).
+  aviso?: React.ReactNode;
 }
 
 export default function WizardShellForm({
@@ -29,6 +33,8 @@ export default function WizardShellForm({
   onNext,
   nextLabel = "Continuar",
   nextDisabled = false,
+  acaoSecundaria,
+  aviso,
 }: WizardShellFormProps) {
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
@@ -68,6 +74,8 @@ export default function WizardShellForm({
 
         <Box>{children}</Box>
 
+        {aviso}
+
         <Box
           sx={{
             display: "flex",
@@ -84,9 +92,12 @@ export default function WizardShellForm({
           ) : (
             <Box aria-hidden="true" />
           )}
-          <Button variant="contained" onClick={onNext} disabled={nextDisabled}>
-            {nextLabel}
-          </Button>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+            {acaoSecundaria}
+            <Button variant="contained" onClick={onNext} disabled={nextDisabled}>
+              {nextLabel}
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Container>

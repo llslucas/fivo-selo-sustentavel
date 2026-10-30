@@ -1,8 +1,9 @@
 // Testes de integração de exemplo — recarga da lista de beneficiadas ao
 // retornar ao Passo_Beneficiada (Task 9.5, Requisitos 5.5 e 5.6).
 //
-// Exercita o wizard real (`CampaignWizard`, cujo passo 2 é `StepCausaRegra`)
-// contra o `fetch` global mockado via `instalarMockFetch`, sem rede de verdade.
+// Exercita o wizard real (`CampaignWizardNew`, cujo passo 1 é
+// `StepSobreCampanha`; ajustado ao wizard único na vitrine-e-selo T41) contra
+// o `fetch` global mockado via `instalarMockFetch`, sem rede de verdade.
 // O passo consome `useBeneficiadas()`, que refaz a requisição a
 // `GET /beneficiadas` sempre que o passo é remontado na navegação. Por isso,
 // voltar ao passo dispara um novo carregamento da lista:
@@ -18,15 +19,20 @@
 //
 // São testes de EXEMPLO (não de propriedade): focados e determinísticos.
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 
 import theme from "@/theme";
-import CampaignWizard from "@/components/campaign-wizard/CampaignWizard";
 import type { Beneficiada } from "@/services/instituicoes";
 import { instalarMockFetch, type MockFetch } from "../helpers/mockFetch";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+}));
+
+import CampaignWizardNew from "@/components/campaign-wizard/CampaignWizardNew";
 
 // ──────────────────────────────────────────────────────────────────────────
 // Fixtures inline: catálogo determinístico com dois itens válidos.
@@ -75,9 +81,8 @@ function renderizarComTema(ui: React.ReactNode) {
   return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
 }
 
-// Preenche o passo 1 (nome + descrição) e avança para o passo 2
-// (StepCausaRegra, o Passo_Beneficiada da variante CampaignWizard).
-async function avancarAtePassoBeneficiada(
+// Preenche nome e descrição no passo 1, onde fica o Passo_Beneficiada.
+async function preencherNomeEDescricao(
   usuario: ReturnType<typeof userEvent.setup>,
 ) {
   await usuario.type(
@@ -88,7 +93,18 @@ async function avancarAtePassoBeneficiada(
     screen.getByRole("textbox", { name: /Descrição/i }),
     "Parte da renda vai para a Casa do Bem.",
   );
-  await usuario.click(screen.getByRole("button", { name: "Continuar" }));
+}
+
+// Espera o passo 2 (Regra de doação e vigência) aparecer.
+async function aguardarPasso2() {
+  await waitFor(
+    () => {
+      expect(
+        screen.getByRole("heading", { name: /Regra de doação e vigência/i }),
+      ).toBeInTheDocument();
+    },
+    { timeout: 15000 },
+  );
 }
 
 // Localiza o item da beneficiada no seletor pelo seu data-testid estável.
@@ -107,9 +123,9 @@ describe("5.5 — recarga bem-sucedida ao retornar remarca a seleção", () => {
     // recarga ao voltar): o caminho de sucesso ao retornar (Req 5.5).
     mock.responderPara("/beneficiadas", { status: 200, body: CATALOGO });
 
-    renderizarComTema(<CampaignWizard />);
+    renderizarComTema(<CampaignWizardNew />);
 
-    await avancarAtePassoBeneficiada(usuario);
+    await preencherNomeEDescricao(usuario);
 
     // A lista carrega e a beneficiada ainda não está selecionada.
     const item = await waitFor(() => itemBeneficiada(BENEFICIADA_ESCOLHIDA.id), {
@@ -124,23 +140,10 @@ describe("5.5 — recarga bem-sucedida ao retornar remarca a seleção", () => {
       "true",
     );
 
-    // Preenche a regra de doação para destravar o avanço do passo 2.
-    await usuario.type(
-      screen.getByRole("spinbutton", { name: /Valor doado por unidade/i }),
-      "5",
-    );
-
-    // Navega para o passo 3 e volta ao passo 2 (o passo remonta e refaz a
+    // Navega para o passo 2 e volta ao passo 1 (o passo remonta e refaz a
     // requisição ao catálogo).
     await usuario.click(screen.getByRole("button", { name: "Continuar" }));
-    await waitFor(
-      () => {
-        expect(
-          screen.getByRole("heading", { name: /Personalize seu selo/i }),
-        ).toBeInTheDocument();
-      },
-      { timeout: 15000 },
-    );
+    await aguardarPasso2();
 
     await usuario.click(screen.getByRole("button", { name: "Voltar" }));
 
@@ -173,41 +176,28 @@ describe("5.6 — falha na recarga ao retornar preserva a seleção e mostra err
     // Primeira carga tem sucesso (permite a seleção).
     mock.responderPara("/beneficiadas", { status: 200, body: CATALOGO });
 
-    renderizarComTema(<CampaignWizard />);
+    renderizarComTema(<CampaignWizardNew />);
 
-    await avancarAtePassoBeneficiada(usuario);
+    await preencherNomeEDescricao(usuario);
 
     const item = await waitFor(() => itemBeneficiada(BENEFICIADA_ESCOLHIDA.id), {
       timeout: 15000,
     });
 
-    // Seleciona a beneficiada e preenche a regra para poder avançar.
+    // Seleciona a beneficiada e avança para o passo 2.
     await usuario.click(item);
     expect(itemBeneficiada(BENEFICIADA_ESCOLHIDA.id)).toHaveAttribute(
       "data-selected",
       "true",
     );
-    await usuario.type(
-      screen.getByRole("spinbutton", { name: /Valor doado por unidade/i }),
-      "5",
-    );
-
-    // Avança para o passo 3.
     await usuario.click(screen.getByRole("button", { name: "Continuar" }));
-    await waitFor(
-      () => {
-        expect(
-          screen.getByRole("heading", { name: /Personalize seu selo/i }),
-        ).toBeInTheDocument();
-      },
-      { timeout: 15000 },
-    );
+    await aguardarPasso2();
 
     // Configura a próxima requisição (a recarga ao voltar) para falhar por rede
     // → o Cliente_HTTP converte em ApiError(0, ...), que é recuperável.
     mock.falharPorRede();
 
-    // Volta ao passo 2: o passo remonta e a recarga falha.
+    // Volta ao passo 1: o passo remonta e a recarga falha.
     await usuario.click(screen.getByRole("button", { name: "Voltar" }));
 
     // A indicação de erro de carregamento é exibida (Req 5.6).
@@ -221,25 +211,11 @@ describe("5.6 — falha na recarga ao retornar preserva a seleção e mostra err
       within(erro).getByText(/Não foi possível conectar com o servidor/i),
     ).toBeInTheDocument();
 
-    // A seleção (instituicaoId) é preservada: o wizard permanece com a
-    // beneficiada escolhida e o avanço do passo continua destravado — a
-    // transição para erro não limpou a seleção.
-    await usuario.type(
-      screen.getByRole("spinbutton", { name: /Valor doado por unidade/i }),
-      "5",
-    );
+    // A seleção (instituicaoId) é preservada: com nome e descrição ainda
+    // preenchidos, o avanço do passo 1 continua destravado. Se o instituicaoId
+    // tivesse sido limpo, a validação do passo bloquearia o avanço e o passo 2
+    // não apareceria. Ele aparece → a seleção foi preservada (Req 5.6).
     await usuario.click(screen.getByRole("button", { name: "Continuar" }));
-
-    // Se o instituicaoId tivesse sido limpo, a validação do passo
-    // (data.instituicaoId !== null && regraValor) bloquearia o avanço e o
-    // passo 3 não apareceria. Ele aparece → a seleção foi preservada (Req 5.6).
-    await waitFor(
-      () => {
-        expect(
-          screen.getByRole("heading", { name: /Personalize seu selo/i }),
-        ).toBeInTheDocument();
-      },
-      { timeout: 15000 },
-    );
+    await aguardarPasso2();
   }, 30000);
 });

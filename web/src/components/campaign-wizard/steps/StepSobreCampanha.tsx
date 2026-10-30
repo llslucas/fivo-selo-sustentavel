@@ -64,39 +64,15 @@ export default function StepSobreCampanha({ data, onChange }: Props) {
           selecionadaId={data.instituicaoId}
           onBuscar={definirTermoBusca}
           onTentarNovamente={tentarNovamente}
-          onSelecionar={(id) => onChange({ instituicaoId: id })}
+          onSelecionar={(id) => {
+            const escolhida = beneficiadas.find((b) => b.id === id);
+            onChange({
+              instituicaoId: id,
+              beneficiadaTipo: escolhida?.tipo ?? null,
+              beneficiadaNome: escolhida?.nome ?? null,
+            });
+          }}
         />
-      </Box>
-
-      {/* Regra de doação inline */}
-      <Box
-        sx={{
-          bgcolor: "background.paper",
-          borderRadius: 2,
-          p: 2,
-          display: "flex",
-          alignItems: "center",
-          gap: 1.5,
-        }}
-      >
-        <Typography variant="body2" sx={{ whiteSpace: "nowrap" }}>
-          R$
-        </Typography>
-        <TextField
-          value={data.regraValor}
-          onChange={(e) => onChange({ regraValor: e.target.value })}
-          type="number"
-          size="small"
-          sx={{ width: 80 }}
-          slotProps={{ input: { inputProps: { min: 0, step: 0.5 } } }}
-        />
-        <Typography variant="body2" color="text.secondary">
-          será doado{" "}
-          <Typography component="span" variant="body2" sx={{ fontWeight: 700 }}>
-            por unidade vendida
-          </Typography>{" "}
-          com o selo aplicado
-        </Typography>
       </Box>
     </Stack>
   );
