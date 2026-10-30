@@ -17,6 +17,7 @@ const navLinks = [
   { label: "Instituições", href: APP_ROUTES.admin.instituicoes },
   { label: "Empresas", href: APP_ROUTES.admin.empresas },
   { label: "Causas", href: APP_ROUTES.admin.causas },
+  { label: "Campanhas", href: APP_ROUTES.admin.campanhas },
 ];
 
 export default function AdminHeader() {
