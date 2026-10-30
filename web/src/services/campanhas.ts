@@ -63,3 +63,44 @@ export async function baixarSelo(id: string): Promise<SeloBaixado> {
     nomeArquivo: nomeDoArquivo(res.headers.get("content-disposition")),
   };
 }
+
+// Corpo de POST /campanhas: só o nome é obrigatório; beneficiada é
+// `instituicaoId` ou `causaId`, nunca os dois. Decimais em string e datas
+// AAAA-MM-DD, como no restante do contrato.
+export type NovaCampanha = {
+  nome: string;
+  descricao?: string;
+  instituicaoId?: string;
+  causaId?: string;
+  regraDoacao?: RegraDoacao;
+  meta?: string;
+  vigencia?: { inicio: string; fim?: string };
+};
+
+export type CampanhaCriada = {
+  id: string;
+  idPublico: string;
+};
+
+export function criarCampanha(dados: NovaCampanha): Promise<CampanhaCriada> {
+  return request("/campanhas", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dados),
+  });
+}
+
+export function enviarCapa(id: string, arquivo: File): Promise<void> {
+  const formData = new FormData();
+  formData.append("capa", arquivo);
+
+  // Sem Content-Type manual: o browser define o boundary do multipart sozinho.
+  return request(`/campanhas/${encodeURIComponent(id)}/capa`, {
+    method: "PUT",
+    body: formData,
+  });
+}
+
+export function submeterCampanha(id: string): Promise<void> {
+  return request(`/campanhas/${encodeURIComponent(id)}/submissao`, { method: "POST" });
+}
