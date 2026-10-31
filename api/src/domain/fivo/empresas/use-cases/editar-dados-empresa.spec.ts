@@ -5,7 +5,7 @@ import { FakeMailer } from '@test/doubles/fake-mailer';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { InMemoryEmpresaRepository } from '@test/doubles/in-memory-empresa-repository';
 import { CnpjImutavelError } from '../errors/cnpj-imutavel.error';
-import { TemplateEmail } from '@domain/fivo/shared';
+import { Slug, TemplateEmail } from '@domain/fivo/shared';
 import { EditarDadosEmpresaUseCase } from './editar-dados-empresa';
 
 describe('EditarDadosEmpresaUseCase', () => {
@@ -59,6 +59,28 @@ describe('EditarDadosEmpresaUseCase', () => {
     expect(atualizada?.cidade).toBe('Cidade Nova');
     expect(atualizada?.uf).toBe('RJ');
     expect(atualizada?.logoArquivoId?.toString()).toBe(logoArquivoId);
+  });
+
+  it('should keep the slug when nomeFantasia is edited', async () => {
+    const empresa = EmpresaFactory.create({
+      nomeFantasia: 'Café Serra Verde',
+      status: EmpresaStatus.APROVADA,
+      slug: Slug.reconstruir('cafe-serra-verde'),
+    });
+    // O double ainda não copia o slug (T8): a leitura devolve a entidade e o
+    // teste confere a que o caso de uso envia ao save.
+    jest.spyOn(empresaRepository, 'findById').mockResolvedValueOnce(empresa);
+    const save = jest.spyOn(empresaRepository, 'save');
+
+    const response = await sut.execute({
+      empresaId: empresa.id.toString(),
+      nomeFantasia: 'Café Montanha Azul',
+    });
+
+    expect(response.isRight()).toBe(true);
+    const gravada = save.mock.calls[0][0];
+    expect(gravada.nomeFantasia).toBe('Café Montanha Azul');
+    expect(gravada.slug?.valor).toBe('cafe-serra-verde');
   });
 
   it('should keep fields not sent in the request unchanged', async () => {

@@ -102,6 +102,7 @@ export class EditarDadosEmpresaUseCase {
         emailPendente: empresa.emailPendente,
         tokenTrocaEmailHash: empresa.tokenTrocaEmailHash,
         tokenTrocaEmailExpiraEm: empresa.tokenTrocaEmailExpiraEm,
+        slug: empresa.slug,
       },
       empresa.id,
     );
