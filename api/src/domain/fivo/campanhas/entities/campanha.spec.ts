@@ -5,6 +5,8 @@ import { CampanhaEmAnaliseError } from '../errors/campanha-em-analise.error';
 import { CamposPendentesError } from '../errors/campos-pendentes.error';
 import {
   MotivoInsuficienteError,
+  Slug,
+  SlugJaAtribuidoError,
   TransicaoInvalidaError,
 } from '@domain/fivo/shared';
 import { VigenciaVencidaError } from '../errors/vigencia-vencida.error';
@@ -810,6 +812,59 @@ describe('Campanha', () => {
       expect(campanha.status).toBe(CampanhaStatus.APROVADA);
       expect(campanha.compromissoVigente()?.equals(anterior)).toBe(true);
       expect(campanha.alteracaoDecidida).toBeNull();
+    });
+  });
+
+  describe('slug', () => {
+    it('is born without a slug', () => {
+      const campanha = Campanha.criar({
+        empresaId: new UniqueEntityId(),
+        nome: nome('Água Limpa'),
+      });
+
+      expect(campanha.slug).toBeNull();
+    });
+
+    it('stores the slug when the campaign has none', () => {
+      const campanha = campanhaAprovada();
+
+      const result = campanha.atribuirSlug(Slug.reconstruir('agua-limpa'));
+
+      expect(result.isRight()).toBe(true);
+      expect(campanha.slug?.valor).toBe('agua-limpa');
+    });
+
+    it('returns SlugJaAtribuidoError and keeps the original slug on a second call', () => {
+      const campanha = campanhaAprovada();
+      campanha.atribuirSlug(Slug.reconstruir('agua-limpa'));
+
+      const result = campanha.atribuirSlug(Slug.reconstruir('outro-slug'));
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(SlugJaAtribuidoError);
+      expect(campanha.slug?.valor).toBe('agua-limpa');
+    });
+
+    it('keeps the slug when the name is edited', () => {
+      const campanha = campanhaAprovada();
+      campanha.atribuirSlug(Slug.reconstruir('agua-limpa'));
+
+      const result = campanha.editarTextos({ nome: nome('Água Pura') });
+
+      expect(result.isRight()).toBe(true);
+      expect(campanha.nome.valor).toBe('Água Pura');
+      expect(campanha.slug?.valor).toBe('agua-limpa');
+    });
+
+    it('keeps the slug when a commitment change is approved', () => {
+      const campanha = campanhaAprovada();
+      campanha.atribuirSlug(Slug.reconstruir('agua-limpa'));
+      campanha.editarCompromisso({ regraDoacao: regraDoacao() }, hoje);
+
+      const result = campanha.aprovarAlteracao(new UniqueEntityId());
+
+      expect(result.isRight()).toBe(true);
+      expect(campanha.slug?.valor).toBe('agua-limpa');
     });
   });
 
