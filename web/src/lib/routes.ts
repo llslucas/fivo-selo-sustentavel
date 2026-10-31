@@ -24,6 +24,7 @@ export const APP_ROUTES = {
     instituicoes: '/admin/instituicoes',
     empresas: '/admin/empresas',
     causas: '/admin/causas',
+    campanhas: '/admin/campanhas',
   },
   instituicao: {
     inicio: '/instituicao',
