@@ -1,5 +1,6 @@
 export * from './entities/arquivo';
 export * from './entities/cnpj';
+export * from './entities/slug';
 export * from './ports/mailer';
 export * from './ports/registro-auditoria-repository';
 export * from './ports/storage';
