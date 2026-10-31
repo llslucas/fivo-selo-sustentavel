@@ -10,3 +10,4 @@ export * from './errors/cnpj-invalido.error';
 export * from './errors/motivo-insuficiente.error';
 export * from './errors/storage-indisponivel.error';
 export * from './errors/transicao-invalida.error';
+export * from './errors/slug.errors';
