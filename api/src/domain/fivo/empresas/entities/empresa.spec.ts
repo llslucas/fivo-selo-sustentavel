@@ -5,6 +5,8 @@ import { UserRole } from '@domain/fivo/identidade';
 import {
   TransicaoInvalidaError,
   MotivoInsuficienteError,
+  Slug,
+  SlugJaAtribuidoError,
 } from '@domain/fivo/shared';
 
 describe('TransicaoInvalidaError', () => {
@@ -287,5 +289,58 @@ describe('Company e-mail change request', () => {
     expect(empresa.emailPendente).toBeNull();
     expect(empresa.tokenTrocaEmailHash).toBeNull();
     expect(empresa.tokenTrocaEmailExpiraEm).toBeNull();
+  });
+});
+
+describe('Company slug', () => {
+  const admin = UserFactory.create({ role: UserRole.ADMIN });
+
+  it('should be born without a slug', () => {
+    const empresa = EmpresaFactory.create();
+
+    expect(empresa.slug).toBeNull();
+  });
+
+  it('should store the slug when the company has none', () => {
+    const empresa = EmpresaFactory.create();
+
+    const result = empresa.atribuirSlug(Slug.reconstruir('cafe-serra-verde'));
+
+    expect(result.isRight()).toBe(true);
+    expect(empresa.slug?.valor).toBe('cafe-serra-verde');
+  });
+
+  it('should return SlugJaAtribuidoError and keep the original slug on a second call', () => {
+    const empresa = EmpresaFactory.create();
+    empresa.atribuirSlug(Slug.reconstruir('cafe-serra-verde'));
+
+    const result = empresa.atribuirSlug(Slug.reconstruir('outro-slug'));
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(SlugJaAtribuidoError);
+    expect(empresa.slug?.valor).toBe('cafe-serra-verde');
+  });
+
+  it('should keep the slug when the company is suspended and reactivated', () => {
+    const empresa = EmpresaFactory.create({
+      status: EmpresaStatus.APROVADA,
+      slug: Slug.reconstruir('cafe-serra-verde'),
+    });
+
+    empresa.suspender(admin.id);
+    expect(empresa.slug?.valor).toBe('cafe-serra-verde');
+
+    empresa.reativar(admin.id);
+    expect(empresa.slug?.valor).toBe('cafe-serra-verde');
+  });
+
+  it('should not expose a public setter for the slug', () => {
+    const empresa = EmpresaFactory.create();
+
+    expect(() => {
+      // @ts-expect-error `slug` só tem getter
+      empresa.slug = Slug.reconstruir('outro-slug');
+    }).toThrow(TypeError);
+    expect(empresa.slug).toBeNull();
   });
 });

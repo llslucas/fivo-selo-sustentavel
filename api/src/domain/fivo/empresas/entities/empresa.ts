@@ -3,6 +3,8 @@ import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
 import { Optional } from '@core/types/optional';
 import {
   Cnpj,
+  Slug,
+  SlugJaAtribuidoError,
   TransicaoInvalidaError,
   MotivoInsuficienteError,
 } from '@domain/fivo/shared';
@@ -40,6 +42,7 @@ export interface EmpresaProps {
   emailPendente?: string | null;
   tokenTrocaEmailHash?: string | null;
   tokenTrocaEmailExpiraEm?: Date | null;
+  slug?: Slug | null;
 }
 
 const PRAZO_TROCA_DE_EMAIL_MS = 24 * 60 * 60 * 1000;
@@ -57,6 +60,7 @@ export class Empresa extends Entity<EmpresaProps> {
         ...props,
         status: props.status ?? EmpresaStatus.PENDENTE_APROVACAO,
         createdAt: props.createdAt ?? new Date(),
+        slug: props.slug ?? null,
       },
       id,
     );
@@ -135,6 +139,10 @@ export class Empresa extends Entity<EmpresaProps> {
     return this._props.logoArquivoId;
   }
 
+  get slug(): Slug | null | undefined {
+    return this._props.slug;
+  }
+
   get status(): EmpresaStatus {
     return this._props.status;
   }
@@ -167,6 +175,17 @@ export class Empresa extends Entity<EmpresaProps> {
     this._props.status = EmpresaStatus.APROVADA;
     this._props.decididoPor = adminId;
     this._props.decididoEm = new Date();
+
+    return right(void 0);
+  }
+
+  /** O slug vai impresso no QR Code: é atribuído uma vez e nunca muda. */
+  atribuirSlug(slug: Slug): Either<SlugJaAtribuidoError, void> {
+    if (this._props.slug) {
+      return left(new SlugJaAtribuidoError());
+    }
+
+    this._props.slug = slug;
 
     return right(void 0);
   }

@@ -14,6 +14,8 @@ import { AlteracaoCompromisso } from './alteracao-compromisso';
 import {
   TransicaoInvalidaError,
   MotivoInsuficienteError,
+  Slug,
+  SlugJaAtribuidoError,
 } from '@domain/fivo/shared';
 import { CampanhaEmAnaliseError } from '../errors/campanha-em-analise.error';
 import { CamposPendentesError } from '../errors/campos-pendentes.error';
@@ -46,6 +48,7 @@ export interface CampanhaProps {
   versao: number;
   createdAt: Date;
   updatedAt?: Date | null;
+  slug?: Slug | null;
 }
 
 export interface CriarCampanhaProps {
@@ -86,6 +89,7 @@ export class Campanha extends Entity<CampanhaProps> {
         status: props.status ?? CampanhaStatus.RASCUNHO,
         versao: props.versao ?? 0,
         createdAt: props.createdAt ?? new Date(),
+        slug: props.slug ?? null,
       },
       id,
     );
@@ -130,6 +134,10 @@ export class Campanha extends Entity<CampanhaProps> {
 
   get vigencia(): Vigencia | null | undefined {
     return this._props.vigencia;
+  }
+
+  get slug(): Slug | null | undefined {
+    return this._props.slug;
   }
 
   get status(): CampanhaStatus {
@@ -271,6 +279,17 @@ export class Campanha extends Entity<CampanhaProps> {
     this._props.decididoPor = adminId;
     this._props.decididoEm = new Date();
     this._props.updatedAt = new Date();
+
+    return right(void 0);
+  }
+
+  /** O slug vai impresso no QR Code: é atribuído uma vez e nunca muda. */
+  atribuirSlug(slug: Slug): Either<SlugJaAtribuidoError, void> {
+    if (this._props.slug) {
+      return left(new SlugJaAtribuidoError());
+    }
+
+    this._props.slug = slug;
 
     return right(void 0);
   }
