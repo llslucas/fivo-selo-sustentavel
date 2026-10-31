@@ -9,6 +9,7 @@ export * from './entities/regra-doacao';
 export * from './entities/valor-monetario';
 export * from './entities/vigencia';
 export * from './ports/campanha-repository';
+export * from './ports/renderizador-de-selo';
 export * from './errors/alteracao-ja-pendente.error';
 export * from './errors/beneficiada-indisponivel-na-decisao.error';
 export * from './errors/campanha-em-analise.error';
