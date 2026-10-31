@@ -55,6 +55,16 @@ export class PrismaEmpresaRepository implements EmpresaRepository {
     return empresa ? PrismaEmpresaMapper.toDomain(empresa) : null;
   }
 
+  findBySlug(): Promise<Empresa | null> {
+    // Provisório: implementação real na T20 (depende da coluna da T19).
+    return Promise.reject(new Error('não implementado: T20'));
+  }
+
+  listarSlugsComPrefixo(): Promise<string[]> {
+    // Provisório: implementação real na T20 (depende da coluna da T19).
+    return Promise.reject(new Error('não implementado: T20'));
+  }
+
   async listarPorEstado(
     estado: string,
     ordem: OrdenacaoListaEmpresa,

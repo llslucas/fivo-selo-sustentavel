@@ -78,6 +78,9 @@ describe('CriarEmpresaUseCase — transação atômica User + Empresa (e2e)', ()
         empresaRepository.findByUsuarioId(usuarioId),
       findByTokenTrocaEmailHash: (hash) =>
         empresaRepository.findByTokenTrocaEmailHash(hash),
+      findBySlug: (slug) => empresaRepository.findBySlug(slug),
+      listarSlugsComPrefixo: (prefixo) =>
+        empresaRepository.listarSlugsComPrefixo(prefixo),
       listarPorEstado: (estado, ordem) =>
         empresaRepository.listarPorEstado(estado, ordem),
       save: (empresa) => empresaRepository.save(empresa),
