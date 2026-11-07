@@ -31,6 +31,7 @@ export * from './use-cases/consultar-campanha-da-empresa';
 export * from './use-cases/criar-campanha';
 export * from './use-cases/editar-campanha';
 export * from './use-cases/gerar-selo';
+export * from './use-cases/listar-campanhas-da-empresa';
 export * from './use-cases/listar-fila-campanhas';
 export * from './use-cases/rejeitar-alteracao-campanha';
 export * from './use-cases/rejeitar-campanha';
