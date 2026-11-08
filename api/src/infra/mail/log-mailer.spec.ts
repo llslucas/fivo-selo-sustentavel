@@ -1,4 +1,4 @@
-import { TemplateEmail } from '@domain/fivo/application/ports/mailer';
+import { TemplateEmail } from '@domain/fivo/shared/ports/mailer';
 import { Logger } from '@nestjs/common';
 
 import { LogMailer } from './log-mailer';

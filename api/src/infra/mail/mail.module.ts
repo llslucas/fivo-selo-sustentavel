@@ -1,15 +1,15 @@
-import { Mailer } from '@domain/fivo/application/ports/mailer';
+import { Mailer } from '@domain/fivo/shared/ports/mailer';
 import { Module } from '@nestjs/common';
 
 import { EmailPendenteService } from './email-pendente.service';
 import { EmailPendenteWorker } from './email-pendente.worker';
-import { LogMailer } from './log-mailer';
+import { escolherTransporteEmail } from './escolher-transporte-email';
 import { MailerResiliente } from './mailer-resiliente';
 import { TransporteEmail } from './transporte-email';
 
 @Module({
   providers: [
-    { provide: TransporteEmail, useClass: LogMailer },
+    { provide: TransporteEmail, useFactory: () => escolherTransporteEmail() },
     EmailPendenteService,
     EmailPendenteWorker,
     { provide: Mailer, useClass: MailerResiliente },

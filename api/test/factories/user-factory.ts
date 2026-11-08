@@ -1,5 +1,9 @@
-import { Senha } from '@domain/fivo/entities/senha';
-import { User, UserProps, UserRole } from '@domain/fivo/entities/user';
+import { Senha } from '@domain/fivo/identidade/entities/senha';
+import {
+  User,
+  UserProps,
+  UserRole,
+} from '@domain/fivo/identidade/entities/user';
 
 type UserFactoryProps = Partial<Omit<UserProps, 'senha'>> & {
   senha?: Senha | string;

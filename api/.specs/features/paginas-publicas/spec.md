@@ -1,5 +1,7 @@
 # Páginas Públicas — Campanha e Vitrine de Parceiros Specification
 
+> **Substituída por `vitrine-e-selo` (AD-023, 2026-10-28).** Mantida como registro histórico; não implementar a partir deste arquivo.
+
 > Convenção: seções e palavras-chave EARS em inglês; conteúdo em português (AD-005).
 > Fonte: `docs/proposta-inicial.md` — RF06, RF09, requisitos não funcionais de acesso público e responsividade.
 

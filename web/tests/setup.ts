@@ -10,8 +10,13 @@
 //   árvore React, assegurando independência de ordem de execução.
 
 import "@testing-library/jest-dom/vitest";
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import { afterEach, beforeEach, vi } from "vitest";
+
+// `findBy*` e `waitFor` esperam até 5 s em vez de 1 s: com todos os arquivos
+// rodando em paralelo, uma máquina carregada atrasa a renderização do MUI além
+// do padrão (vitrine-e-selo, T64).
+configure({ asyncUtilTimeout: 5000 });
 
 // Guarda anti-rede: qualquer chamada a `fetch` sem um stub de Mock_API
 // configurado é interrompida aqui. Nenhuma requisição real é emitida; o teste

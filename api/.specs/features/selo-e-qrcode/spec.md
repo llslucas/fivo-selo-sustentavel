@@ -1,5 +1,7 @@
 # Selo Digital e QR Code Specification
 
+> **Substituída por `vitrine-e-selo` (AD-023, 2026-10-28).** Mantida como registro histórico; não implementar a partir deste arquivo.
+
 > Convenção: seções e palavras-chave EARS em inglês; conteúdo em português (AD-005).
 > Fonte: `docs/proposta-inicial.md` — RF04, RF05 e a Atualização de 29/08/2026 (monetização adiada, 1 selo único por campanha).
 

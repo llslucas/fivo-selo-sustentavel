@@ -40,8 +40,6 @@ function iniciaisDoNome(nome: string): string {
 const navLinks = [
   { label: "Dashboard", href: APP_ROUTES.private.dashboard },
   { label: "Campanhas", href: APP_ROUTES.private.campanhas },
-  { label: "Selos", href: APP_ROUTES.private.selos },
-  { label: "Comprovantes", href: APP_ROUTES.private.comprovantes },
 ];
 
 export default function AppHeader() {

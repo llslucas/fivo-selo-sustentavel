@@ -1,25 +1,20 @@
-// Teste de integração do payload final do wizard de campanha (web/) — Task 9.3.
+// Teste de integração do payload do wizard de campanha (web/) — Task 9.3,
+// ligado à API na vitrine-e-selo T41.
 //
 // Feature: catalogo-instituicoes-wizard, Property 12: Preservação do
 // identificador no payload.
 // Validates: Requirements 6.1, 6.3
 //
-// Propriedade: para qualquer `instituicaoId` não nulo e não vazio selecionado
-// pela empresa no catálogo real, concluir o Wizard_Campanha deve incluir no
-// Payload_Criacao_Campanha (= o `data`/CampaignWizardData levado à conclusão)
-// exatamente esse mesmo identificador — igual ao `id` da Beneficiada escolhida.
+// Propriedade: para qualquer beneficiada selecionada pela empresa no catálogo
+// real, o corpo de POST /campanhas (Payload_Criacao_Campanha) leva exatamente o
+// `id` escolhido — em `instituicaoId` para instituição e em `causaId` para
+// causa — tanto ao salvar o rascunho quanto ao enviar para análise.
 //
-// Estratégia: exercita os COMPONENTES REAIS do wizard (`CampaignWizard`, passo
-// 2 via StepCausaRegra; `CampaignWizardNew`, passo 1 via StepSobreCampanha). A
-// seleção da beneficiada é feita clicando no item real renderizado pelo
-// `SeletorBeneficiada`, de modo que o id realmente percorre o fluxo
-// onSelecionar → onChange → estado do wizard. Ao concluir, ambos os wizards
-// renderizam `<SuccessScreen data={data} />`; mockamos `SuccessScreen` apenas
-// para capturar o `data` recebido na conclusão — o Payload_Criacao_Campanha —
-// e afirmamos que `data.instituicaoId` é exatamente o id selecionado.
-//
-// O catálogo vem de um fetch mockado (Mock_API), nunca de rede real. Mínimo
-// 100 iterações.
+// Estratégia: exercita o componente real `CampaignWizardNew`. A seleção é feita
+// clicando no item real renderizado pelo `SeletorBeneficiada`, de modo que o id
+// percorre onSelecionar → onChange → estado do wizard → corpo do POST. O
+// catálogo e as rotas de campanha vêm do fetch mockado (Mock_API), nunca de
+// rede real.
 
 import { describe, it, expect, afterEach, vi } from "vitest";
 import {
@@ -37,24 +32,12 @@ import theme from "@/theme";
 import type { Beneficiada } from "@/services/instituicoes";
 import { instalarMockFetch, type MockFetch } from "../helpers/mockFetch";
 
-// ──────────────────────────────────────────────────────────────────────────
-// Captura do Payload_Criacao_Campanha: `SuccessScreen` é mockado para registrar
-// o `data` recebido quando o wizard conclui, sem renderizar a tela real (que
-// não expõe o instituicaoId no DOM). Os wizards reais continuam sendo
-// exercitados de ponta a ponta — apenas a tela final é substituída por uma
-// sonda.
-// ──────────────────────────────────────────────────────────────────────────
-const payloadsCapturados: Array<{ instituicaoId: string | null }> = [];
+const push = vi.fn();
 
-vi.mock("@/components/campaign-wizard/SuccessScreen", () => ({
-  default: ({ data }: { data: { instituicaoId: string | null } }) => {
-    payloadsCapturados.push(data);
-    return <div data-testid="payload-capturado" />;
-  },
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push, replace: vi.fn() }),
 }));
 
-// Import dos wizards REAIS (após o vi.mock acima, que é içado ao topo).
-import CampaignWizard from "@/components/campaign-wizard/CampaignWizard";
 import CampaignWizardNew from "@/components/campaign-wizard/CampaignWizardNew";
 
 afterEach(() => {
@@ -127,9 +110,91 @@ async function continuar(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Continuar" }));
 }
 
+// Fetch mockado: catálogo para GET /beneficiadas e respostas de criação e
+// submissão da campanha.
+function instalarApi(): MockFetch {
+  const mock = instalarMockFetch();
+  mock.responderCom({ status: 200, body: CATALOGO });
+  mock.responderPara("/campanhas", {
+    status: 201,
+    body: { id: "camp-1", idPublico: "pub-1" },
+  });
+  mock.responderPara("/campanhas/camp-1/submissao", { status: 204 });
+  return mock;
+}
+
+// Corpo do POST /campanhas capturado pelo Mock_API.
+function corpoDaCriacao(mock: MockFetch): Record<string, unknown> {
+  const criacao = mock.chamadas.find(
+    (c) => c.method === "POST" && c.url === "/api/campanhas",
+  );
+  expect(criacao).toBeDefined();
+  return JSON.parse(criacao!.body as string) as Record<string, unknown>;
+}
+
+// O id vai no campo do tipo da beneficiada, e só nele.
+function esperarIdNoCampoDoTipo(corpo: Record<string, unknown>, id: string) {
+  const tipo = CATALOGO.find((b) => b.id === id)!.tipo;
+  if (tipo === "CAUSA") {
+    expect(corpo.causaId).toBe(id);
+    expect(corpo).not.toHaveProperty("instituicaoId");
+  } else {
+    expect(corpo.instituicaoId).toBe(id);
+    expect(corpo).not.toHaveProperty("causaId");
+  }
+}
+
+// Preenche o passo 1: nome, descrição e a beneficiada escolhida.
+async function preencherPasso1(
+  user: ReturnType<typeof userEvent.setup>,
+  idSelecionado: string,
+) {
+  fireEvent.change(
+    screen.getByRole("textbox", { name: /Nome da campanha/i }),
+    { target: { value: "Campanha Teste" } },
+  );
+  fireEvent.change(screen.getByRole("textbox", { name: /Descrição/i }), {
+    target: { value: "Descrição da campanha de teste." },
+  });
+  await aguardarCatalogo();
+  await selecionarBeneficiada(user, idSelecionado);
+}
+
 describe("Payload do wizard — Property 12: preservação do identificador no payload", () => {
   it(
-    "CampaignWizard (passo 2): concluir inclui no payload exatamente o id selecionado",
+    "salvar o rascunho no passo 1 envia no POST exatamente o id selecionado",
+    { timeout: 120_000 },
+    async () => {
+      await fc.assert(
+        fc.asyncProperty(fc.constantFrom(...IDS_CATALOGO), async (idSelecionado) => {
+          const mock = instalarApi();
+          push.mockClear();
+          const user = userEvent.setup({ delay: null });
+
+          try {
+            render(
+              <ThemeProvider theme={theme}>
+                <CampaignWizardNew />
+              </ThemeProvider>,
+            );
+
+            await preencherPasso1(user, idSelecionado);
+            await user.click(screen.getByRole("button", { name: "Salvar rascunho" }));
+
+            await waitFor(() => expect(push).toHaveBeenCalledWith("/campanhas/camp-1"));
+            esperarIdNoCampoDoTipo(corpoDaCriacao(mock), idSelecionado);
+          } finally {
+            cleanup();
+            mock.restaurar();
+          }
+        }),
+        { numRuns: 10 },
+      );
+    },
+  );
+
+  it(
+    "enviar para análise no último passo envia no POST exatamente o id selecionado",
     { timeout: 120_000 },
     async () => {
       await fc.assert(
@@ -138,80 +203,7 @@ describe("Payload do wizard — Property 12: preservação do identificador no p
           // regraValor não vazio (destrava a validação do passo 2).
           fc.integer({ min: 1, max: 9999 }).map((n) => String(n)),
           async (idSelecionado, regraValor) => {
-            const mock: MockFetch = instalarMockFetch();
-            mock.responderCom({ status: 200, body: CATALOGO });
-            payloadsCapturados.length = 0;
-
-            const user = userEvent.setup({ delay: null });
-
-            try {
-              render(
-                <ThemeProvider theme={theme}>
-                  <CampaignWizard />
-                </ThemeProvider>,
-              );
-
-              // Passo 1 (StepInfo): nome + descrição não vazios.
-              fireEvent.change(
-                screen.getByRole("textbox", { name: /Nome da campanha/i }),
-                { target: { value: "Campanha Teste" } },
-              );
-              fireEvent.change(
-                screen.getByRole("textbox", { name: /Descrição/i }),
-                { target: { value: "Descrição da campanha de teste." } },
-              );
-              await continuar(user); // passo 1 → 2
-
-              // Passo 2 (StepCausaRegra): selecionar beneficiada + regraValor.
-              await aguardarCatalogo();
-              await selecionarBeneficiada(user, idSelecionado);
-              fireEvent.change(
-                screen.getByLabelText(/Valor doado por unidade/i),
-                { target: { value: regraValor } },
-              );
-
-              // O botão "Continuar" fica habilitado quando o passo 2 é válido.
-              await waitFor(() => {
-                expect(
-                  screen.getByRole("button", { name: "Continuar" }),
-                ).toBeEnabled();
-              });
-              await continuar(user); // passo 2 → 3
-
-              // Passo 3 (StepSelo): sempre válido; concluir.
-              await continuar(user); // passo 3 → concluído
-
-              // O payload capturado na conclusão inclui exatamente o id escolhido.
-              await waitFor(() => {
-                expect(
-                  screen.getByTestId("payload-capturado"),
-                ).toBeInTheDocument();
-              });
-              expect(payloadsCapturados).toHaveLength(1);
-              expect(payloadsCapturados[0].instituicaoId).toBe(idSelecionado);
-            } finally {
-              cleanup();
-              mock.restaurar();
-            }
-          },
-        ),
-        { numRuns: 10 },
-      );
-    },
-  );
-
-  it(
-    "CampaignWizardNew (passo 1): concluir inclui no payload exatamente o id selecionado",
-    { timeout: 120_000 },
-    async () => {
-      await fc.assert(
-        fc.asyncProperty(
-          fc.constantFrom(...IDS_CATALOGO),
-          async (idSelecionado) => {
-            const mock: MockFetch = instalarMockFetch();
-            mock.responderCom({ status: 200, body: CATALOGO });
-            payloadsCapturados.length = 0;
-
+            const mock = instalarApi();
             const user = userEvent.setup({ delay: null });
 
             try {
@@ -221,44 +213,23 @@ describe("Payload do wizard — Property 12: preservação do identificador no p
                 </ThemeProvider>,
               );
 
-              // Passo 1 (StepSobreCampanha): nome + descrição + beneficiada.
-              fireEvent.change(
-                screen.getByRole("textbox", { name: /Nome da campanha/i }),
-                { target: { value: "Campanha Teste" } },
-              );
-              fireEvent.change(
-                screen.getByRole("textbox", { name: /Descrição/i }),
-                { target: { value: "Descrição da campanha de teste." } },
-              );
-              await aguardarCatalogo();
-              await selecionarBeneficiada(user, idSelecionado);
-
-              await waitFor(() => {
-                expect(
-                  screen.getByRole("button", { name: "Continuar" }),
-                ).toBeEnabled();
-              });
+              await preencherPasso1(user, idSelecionado);
               await continuar(user); // passo 1 → 2
 
-              // Passo 2 (StepModeloSelo): escolher um modelo de selo.
-              await user.click(screen.getByText(/Modelo 3 · Escudo/i));
-              await waitFor(() => {
-                expect(
-                  screen.getByRole("button", { name: "Continuar" }),
-                ).toBeEnabled();
+              fireEvent.change(screen.getByLabelText(/Valor doado por unidade/i), {
+                target: { value: regraValor },
+              });
+              fireEvent.change(screen.getByLabelText(/Início/i), {
+                target: { value: "2026-11-01" },
               });
               await continuar(user); // passo 2 → 3
 
-              // Passo 3 (StepSelo): sempre válido; concluir.
-              await continuar(user); // passo 3 → concluído
+              await user.click(screen.getByRole("button", { name: "Enviar para análise" }));
 
-              await waitFor(() => {
-                expect(
-                  screen.getByTestId("payload-capturado"),
-                ).toBeInTheDocument();
-              });
-              expect(payloadsCapturados).toHaveLength(1);
-              expect(payloadsCapturados[0].instituicaoId).toBe(idSelecionado);
+              expect(
+                await screen.findByText("Campanha enviada para análise."),
+              ).toBeInTheDocument();
+              esperarIdNoCampoDoTipo(corpoDaCriacao(mock), idSelecionado);
             } finally {
               cleanup();
               mock.restaurar();

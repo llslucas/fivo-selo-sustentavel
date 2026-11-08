@@ -1,8 +1,8 @@
 import request from 'supertest';
 
-import { Mailer } from '@domain/fivo/application/ports/mailer';
+import { Mailer } from '@domain/fivo/shared/ports/mailer';
 import { SessionService } from '@infra/auth/session.service';
-import { FakeMailer } from '@test/cryptography/fake-mailer';
+import { FakeMailer } from '@test/doubles/fake-mailer';
 import {
   AppDeTeste,
   comCookieDeSessao,

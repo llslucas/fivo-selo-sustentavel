@@ -1,0 +1,135 @@
+import { NotAllowedError } from '@core/errors/not-allowed-error';
+import { ResourceNotFoundError } from '@core/errors/resource-not-found-error';
+import { InstituicaoStatus } from '../entities/instituicao';
+import { UserRole } from '@domain/fivo/identidade';
+import { InstituicaoFactory } from '@test/factories/instituicao-factory';
+import { UserFactory } from '@test/factories/user-factory';
+import { InMemoryInstituicaoRepository } from '@test/doubles/in-memory-instituicao-repository';
+import { InMemoryRegistroAuditoriaRepository } from '@test/doubles/in-memory-registro-auditoria-repository';
+import { TransicaoInvalidaError } from '@domain/fivo/shared';
+import { SuspenderInstituicaoUseCase } from './suspender-instituicao';
+
+describe('SuspenderInstituicaoUseCase', () => {
+  let instituicaoRepository: InMemoryInstituicaoRepository;
+  let registroAuditoriaRepository: InMemoryRegistroAuditoriaRepository;
+  let sut: SuspenderInstituicaoUseCase;
+
+  beforeEach(() => {
+    instituicaoRepository = new InMemoryInstituicaoRepository();
+    registroAuditoriaRepository = new InMemoryRegistroAuditoriaRepository();
+    sut = new SuspenderInstituicaoUseCase(
+      instituicaoRepository,
+      registroAuditoriaRepository,
+    );
+  });
+
+  it('should suspend an APROVADA instituicao: set SUSPENSA and write one audit row', async () => {
+    const instituicao = InstituicaoFactory.create({
+      status: InstituicaoStatus.APROVADA,
+    });
+    await instituicaoRepository.create(instituicao);
+    const admin = UserFactory.create({ role: UserRole.ADMIN });
+
+    const response = await sut.execute(instituicao.id.toString(), admin);
+
+    expect(response.isRight()).toBe(true);
+
+    const updated = await instituicaoRepository.findById(
+      instituicao.id.toString(),
+    );
+    expect(updated?.status).toBe(InstituicaoStatus.SUSPENSA);
+    expect(updated?.decididoPor?.equals(admin.id)).toBe(true);
+
+    expect(registroAuditoriaRepository.items).toHaveLength(1);
+    expect(registroAuditoriaRepository.items[0]).toEqual(
+      expect.objectContaining({
+        usuarioId: admin.id.toString(),
+        entidadeId: instituicao.id.toString(),
+      }),
+    );
+    expect(registroAuditoriaRepository.items[0].criadoEm).toBeInstanceOf(Date);
+    expect(registroAuditoriaRepository.items[0].dados).toEqual(
+      expect.objectContaining({
+        estadoAnterior: InstituicaoStatus.APROVADA,
+        estadoNovo: InstituicaoStatus.SUSPENSA,
+      }),
+    );
+  });
+
+  it.each([
+    InstituicaoStatus.PENDENTE_APROVACAO,
+    InstituicaoStatus.REJEITADA,
+    InstituicaoStatus.SUSPENSA,
+    InstituicaoStatus.INATIVA,
+  ])(
+    'should reject with TransicaoInvalidaError (409) when the instituicao is %s',
+    async (status) => {
+      const instituicao = InstituicaoFactory.create({ status });
+      await instituicaoRepository.create(instituicao);
+      const admin = UserFactory.create({ role: UserRole.ADMIN });
+
+      const response = await sut.execute(instituicao.id.toString(), admin);
+
+      expect(response.isLeft()).toBe(true);
+      if (response.isLeft()) {
+        expect(response.value).toBeInstanceOf(TransicaoInvalidaError);
+      }
+
+      const persisted = await instituicaoRepository.findById(
+        instituicao.id.toString(),
+      );
+      expect(persisted?.status).toBe(status);
+      expect(registroAuditoriaRepository.items).toHaveLength(0);
+    },
+  );
+
+  it('should reject with NotAllowedError (403) when the user is not an admin', async () => {
+    const instituicao = InstituicaoFactory.create({
+      status: InstituicaoStatus.APROVADA,
+    });
+    await instituicaoRepository.create(instituicao);
+    const naoAdmin = UserFactory.create({ role: UserRole.EMPRESA });
+
+    const response = await sut.execute(instituicao.id.toString(), naoAdmin);
+
+    expect(response.isLeft()).toBe(true);
+    expect(response.value).toBeInstanceOf(NotAllowedError);
+
+    const persistida = await instituicaoRepository.findById(
+      instituicao.id.toString(),
+    );
+    expect(persistida?.status).toBe(InstituicaoStatus.APROVADA);
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
+  });
+
+  it('should reject with ResourceNotFoundError (404) when the instituicao does not exist', async () => {
+    const admin = UserFactory.create({ role: UserRole.ADMIN });
+
+    const response = await sut.execute('non-existent-id', admin);
+
+    expect(response.isLeft()).toBe(true);
+    if (response.isLeft()) {
+      expect(response.value).toBeInstanceOf(ResourceNotFoundError);
+    }
+  });
+
+  it('should reject with TransicaoInvalidaError and leave no audit when salvarTransicao is not applied', async () => {
+    const instituicao = InstituicaoFactory.create({
+      status: InstituicaoStatus.APROVADA,
+    });
+    await instituicaoRepository.create(instituicao);
+    const admin = UserFactory.create({ role: UserRole.ADMIN });
+
+    jest
+      .spyOn(instituicaoRepository, 'salvarTransicao')
+      .mockResolvedValueOnce(false);
+
+    const response = await sut.execute(instituicao.id.toString(), admin);
+
+    expect(response.isLeft()).toBe(true);
+    if (response.isLeft()) {
+      expect(response.value).toBeInstanceOf(TransicaoInvalidaError);
+    }
+    expect(registroAuditoriaRepository.items).toHaveLength(0);
+  });
+});

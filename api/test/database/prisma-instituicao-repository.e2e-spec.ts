@@ -1,19 +1,19 @@
 import { randomUUID } from 'node:crypto';
 
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { InstituicaoAlreadyExistsError } from '@domain/fivo/application/errors/instituicao-already-exists.error';
-import { CausaRepository } from '@domain/fivo/application/ports/database/causa-repository';
-import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
-import { InstituicaoRepository } from '@domain/fivo/application/ports/database/instituicao-repository';
-import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
-import { Cnpj } from '@domain/fivo/entities/cnpj';
-import { DocumentoValidacao } from '@domain/fivo/entities/documento-validacao';
+import { InstituicaoJaExisteError } from '@domain/fivo/catalogo/errors/instituicao-ja-existe.error';
+import { CausaRepository } from '@domain/fivo/catalogo/ports/causa-repository';
+import { EmpresaRepository } from '@domain/fivo/empresas/ports/empresa-repository';
+import { InstituicaoRepository } from '@domain/fivo/catalogo/ports/instituicao-repository';
+import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
+import { Cnpj } from '@domain/fivo/shared/entities/cnpj';
+import { DocumentoValidacao } from '@domain/fivo/catalogo/entities/documento-validacao';
 import {
   Instituicao,
   InstituicaoProps,
   InstituicaoStatus,
-} from '@domain/fivo/entities/instituicao';
-import { UserRole } from '@domain/fivo/entities/user';
+} from '@domain/fivo/catalogo/entities/instituicao';
+import { UserRole } from '@domain/fivo/identidade/entities/user';
 import { CausaFactory } from '@test/factories/causa-factory';
 import { cnpjValido } from '@test/factories/cnpj-factory';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
@@ -408,13 +408,13 @@ describe('PrismaInstituicaoRepository (e2e)', () => {
     expect(final!.motivoDecisao).toBe(MOTIVO_REJEICAO);
   });
 
-  it('create com CNPJ já cadastrado em outra instituição falha com InstituicaoAlreadyExistsError (409)', async () => {
+  it('create com CNPJ já cadastrado em outra instituição falha com InstituicaoJaExisteError (409)', async () => {
     const primeira = nova();
     const segunda = nova({ cnpj: primeira.cnpj });
     await repository.create(primeira);
 
     await expect(repository.create(segunda)).rejects.toBeInstanceOf(
-      InstituicaoAlreadyExistsError,
+      InstituicaoJaExisteError,
     );
     await expect(repository.create(segunda)).rejects.toMatchObject({
       status: 409,

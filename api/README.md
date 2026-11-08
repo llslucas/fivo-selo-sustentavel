@@ -2,7 +2,7 @@
 
 API da plataforma que permite a empresas associarem uma ação social à venda de seus produtos, com transparência para o consumidor. Contexto do produto em [`../docs/proposta-inicial.md`](../docs/proposta-inicial.md).
 
-Estado atual: feature **cadastro-empresa** implementada e validada (cadastro, autenticação por sessão, moderação pelo admin, troca de e-mail, recuperação de senha e upload de arquivos). Feature **catalogo-instituicoes** implementada no recorte P1 (autocadastro da instituição com documento de validação, fila e decisões do admin, curadoria de causas, catálogo de beneficiadas para a empresa). As demais features (campanhas, selo e QR Code, páginas públicas, transparência) ainda serão construídas — ver [`.specs/STATE.md`](.specs/STATE.md).
+Estado atual: feature **cadastro-empresa** implementada e validada (cadastro, autenticação por sessão, moderação pelo admin, troca de e-mail, recuperação de senha e upload de arquivos). Feature **catalogo-instituicoes** implementada no recorte P1 (autocadastro da instituição com documento de validação, fila e decisões do admin, curadoria de causas, catálogo de beneficiadas para a empresa). Feature **campanhas** implementada no recorte P1 do `api` (rascunho, submissão, fila e decisões do admin, alteração de campanha aprovada e consulta pública); encerramento e duplicação ficam para depois. As demais features (selo e QR Code, páginas públicas, transparência) ainda serão construídas — ver [`.specs/STATE.md`](.specs/STATE.md).
 
 ## Stack
 
@@ -54,6 +54,12 @@ Os scripts `start*` carregam o `.env` via `--env-file`. Referência completa em 
 | `ADMIN_NOME`      | `Administrador Fivo`   | Nome do admin.                                                              |
 | `COOKIE_SECURE`   | `true` em produção     | Liga a flag `Secure` do cookie de sessão.                                   |
 | `SWAGGER_ENABLED` | `false`                | Em produção, serve `/docs` quando `true`. Fora dela, sempre servido.        |
+| `SMTP_HOST`       | —                      | Servidor SMTP. Sem ele, os e-mails só vão para o log; em produção, a app não sobe. |
+| `SMTP_PORT`       | `587`                  | Porta SMTP (`465` liga TLS direto).                                          |
+| `SMTP_USER`       | —                      | Usuário SMTP.                                                                |
+| `SMTP_SENHA`      | —                      | Senha ou chave SMTP.                                                         |
+| `EMAIL_REMETENTE` | —                      | Remetente (`Nome <email>`). Obrigatório quando `SMTP_HOST` está definido.    |
+| `WEB_URL`         | `http://localhost:3001` | Base do web para o QR do selo e os links dos e-mails. Obrigatória em produção. |
 | `PORT`            | `3000`                 | Porta HTTP.                                                                 |
 
 ## Scripts
@@ -82,18 +88,22 @@ src/
 ├── core/                    # Base compartilhada, sem framework
 │   ├── errors/              #   erros de domínio
 │   └── types/
-├── domain/fivo/             # Regras de negócio (sem Nest, sem Prisma)
-│   ├── entities/            #   entidades — fonte da verdade do modelo (AD-017)
-│   └── application/
-│       ├── use-cases/       #   um caso de uso por arquivo, com .spec.ts ao lado
-│       ├── ports/           #   contratos (repositórios, criptografia, mailer, storage)
-│       └── errors/
+├── domain/fivo/             # Regras de negócio (sem Nest, sem Prisma), fatiadas por feature
+│   ├── shared/              #   cnpj, arquivo, portas transversais (mailer, storage, unit-of-work, auditoria)
+│   ├── identidade/          #   usuário, senha, sessão, recuperação de senha
+│   ├── empresas/            #   cadastro, edição e moderação de empresa
+│   ├── catalogo/            #   instituições, causas e beneficiadas
+│   └── campanhas/           #   campanhas, compromissos e alterações
+│       ├── entities/        #     entidades — fonte da verdade do modelo (AD-017)
+│       ├── ports/           #     contratos (repositórios, criptografia, ...)
+│       ├── use-cases/       #     um caso de uso por arquivo, com .spec.ts ao lado
+│       ├── errors/
+│       └── index.ts         #     API pública da fatia
 └── infra/                   # Adaptadores e framework
     ├── main.ts              #   bootstrap
     ├── app.module.ts
-    ├── http/                #   controllers, DTOs (Zod), pipes, presenters,
-    │   │                    #   filtro de exceções e esquema OpenAPI
-    │   └── controllers/
+    ├── http/                #   pipes, filtro de exceções e esquema OpenAPI
+    │   └── <fatia>/         #   controllers, DTOs (Zod) e presenters de cada fatia
     ├── auth/                #   sessão por cookie, guards, decorators (@Public, @Roles, @CurrentUser)
     ├── database/prisma/     #   PrismaService, repositórios e mappers
     ├── cryptography/        #   hash de senha (argon2)
@@ -101,7 +111,7 @@ src/
     ├── arquivo/             #   upload e validação de arquivos
     └── mail/                #   envio de e-mail com fila persistente (EmailPendente)
 prisma/                      # schema.prisma e migrations
-test/                        # e2e (HTTP), factories, repositórios em memória
+test/                        # e2e (HTTP por fatia, database), factories, doubles
 scripts/                     # exportar-openapi.ts
 .specs/                      # specs, designs, tasks e validações por feature
 ```
@@ -109,6 +119,7 @@ scripts/                     # exportar-openapi.ts
 Convenções que valem para todo código novo:
 
 - **Regra de negócio entra em `domain/`** como caso de uso. Controllers só traduzem HTTP ↔ caso de uso; erros de domínio viram resposta HTTP no `domain-exception.filter.ts`.
+- **Cada caso de uso mora na fatia da sua feature** (`domain/fivo/<fatia>/`). Dentro da fatia, imports relativos; entre fatias, só pelo `index.ts` (`@domain/fivo/<fatia>`) e só na ordem `shared ← identidade ← empresas ← catalogo ← campanhas` — o ESLint barra o resto (AD-022).
 - **Casos de uso dependem de ports**, nunca de Prisma/Nest. A implementação concreta é ligada nos módulos de `infra/`.
 - **Entidades TypeScript são a fonte da verdade** do modelo; o `schema.prisma` deriva delas (AD-017 em `.specs/STATE.md`).
 - **Todo DTO é validado com Zod** via pipe em `infra/http/pipes/`.
@@ -141,16 +152,34 @@ Referência viva: `/docs` (Swagger UI) ou [`openapi.json`](openapi.json). Resumo
 | `GET /admin/instituicoes`            | admin    | Fila de instituições pendentes, com o documento e o sinal de CNPJ igual ao de uma empresa |
 | `POST /admin/instituicoes/:id/{aprovacao,rejeicao,suspensao,reativacao,inativacao}` | admin | Moderação de instituição (aprovação responde 503 se o documento estiver ilegível) |
 | `GET /beneficiadas?busca=`           | empresa aprovada | Catálogo: instituições aprovadas e causas ativas, busca sem acento a partir de 2 caracteres |
+| `POST /campanhas`                    | empresa aprovada | Cria campanha em `RASCUNHO` (só o nome é obrigatório); devolve `id` e `idPublico` |
+| `GET /campanhas/:id`                 | empresa  | Detalhe da própria campanha, com motivo da última rejeição e alteração pendente |
+| `PATCH /campanhas/:id`               | empresa aprovada | Edita a campanha; o efeito depende do estado (ver abaixo) |
+| `PUT /campanhas/:id/capa`            | empresa aprovada | Envia ou troca a capa, multipart com `capa` (PNG/JPEG até 5 MB) |
+| `POST /campanhas/:id/submissao`      | empresa aprovada | Envia o rascunho para análise; 422 lista os campos pendentes em `errors` |
+| `GET /admin/campanhas/fila`          | admin    | Campanhas em análise e alterações pendentes, da submissão mais antiga para a mais recente |
+| `POST /admin/campanhas/:id/{aprovacao,rejeicao}` | admin | Decide a campanha em análise (rejeição com motivo de 20+ caracteres e e-mail à empresa) |
+| `POST /admin/campanhas/:id/alteracao/{aprovacao,rejeicao}` | admin | Decide a alteração pendente da campanha aprovada |
+| `GET /campanhas/publicas/:idPublico` | público  | Versão aprovada de uma campanha publicada |
+| `GET /campanhas/publicas/:idPublico/capa` | público | Capa de uma campanha publicada |
 
 A autenticação é por **cookie de sessão** (`fivo_sessao`, expira após 8 h de inatividade). No Swagger UI, faça login em `POST /sessoes` e o navegador reaproveita o cookie.
 
 O documento de validação da instituição só é baixado (`GET /arquivos/:id`) pelo admin e pela própria instituição; qualquer outro usuário recebe 403. Ele nunca sai em `GET /beneficiadas`.
 
-E-mails ainda não são enviados de verdade: o transporte atual é o `LogMailer`, que escreve a mensagem no log da API. Tokens de recuperação de senha e troca de e-mail aparecem lá durante o desenvolvimento.
+### Ciclo de vida da campanha
+
+A campanha nasce em `RASCUNHO` com só o nome. Cada campo informado é validado na hora: valores e percentual vão como string decimal (`"1.50"`), datas como `AAAA-MM-DD`, e a beneficiada é uma instituição aprovada ou uma causa ativa, nunca as duas. A submissão exige descrição, beneficiada, regra de doação e data de início, e leva a campanha a `EM_ANALISE`, quando a empresa não edita mais. O admin aprova (`APROVADA`) ou rejeita com motivo (`REJEITADA`). Uma campanha rejeitada volta a `RASCUNHO` na primeira edição, com o motivo preservado no detalhe. Campanha de outra empresa responde 404, e só empresa `APROVADA` cria, edita ou submete.
+
+Em campanha `APROVADA`, nome, descrição, meta e capa mudam na hora. Beneficiada, regra de doação e vigência abrem uma **alteração pendente**: a campanha segue `APROVADA` com os valores anteriores até o admin decidir a alteração pela fila, e só cabe uma pendente por vez (a segunda responde 409). Toda transição e toda decisão ficam no registro de auditoria. Decisões concorrentes e edição contra decisão são resolvidas por versão: a primeira vale e a outra recebe 409.
+
+A **consulta pública** pelo `idPublico` responde só a campanha `APROVADA` de empresa `APROVADA`, com os valores aprovados e a situação (`NAO_INICIADA` ou `EM_ANDAMENTO`). Rascunho, análise, rejeição, empresa suspensa e identificador malformado recebem o mesmo 404. A capa só é servida nas mesmas condições.
+
+E-mails saem por SMTP quando `SMTP_HOST` está definido (`SmtpMailer`, em `src/infra/mail/`); os assuntos e textos de cada template ficam em `templates-email.ts`. Sem `SMTP_HOST`, fora de produção, o transporte é o `LogMailer`, que escreve o destinatário e o template no log e, para a redefinição de senha, o link com o token. Nos testes é sempre o `LogMailer`, mesmo com `SMTP_*` no `.env`.
 
 ## Testes
 
-- **Unitários** (`npm test`): casos de uso com repositórios em memória (`test/repositories`, `test/factories`). Rápidos e sem infraestrutura.
+- **Unitários** (`npm test`): casos de uso com repositórios em memória (`test/doubles`, `test/factories`). Rápidos e sem infraestrutura.
 - **E2E** (`npm run test:e2e`): sobem a app Nest completa contra o Postgres de teste, rodando em série (`maxWorkers: 1`). Suba o compose e aplique as migrations antes. O `DATABASE_URL` vem do `.env`; se ausente, cai no do compose.
 
 Regra do projeto: testes derivam dos critérios de aceitação da spec e verificam o resultado esperado, não a implementação.

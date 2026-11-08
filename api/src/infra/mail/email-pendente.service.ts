@@ -1,9 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import {
-  MensagemEmail,
-  TemplateEmail,
-} from '@domain/fivo/application/ports/mailer';
+import { MensagemEmail, TemplateEmail } from '@domain/fivo/shared/ports/mailer';
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 

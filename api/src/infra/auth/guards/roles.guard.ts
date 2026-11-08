@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-import { UserRole } from '@domain/fivo/entities/user';
+import { UserRole } from '@domain/fivo/identidade/entities/user';
 
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { RequisicaoAutenticada } from '../usuario-autenticado';

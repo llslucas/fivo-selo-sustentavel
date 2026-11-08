@@ -2,7 +2,7 @@ import {
   Mailer,
   MensagemEmail,
   TemplateEmail,
-} from '@domain/fivo/application/ports/mailer';
+} from '@domain/fivo/shared/ports/mailer';
 import { Injectable, Logger } from '@nestjs/common';
 
 const CAMINHO_REDEFINICAO_SENHA = '/recuperar-senha/redefinir?token=';

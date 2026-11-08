@@ -24,7 +24,7 @@
 - **Trade-off**: Introduz latência humana no onboarding e na publicação; exige um painel administrativo desde a v1.
 - **Scope**: `cadastro-empresa`, `catalogo-instituicoes`, `campanhas`, `transparencia-e-area-empresa`, painel administrativo.
 - **Date**: 2026-08-22 (emendada em 2026-08-29 para incluir o cadastro de instituição, ver AD-008)
-- **Status**: active
+- **Status**: active — emendada por AD-023 (2026-10-28): comprovante de doação sai da v1, então a moderação preventiva vale para empresa, instituição e campanha.
 
 ### AD-004
 - **Decision**: O selo digital é gerado a partir de **5 templates fixos** compostos server-side (logo da empresa + dados da campanha + QR Code), exportado em **PNG rasterizado (300 DPI)** e **PDF vetorial**. Nenhuma geração por IA na v1.
@@ -32,7 +32,7 @@
 - **Trade-off**: Menos flexibilidade visual para a empresa; a composição precisa de pipeline de renderização determinística (SVG → PNG/PDF) em vez de simples upload de imagem.
 - **Scope**: `selo-e-qrcode`.
 - **Date**: 2026-08-22
-- **Status**: active
+- **Status**: superseded by AD-023 (2026-10-28) — selo genérico único em SVG, sem modelos nem solicitação.
 
 ### AD-005
 - **Decision**: Os artefatos `.specs/` usam esqueleto de seções e palavras-chave EARS em inglês (`WHEN`, `WHILE`, `WHERE`, `IF/THEN`, `SHALL`) com o conteúdo redigido em português.
@@ -56,7 +56,7 @@
 - **Trade-off**: Uma entidade sem função de negócio imediata na v1; e a plataforma deixa de ter qualquer receita modelada, o que precisa ser retomado antes de um lançamento comercial.
 - **Scope**: `selo-e-qrcode`, `campanhas`, `transparencia-e-area-empresa`, `cadastro-empresa`, painel administrativo.
 - **Date**: 2026-08-29
-- **Status**: active — supersedes AD-002
+- **Status**: superseded by AD-023 (2026-10-28) — selo genérico único em SVG, sem modelos nem solicitação. Antes: active — supersedes AD-002
 
 ### AD-008
 - **Decision**: A instituição passa a ser um usuário autenticado da plataforma (papel `INSTITUICAO`), com autocadastro self-service que usa a mesma estrutura de dados da empresa (nome, CNPJ, e-mail, telefone, endereço, logo, senha) mais causa, descrição, site e **exatamente 1 documento de validação obrigatório** (PDF/JPG/PNG até 10 MB, sem tipo fixo exigido, com descrição livre opcional). O administrador aprova ou rejeita analisando esse documento, e a instituição tem área logada para acompanhar o status, corrigir dados e substituir o documento.
@@ -72,7 +72,7 @@
 - **Trade-off**: Um erro de escolha de modelo só se corrige criando outra campanha, com novo identificador público e novo QR — custo real de suporte que a v1 aceita em troca da fidelidade ao material impresso.
 - **Scope**: `selo-e-qrcode`, `campanhas` (duplicação de campanha), `transparencia-e-area-empresa` (área da empresa).
 - **Date**: 2026-08-29
-- **Status**: active
+- **Status**: superseded by AD-023 (2026-10-28) — selo genérico único em SVG, sem modelos nem solicitação. Antes: active
 
 ### AD-010
 - **Decision**: O projeto é um monorepo com back-end e front-end como apps separados: `api` (NestJS) e `web` (NextJS). Dentro de cada app, o código é organizado pelos mesmos nomes das 6 features. A separação entre camada de infra e camada de domínio é interna ao `api`, não uma divisão de repositório.
@@ -134,7 +134,7 @@
 - **Decision**: O `api` abandona o meio-termo de AD-011 e adota **arquitetura hexagonal completa** num **único bounded context** `src/domain/fivo/`. Três anéis: `src/core/` (kernel — `Either`, `Entity`, `ValueObject`, `UniqueEntityId`, `Optional`, `UseCaseError`, erros base; ESLint barra tudo que não seja import relativo ou `node:*`), `src/domain/fivo/` (entidades ricas em `entities/`; portas `abstract class` em `application/ports/`; **um caso de uso por operação** em `application/use-cases/`; erros de aplicação com campo `status` em `application/errors/`) e `src/infra/` (Nest, adaptadores das portas, HTTP). O domínio pode importar `@nestjs/common` (apenas `@Injectable`/`@Inject`); a regra de ESLint de `src/domain/**` barra `@infra/*`, `@prisma/*`, `express` e `@nestjs/platform-express`. As entidades TypeScript são a fonte da verdade do modelo de dados (code-first). Teste de domínio: `*.spec.ts` co-locado, com repositórios em memória (`test/repositories/`), fakes de cripto (`test/cryptography/`) e factories de entidade (`test/factories/`). A persistência real (Prisma/Postgres — AD-014) e os adaptadores de infra (cripto, mail, storage, HTTP, auth) ficam para uma fase de infra posterior — o domínio já roda e é verificável apenas com os fakes.
 - **Reason**: A meta é onboarding do grupo e velocidade inicial. O grupo já domina o template hexagonal padrão (portas + casos de uso + entidades + repositório em memória); mantê-lo custa menos atrito do que o desenho sob medida de AD-011, que ninguém fora do autor reconhecia. Um contexto único `fivo` — em vez dos 6 domínios de AD-001/AD-010 — elimina duplicação de kernel e de wiring entre fatias que mal existem. Adiar a infra deixa o grupo fechar todas as regras de negócio (onde estão a complexidade e a nota do trabalho) antes de gastar tempo com Docker, migrations e cookies.
 - **Trade-off**: ~12–15 arquivos por operação (porta + adaptador + caso de uso + mapper + fake) — exatamente o custo que AD-011 evitava. Enquanto a infra não existe, nada roda sobre HTTP nem sobre banco: a verificação end-to-end fica represada nos testes de domínio. O contexto único `fivo` só se sustenta enquanto as features são pequenas; se cada uma crescer, a separação por domínio de AD-001 volta a fazer sentido.
-- **Scope**: `api` — todas as features; fases Design e Execute. **Supersede AD-011 e AD-015.** Emenda AD-001 e AD-010 (a decomposição por feature permanece no nível de spec/design/tasks; o código do `api` fica num só contexto `src/domain/fivo/`) e AD-006 (modelo canônico agora code-first). AD-014 e AD-016 permanecem válidas em intenção, com implementação adiada.
+- **Scope**: `api` — todas as features; fases Design e Execute. **Supersede AD-011 e AD-015.** Layout interno de `src/domain/fivo/` emendado por AD-022 (2026-10-28). Emenda AD-001 e AD-010 (a decomposição por feature permanece no nível de spec/design/tasks; o código do `api` fica num só contexto `src/domain/fivo/`) e AD-006 (modelo canônico agora code-first). AD-014 e AD-016 permanecem válidas em intenção, com implementação adiada.
 - **Date**: 2026-09-07
 - **Status**: active — nota (2026-09-07): **rich domain model**. As regras de negócio vivem nas entidades (métodos: `Empresa.aprovar/rejeitar/suspender/reativar/estaAprovada`, `User.registrarFalhaDeLogin/estaBloqueado/registrarLoginOk`) e em value objects que validam na construção (`Cnpj.create`, `Senha.criar`) ou factories (`Arquivo.criar` — validação por `tipo`). Nenhuma regra pura solta em `application/`; o caso de uso só carrega → chama método/factory → persiste. Regra que cruza registros (unicidade de CNPJ/e-mail) fica no caso de uso. Entidades sem setter público para campo governado por invariante. `design.md` §Components e `tasks.md` T1–T13 refletem isso.
 
@@ -173,8 +173,124 @@
 - **Scope**: `campanhas` — tasks T1–T40.
 - **Date**: 2026-10-15
 - **Status**: active
+- **Exceção de autoria (2026-10-27)**: usuário autorizou explicitamente o agente a assumir a T18 de `campanhas` (`CriarCampanhaUseCase` — `src/domain/fivo/application/use-cases/criar-campanha.ts` + spec), incluindo a reescrita do caso de uso e dos testes unit correspondentes. As demais tasks de domínio T1–T27 continuam de autoria humana.
+- **Exceção de autoria (2026-10-27, gate de handoff)**: a rodada 1 da verificação do domínio deu FAIL (`validation-dominio.md`) e abriu as tasks de correção T41–T50 (Fase 6b). O usuário autorizou explicitamente o agente a aplicá-las, incluindo código em `src/domain/**`, `test/repositories/**` e `test/factories/**` e os testes correspondentes, além da emenda de `design.md` e da Done-when da T29 que a T46 exige. A autorização cobre o ciclo de correção e reverificação do gate (até 3 rodadas). As tasks T1–T27 continuam de autoria humana.
+
+### AD-022
+- **Decision**: Dentro do contexto único `src/domain/fivo/`, o código passa a ser organizado por **fatia de feature**: `shared`, `identidade`, `empresas`, `catalogo`, `campanhas`. Cada fatia tem `entities/`, `ports/`, `use-cases/`, `errors/` e um `index.ts` que é a sua API pública (a pasta `application/` deixa de existir). Entre fatias, o domínio só importa o `index.ts` (`@domain/fivo/<fatia>`), e só na ordem `shared ← identidade ← empresas ← catalogo ← campanhas`; dentro da fatia, imports relativos. O ESLint garante as duas regras. Na infra, só `infra/http/` é fatiado (`http/<fatia>/` com controllers, DTOs e presenters); `database`, `auth`, `mail`, `storage`, `cryptography` e `arquivo` continuam transversais e há um único `HttpModule`. Nos testes, `test/repositories/`, `test/cryptography/` e os fakes de `test/arquivo/` viram `test/doubles/`, e os e2e de `test/http/` são agrupados por fatia. Junto da mudança: `Beneficiada` e `AssegurarBeneficiadaDisponivelUseCase` ficam em `catalogo`; erros e portas usados por várias fatias (`TransicaoInvalidaError`, `MotivoInsuficienteError`, `Cnpj`, `UnitOfWork`, `Mailer`, `Storage`, `RegistroAuditoriaRepository`) ficam em `shared`; os erros com nome em inglês foram traduzidos (`CnpjInvalidoError`, `UsuarioJaExisteError`, `EmpresaJaExisteError`, `InstituicaoJaExisteError`, `ValorRegraInvalidoError`, `credenciais-invalidas.error.ts`); o campo morto `UserProps.empresa` foi removido, porque criava um ciclo `identidade → empresas`.
+- **Reason**: Com `campanhas` fechada, `use-cases/` tinha 36 casos de uso e `errors/` 37 erros em pastas planas, e cada mudança de feature tocava cerca de 8 pastas. O próprio AD-017 previu que a separação por domínio voltaria a fazer sentido se as features crescessem. Fatias dentro de um contexto único resolvem isso sem duplicar kernel nem wiring, e o grafo de imports já existente era acíclico depois da remoção de `UserProps.empresa`.
+- **Trade-off**: Uma PR grande, só de movimentação (226 arquivos), que invalida os caminhos citados em specs, validações e lições anteriores — esses documentos são históricos e não foram reescritos. Os barrels aumentam o que é carregado por import e exigem nomes exportados únicos em cada fatia.
+- **Scope**: `api` — `src/domain/fivo/**`, `src/infra/http/**`, `test/**`, `eslint.config.mjs`. Emenda AD-017 (layout interno de `domain/fivo`) e AD-010 (o código do `api` volta a ser organizado por feature, agora dentro de `fivo`). Os caminhos citados em AD-020 e AD-021 (`test/repositories/**`, `src/domain/fivo/application/**`) passam a ser lidos como `test/doubles/**` e `src/domain/fivo/<fatia>/**`.
+- **Date**: 2026-10-28
+- **Status**: active
+
+### AD-023
+- **Decision**: As features `selo-e-qrcode`, `paginas-publicas` e `transparencia-e-area-empresa` são substituídas por uma só, `vitrine-e-selo`, com escopo mínimo: (a) selo genérico único — marca Fivo, texto fixo e QR Code — entregue como SVG gerado na hora a partir da campanha `APROVADA`, sem modelos, sem armazenamento e sem a entidade `solicitacao_selo`; (b) área da empresa reduzida a cards de campanha com nome, valor da regra de doação e status; (c) página pública por empresa em `/empresa/{slugEmpresa}`, com as campanhas `APROVADA` como subtópicos, e QR apontando para `/empresa/{slugEmpresa}/{slugCampanha}`, que abre a mesma página rolada até a campanha; (d) slug de empresa e de campanha gerado na primeira aprovação e imutável depois; (e) vitrine `/parceiros` ligada à API. Saem da v1: comprovantes de doação e sua moderação, painel admin consolidado, PNG/PDF do selo, histórico de selos, Open Graph, encerramento (CAMP-09) e duplicação (CAMP-10) de campanha.
+- **Reason**: Pedido do usuário em 2026-10-28 para agilizar a entrega. As três specs somavam cerca de 40 critérios; o recorte fecha o fluxo empresa → selo → QR → página pública com 9 requisitos. O selo é determinístico, então guardá-lo não acrescenta nada; o slug fixo na aprovação mantém o QR impresso válido mesmo com renomeação.
+- **Trade-off**: A promessa de transparência perde a prestação de contas (comprovantes) na v1. O slug é adivinhável, o que derruba a exigência de identificador não enumerável — aceito porque só o que está aprovado é público. A empresa não personaliza o selo.
+- **Scope**: `vitrine-e-selo` (nova); supersede AD-004, AD-007 e AD-009; emenda AD-003 (comprovante deixa de ser conteúdo moderado na v1) e `campanhas` (CAMP-09 e CAMP-10 saem da v1). Autoria: domínio e `web` pelo grupo (6 pessoas); o agente faz só a infra do `api`, depois do gate de handoff do domínio (mesma regra do AD-020/AD-021). O agente não escreve nem edita código em `web/**` desta feature; pode ler, revisar e rodar gates.
+- **Date**: 2026-10-28
+- **Status**: active
+- **Exceção de autoria (2026-11-08, gate de handoff)**: a rodada 1 das verificações deu FAIL no domínio (`validation-dominio.md`) e no `web` (`validation-web.md`). O usuário pediu explicitamente que o agente fizesse as correções ("rode o verifier e faça as correções necessárias"). Com isso, o agente aplica as tasks T45–T49 (testes e JSDoc em `src/domain/**` e `test/doubles/**`) e T60–T64 (`web/**`: remoção de `/parceiros/[id]` e `mockPartners`, e testes), e as que a rodada 2 abriu (T50, T51, T66, só de teste), além de trocar o gate `Web` (T65 da verificação). A autorização cobre o ciclo de correção e reverificação (até 3 rodadas). As tasks T1–T18 e T29–T44 continuam de autoria humana.
 
 ## Handoff
+
+### Handoff — infra de `vitrine-e-selo` concluída (2026-11-08)
+
+- **Feature**: `vitrine-e-selo` (`.specs/features/vitrine-e-selo/`)
+- **Phase / Task**: Execute concluído; T1–T66 completas. A infra (T19–T28) foi feita por 2 workers sequenciais. A verificação final deu **PASS** na rodada 1 (`validation.md`, diff `6ddf194..6dc3110`). `validate_state.py` sai com 0, e VIT-01…12 estão ✅ Verified no `spec.md`.
+- **Gate**: build, tsc e eslint verdes; unit 713/713; e2e 585/585; `prisma migrate diff` sem drift.
+- **Sensor (infra)**: 28 mutantes, 27 mortos, 1 equivalente (M27, guarda `slug: null` do `updateMany` do backfill).
+- **Decisões da infra**:
+  - as rotas novas devolvem os 404 com mensagem literal ("Campanha não encontrada", "Empresa não encontrada"), porque o `DomainExceptionFilter` troca a mensagem;
+  - o logo público usa um 404 único para empresa sem logo, inexistente ou suspensa;
+  - o selo tem fundo verde `#1b5e20`;
+  - `WEB_URL` é obrigatório em produção: sem ele, a app não sobe;
+  - `qrcode` entrou como dependência de produção; `jsqr` e `@resvg/resvg-js`, de dev;
+  - a migration `20261108153354_slug` foi gerada por `migrate diff`, porque `migrate dev` não roda sem terminal interativo;
+  - backfill: `npm run backfill:slugs`.
+- **Next step**: revisar e mergear a PR #268. Depois, rodar `npm run backfill:slugs` no deploy e o teste ponta a ponta do grupo em 10/11: UAT de 320 px, download real nos navegadores e QR lido por celular a 2,0 cm (`validation-web.md`).
+- **Follow-ups** (não bloqueiam; detalhes em `validation.md`):
+  - e2e de duas aprovações HTTP concorrentes de empresas homônimas;
+  - SP-I1: a spec não define a marca Fivo do selo;
+  - SP-I2: o backfill de empresa `SUSPENSA` ordena pela data da suspensão, não pela da aprovação;
+  - o selo é servido sem `nosniff` nem CSP (é `attachment`, risco baixo).
+- **Lições**: L-054 e L-055 registradas como candidatas.
+- **Uncommitted files**: none
+- **Branch**: `feat/vitrine-infra`, enviada ao remoto com a PR #268 aberta contra `homologacao`
+
+### Handoff — gate de handoff de `vitrine-e-selo` (2026-11-08)
+
+- **Feature**: `vitrine-e-selo` (`.specs/features/vitrine-e-selo/`)
+- **Phase / Task**: as tasks humanas (domínio T1–T18 e `web` T29–T44) estão verificadas e marcadas. As duas verificações deram **PASS** na rodada 3 (diff `96c313f..445d677`):
+  - `validation-dominio.md`: rodada 1 FAIL → T45–T49; rodada 2 FAIL → T50, T51.
+  - `validation-web.md`: rodada 1 FAIL → T60–T64 (e o gate `Web` com `next typegen`); rodada 2 FAIL → T66.
+  - As correções foram feitas pelo agente, com a exceção registrada no AD-023.
+- **Gate**: `api` com build, tsc e eslint verdes e unit 706/706. O e2e dá 507/546: as 39 falhas vêm dos stubs "não implementado: T20/T21" e saem com a infra. `web` com 331 ok e 2 skip (2/2 execuções).
+- **Sensor**: domínio com 81 mutantes distintos (77 mortos, 4 equivalentes); `web` com 44/44 mortos na superfície da feature. O único sobrevivente, N2, está em `AsyncState`, fora do diff.
+- **Next step**: Fase 4 (T19–T22), depois a Fase 5 (T23–T28). São 10 tasks, então vale oferecer 2 workers. Depois, o teste ponta a ponta do grupo em 10/11 (lista de UAT em `validation-web.md`) e a verificação final (`validation.md`).
+- **Riscos**: até a T21 entrar, a `homologacao` responde 500 em toda aprovação. Nas e2e de T25/T27, o `DomainExceptionFilter` precisa devolver "Empresa não encontrada" e "Campanha não encontrada", não a mensagem genérica.
+- **Follow-ups**:
+  - os de `validation-dominio.md` e `validation-web.md`;
+  - fora do escopo: a propriedade `CadastroInstituicao.property-envio-valido` falha com a semente 23 já na base (`id` só de espaços).
+- **Lições**: L-035…L-053 registradas como candidatas.
+- **Uncommitted files**: none
+- **Branch**: `fix/vitrine-gate-handoff`, enviada ao remoto com a PR #267 aberta contra `homologacao`
+
+### Handoff — planejamento de `vitrine-e-selo` (2026-10-28)
+
+- **Feature**: `vitrine-e-selo` (`.specs/features/vitrine-e-selo/`), que substitui `selo-e-qrcode`, `paginas-publicas` e `transparencia-e-area-empresa` (AD-023).
+- **Phase / Task**: spec aprovada pelo usuário (12 requisitos, VIT-01…12); `design.md` e `tasks.md` aprovados com a divisão em 6 pessoas e o cronograma; nenhuma task executada.
+- **Artefatos**: `spec.md` (`validate_spec.py` 0/0), `design.md` (contratos HTTP fixados para o `web`), `tasks.md` (44 tasks / 8 fases; `validate_tasks.py` 0 erros, 9 warnings esperados de `Tests: none`).
+- **Autoria**: domínio T1–T18 e `web` T29–T44 pelo grupo (6 pessoas, partes 1–6 em `tasks.md`); infra T19–T28 pelo agente depois do gate de handoff do domínio.
+- **Next step**: mergear a PR #243 (os links das issues apontam para `homologacao`); o grupo começa a onda 1 em qui 29/10. O agente entra no gate de handoff em sáb 07/11.
+- **Riscos registrados**: sem marca Fivo vetorial no projeto (wordmark em texto no selo); `WEB_URL` precisa estar configurado em produção.
+- **Issues**: uma por pessoa, #244–#249, no milestone `vitrine-e-selo` (nº 4, prazo 11/11); o usuário atribui os responsáveis.
+- **Uncommitted files**: none
+- **Branch**: `docs/vitrine-e-selo-planejamento`, enviada ao remoto com a PR #243 aberta contra `homologacao`
+
+### Handoff — `campanhas` P1 do `api` concluído (2026-10-27)
+
+- **Feature**: `campanhas` (`.specs/features/campanhas/`)
+- **Phase / Task**: Execute concluído; T1–T56 completas.
+  - Domínio (T1–T27 humanas + hardening T41–T53 do agente): gate de handoff PASS na rodada 3 (`validation-dominio.md`).
+  - Infra (T28–T40): feita por 2 workers.
+  - Verificação final: rodada 1 FAIL → T54, T55; rodada 2 FAIL → T56; rodada 3 **PASS** (`validation.md`, diff `397f8bc..65fc3bd`). `validate_state.py` sai com 0.
+  - CAMP-01…08 e CAMP-11 ✅ Verified no `spec.md`.
+- **Gate**: build, tsc e eslint verdes; unit 602/602; e2e 546/546 em 35 suites.
+- **Sensor**:
+  - domínio: 83 mutantes distintos, 80 mortos e 3 equivalentes;
+  - infra: 56 mutantes distintos, 55 mortos e 1 equivalente.
+- **In-progress**: nenhum
+- **Next step**: revisar e mergear a PR #241. Depois, as pendências marcadas na PR, numa branch nova; em seguida, CAMP-09/CAMP-10 ou o `web` de campanhas.
+- **Follow-ups** (não bloqueiam; detalhes em `validation.md`):
+  - F1: capa órfã quando duas trocas de capa são concorrentes.
+  - F2: os cabeçalhos da capa pública não estão documentados no OpenAPI.
+  - F3: o ramo `NotAllowedError` de `CampanhasController.executar` repassa a mensagem de qualquer `NotAllowedError` futuro.
+  - F5: pôr os ids da sessão depois do spread em `campanhas.controller.ts`, como defesa em profundidade.
+  - F6: `EditarCampanhaUseCase` aceita `capaArquivoId` sem conferir tipo nem dono (domínio, grupo).
+  - F7: o padrão de spread com ids da sessão também aparece em `cadastro-empresa`, `admin-causas` e `cadastro-instituicao`, não verificados.
+  - SP4: a spec não fixa a precedência entre 403, 422 e 503 no PUT da capa.
+  - Itens de domínio do grupo já listados no handoff do gate (JSDoc P13, chave única de compromisso nas auditorias, `mockRestore` em `finally`).
+- **Lições**: L-031…L-034 registradas como candidatas.
+- **Uncommitted files**: none
+- **Branch**: `feat/campanhas-infra`, enviada ao remoto com a PR #241 aberta contra `homologacao`
+
+### Handoff — gate de handoff do domínio de `campanhas` (2026-10-27)
+
+- **Feature**: `campanhas` (`.specs/features/campanhas/`)
+- **Phase / Task**: domínio T1–T27 verificado. O gate do AD-021 deu **PASS** na rodada 3 (`validation-dominio.md`, diff `397f8bc..dad822e`). A rodada 1 deu FAIL e abriu a Fase 6b (T41–T50). A rodada 2 deu FAIL só por lacunas de teste (T51–T53). O hardening foi todo aplicado pelo agente, com autorização do usuário registrada no AD-021. Os checkboxes de T1–T27 foram marcados no handoff.
+- **Gate**: tsc e eslint verdes; unit 600/600; e2e de base 337/337. Sensor acumulado com 83 mutantes distintos: 80 mortos, 0 sobreviventes e 3 equivalentes (M30, N6, P13).
+- **Next step**: Fase 7 (T28–T31), depois as Fases 8 e 9 (T32–T40), com 2 workers sequenciais (escolha do usuário).
+- **Follow-ups** (não bloqueiam):
+  - T29 recebeu upsert da decidida, idempotência e comparação coluna a coluna na Done-when.
+  - Grupo: acrescentar ao JSDoc de `CampanhaRepository.salvar` a regra "uma decisão por instância e por `salvar`" (P13), já registrada no `design.md` §Portas.
+  - T38 cobre `idPublico` malformado → 404.
+  - As auditorias de alteração usam duas chaves: `compromissoNovo` em `_APROVADA` e `compromissoProposto` em `_ABERTA`/`_REJEITADA`.
+  - `consoleError.mockRestore()` fora de `finally` em `rejeitar-alteracao-campanha.spec.ts` (cosmético, grupo).
+  - SP1 e SP2 da spec continuam abertos.
+- **Lições**: L-021…L-030 registradas como candidatas. L-001, L-007, L-009, L-011, L-012 e L-019 foram promovidas a confirmed.
+- **Branch**: `feat/campanhas-infra` (local, não enviada ao remoto)
 
 ### Handoff — planejamento de `campanhas` (2026-10-15)
 

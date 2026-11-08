@@ -21,5 +21,9 @@ export default defineConfig({
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/**/*.{test,spec}.{ts,tsx}"],
     passWithNoTests: false,
+    // Os testes que percorrem wizards inteiros com userEvent levam ~1 s isolados,
+    // mas estouram o padrão de 5 s quando o gate roda todos os arquivos em
+    // paralelo numa máquina carregada (vitrine-e-selo, T64).
+    testTimeout: 30000,
   },
 });

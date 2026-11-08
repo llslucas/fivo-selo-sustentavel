@@ -1,6 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
 
-import { UserRole } from '@domain/fivo/entities/user';
+import { UserRole } from '@domain/fivo/identidade/entities/user';
 
 export const ROLES_KEY = 'roles';
 

@@ -414,7 +414,7 @@ describe("6.4 — erro de validação por campo preserva valores (CadastroWizard
     expect(screen.getByRole("textbox", { name: /Nome fantasia/i })).toHaveValue(
       "EcoMarca",
     );
-  }, 15000);
+  });
 });
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -451,7 +451,7 @@ describe("6.5 — fieldErrors de campos não exibidos surgem em erro geral", () 
     expect(
       within(alerta).getByText(/Documento inválido: verifique os dados/i),
     ).toBeInTheDocument();
-  }, 15000);
+  });
 });
 
 // ══════════════════════════════════════════════════════════════════════════

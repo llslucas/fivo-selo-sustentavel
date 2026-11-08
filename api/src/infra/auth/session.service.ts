@@ -4,9 +4,9 @@ import { randomUUID } from 'node:crypto';
 import {
   gerarTokenDeSessao,
   hashDoTokenDeSessao,
-} from '@domain/fivo/application/gerar-token-de-sessao';
-import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
-import { SessaoRepository } from '@domain/fivo/application/ports/sessao-repository';
+} from '@domain/fivo/identidade/use-cases/gerar-token-de-sessao';
+import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
+import { SessaoRepository } from '@domain/fivo/identidade/ports/sessao-repository';
 
 import { INATIVIDADE_MAXIMA_MS } from './auth.constants';
 import { UsuarioAutenticado } from './usuario-autenticado';

@@ -1,6 +1,6 @@
 import { Prisma, TokenSenha as TokenSenhaPrisma } from '@prisma/client';
 
-import { TokenSenha } from '@domain/fivo/application/ports/token-senha-repository';
+import { TokenSenha } from '@domain/fivo/identidade/ports/token-senha-repository';
 
 export class PrismaTokenSenhaMapper {
   static toDomain(raw: TokenSenhaPrisma): TokenSenha {

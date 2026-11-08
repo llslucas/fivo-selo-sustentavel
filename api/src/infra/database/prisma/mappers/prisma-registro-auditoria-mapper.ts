@@ -3,7 +3,7 @@ import {
   RegistroAuditoria as RegistroAuditoriaPrisma,
 } from '@prisma/client';
 
-import { RegistroAuditoria } from '@domain/fivo/application/ports/registro-auditoria-repository';
+import { RegistroAuditoria } from '@domain/fivo/shared/ports/registro-auditoria-repository';
 
 export class PrismaRegistroAuditoriaMapper {
   static toDomain(raw: RegistroAuditoriaPrisma): RegistroAuditoria {

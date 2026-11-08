@@ -122,10 +122,16 @@ describe("useBeneficiadas — anti-stale", () => {
       fc.asyncProperty(
         // Sequência de termos de busca (2+ caracteres para garantir filtro) e
         // uma permutação da ordem em que as respostas chegam de volta.
+        // Termos consecutivos iguais ficam de fora: repetir o termo não muda o
+        // estado, então não dispara nova busca e quebraria a contagem de
+        // chamadas abaixo. Repetições não consecutivas (a, b, a) continuam.
         fc
           .array(
             fc.string({ minLength: 2, maxLength: 8 }).map((s) => `t${s}`),
             { minLength: 1, maxLength: 5 },
+          )
+          .filter((termos) =>
+            termos.every((termo, i) => i === 0 || termo !== termos[i - 1]),
           )
           .chain((termos) =>
             // A ordem de chegada é uma permutação dos índices das requisições

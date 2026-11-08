@@ -1,7 +1,7 @@
-// Teste de integração de propriedade do bloqueio de avanço sem seleção de
-// beneficiada, exercitando os dois pais do wizard de campanha:
-//   • CampaignWizard      (seleção no passo 2, via StepCausaRegra)
-//   • CampaignWizardNew   (seleção no passo 1, via StepSobreCampanha)
+// Teste de integração de propriedade do bloqueio de avanço no wizard de
+// campanha (CampaignWizardNew), em dois passos:
+//   • passo 1 (StepSobreCampanha): sem beneficiada selecionada
+//   • passo 2 (StepRegraVigencia): sem a data de início da vigência
 //
 // Cobre a Task 9.4:
 // - Feature: catalogo-instituicoes-wizard, Property 13: Bloqueio de avanço sem
@@ -12,12 +12,13 @@
 // ("Continuar") permanece desabilitado. Para isolar APENAS a ausência de
 // seleção como causa do bloqueio, todos os demais campos exigidos pela
 // validação do passo são preenchidos:
-//   • CampaignWizard (passo 2): além da seleção, a validação exige
-//     `regraValor.trim().length > 0`. Preenchemos `regraValor` para que SÓ a
-//     ausência de `instituicaoId` bloqueie o avanço.
-//   • CampaignWizardNew (passo 1): a validação exige `nome`, `descricao` e
-//     `instituicaoId`. Preenchemos `nome` e `descricao`, deixando apenas
-//     `instituicaoId` nulo.
+//   • Passo 1: a validação exige `nome`, `descricao` e `instituicaoId`.
+//     Preenchemos `nome` e `descricao`, deixando apenas `instituicaoId` nulo.
+//   • Passo 2: a validação exige o valor da regra e a data de início. Com a
+//     beneficiada já escolhida no passo 1, preenchemos o valor e deixamos só
+//     a data de início vazia.
+// (O wizard antigo, que tinha a beneficiada no passo 2, foi removido na
+// vitrine-e-selo T41; o bloqueio do passo 2 continua coberto aqui.)
 //
 // O catálogo real (GET /beneficiadas) é servido por fetch mockado
 // (instalarMockFetch): respondemos 200 com uma lista válida para que o
@@ -29,14 +30,13 @@
 //
 // Validates: Requirements 6.2, 6.4
 
-import { describe, it, expect, afterEach, beforeEach } from "vitest";
+import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import fc from "fast-check";
 import { render, screen, waitFor, cleanup, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 
 import theme from "@/theme";
-import CampaignWizard from "@/components/campaign-wizard/CampaignWizard";
 import CampaignWizardNew from "@/components/campaign-wizard/CampaignWizardNew";
 import type { Beneficiada } from "@/services/instituicoes";
 import { instalarMockFetch, type MockFetch } from "../helpers/mockFetch";
@@ -78,6 +78,10 @@ function textoDigitavel(prefixo: string): fc.Arbitrary<string> {
     .array(fc.constantFrom(...alfabeto), { maxLength: 30 })
     .map((chars) => `${prefixo} ${chars.join("")}`);
 }
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+}));
 
 let mock: MockFetch;
 
@@ -121,15 +125,14 @@ async function aguardarCatalogoCarregado() {
   );
 }
 
-describe("Wizard — bloqueio de avanço sem seleção de beneficiada", () => {
+describe("Wizard — bloqueio de avanço", () => {
   // Feature: catalogo-instituicoes-wizard, Property 13: Bloqueio de avanço sem seleção
   // Validates: Requirements 6.2, 6.4
-  it("Property 13 (CampaignWizard, passo 2): com instituicaoId nulo, o avanço fica bloqueado mesmo com os demais campos preenchidos", async () => {
+  it("Property 13 (passo 2): sem data de início, o avanço fica bloqueado mesmo com a beneficiada escolhida e a regra preenchida", async () => {
     await fc.assert(
       fc.asyncProperty(
-        // Varia os campos que NÃO são a seleção: nome e descrição (passo 1) e o
-        // valor da regra (exigido pela validação do passo 2). Todos não vazios
-        // para garantir que a única causa de bloqueio seja a ausência de seleção.
+        // Varia nome e descrição (passo 1) e o valor da regra (passo 2). Todos
+        // não vazios, para que a única causa de bloqueio seja a data de início.
         fc.record({
           nome: textoDigitavel("C"),
           descricao: textoDigitavel("D"),
@@ -138,9 +141,10 @@ describe("Wizard — bloqueio de avanço sem seleção de beneficiada", () => {
         async ({ nome, descricao, valorRegra }) => {
           const usuario = userEvent.setup({ delay: null });
           try {
-            renderizarComTema(<CampaignWizard />);
+            renderizarComTema(<CampaignWizardNew />);
 
-            // Passo 1 — preenche nome e descrição e avança.
+            // Passo 1 — preenche nome e descrição, escolhe a beneficiada e avança.
+            await aguardarCatalogoCarregado();
             await usuario.type(
               screen.getByRole("textbox", { name: /Nome da campanha/i }),
               nome,
@@ -149,26 +153,15 @@ describe("Wizard — bloqueio de avanço sem seleção de beneficiada", () => {
               screen.getByRole("textbox", { name: /Descrição/i }),
               descricao,
             );
+            await usuario.click(screen.getByTestId(`beneficiada-item-${CATALOGO[0].id}`));
             await usuario.click(botaoAvancar());
 
-            // Passo 2 — espera o catálogo carregar e preenche o valor da regra,
-            // mas NÃO seleciona nenhuma beneficiada (instituicaoId permanece null).
-            await aguardarCatalogoCarregado();
-            const campoValor = screen.getByRole("spinbutton");
+            // Passo 2 — preenche o valor da regra, mas não a data de início.
+            const campoValor = screen.getByRole("spinbutton", { name: /Valor doado por unidade/i });
             await usuario.clear(campoValor);
             await usuario.type(campoValor, valorRegra);
 
-            // Com tudo preenchido exceto a seleção, o avanço deve continuar
-            // bloqueado: o botão "Continuar" está desabilitado (Req 6.2, 6.4).
             expect(botaoAvancar()).toBeDisabled();
-
-            // Nenhum item do catálogo aparece selecionado.
-            const lista = screen.getByTestId("beneficiadas-lista");
-            for (const b of CATALOGO) {
-              expect(
-                within(lista).getByTestId(`beneficiada-item-${b.id}`),
-              ).toHaveAttribute("data-selected", "false");
-            }
           } finally {
             // Sempre desmonta a árvore desta iteração, mesmo quando uma asserção
             // falha, para que a próxima iteração renderize em um DOM limpo.
@@ -182,7 +175,7 @@ describe("Wizard — bloqueio de avanço sem seleção de beneficiada", () => {
 
   // Feature: catalogo-instituicoes-wizard, Property 13: Bloqueio de avanço sem seleção
   // Validates: Requirements 6.2, 6.4
-  it("Property 13 (CampaignWizardNew, passo 1): com instituicaoId nulo, o avanço fica bloqueado mesmo com nome e descrição preenchidos", async () => {
+  it("Property 13 (passo 1): com instituicaoId nulo, o avanço fica bloqueado mesmo com nome e descrição preenchidos", async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.record({

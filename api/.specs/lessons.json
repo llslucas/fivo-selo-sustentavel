@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 21,
+  "next_id": 56,
   "lessons": [
     {
       "id": "L-001",
@@ -11,71 +11,19 @@
       "text": "When an AC quotes an exact error message string, assert the literal message text in the test, not just the HTTP status code.",
       "signal": "ac_gap",
       "scope": "domain/fivo/application/errors",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "cadastro-empresa"
+        "cadastro-empresa",
+        "campanhas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "EMP-01 AC3 (domain/fivo/application/errors)"
+        "EMP-01 AC3 (domain/fivo/application/errors)",
+        "validation-dominio.md Criação AC7, Submissão AC5, Alteração AC4; mutantes M37 M38 M39 (domain/fivo/application/errors)"
       ],
       "created": "2026-09-18T02:53:46Z",
-      "last_seen": "2026-09-18T02:53:46Z"
-    },
-    {
-      "id": "L-002",
-      "key": "spec_precision_gap::copy spec quoted error message strings verbatim into the error class constructor including punctuation instead of freehand restating them",
-      "text": "Copy spec-quoted error message strings verbatim into the error class constructor, including punctuation, instead of freehand-restating them.",
-      "signal": "spec_precision_gap",
-      "scope": "domain/fivo/application/errors",
-      "status": "candidate",
-      "features": [
-        "cadastro-empresa"
-      ],
-      "recurrence": 1,
-      "harmful": 0,
-      "evidence": [
-        "EMP-01 AC2, EMP-01 AC4, EMP-06 AC2 (domain/fivo/application/errors)"
-      ],
-      "created": "2026-09-18T02:53:50Z",
-      "last_seen": "2026-09-18T02:53:50Z"
-    },
-    {
-      "id": "L-003",
-      "key": "surviving_mutant::entity equals compares only the id so a repository roundtrip test that leans on equals proves no field fidelity assert every mapped column explicitly including the optional ones",
-      "text": "Entity.equals compares only the id, so a repository roundtrip test that leans on equals() proves no field fidelity — assert every mapped column explicitly, including the optional ones.",
-      "signal": "surviving_mutant",
-      "scope": "infra/database/prisma/mappers",
-      "status": "candidate",
-      "features": [
-        "cadastro-empresa"
-      ],
-      "recurrence": 1,
-      "harmful": 0,
-      "evidence": [
-        "M5-M14 / src/core/types/entities/entity.ts:16-26 (infra/database/prisma/mappers)"
-      ],
-      "created": "2026-09-18T15:12:11Z",
-      "last_seen": "2026-09-18T15:12:11Z"
-    },
-    {
-      "id": "L-004",
-      "key": "ac_gap::a use case writing two aggregates through separate repository ports is atomic only with in memory doubles decide the transaction boundary when the real persistence adapter lands not after",
-      "text": "A use case writing two aggregates through separate repository ports is atomic only with in-memory doubles — decide the transaction boundary when the real persistence adapter lands, not after.",
-      "signal": "ac_gap",
-      "scope": "domain/fivo/application/use-cases",
-      "status": "candidate",
-      "features": [
-        "cadastro-empresa"
-      ],
-      "recurrence": 1,
-      "harmful": 0,
-      "evidence": [
-        "EMP-01 AC1 / src/domain/fivo/application/use-cases/criar-empresa.ts:150-151 (domain/fivo/application/use-cases)"
-      ],
-      "created": "2026-09-18T15:12:11Z",
-      "last_seen": "2026-09-18T15:12:11Z"
+      "last_seen": "2026-10-27T23:36:01Z"
     },
     {
       "id": "L-005",
@@ -119,17 +67,19 @@
       "text": "Audit assertions must check author and timestamp, not just event type and states",
       "signal": "ac_gap",
       "scope": "audit",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "catalogo-instituicoes"
+        "catalogo-instituicoes",
+        "campanhas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "validation-dominio.md mutantes #16 #26, P1-Aprovação AC9, P1-Causas AC7 (audit)"
+        "validation-dominio.md mutantes #16 #26, P1-Aprovação AC9, P1-Causas AC7 (audit)",
+        "validation-dominio.md Submissão AC15, Alteração AC10; mutantes M25 M26 M42 (audit)"
       ],
       "created": "2026-10-14T00:26:51Z",
-      "last_seen": "2026-10-14T00:26:51Z"
+      "last_seen": "2026-10-27T23:36:01Z"
     },
     {
       "id": "L-008",
@@ -155,17 +105,19 @@
       "text": "Boundary tests must hit the exact limit value on both sides",
       "signal": "surviving_mutant",
       "scope": "domain-tests",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "catalogo-instituicoes"
+        "catalogo-instituicoes",
+        "campanhas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "validation-dominio.md mutante #9 (listar-beneficiadas.ts < 2) (domain-tests)"
+        "validation-dominio.md mutante #9 (listar-beneficiadas.ts < 2) (domain-tests)",
+        "validation-dominio.md mutantes M8 (vigencia.ts:22) e M13 (campanha.ts:266) (domain-tests)"
       ],
       "created": "2026-10-14T00:26:51Z",
-      "last_seen": "2026-10-14T00:26:51Z"
+      "last_seen": "2026-10-27T23:36:01Z"
     },
     {
       "id": "L-010",
@@ -191,17 +143,19 @@
       "text": "Every validation AC in a spec must state the exact user-facing error text, or tests fall back to toContain fragments",
       "signal": "spec_precision_gap",
       "scope": "specs",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "catalogo-instituicoes"
+        "catalogo-instituicoes",
+        "campanhas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "validation-dominio.md P1-Autocadastro AC8 (arquivo.spec.ts:247 toContain) (specs)"
+        "validation-dominio.md P1-Autocadastro AC8 (arquivo.spec.ts:247 toContain) (specs)",
+        "validation-dominio.md SP1 (Criação AC5 AC6 AC8 AC11, Submissão AC2 AC3) (specs)"
       ],
       "created": "2026-10-14T00:27:01Z",
-      "last_seen": "2026-10-14T00:27:01Z"
+      "last_seen": "2026-10-27T23:36:01Z"
     },
     {
       "id": "L-012",
@@ -209,17 +163,19 @@
       "text": "A fix task for a conjunctive AC must list every operation the AC names, not only the ones in the previous gap list",
       "signal": "surviving_mutant",
       "scope": "domain-tests",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "catalogo-instituicoes"
+        "catalogo-instituicoes",
+        "campanhas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "validation-dominio.md rodada 2, mutantes N28 N29, P1-Causas AC6 (domain-tests)"
+        "validation-dominio.md rodada 2, mutantes N28 N29, P1-Causas AC6 (domain-tests)",
+        "validation-dominio.md rodada 2, mutantes N23 N24, Submissão AC7 AC15 (T45 omitiu CAMPANHA_APROVADA) (domain-tests)"
       ],
       "created": "2026-10-14T01:02:45Z",
-      "last_seen": "2026-10-14T01:02:45Z"
+      "last_seen": "2026-10-28T00:21:23Z"
     },
     {
       "id": "L-013",
@@ -335,17 +291,19 @@
       "text": "When an AC lists fields to show or collect, name the exact attribute instead of an umbrella term like nome, link or site ou canal",
       "signal": "spec_precision_gap",
       "scope": "specs",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "catalogo-instituicoes"
+        "catalogo-instituicoes",
+        "campanhas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "validation.md SP3/SP6, Aprovação AC1 nome/link, Autocadastro AC1 site ou canal (specs)"
+        "validation.md SP3/SP6, Aprovação AC1 nome/link, Autocadastro AC1 site ou canal (specs)",
+        "validation-dominio.md SP2 (Submissão AC6 empresa, Consulta pública AC1 nome da empresa/imagem de capa) (specs)"
       ],
       "created": "2026-10-14T02:32:16Z",
-      "last_seen": "2026-10-14T02:32:16Z"
+      "last_seen": "2026-10-27T23:36:01Z"
     },
     {
       "id": "L-020",
@@ -364,6 +322,636 @@
       ],
       "created": "2026-10-14T09:02:31Z",
       "last_seen": "2026-10-14T09:02:31Z"
+    },
+    {
+      "id": "L-021",
+      "key": "ac_gap::when an aggregate clears a child entity after deciding it keep the decided child reachable by the repository save or the decision never reaches persistence",
+      "text": "When an aggregate clears a child entity after deciding it, keep the decided child reachable by the repository save, or the decision never reaches persistence",
+      "signal": "ac_gap",
+      "scope": "domain-entities",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md T46, Alteração AC6 AC8; entities/campanha.ts:298,321 (domain-entities)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-022",
+      "key": "surviving_mutant::a notification test must create the recipient in its setup otherwise the send branch is skipped and the mailer failure test passes vacuously",
+      "text": "A notification test must create the recipient in its setup, otherwise the send branch is skipped and the mailer-failure test passes vacuously",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md mutantes M23 M24, rejeitar-alteracao-campanha.spec.ts:85-108 (domain-tests)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-023",
+      "key": "surviving_mutant::every use case that saves through a version cas needs its own concurrency test sibling use cases do not cover it",
+      "text": "Every use case that saves through a version CAS needs its own concurrency test; sibling use cases do not cover it",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md mutante M22 (rejeitar-alteracao-campanha.ts:72) (domain-tests)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-024",
+      "key": "ac_gap::when an ac says an operation applies the same validations as another flow list each inherited validation explicitly in the design and the task done when",
+      "text": "When an AC says an operation applies the same validations as another flow, list each inherited validation explicitly in the design and the task Done-when",
+      "signal": "ac_gap",
+      "scope": "tasks",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md Alteração AC5 (fim vencido na alteração), T49 (tasks)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-025",
+      "key": "ac_gap::map every field an ac names to the use case input not only to the entity method",
+      "text": "Map every field an AC names to the use-case input, not only to the entity method",
+      "signal": "ac_gap",
+      "scope": "domain/fivo/application/use-cases",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md Criação AC15, Alteração AC1 (capaArquivoId ausente em editar-campanha.ts:52-63), T47 (domain/fivo/application/use-cases)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-026",
+      "key": "ac_gap::when a done when says two use cases return the same read model define it once and assert both outputs with the same toequal",
+      "text": "When a Done-when says two use cases return the same read model, define it once and assert both outputs with the same toEqual",
+      "signal": "ac_gap",
+      "scope": "domain/fivo/application/use-cases",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md T19 Done-when (campanha-detalhe.ts:31 vs consultar-campanha-da-empresa.ts:42), T48 (domain/fivo/application/use-cases)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-027",
+      "key": "ac_gap::a new key in an entity s per type rule tables needs its own boundary tests the existing spec does not cover it",
+      "text": "A new key in an entity's per-type rule tables needs its own boundary tests; the existing spec does not cover it",
+      "signal": "ac_gap",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md T11 / Criação AC13 (arquivo.ts:51,58,65 sem teste), T50 (domain-tests)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-028",
+      "key": "spec_precision_gap::when an ac requires auditing before and after values fix one payload format for every audit event of the aggregate",
+      "text": "When an AC requires auditing before and after values, fix one payload format for every audit event of the aggregate",
+      "signal": "spec_precision_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md SP3, Alteração AC10 (string decimal na abertura, centavos na decisão) (specs)"
+      ],
+      "created": "2026-10-27T23:36:11Z",
+      "last_seen": "2026-10-27T23:36:11Z"
+    },
+    {
+      "id": "L-029",
+      "key": "surviving_mutant::when formatting integer cents as decimal text test a value whose fraction has a leading zero such as 105 to 1 05",
+      "text": "When formatting integer cents as decimal text, test a value whose fraction has a leading zero, such as 105 to 1.05",
+      "signal": "surviving_mutant",
+      "scope": "domain/fivo/application/use-cases",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md rodada 2, mutante N8 (use-cases/campanha-detalhe.ts:65 padStart -> padEnd) (domain/fivo/application/use-cases)"
+      ],
+      "created": "2026-10-28T00:21:23Z",
+      "last_seen": "2026-10-28T00:21:23Z"
+    },
+    {
+      "id": "L-030",
+      "key": "surviving_mutant::when a rule validates the result of merging a partial update test the case where the violating value comes from the stored state not from the input",
+      "text": "When a rule validates the result of merging a partial update, test the case where the violating value comes from the stored state, not from the input",
+      "signal": "surviving_mutant",
+      "scope": "domain-entities",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md rodada 2, mutante N14 (entities/campanha.ts:428), Alteração AC5 (domain-entities)"
+      ],
+      "created": "2026-10-28T00:21:23Z",
+      "last_seen": "2026-10-28T00:21:23Z"
+    },
+    {
+      "id": "L-031",
+      "key": "surviving_mutant::when a new route copies response headers from an existing route copy that route s header assertions into its e2e too",
+      "text": "When a new route copies response headers from an existing route, copy that route's header assertions into its e2e too",
+      "signal": "surviving_mutant",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md mutantes S25 S32 (campanhas-publicas.controller.ts:120,139; padrão em test/http/arquivo.e2e-spec.ts:208-211) (routes)"
+      ],
+      "created": "2026-10-28T01:43:52Z",
+      "last_seen": "2026-10-28T01:43:52Z"
+    },
+    {
+      "id": "L-032",
+      "key": "surviving_mutant::a route that reuses another route s body dto still needs its own missing field 422 test",
+      "text": "A route that reuses another route's body DTO still needs its own missing-field 422 test",
+      "signal": "surviving_mutant",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md mutante S33 (admin-campanhas.controller.ts:215; só admin-campanhas.e2e-spec.ts:440 testa sem motivo) (routes)"
+      ],
+      "created": "2026-10-28T01:43:52Z",
+      "last_seen": "2026-10-28T01:43:52Z"
+    },
+    {
+      "id": "L-033",
+      "key": "spec_precision_gap::an access control ac must state whether its 403 takes precedence over shape validation 422 and dependency 503 on the same route",
+      "text": "An access-control AC must state whether its 403 takes precedence over shape-validation 422 and dependency 503 on the same route",
+      "signal": "spec_precision_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md SP4, Criação AC1 x PUT /campanhas/:id/capa (campanhas.controller.ts:309-339) (specs)"
+      ],
+      "created": "2026-10-28T01:43:52Z",
+      "last_seen": "2026-10-28T01:43:52Z"
+    },
+    {
+      "id": "L-034",
+      "key": "surviving_mutant::when a controller spreads the request body into a use case input next to session derived ids add an e2e that sends those ids in the body and asserts they are ignored",
+      "text": "When a controller spreads the request body into a use-case input next to session-derived ids, add an e2e that sends those ids in the body and asserts they are ignored",
+      "signal": "surviving_mutant",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "campanhas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md rodada 2, mutantes S34 S45 S46 (campanhas.controller.ts:220-222,277-282 spread do corpo após os ids da sessão; campanhas.dto.ts:42,50) (routes)"
+      ],
+      "created": "2026-10-28T01:58:36Z",
+      "last_seen": "2026-10-28T01:58:36Z"
+    },
+    {
+      "id": "L-035",
+      "key": "surviving_mutant::a contract test that checks only the object s keys needs a sibling toequal on the values or a wrong projection survives",
+      "text": "A contract test that checks only the object's keys needs a sibling toEqual on the values, or a wrong projection survives",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md M36-M47 / buscar-empresa-publica.spec.ts (domain-tests)"
+      ],
+      "created": "2026-11-08T13:38:36Z",
+      "last_seen": "2026-11-08T13:38:36Z"
+    },
+    {
+      "id": "L-036",
+      "key": "surviving_mutant::in a filter exclusion test the excluded items must satisfy every other condition so only the condition under test removes them",
+      "text": "In a filter-exclusion test, the excluded items must satisfy every other condition so only the condition under test removes them",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md M41 / buscar-empresa-publica.spec.ts:118-145 (domain-tests)"
+      ],
+      "created": "2026-11-08T13:38:36Z",
+      "last_seen": "2026-11-08T13:38:36Z"
+    },
+    {
+      "id": "L-037",
+      "key": "surviving_mutant::every in memory double that fixes a contract the infra will implement needs its own spec not only indirect coverage through use cases",
+      "text": "Every in-memory double that fixes a contract the infra will implement needs its own spec, not only indirect coverage through use cases",
+      "signal": "surviving_mutant",
+      "scope": "test-doubles",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md M52-M53 / test/doubles/in-memory-empresa-repository.ts (test-doubles)"
+      ],
+      "created": "2026-11-08T13:38:36Z",
+      "last_seen": "2026-11-08T13:38:36Z"
+    },
+    {
+      "id": "L-038",
+      "key": "surviving_mutant::when a spec value depends on an argument the use case passes to a pure function test it at the use case not only in the function",
+      "text": "When a spec value depends on an argument the use case passes to a pure function, test it at the use case, not only in the function",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md M14, M22 / aprovar-empresa.ts, aprovar-campanha.ts (domain-tests)"
+      ],
+      "created": "2026-11-08T13:38:36Z",
+      "last_seen": "2026-11-08T13:38:36Z"
+    },
+    {
+      "id": "L-039",
+      "key": "surviving_mutant::a character class or an and so on rule in the spec needs a case for each member and for one iteration past the trivial ones",
+      "text": "A character class or an and-so-on rule in the spec needs a case for each member and for one iteration past the trivial ones",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md M2, M9 / slug.spec.ts (domain-tests)"
+      ],
+      "created": "2026-11-08T13:38:36Z",
+      "last_seen": "2026-11-08T13:38:36Z"
+    },
+    {
+      "id": "L-040",
+      "key": "gate_fail::a temporary port stub that rejects needs a done when line in the infra task restoring the e2e count and a warning that the integrated env is broken",
+      "text": "A temporary port stub that rejects needs a Done-when line in the infra task restoring the e2e count and a warning that the integrated env is broken",
+      "signal": "gate_fail",
+      "scope": "infra",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md Gate e2e 507/546 / prisma-empresa-repository.ts stubs (infra)"
+      ],
+      "created": "2026-11-08T13:38:36Z",
+      "last_seen": "2026-11-08T13:38:36Z"
+    },
+    {
+      "id": "L-041",
+      "key": "spec_precision_gap::when the spec fixes a per resource 404 message check in the design that the generic exception filter does not overwrite the domain text",
+      "text": "When the spec fixes a per-resource 404 message, check in the design that the generic exception filter does not overwrite the domain text",
+      "signal": "spec_precision_gap",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md follow-up 2 / src/infra/http/domain-exception.filter.ts:65-71 (routes)"
+      ],
+      "created": "2026-11-08T13:38:36Z",
+      "last_seen": "2026-11-08T13:38:36Z"
+    },
+    {
+      "id": "L-042",
+      "key": "surviving_mutant::when testing an effect on an element such as scroll or focus render at least two candidates and assert which element received it",
+      "text": "When testing an effect on an element such as scroll or focus, render at least two candidates and assert which element received it",
+      "signal": "surviving_mutant",
+      "scope": "web-tests",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-web.md W8b, W13 / web/tests/component/EmpresaCampanhaScroll.test.tsx:60 (web-tests)"
+      ],
+      "created": "2026-11-08T13:38:36Z",
+      "last_seen": "2026-11-08T13:38:36Z"
+    },
+    {
+      "id": "L-043",
+      "key": "surviving_mutant::for every element shown only in a given state also test its absence in another state with the same data that would trigger it",
+      "text": "For every element shown only in a given state, also test its absence in another state with the same data that would trigger it",
+      "signal": "surviving_mutant",
+      "scope": "web-tests",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-web.md W9, W25 / PaginaEmpresaPublica.test.tsx:85, DetalheCampanha.test.tsx:195 (web-tests)"
+      ],
+      "created": "2026-11-08T13:38:36Z",
+      "last_seen": "2026-11-08T13:38:36Z"
+    },
+    {
+      "id": "L-044",
+      "key": "surviving_mutant::when an ac lists the fields of a card give each listed field its own assertion asserting the title does not cover the rest",
+      "text": "When an AC lists the fields of a card, give each listed field its own assertion; asserting the title does not cover the rest",
+      "signal": "surviving_mutant",
+      "scope": "web-tests",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-web.md W10-W12 / T33 (web-tests)"
+      ],
+      "created": "2026-11-08T13:38:36Z",
+      "last_seen": "2026-11-08T13:38:36Z"
+    },
+    {
+      "id": "L-045",
+      "key": "ac_gap::every removal a done when asks for needs evidence the file gone from the diff or a structural test not only swapped links",
+      "text": "Every removal a Done-when asks for needs evidence: the file gone from the diff or a structural test, not only swapped links",
+      "signal": "ac_gap",
+      "scope": "web",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-web.md T34, T40 / web/src/app/parceiros/[id]/page.tsx (web)"
+      ],
+      "created": "2026-11-08T13:38:36Z",
+      "last_seen": "2026-11-08T13:38:36Z"
+    },
+    {
+      "id": "L-046",
+      "key": "gate_fail::in next projects the typecheck gate must generate route types with next typegen before tsc or the result depends on the local cache",
+      "text": "In Next projects the typecheck gate must generate route types with next typegen before tsc, or the result depends on the local cache",
+      "signal": "gate_fail",
+      "scope": "web",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-web.md Gate tsc / web/src/app/layout.tsx:18 (web)"
+      ],
+      "created": "2026-11-08T13:38:36Z",
+      "last_seen": "2026-11-08T13:38:36Z"
+    },
+    {
+      "id": "L-047",
+      "key": "spec_precision_gap::when the spec says period or date without a format fix the format in the design for every screen",
+      "text": "When the spec says period or date without a format, fix the format in the design for every screen",
+      "signal": "spec_precision_gap",
+      "scope": "design",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-web.md SP1 (design)"
+      ],
+      "created": "2026-11-08T13:38:37Z",
+      "last_seen": "2026-11-08T13:38:37Z"
+    },
+    {
+      "id": "L-048",
+      "key": "spec_precision_gap::when the spec orders by name state the tiebreak for names that differ only in case or accents",
+      "text": "When the spec orders by name, state the tiebreak for names that differ only in case or accents",
+      "signal": "spec_precision_gap",
+      "scope": "design",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md SP1 / listar-parceiros.ts collator (design)"
+      ],
+      "created": "2026-11-08T13:38:37Z",
+      "last_seen": "2026-11-08T13:38:37Z"
+    },
+    {
+      "id": "L-049",
+      "key": "surviving_mutant::test both ends of every character range in a regex class not only a value from the middle",
+      "text": "Test both ends of every character range in a regex class, not only a value from the middle",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md r2 N13 / slug.ts:13 (domain-tests)"
+      ],
+      "created": "2026-11-08T14:39:20Z",
+      "last_seen": "2026-11-08T14:39:20Z"
+    },
+    {
+      "id": "L-050",
+      "key": "surviving_mutant::an exact toequal with a single value of an enum field does not discriminate it add one case per enum value",
+      "text": "An exact toEqual with a single value of an enum field does not discriminate it; add one case per enum value",
+      "signal": "surviving_mutant",
+      "scope": "domain-tests",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-dominio.md r2 N16 / buscar-empresa-publica.ts:96 (domain-tests)"
+      ],
+      "created": "2026-11-08T14:39:20Z",
+      "last_seen": "2026-11-08T14:39:20Z"
+    },
+    {
+      "id": "L-051",
+      "key": "surviving_mutant::when the contract marks a field optional assert the rendered output of both the present and the absent branch",
+      "text": "When the contract marks a field optional, assert the rendered output of both the present and the absent branch",
+      "signal": "surviving_mutant",
+      "scope": "web-tests",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-web.md r2 X4 / PaginaEmpresaPublica.tsx:40 (web-tests)"
+      ],
+      "created": "2026-11-08T14:39:20Z",
+      "last_seen": "2026-11-08T14:39:20Z"
+    },
+    {
+      "id": "L-052",
+      "key": "surviving_mutant::a screen that special cases 404 needs a test with a non 404 error proving it does not fall into the 404 branch",
+      "text": "A screen that special-cases 404 needs a test with a non-404 error proving it does not fall into the 404 branch",
+      "signal": "surviving_mutant",
+      "scope": "web-tests",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-web.md r2 X11 / PaginaEmpresaPublica.tsx:61 (web-tests)"
+      ],
+      "created": "2026-11-08T14:39:20Z",
+      "last_seen": "2026-11-08T14:39:20Z"
+    },
+    {
+      "id": "L-053",
+      "key": "surviving_mutant::a shared async state component needs the negative retry case too no retry button on a 4xx not only a retry on a 5xx",
+      "text": "A shared async-state component needs the negative retry case too: no retry button on a 4xx, not only a retry on a 5xx",
+      "signal": "surviving_mutant",
+      "scope": "web-tests",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation-web.md r3 N2 / web/src/components/ui/AsyncState.tsx:52 (web-tests)"
+      ],
+      "created": "2026-11-08T14:56:20Z",
+      "last_seen": "2026-11-08T14:56:20Z"
+    },
+    {
+      "id": "L-054",
+      "key": "spec_precision_gap::when an ac requires a brand or visual asset name the exact asset file or element or the test pins an improvised placeholder",
+      "text": "When an AC requires a brand or visual asset, name the exact asset file or element, or the test pins an improvised placeholder",
+      "signal": "spec_precision_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md SP-I1 (Selo AC2, src/infra/selo/qrcode-renderizador-de-selo.spec.ts:116) (specs)"
+      ],
+      "created": "2026-11-08T16:28:40Z",
+      "last_seen": "2026-11-08T16:28:40Z"
+    },
+    {
+      "id": "L-055",
+      "key": "spec_precision_gap::when a spec orders records by a timestamp field check whether later transitions overwrite it and name the event the order must follow",
+      "text": "When a spec orders records by a timestamp field, check whether later transitions overwrite it and name the event the order must follow",
+      "signal": "spec_precision_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "vitrine-e-selo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md SP-I2 (backfill em ordem de decididoEm, src/domain/fivo/empresas/entities/empresa.ts:177-232) (specs)"
+      ],
+      "created": "2026-11-08T16:28:40Z",
+      "last_seen": "2026-11-08T16:28:40Z"
     }
   ]
 }

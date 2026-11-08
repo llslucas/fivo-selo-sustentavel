@@ -4,6 +4,28 @@ import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+// Ordem de dependência entre as fatias de src/domain/fivo (AD-022).
+const FATIAS_DOMINIO = [
+  'shared',
+  'identidade',
+  'empresas',
+  'catalogo',
+  'campanhas',
+];
+
+const REGRAS_DOMINIO = [
+  {
+    group: ['@infra/*', 'src/infra/*'],
+    message:
+      'src/domain não depende da infra. Regra pura aqui; orquestração no service em src/infra.',
+  },
+  {
+    group: ['@prisma/*', 'express', '@nestjs/platform-express'],
+    message:
+      'src/domain não conhece ORM nem camada HTTP. Use as entidades de src/core e tipos próprios.',
+  },
+];
+
 export default tseslint.config(
   {
     ignores: ['eslint.config.mjs'],
@@ -60,27 +82,34 @@ export default tseslint.config(
     },
   },
 
-  // Camada domain: regra de negócio pura. Não conhece Nest, ORM nem HTTP.
-  {
-    files: ['src/domain/**/*.ts'],
+  // Camada domain: regra de negócio pura, fatiada por feature. Cada fatia só
+  // enxerga as fatias à sua esquerda em FATIAS_DOMINIO, e só pelo index.ts.
+  ...FATIAS_DOMINIO.map((fatia, i) => ({
+    files: [`src/domain/fivo/${fatia}/**/*.ts`],
     rules: {
       'no-restricted-imports': [
         'error',
         {
           patterns: [
+            ...REGRAS_DOMINIO,
             {
-              group: ['@infra/*', 'src/infra/*'],
+              group: ['@domain/fivo/*/**', '../../**'],
               message:
-                'src/domain não depende da infra. Regra pura aqui; orquestração no service em src/infra.',
+                'Outra fatia só é importada pelo index.ts dela (@domain/fivo/<fatia>); dentro da fatia, use import relativo.',
             },
-            {
-              group: ['@prisma/*', 'express', '@nestjs/platform-express'],
-              message:
-                'src/domain não conhece ORM nem camada HTTP. Use as entidades de src/core e tipos próprios.',
-            },
+            ...(i < FATIAS_DOMINIO.length - 1
+              ? [
+                  {
+                    group: FATIAS_DOMINIO.slice(i + 1).map(
+                      (f) => `@domain/fivo/${f}`,
+                    ),
+                    message: `A fatia ${fatia} não depende de fatias à sua direita (${FATIAS_DOMINIO.join(' ← ')}).`,
+                  },
+                ]
+              : []),
           ],
         },
       ],
     },
-  },
+  })),
 );

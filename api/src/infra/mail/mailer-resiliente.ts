@@ -2,7 +2,7 @@ import {
   Mailer,
   MensagemEmail,
   TemplateEmail,
-} from '@domain/fivo/application/ports/mailer';
+} from '@domain/fivo/shared/ports/mailer';
 import { Injectable, Logger } from '@nestjs/common';
 
 import { EmailPendenteService } from './email-pendente.service';
@@ -14,6 +14,8 @@ const TEMPLATES_ENFILEIRAVEIS: ReadonlySet<TemplateEmail> = new Set([
   TemplateEmail.CADASTRO_RECEBIDO,
   TemplateEmail.CADASTRO_APROVADO,
   TemplateEmail.CADASTRO_REJEITADO,
+  TemplateEmail.CAMPANHA_REJEITADA,
+  TemplateEmail.ALTERACAO_CAMPANHA_REJEITADA,
 ]);
 
 @Injectable()

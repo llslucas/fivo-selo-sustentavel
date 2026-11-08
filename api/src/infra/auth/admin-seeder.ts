@@ -1,10 +1,10 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 
-import { UserAlreadyExistsError } from '@domain/fivo/application/errors/users-already-exists.error';
-import { Hasher } from '@domain/fivo/application/ports/cryptography/hasher';
-import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
-import { Senha } from '@domain/fivo/entities/senha';
-import { User, UserRole } from '@domain/fivo/entities/user';
+import { UsuarioJaExisteError } from '@domain/fivo/identidade/errors/usuario-ja-existe.error';
+import { Hasher } from '@domain/fivo/identidade/ports/hasher';
+import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
+import { Senha } from '@domain/fivo/identidade/entities/senha';
+import { User, UserRole } from '@domain/fivo/identidade/entities/user';
 
 @Injectable()
 export class AdminSeeder implements OnApplicationBootstrap {
@@ -45,7 +45,7 @@ export class AdminSeeder implements OnApplicationBootstrap {
     try {
       await this.userRepository.create(admin);
     } catch (erro) {
-      if (!(erro instanceof UserAlreadyExistsError)) {
+      if (!(erro instanceof UsuarioJaExisteError)) {
         throw erro;
       }
     }

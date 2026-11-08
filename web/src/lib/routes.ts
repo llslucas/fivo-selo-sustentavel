@@ -9,14 +9,13 @@ export const APP_ROUTES = {
     cadastroInstituicao: '/cadastro-instituicao',
     recuperarSenha: '/recuperar-senha',
     recuperarSenhaRedefinir: '/recuperar-senha/redefinir',
+    confirmarEmail: '/confirmar-email',
     parceiros: '/parceiros',
     erro: '/Erro',
   },
   private: {
     dashboard: '/dashboard',
     campanhas: '/campanhas',
-    comprovantes: '/comprovantes',
-    selos: '/selos',
     instituicao: '/instituicao',
   },
   admin: {
@@ -24,6 +23,7 @@ export const APP_ROUTES = {
     instituicoes: '/admin/instituicoes',
     empresas: '/admin/empresas',
     causas: '/admin/causas',
+    campanhas: '/admin/campanhas',
   },
   instituicao: {
     inicio: '/instituicao',
@@ -41,6 +41,7 @@ export const rotaInicialDoPapel = (papel: Papel): string => ROTA_INICIAL_POR_PAP
 
 export const isPublicRoute = (path: string): boolean => {
   if (path.startsWith('/parceiros')) return true;
+  if (path.startsWith('/empresa/')) return true;
   if (path.startsWith('/recuperar-senha')) return true;
   return (Object.values(APP_ROUTES.public) as string[]).includes(path);
 };

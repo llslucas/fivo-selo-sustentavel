@@ -24,7 +24,7 @@ import { ThemeProvider } from "@mui/material/styles";
 
 import theme from "@/theme";
 import StepCausaRegra from "@/components/campaign-wizard/steps/StepCausaRegra";
-import type { CampaignWizardData } from "@/lib/campaign-wizard/types";
+import { initialWizardData, type CampaignWizardData } from "@/lib/campaign-wizard/types";
 import type { Beneficiada } from "@/services/instituicoes";
 import { instalarMockFetch, type MockFetch } from "../helpers/mockFetch";
 
@@ -60,6 +60,7 @@ const SELECIONADA_ID = "benef-1";
 // Monta um CampaignWizardData com a instituição já selecionada.
 function montarData(): CampaignWizardData {
   return {
+    ...initialWizardData,
     nome: "Campanha Teste",
     descricao: "",
     instituicaoId: SELECIONADA_ID,

@@ -1,5 +1,6 @@
 // Teste de integração da persistência do identificador de beneficiada ao
-// navegar entre passos do wizard — Task 9.2.
+// navegar entre passos do wizard — Task 9.2, ajustado ao wizard único na
+// vitrine-e-selo T41.
 //
 // Feature: catalogo-instituicoes-wizard, Property 11: Persistência do
 // identificador na navegação.
@@ -9,32 +10,21 @@
 // para outro passo e retornar deve preservar o valor de `instituicaoId` no
 // estado do wizard.
 //
-// Estratégia (integração, componentes reais dos pais do wizard):
-//   - O catálogo vem de um fetch mockado (Mock_API), nunca de rede real. Ambos
-//     os passos consomem `useBeneficiadas()`, que busca via GET /beneficiadas;
-//     o mock responde o mesmo catálogo fixo para o catálogo completo e para
-//     qualquer termo de busca.
-//   - `CampaignWizard` (variante lista): o Passo_Beneficiada é o passo 2. Para
-//     alcançá-lo é preciso preencher o passo 1 (nome + descrição). Lá,
-//     seleciona-se uma beneficiada escolhida aleatoriamente, navega-se para
-//     fora (Voltar → passo 1) e retorna-se (Continuar → passo 2); afirma-se que
-//     a mesma beneficiada continua marcada (data-selected="true") após a lista
-//     recarregar — prova de que `data.instituicaoId` sobreviveu à navegação.
-//   - `CampaignWizardNew` (variante cards): o Passo_Beneficiada é o passo 1.
-//     Preenche-se nome + descrição, seleciona-se uma beneficiada, avança-se
-//     para o passo 2 (Continuar) e volta-se (Voltar → passo 1); afirma-se a
-//     mesma preservação.
-//
-// A navegação não reinicializa `data` (ambos os pais mantêm `data` em
-// `useState` e apenas trocam o passo visível), então a seleção persiste. A
-// asserção é feita contra o DOM renderizado após a recarga da lista, que
-// reflete `data.instituicaoId` via `selecionadaId`.
+// Estratégia (integração, componente real `CampaignWizardNew`):
+//   - O catálogo vem de um fetch mockado (Mock_API), nunca de rede real. O
+//     passo 1 consome `useBeneficiadas()`, que busca via GET /beneficiadas e
+//     recarrega a lista sempre que o passo é remontado.
+//   - Ida curta: seleciona no passo 1, avança para o passo 2 e volta.
+//   - Ida longa: seleciona no passo 1, preenche o passo 2, avança até a
+//     revisão (passo 3) e volta dois passos; no caminho confere que o valor
+//     da regra também foi mantido.
+//   - Em ambos, afirma-se que a mesma beneficiada continua marcada
+//     (data-selected="true") após a lista recarregar.
 //
 // Usa-se `fireEvent` (síncrono) para preencher campos e navegar — o objetivo
-// aqui é persistência de estado, não simulação tecla-a-tecla — mantendo as 100
-// iterações dentro de um tempo razoável. O timeout por teste é generoso.
+// aqui é persistência de estado, não simulação tecla-a-tecla.
 
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import {
   render,
   screen,
@@ -47,10 +37,14 @@ import { ThemeProvider } from "@mui/material/styles";
 import fc from "fast-check";
 
 import theme from "@/theme";
-import CampaignWizard from "@/components/campaign-wizard/CampaignWizard";
-import CampaignWizardNew from "@/components/campaign-wizard/CampaignWizardNew";
 import type { Beneficiada } from "@/services/instituicoes";
 import { instalarMockFetch, type MockFetch } from "../helpers/mockFetch";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+}));
+
+import CampaignWizardNew from "@/components/campaign-wizard/CampaignWizardNew";
 
 afterEach(() => {
   cleanup();
@@ -141,7 +135,7 @@ function afirmarSomenteSelecionado(idSelecionado: string) {
 
 describe("Wizard — Property 11: persistência do instituicaoId na navegação", () => {
   it(
-    "CampaignWizard (passo 2): seleção é preservada ao navegar para fora e voltar",
+    "passo 1: seleção é preservada ao ir até a revisão e voltar dois passos",
     { timeout: 120_000 },
     async () => {
       await fc.assert(
@@ -154,43 +148,44 @@ describe("Wizard — Property 11: persistência do instituicaoId na navegação"
             mock.responderCom({ status: 200, body: CATALOGO });
 
             try {
-              renderizarComTema(<CampaignWizard />);
+              renderizarComTema(<CampaignWizardNew />);
 
-              // Passo 1: preencher nome + descrição para destravar o avanço.
+              // Passo 1: nome, descrição e a beneficiada.
+              await aguardarListaCarregada();
               preencherCampo(/Nome da campanha/i, "Campanha Teste");
               preencherCampo(/Descrição/i, "Descrição de teste.");
-
-              // Avança para o passo 2 (Causa e regra de doação).
-              clicarBotao("Continuar");
-
-              // O catálogo carrega no passo 2; seleciona a beneficiada.
-              await aguardarListaCarregada();
               fireEvent.click(
                 within(screen.getByTestId("beneficiadas-lista")).getByTestId(
                   `beneficiada-item-${idSelecionado}`,
                 ),
               );
               expect(itemSelecionado(idSelecionado)).toBe(true);
+              clicarBotao("Continuar");
 
-              // Navega para FORA do passo 2 (Voltar → passo 1). "Voltar" está
-              // sempre habilitado, independentemente da regra de doação.
-              clicarBotao("Voltar");
-
-              // De volta ao passo 1: os campos preenchidos continuam lá (o
-              // estado do wizard não foi reinicializado).
+              // Passo 2: regra e início destravam o avanço até a revisão.
+              fireEvent.change(screen.getByLabelText(/Valor doado por unidade/i), {
+                target: { value: "2" },
+              });
+              fireEvent.change(screen.getByLabelText(/Início/i), {
+                target: { value: "2026-11-01" },
+              });
+              clicarBotao("Continuar");
               await waitFor(() => {
                 expect(
-                  screen.getByRole("textbox", { name: /Nome da campanha/i }),
-                ).toHaveValue("Campanha Teste");
+                  screen.getByRole("heading", { name: /Revise e envie/i }),
+                ).toBeInTheDocument();
               });
 
-              // Retorna ao passo 2 (Continuar). A lista recarrega do zero.
-              clicarBotao("Continuar");
+              // Volta ao passo 2: o valor da regra continua lá.
+              clicarBotao("Voltar");
+              expect(screen.getByLabelText(/Valor doado por unidade/i)).toHaveValue(2);
+
+              // Volta ao passo 1: a lista recarrega do zero.
+              clicarBotao("Voltar");
               await aguardarListaCarregada();
 
-              // Property 11: a seleção foi preservada no estado do wizard — a
-              // mesma beneficiada aparece marcada após a recarga, e nenhuma
-              // outra está marcada.
+              // Property 11: a mesma beneficiada aparece marcada após a
+              // recarga, e nenhuma outra está marcada.
               afirmarSomenteSelecionado(idSelecionado);
             } finally {
               cleanup();
@@ -204,7 +199,7 @@ describe("Wizard — Property 11: persistência do instituicaoId na navegação"
   );
 
   it(
-    "CampaignWizardNew (passo 1): seleção é preservada ao avançar e voltar",
+    "passo 1: seleção é preservada ao avançar para o passo 2 e voltar",
     { timeout: 120_000 },
     async () => {
       await fc.assert(
@@ -231,12 +226,12 @@ describe("Wizard — Property 11: persistência do instituicaoId na navegação"
               );
               expect(itemSelecionado(idSelecionado)).toBe(true);
 
-              // Avança para o passo 2 (Escolha um modelo de selo).
+              // Avança para o passo 2 (Regra de doação e vigência).
               clicarBotao("Continuar");
               await waitFor(() => {
                 expect(
                   screen.getByRole("heading", {
-                    name: /Escolha um modelo de selo/i,
+                    name: /Regra de doação e vigência/i,
                   }),
                 ).toBeInTheDocument();
               });

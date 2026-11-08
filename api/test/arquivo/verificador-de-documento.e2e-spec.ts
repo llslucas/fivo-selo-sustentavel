@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
 
-import { Storage } from '@domain/fivo/application/ports/storage';
-import { VerificadorDeDocumento } from '@domain/fivo/application/ports/verificador-de-documento';
+import { Storage } from '@domain/fivo/shared/ports/storage';
+import { VerificadorDeDocumento } from '@domain/fivo/catalogo/ports/verificador-de-documento';
 import { ArquivoService } from '@infra/arquivo/arquivo.service';
-import { FakeStorage } from '@test/cryptography/fake-storage';
+import { FakeStorage } from '@test/doubles/fake-storage';
 import {
   AppDeTeste,
   criarAppDeTeste,

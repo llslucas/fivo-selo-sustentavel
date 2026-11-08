@@ -1,4 +1,4 @@
-import { Hasher } from '@domain/fivo/application/ports/cryptography/hasher';
+import { Hasher } from '@domain/fivo/identidade/ports/hasher';
 import { Module } from '@nestjs/common';
 
 import { Argon2Hasher } from './argon2-hasher';

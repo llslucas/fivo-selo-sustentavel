@@ -1,12 +1,14 @@
 import { randomUUID } from 'node:crypto';
 
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { EmpresaAlreadyExistsError } from '@domain/fivo/application/errors/empresa-already-exists.error';
-import { EmpresaRepository } from '@domain/fivo/application/ports/database/empresa-repository';
-import { UserRepository } from '@domain/fivo/application/ports/database/user-repository';
-import { Cnpj } from '@domain/fivo/entities/cnpj';
-import { EmpresaStatus } from '@domain/fivo/entities/empresa';
-import { UserRole } from '@domain/fivo/entities/user';
+import { EmpresaJaExisteError } from '@domain/fivo/empresas/errors/empresa-ja-existe.error';
+import { EmpresaRepository } from '@domain/fivo/empresas/ports/empresa-repository';
+import { UserRepository } from '@domain/fivo/identidade/ports/user-repository';
+import { Cnpj } from '@domain/fivo/shared/entities/cnpj';
+import { Slug } from '@domain/fivo/shared/entities/slug';
+import { SlugEmUsoError } from '@domain/fivo/shared/errors/slug.errors';
+import { EmpresaStatus } from '@domain/fivo/empresas/entities/empresa';
+import { UserRole } from '@domain/fivo/identidade/entities/user';
 import { EmpresaFactory } from '@test/factories/empresa-factory';
 import { UserFactory } from '@test/factories/user-factory';
 import {
@@ -18,6 +20,7 @@ import {
 const CNPJ_A = '11223344000186';
 const CNPJ_B = '22334455000186';
 const CNPJ_C = '33445566000186';
+const CNPJ_D = '44556677000186';
 
 function cnpj(digitos: string): Cnpj {
   const resultado = Cnpj.create(digitos);
@@ -348,18 +351,143 @@ describe('PrismaEmpresaRepository (e2e)', () => {
     expect(final!.tokenTrocaEmailHash).toBe('hash-do-token');
   });
 
-  it('create com CNPJ já cadastrado falha com EmpresaAlreadyExistsError (409)', async () => {
+  it('create com CNPJ já cadastrado falha com EmpresaJaExisteError (409)', async () => {
     const primeira = EmpresaFactory.create({ cnpj: cnpj(CNPJ_A) });
     const segunda = EmpresaFactory.create({ cnpj: cnpj(CNPJ_A) });
 
     await repository.create(primeira);
 
     await expect(repository.create(segunda)).rejects.toBeInstanceOf(
-      EmpresaAlreadyExistsError,
+      EmpresaJaExisteError,
     );
     await expect(repository.create(segunda)).rejects.toMatchObject({
       status: 409,
       message: 'CNPJ ou e-mail já cadastrado',
+    });
+  });
+  describe('slug', () => {
+    async function aprovadaCom(digitos: string, slug: string) {
+      const empresa = EmpresaFactory.create({
+        cnpj: cnpj(digitos),
+        status: EmpresaStatus.APROVADA,
+        slug: Slug.reconstruir(slug),
+      });
+      await repository.create(empresa);
+      return empresa;
+    }
+
+    it('salvarTransicao grava o slug da aprovação e a leitura o reconstrói', async () => {
+      const empresa = EmpresaFactory.create({ cnpj: cnpj(CNPJ_A) });
+      await repository.create(empresa);
+      empresa.aprovar(new UniqueEntityId());
+      empresa.atribuirSlug(Slug.reconstruir('cafe-serra-verde'));
+
+      const aplicada = await repository.salvarTransicao(
+        empresa,
+        EmpresaStatus.PENDENTE_APROVACAO,
+      );
+
+      expect(aplicada).toBe(true);
+      const linha = await contexto.prisma.empresa.findUniqueOrThrow({
+        where: { id: empresa.id.toString() },
+      });
+      expect(linha.slug).toBe('cafe-serra-verde');
+      const lida = await repository.findById(empresa.id.toString());
+      expect(lida!.slug?.valor).toBe('cafe-serra-verde');
+    });
+
+    it('empresa sem slug volta com slug nulo', async () => {
+      const empresa = EmpresaFactory.create({ cnpj: cnpj(CNPJ_A) });
+      await repository.create(empresa);
+
+      const lida = await repository.findById(empresa.id.toString());
+
+      expect(lida!.slug).toBeNull();
+    });
+
+    it('findBySlug acha a empresa dona do slug', async () => {
+      const empresa = await aprovadaCom(CNPJ_A, 'cafe-serra-verde');
+      await aprovadaCom(CNPJ_B, 'outra');
+
+      const encontrada = await repository.findBySlug('cafe-serra-verde');
+
+      expect(encontrada!.id.toString()).toBe(empresa.id.toString());
+      expect(encontrada!.slug?.valor).toBe('cafe-serra-verde');
+    });
+
+    it('findBySlug devolve null para slug inexistente', async () => {
+      await aprovadaCom(CNPJ_A, 'cafe-serra-verde');
+
+      expect(await repository.findBySlug('cafe')).toBeNull();
+    });
+
+    it("listarSlugsComPrefixo('cafe') devolve todos os slugs que começam com cafe", async () => {
+      await aprovadaCom(CNPJ_A, 'cafe');
+      await aprovadaCom(CNPJ_B, 'cafe-2');
+      await aprovadaCom(CNPJ_C, 'cafeteria');
+      await aprovadaCom(CNPJ_D, 'outra');
+      await repository.create(
+        EmpresaFactory.create({ cnpj: cnpj('55667788000186') }),
+      );
+
+      const slugs = await repository.listarSlugsComPrefixo('cafe');
+
+      expect([...slugs].sort()).toEqual(['cafe', 'cafe-2', 'cafeteria']);
+    });
+
+    it('slug de outra empresa → SlugEmUsoError e a transição não é gravada', async () => {
+      await aprovadaCom(CNPJ_A, 'cafe-serra-verde');
+      const empresa = EmpresaFactory.create({ cnpj: cnpj(CNPJ_B) });
+      await repository.create(empresa);
+      empresa.aprovar(new UniqueEntityId());
+      empresa.atribuirSlug(Slug.reconstruir('cafe-serra-verde'));
+
+      const gravacao = repository.salvarTransicao(
+        empresa,
+        EmpresaStatus.PENDENTE_APROVACAO,
+      );
+
+      await expect(gravacao).rejects.toBeInstanceOf(SlugEmUsoError);
+      await expect(gravacao).rejects.toThrow('Slug já está em uso');
+      const linha = await contexto.prisma.empresa.findUniqueOrThrow({
+        where: { id: empresa.id.toString() },
+      });
+      expect(linha.status).toBe('PENDENTE_APROVACAO');
+      expect(linha.slug).toBeNull();
+      expect(linha.decididoPor).toBeNull();
+    });
+
+    it('salvar de novo a própria empresa com o slug dela não conflita', async () => {
+      const empresa = await aprovadaCom(CNPJ_A, 'cafe-serra-verde');
+      empresa.suspender(new UniqueEntityId());
+
+      const aplicada = await repository.salvarTransicao(
+        empresa,
+        EmpresaStatus.APROVADA,
+      );
+
+      expect(aplicada).toBe(true);
+      const lida = await repository.findById(empresa.id.toString());
+      expect(lida!.status).toBe(EmpresaStatus.SUSPENSA);
+      expect(lida!.slug?.valor).toBe('cafe-serra-verde');
+    });
+
+    it('save cadastral com leitura obsoleta não apaga o slug gravado na aprovação', async () => {
+      const empresa = EmpresaFactory.create({ cnpj: cnpj(CNPJ_A) });
+      await repository.create(empresa);
+      const obsoleta = (await repository.findById(empresa.id.toString()))!;
+      const aprovada = (await repository.findById(empresa.id.toString()))!;
+      aprovada.aprovar(new UniqueEntityId());
+      aprovada.atribuirSlug(Slug.reconstruir('cafe-serra-verde'));
+      await repository.salvarTransicao(
+        aprovada,
+        EmpresaStatus.PENDENTE_APROVACAO,
+      );
+
+      await repository.save(obsoleta);
+
+      const lida = await repository.findById(empresa.id.toString());
+      expect(lida!.slug?.valor).toBe('cafe-serra-verde');
     });
   });
 });

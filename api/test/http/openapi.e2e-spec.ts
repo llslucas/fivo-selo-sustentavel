@@ -14,7 +14,16 @@ async function comAmbiente(
   const anterior = {
     NODE_ENV: process.env.NODE_ENV,
     SWAGGER_ENABLED: process.env.SWAGGER_ENABLED,
+    WEB_URL: process.env.WEB_URL,
+    SMTP_HOST: process.env.SMTP_HOST,
+    EMAIL_REMETENTE: process.env.EMAIL_REMETENTE,
   };
+
+  // Em produção a app não sobe sem `WEB_URL` (base do QR do selo) nem sem
+  // SMTP. Nenhuma destas suítes envia e-mail: o host nunca é contatado.
+  process.env.WEB_URL = 'https://fivo.example.com.br';
+  process.env.SMTP_HOST = 'smtp.invalid';
+  process.env.EMAIL_REMETENTE = 'nao-responda@fivo.example.com.br';
 
   for (const [chave, valor] of Object.entries(ambiente)) {
     process.env[chave] = valor;

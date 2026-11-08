@@ -1,0 +1,275 @@
+{
+  "pbtResults": {
+    "2.3 Escrever teste de propriedade da ordem de renderização": {
+      "status": "failed",
+      "failingExample": "RangeError: Invalid time value — thrown inside the test's own arbitrary at tests/component/FilaEmpresas.property-ordem.test.tsx:92:19 in `fc.date({ min: new Date(\"2000-01-01\"), max: new Date(\"2100-12-31\") }).map((d) => d.toISOString())`. The failure occurs during fast-check input generation (before the component renders), because fc.date can yield an Invalid Date at the boundary and toISOString() then throws. Not caused by task 2.6 (error-handling) changes.",
+      "lastRunTimestamp": 1792960986064
+    },
+    "2.7 Escrever teste de propriedade da remoção otimista": {
+      "status": "failed",
+      "failingExample": "Property failed after 1 tests. { seed: -186829346, path: \"0:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:0:0\", endOnFailure: true } (FilaEmpresas.property-remocao-otimista.test.tsx — task 2.7, outside the scope of task 2.9; not modified by this task)",
+      "lastRunTimestamp": 1792961866209
+    }
+  },
+  "executionHistory": {
+    "1.1 Implementar o tipo e as funções de serviço de empresa": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960269969
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960278670
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960352152
+      }
+    ],
+    "1.2 Escrever testes de exemplo do serviço de empresas": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960271191
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960356418
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960496964
+      }
+    ],
+    "2.1 Implementar a estrutura, o estado e o carregamento da lista": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960271352
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960358025
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960497989
+      }
+    ],
+    "2.2 Renderizar as linhas de empresa com os dados essenciais": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960271430
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960501976
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960579503
+      }
+    ],
+    "2.3 Escrever teste de propriedade da ordem de renderização": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960271483
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960695393
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960887534
+      }
+    ],
+    "2.4 Escrever teste de propriedade dos campos essenciais por linha": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960271539
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960696566
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960888568
+      }
+    ],
+    "2.5 Implementar aprovação com confirmação e rejeição com motivo": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960271594
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960585734
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960687942
+      }
+    ],
+    "2.6 Implementar o tratamento de erros de decisão por status": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960271694
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960892169
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792961026964
+      }
+    ],
+    "2.7 Escrever teste de propriedade da remoção otimista": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960271764
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792961033164
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792963050755
+      }
+    ],
+    "2.8 Escrever teste de propriedade do motivo abaixo do mínimo": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960271838
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792961034023
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792963051867
+      }
+    ],
+    "2.9 Escrever testes de exemplo e integração do componente": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960271911
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792961035466
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792963049358
+      }
+    ],
+    "3. Checkpoint - Garantir que os testes passam": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960271983
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792963063709
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792963259161
+      }
+    ],
+    "4.1 Atualizar `web/src/app/admin/empresas/page.tsx` para renderizar a fila": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960272052
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792961036768
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792963048074
+      }
+    ],
+    "5. Checkpoint final - Garantir que os testes passam": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960272103
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792963262549
+      },
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792963435148
+      }
+    ],
+    "1. Adicionar a camada de serviço de empresas em `web/src/services/admin.ts`": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792960497043
+      }
+    ],
+    "4. Amarrar a página do admin à fila": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792963048160
+      }
+    ],
+    "2. Criar o componente `web/src/components/admin/FilaEmpresas.tsx`": [
+      {
+        "executionId": "434c24e9-de52-497c-9dc0-0e639e7511bc",
+        "chatSessionId": "sess_09778328-64ac-4b1a-a123-e0d256cfbbab",
+        "timestamp": 1792963051943
+      }
+    ]
+  }
+}

@@ -1,40 +1,94 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Grid from "@mui/material/Grid";
+import Alert from "@mui/material/Alert";
+import Button from "@mui/material/Button";
 import Link from "next/link";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import { APP_ROUTES } from "@/lib/routes";
-import { mockPartnerCompanies } from "@/lib/mockPartners";
+import { mensagemDeErro } from "@/services/api";
+import {
+  listarParceiros,
+  urlDoLogo,
+  type ParceiroResumo,
+} from "@/services/empresasPublicas";
 
-type AvatarColor = "mint" | "peach" | "lavender";
+const QUANTIDADE_NA_HOME = 3;
 
-// Os cards vêm do mesmo mock da página de parceiros, para o card e o perfil
-// mostrarem sempre a mesma empresa.
-const destaques: { slug: string; color: AvatarColor }[] = [
-  { slug: "cafe-serra-verde", color: "mint" },
-  { slug: "padaria-nova-era", color: "peach" },
-  { slug: "loja-mundo-verde", color: "lavender" },
-];
+function iniciaisDe(nome: string): string {
+  return nome
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte[0].toUpperCase())
+    .join("");
+}
 
-const companies = destaques.flatMap(({ slug, color }) => {
-  const empresa = mockPartnerCompanies.find((p) => p.slug === slug);
-  if (!empresa) return [];
-  return [
-    {
-      slug,
-      color,
-      initials: empresa.initials,
-      name: empresa.name,
-      location: empresa.location,
-      tags: (empresa.campaigns ?? []).slice(0, 2).map((c) => c.nome).join(" · "),
-      amount: `${empresa.totalDonatedFormatted} doados`,
-    },
-  ];
-});
+function Avatar({ empresa }: { empresa: ParceiroResumo }) {
+  const [falhou, setFalhou] = useState(false);
+
+  if (empresa.temLogo && !falhou) {
+    return (
+      <Box sx={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={urlDoLogo(empresa.slug)}
+          alt={`Logo de ${empresa.nomeFantasia}`}
+          width={36}
+          height={36}
+          style={{ objectFit: "cover", display: "block" }}
+          onError={() => setFalhou(true)}
+        />
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      aria-hidden="true"
+      data-testid="iniciais-logo"
+      sx={{
+        width: 36,
+        height: 36,
+        borderRadius: "50%",
+        flexShrink: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "0.75rem",
+        fontWeight: 700,
+        bgcolor: "var(--color-avatar-mint-bg)",
+        color: "var(--color-avatar-mint-text)",
+      }}
+    >
+      {iniciaisDe(empresa.nomeFantasia)}
+    </Box>
+  );
+}
 
 export default function PartnerCompanies() {
+  const [parceiros, setParceiros] = useState<ParceiroResumo[] | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ativo = true;
+    listarParceiros()
+      .then((lista) => {
+        if (ativo) setParceiros(lista.slice(0, QUANTIDADE_NA_HOME));
+      })
+      .catch((e: unknown) => {
+        if (ativo) setErro(mensagemDeErro(e));
+      });
+    return () => {
+      ativo = false;
+    };
+  }, []);
+
   return (
     <Box id="empresas-parceiras" component="section" sx={{ borderBottom: 1, borderColor: "divider" }}>
       <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
@@ -72,70 +126,62 @@ export default function PartnerCompanies() {
           Veja campanhas em andamento e o que já foi doado.
         </Typography>
 
-        <Grid container spacing={3}>
-          {companies.map((company) => (
-            <Grid key={company.slug} size={{ xs: 12, sm: 6, md: 4 }}>
-              <Link
-                href={`${APP_ROUTES.public.parceiros}/${company.slug}`}
-                style={{ color: "inherit", textDecoration: "none", display: "block", height: "100%" }}
-              >
-                <Box
-                  sx={{
-                    border: 1,
-                    borderColor: "divider",
-                    borderRadius: 3,
-                    p: 3,
-                    height: "100%",
-                    transition: "border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
-                    "&:hover": {
-                      borderColor: "primary.main",
-                      boxShadow: 2,
-                      transform: "translateY(-3px)",
-                      "& .company-avatar": { transform: "scale(1.08)" },
-                    },
-                  }}
+        {erro && <Alert severity="error">{erro}</Alert>}
+
+        {parceiros !== null && parceiros.length === 0 && (
+          <Box sx={{ textAlign: "center", py: 2 }}>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+              Nenhuma empresa parceira ainda.
+            </Typography>
+            <Button component={Link} href={APP_ROUTES.public.cadastro} variant="outlined">
+              Cadastrar minha empresa
+            </Button>
+          </Box>
+        )}
+
+        {parceiros !== null && parceiros.length > 0 && (
+          <Grid container spacing={3}>
+            {parceiros.map((empresa) => (
+              <Grid key={empresa.slug} size={{ xs: 12, sm: 6, md: 4 }}>
+                <Link
+                  href={`/empresa/${encodeURIComponent(empresa.slug)}`}
+                  style={{ color: "inherit", textDecoration: "none", display: "block", height: "100%" }}
                 >
-                  <Stack direction="row" spacing={1.5} sx={{ mb: 2, alignItems: "center" }}>
-                    <Box
-                      className="company-avatar"
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.75rem",
-                        fontWeight: 700,
-                        bgcolor: `var(--color-avatar-${company.color}-bg)`,
-                        color: `var(--color-avatar-${company.color}-text)`,
-                        transition: "transform 0.2s ease",
-                      }}
-                    >
-                      {company.initials}
-                    </Box>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
-                        {company.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {company.location}
-                      </Typography>
-                    </Box>
-                  </Stack>
-
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    {company.tags}
-                  </Typography>
-
-                  <Typography variant="subtitle1" color="primary.main" sx={{ fontWeight: 700 }}>
-                    {company.amount}
-                  </Typography>
-                </Box>
-              </Link>
-            </Grid>
-          ))}
-        </Grid>
+                  <Box
+                    sx={{
+                      border: 1,
+                      borderColor: "divider",
+                      borderRadius: 3,
+                      p: 3,
+                      height: "100%",
+                      transition: "border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
+                      "&:hover": {
+                        borderColor: "primary.main",
+                        boxShadow: 2,
+                        transform: "translateY(-3px)",
+                      },
+                    }}
+                  >
+                    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", minWidth: 0 }}>
+                      <Avatar empresa={empresa} />
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{ fontWeight: 600, lineHeight: 1.3, overflowWrap: "anywhere" }}
+                        >
+                          {empresa.nomeFantasia}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {`${empresa.cidade}/${empresa.uf}`}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Box>
+                </Link>
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </Container>
     </Box>
   );

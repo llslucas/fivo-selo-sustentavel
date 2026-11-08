@@ -1,5 +1,5 @@
 import { UniqueEntityId } from '@core/types/entities/unique-entity-id';
-import { Causa, CausaProps } from '@domain/fivo/entities/causa';
+import { Causa, CausaProps } from '@domain/fivo/catalogo/entities/causa';
 
 export class CausaFactory {
   static create(props: Partial<CausaProps> = {}, id?: UniqueEntityId): Causa {

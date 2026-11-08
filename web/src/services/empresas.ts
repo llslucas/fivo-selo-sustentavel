@@ -70,3 +70,13 @@ export type EmpresaAtual = {
 export function getEmpresaAtual(): Promise<EmpresaAtual> {
   return request("/empresas/me");
 }
+
+// O token vem do link enviado ao novo e-mail. 400 = link inválido ou expirado;
+// 409 = o novo e-mail já pertence a outra conta. Rota pública: não exige sessão.
+export function confirmarTrocaEmail(token: string): Promise<void> {
+  return request("/empresas/me/email/confirmacao", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+}

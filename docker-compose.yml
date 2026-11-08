@@ -1,0 +1,75 @@
+# Stack completa (Postgres + API + web) a partir dos Dockerfiles de api/ e web/.
+#
+#   cp .env.docker.example .env      # e preencha os valores
+#   docker compose up -d --build
+#
+# As migrations rodam no serviço `migrate` antes da API subir.
+# Backfill de slugs (só uma vez, em base que já tinha dados):
+#   docker compose run --rm migrate npm run backfill:slugs
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fivo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-fivo}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build: ./api
+    image: fivo-api
+    command: ['npx', 'prisma', 'migrate', 'deploy']
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fivo}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-fivo}?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    build: ./api
+    image: fivo-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fivo}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-fivo}?schema=public
+      WEB_URL: ${WEB_URL:?defina WEB_URL}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?defina ADMIN_EMAIL}
+      ADMIN_SENHA: ${ADMIN_SENHA:?defina ADMIN_SENHA}
+      ADMIN_NOME: ${ADMIN_NOME:-Administrador Fivo}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+      SMTP_HOST: ${SMTP_HOST:?defina SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_SENHA: ${SMTP_SENHA:-}
+      EMAIL_REMETENTE: ${EMAIL_REMETENTE:?defina EMAIL_REMETENTE}
+    volumes:
+      - storage:/data/storage
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    # Sem porta publicada: só o web fala com a API, pela rede interna.
+
+  web:
+    build:
+      context: ./web
+      args:
+        API_URL: http://api:3000
+    image: fivo-web
+    restart: unless-stopped
+    ports:
+      - '${WEB_PORT:-3001}:3001'
+    depends_on:
+      - api
+
+volumes:
+  postgres-data:
+  storage:

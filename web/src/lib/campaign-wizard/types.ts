@@ -14,9 +14,18 @@ export type RegraTipo = "valor_fixo" | "percentual";
 export type CampaignWizardData = {
   nome: string;
   descricao: string;
+  // Id da beneficiada escolhida, seja instituição ou causa; o tipo diz em qual
+  // campo de POST /campanhas ele vai.
   instituicaoId: string | null;
+  beneficiadaTipo: TipoBeneficiada | null;
+  beneficiadaNome: string | null;
   regraTipo: RegraTipo;
-  regraValor: string; 
+  regraValor: string;
+  meta: string;
+  // AAAA-MM-DD, como sai do campo de data.
+  vigenciaInicio: string;
+  vigenciaFim: string;
+  capa: File | null;
   logoFile: File | null;
   logoPreviewUrl: string | null;
   mostrarValorNoSelo: boolean;
@@ -25,15 +34,20 @@ export type CampaignWizardData = {
   cnpj?: string;
   emailEmpresa?: string;
   telefoneEmpresa?: string;
-  modeloSelo?: string;
 };
 
 export const initialWizardData: CampaignWizardData = {
   nome: "",
   descricao: "",
   instituicaoId: null,
+  beneficiadaTipo: null,
+  beneficiadaNome: null,
   regraTipo: "valor_fixo",
   regraValor: "",
+  meta: "",
+  vigenciaInicio: "",
+  vigenciaFim: "",
+  capa: null,
   logoFile: null,
   logoPreviewUrl: null,
   mostrarValorNoSelo: true,
