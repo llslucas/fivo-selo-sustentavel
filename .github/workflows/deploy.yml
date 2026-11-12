@@ -1,0 +1,372 @@
+# Deploy de produção (https://issoimporta.app).
+#
+# disparo manual (Actions -> Deploy -> Run workflow) ->
+#   1. quality: quick-gate (tsc, lint, testes unitários, build do web)
+#   2. api-e2e: testes HTTP da API contra um Postgres descartável
+#   3. build:   gera as imagens, sobe a stack de produção no runner, roda o
+#               smoke test e só então publica no GHCR
+#   4. deploy:  SSH no servidor -> grava o .env -> pull -> backup do banco ->
+#               migrations -> up -> espera o health (rollback se falhar)
+#   5. smoke:   smoke test contra https://issoimporta.app
+#
+# REPOSITÓRIO PÚBLICO: os logs do Actions são públicos. Nenhum passo imprime
+# segredo, .env, corpo de resposta, log da aplicação de produção ou endereço
+# do servidor. Os secrets ficam no environment `production`, liberado só
+# para a branch main (ver deploy/configurar-github.ps1 e docs/deploy.md).
+
+name: Deploy
+
+# Só manual: o deploy padrão é o deploy/deploy-manual.ps1 (scp, sem secrets
+# no GitHub). Para voltar a ser automático, adicione `push: branches: [main]`
+# depois de configurar o environment `production` (deploy/configurar-github.ps1).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    uses: ./.github/workflows/quick-gate.yml
+
+  api-e2e:
+    name: API — testes e2e (Postgres)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fivo
+          POSTGRES_PASSWORD: fivo
+          POSTGRES_DB: fivo_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U fivo -d fivo_test"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      DATABASE_URL: postgresql://fivo:fivo@localhost:5433/fivo_test?schema=public
+      STORAGE_DIR: ./tmp/storage
+      WEB_URL: http://localhost:3001
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - run: npm ci
+      - run: npx prisma migrate deploy
+      - run: npm run test:e2e
+
+  build:
+    name: Imagens — build, smoke test e publicação
+    needs: [quality, api-e2e]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      api_image: ${{ steps.nomes.outputs.api_image }}
+      web_image: ${{ steps.nomes.outputs.web_image }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Nomes das imagens
+        id: nomes
+        run: |
+          repo="ghcr.io/${GITHUB_REPOSITORY,,}"
+          tag="sha-${GITHUB_SHA::12}"
+          {
+            echo "api_image=${repo}-api:${tag}"
+            echo "web_image=${repo}-web:${tag}"
+            echo "api_main=${repo}-api:main"
+            echo "web_main=${repo}-web:main"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build da API
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          platforms: linux/amd64
+          load: true
+          push: false
+          provenance: false
+          tags: |
+            ${{ steps.nomes.outputs.api_image }}
+            ${{ steps.nomes.outputs.api_main }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build do web
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          platforms: linux/amd64
+          load: true
+          push: false
+          provenance: false
+          build-args: |
+            API_URL=http://api:3000
+          tags: |
+            ${{ steps.nomes.outputs.web_image }}
+            ${{ steps.nomes.outputs.web_main }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+      # As imagens ficam públicas: garante que nenhum .env entrou nelas.
+      - name: Imagens sem arquivos .env
+        env:
+          API_IMAGE: ${{ steps.nomes.outputs.api_image }}
+          WEB_IMAGE: ${{ steps.nomes.outputs.web_image }}
+        run: |
+          for img in "$API_IMAGE" "$WEB_IMAGE"; do
+            achados="$(docker run --rm --entrypoint sh "$img" -c \
+              "find /app -path /app/node_modules -prune -o -name '.env*' ! -name '.env.example' -print")"
+            if [[ -n "$achados" ]]; then
+              echo "::error::arquivo .env dentro da imagem $img"
+              exit 1
+            fi
+          done
+          echo "nenhum .env nas imagens"
+
+      - name: Sobe a stack de produção no runner
+        env:
+          API_IMAGE: ${{ steps.nomes.outputs.api_image }}
+          WEB_IMAGE: ${{ steps.nomes.outputs.web_image }}
+        run: |
+          umask 077
+          # Valores descartáveis, só para este teste.
+          cat > "$RUNNER_TEMP/ci.env" <<EOF
+          POSTGRES_PASSWORD=$(openssl rand -hex 24)
+          WEB_URL=http://127.0.0.1:3101
+          ADMIN_EMAIL=admin-ci@example.invalid
+          ADMIN_SENHA=$(openssl rand -hex 16)
+          SMTP_HOST=smtp.example.invalid
+          EMAIL_REMETENTE=CI <ci@example.invalid>
+          COOKIE_SECURE=false
+          WEB_PORT=3101
+          API_IMAGE=$API_IMAGE
+          WEB_IMAGE=$WEB_IMAGE
+          EOF
+          docker compose -p issoimporta-ci --env-file "$RUNNER_TEMP/ci.env" \
+            -f deploy/docker-compose.prod.yml up -d --quiet-pull
+
+      - name: Smoke test (local)
+        run: bash deploy/smoke.sh http://127.0.0.1:3101
+
+      - name: Diagnóstico da stack local (dados descartáveis)
+        if: failure()
+        run: |
+          docker compose -p issoimporta-ci --env-file "$RUNNER_TEMP/ci.env" \
+            -f deploy/docker-compose.prod.yml ps -a
+          docker compose -p issoimporta-ci --env-file "$RUNNER_TEMP/ci.env" \
+            -f deploy/docker-compose.prod.yml logs --tail 150 migrate api web
+
+      - name: Derruba a stack local
+        if: always()
+        run: |
+          docker compose -p issoimporta-ci --env-file "$RUNNER_TEMP/ci.env" \
+            -f deploy/docker-compose.prod.yml down -v || true
+          rm -f "$RUNNER_TEMP/ci.env"
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publica no GHCR
+        env:
+          TAGS: >-
+            ${{ steps.nomes.outputs.api_image }}
+            ${{ steps.nomes.outputs.api_main }}
+            ${{ steps.nomes.outputs.web_image }}
+            ${{ steps.nomes.outputs.web_main }}
+        run: |
+          for t in $TAGS; do docker push --quiet "$t"; done
+
+  deploy:
+    name: Deploy no servidor (SSH)
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.WEB_URL || 'https://issoimporta.app' }}
+    permissions:
+      contents: read
+      packages: read
+    env:
+      DEPLOY_DIR: ${{ vars.DEPLOY_DIR || '/opt/issoimporta' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: deploy
+
+      - name: Confere secrets e variáveis
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_SENHA: ${{ secrets.ADMIN_SENHA }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_SENHA: ${{ secrets.SMTP_SENHA }}
+          SMTP_HOST: ${{ vars.SMTP_HOST }}
+          EMAIL_REMETENTE: ${{ vars.EMAIL_REMETENTE }}
+          WEB_PORT: ${{ vars.WEB_PORT || '3101' }}
+        run: |
+          faltando=()
+          for nome in SSH_HOST SSH_PORT SSH_USER SSH_PRIVATE_KEY SSH_KNOWN_HOSTS \
+                      POSTGRES_PASSWORD ADMIN_EMAIL ADMIN_SENHA SMTP_USER SMTP_SENHA \
+                      SMTP_HOST EMAIL_REMETENTE; do
+            [[ -n "${!nome}" ]] || faltando+=("$nome")
+          done
+          if ((${#faltando[@]})); then
+            echo "::error::Configure no environment 'production': ${faltando[*]}"
+            exit 1
+          fi
+          # Entra na DATABASE_URL: só caracteres seguros em URL.
+          if [[ ! "$POSTGRES_PASSWORD" =~ ^[A-Za-z0-9._~-]{16,}$ ]]; then
+            echo "::error::POSTGRES_PASSWORD precisa ter 16+ caracteres de [A-Za-z0-9._~-]"
+            exit 1
+          fi
+          if ((${#ADMIN_SENHA} < 10)); then
+            echo "::error::ADMIN_SENHA precisa ter ao menos 10 caracteres"
+            exit 1
+          fi
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::SSH_PORT inválida"; exit 1; }
+          [[ "$WEB_PORT" =~ ^[0-9]{2,5}$ ]] || { echo "::error::WEB_PORT inválida"; exit 1; }
+          [[ "$DEPLOY_DIR" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "::error::DEPLOY_DIR inválido"; exit 1; }
+          echo "configuração completa"
+
+      - name: Configura o SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          (umask 077; printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key)
+          (umask 077; printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts_deploy)
+          (umask 077; cat > ~/.ssh/config <<EOF
+          Host deploy
+            HostName $SSH_HOST
+            Port $SSH_PORT
+            User $SSH_USER
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts_deploy
+            LogLevel ERROR
+            ConnectTimeout 20
+            ServerAliveInterval 15
+            ServerAliveCountMax 8
+          EOF
+          )
+          ssh deploy true
+          echo "conexão SSH ok"
+
+      - name: Gera o .env de produção
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_SENHA: ${{ secrets.ADMIN_SENHA }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_SENHA: ${{ secrets.SMTP_SENHA }}
+          POSTGRES_USER: ${{ vars.POSTGRES_USER || 'fivo' }}
+          POSTGRES_DB: ${{ vars.POSTGRES_DB || 'fivo' }}
+          WEB_URL: ${{ vars.WEB_URL || 'https://issoimporta.app' }}
+          WEB_PORT: ${{ vars.WEB_PORT || '3101' }}
+          ADMIN_NOME: ${{ vars.ADMIN_NOME || 'Administrador Fivo' }}
+          SMTP_HOST: ${{ vars.SMTP_HOST }}
+          SMTP_PORT: ${{ vars.SMTP_PORT || '587' }}
+          EMAIL_REMETENTE: ${{ vars.EMAIL_REMETENTE }}
+        run: |
+          umask 077
+          arquivo="$RUNNER_TEMP/prod.env"
+          : > "$arquivo"
+          adiciona() {
+            local nome="$1" valor="${!1}"
+            if [[ "$valor" == *"'"* || "$valor" == *$'\n'* ]]; then
+              echo "::error::$nome não pode conter aspas simples nem quebra de linha"
+              exit 1
+            fi
+            printf "%s='%s'\n" "$nome" "$valor" >> "$arquivo"
+          }
+          for nome in POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB WEB_URL WEB_PORT \
+                      ADMIN_EMAIL ADMIN_SENHA ADMIN_NOME SMTP_HOST SMTP_PORT \
+                      SMTP_USER SMTP_SENHA EMAIL_REMETENTE; do
+            adiciona "$nome"
+          done
+          printf "COOKIE_SECURE='true'\nSWAGGER_ENABLED='false'\n" >> "$arquivo"
+          echo "env gerado com $(wc -l < "$arquivo") variáveis"
+
+      - name: Envia compose, script e .env
+        run: |
+          # SC2029: expandir no runner é intencional; os valores já vão escapados com %q.
+          dir="$(printf '%q' "$DEPLOY_DIR")"
+          # shellcheck disable=SC2029
+          ssh deploy "mkdir -p $dir && chmod 700 $dir"
+          scp -q deploy/docker-compose.prod.yml deploy/remote-deploy.sh "deploy:$DEPLOY_DIR/"
+          # shellcheck disable=SC2029
+          ssh deploy "umask 077 && cat > $dir/.env.novo && mv -f $dir/.env.novo $dir/.env" < "$RUNNER_TEMP/prod.env"
+          rm -f "$RUNNER_TEMP/prod.env"
+
+      - name: Executa o deploy no servidor
+        env:
+          API_IMAGE: ${{ needs.build.outputs.api_image }}
+          WEB_IMAGE: ${{ needs.build.outputs.web_image }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dir="$(printf '%q' "$DEPLOY_DIR")"
+          # shellcheck disable=SC2029
+          printf '%s\n' "$GHCR_TOKEN" | ssh deploy \
+            "bash $dir/remote-deploy.sh $(printf '%q' "$API_IMAGE") $(printf '%q' "$WEB_IMAGE") $(printf '%q' "$GITHUB_ACTOR")"
+
+      - name: Limpa credenciais do runner
+        if: always()
+        run: rm -f ~/.ssh/deploy_key ~/.ssh/known_hosts_deploy ~/.ssh/config "$RUNNER_TEMP/prod.env"
+
+  smoke:
+    name: Smoke test em produção
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: deploy
+
+      - name: Smoke test (https)
+        env:
+          WEB_URL: ${{ vars.WEB_URL || 'https://issoimporta.app' }}
+          SMOKE_TENTATIVAS: '12'
+        run: bash deploy/smoke.sh "$WEB_URL"

@@ -61,6 +61,7 @@ import { CausasController } from './catalogo/causas.controller';
 import { EmpresasPublicasController } from './empresas/empresas-publicas.controller';
 import { DomainExceptionFilter } from './domain-exception.filter';
 import { SenhaController } from './identidade/senha.controller';
+import { SaudeController } from './saude/saude.controller';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { SenhaController } from './identidade/senha.controller';
     AdminCampanhasController,
     CampanhasPublicasController,
     EmpresasPublicasController,
+    SaudeController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },

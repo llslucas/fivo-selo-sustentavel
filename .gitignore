@@ -48,6 +48,11 @@ lerna-debug.log*
 .env.production.local
 .env.local
 
+# Deploy manual: dados do servidor e segredos (deploy/.env.deploy) e chaves
+.env.deploy
+*.pem
+*.key
+
 # temp directory
 .temp
 .tmp

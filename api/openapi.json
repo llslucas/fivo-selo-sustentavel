@@ -4481,6 +4481,49 @@
         ]
       }
     },
+    "/health": {
+      "get": {
+        "operationId": "SaudeController_verificar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "ok"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Saudável"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroResposta"
+                }
+              }
+            },
+            "description": "Banco de dados inacessível"
+          }
+        },
+        "summary": "Health check: API no ar e banco acessível",
+        "tags": [
+          "saude"
+        ]
+      }
+    },
     "/instituicoes": {
       "post": {
         "operationId": "CadastroInstituicaoController_criar",
