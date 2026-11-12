@@ -1,0 +1,137 @@
+# nginx do HOST — fase 2 (produção, com HTTPS). issoimporta.app
+#
+# Proxy reverso para o container `web` (Next), publicado só em
+# 127.0.0.1:3101 (WEB_PORT do .env). O navegador nunca fala direto com a
+# API: o Next repassa /api/* para ela pela rede interna do Docker, então
+# NÃO há subdomínio de API e nenhuma porta de API/Postgres fica exposta.
+#
+#   sudo cp issoimporta.app.conf.example /etc/nginx/sites-available/issoimporta.app.conf
+#   sudo nginx -t && sudo systemctl reload nginx
+#
+# Se mudar WEB_PORT no GitHub, mude a porta do upstream abaixo também.
+# Os nomes de zona/upstream têm prefixo issoimporta_ para não colidir com
+# outros sites do mesmo nginx.
+
+# --- Rate limit (contexto http: arquivos em sites-enabled já estão nele) ---
+# Login e recuperação/redefinição de senha: 10 por minuto por IP.
+limit_req_zone $binary_remote_addr zone=issoimporta_login:10m rate=10r/m;
+# Cadastro de empresa/instituição (só POST): 5 por minuto por IP.
+map $request_method $issoimporta_chave_cadastro {
+    POST    $binary_remote_addr;
+    default "";
+}
+limit_req_zone $issoimporta_chave_cadastro zone=issoimporta_cadastro:10m rate=5r/m;
+# Resto da API: 20 por segundo por IP.
+limit_req_zone $binary_remote_addr zone=issoimporta_api:10m rate=20r/s;
+
+upstream issoimporta_web {
+    server 127.0.0.1:3101;
+    keepalive 16;
+}
+
+# HTTP -> HTTPS (mantém o desafio do Let's Encrypt para a renovação).
+server {
+    listen 80;
+    listen [::]:80;
+    server_name issoimporta.app www.issoimporta.app;
+    server_tokens off;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type text/plain;
+    }
+
+    location / {
+        return 301 https://issoimporta.app$request_uri;
+    }
+}
+
+# www -> domínio principal. O QR Code do selo usa https://issoimporta.app.
+server {
+    # `listen ... http2` funciona em qualquer nginx (o Ubuntu 24.04 traz o 1.24,
+    # que ainda não tem a diretiva `http2 on;`).
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name www.issoimporta.app;
+    server_tokens off;
+
+    ssl_certificate     /etc/letsencrypt/live/issoimporta.app/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/issoimporta.app/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+    return 301 https://issoimporta.app$request_uri;
+}
+
+server {
+    # `listen ... http2` funciona em qualquer nginx (o Ubuntu 24.04 traz o 1.24,
+    # que ainda não tem a diretiva `http2 on;`).
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name issoimporta.app;
+    server_tokens off;
+
+    ssl_certificate     /etc/letsencrypt/live/issoimporta.app/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/issoimporta.app/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache   shared:issoimporta_ssl:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+
+    # Upload: documento da instituição (10 MB) + logo (5 MB) no mesmo form.
+    client_max_body_size 16m;
+
+    # Cabeçalhos de segurança. Ficam só no nível do server: um add_header
+    # dentro de location descartaria todos estes.
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+    proxy_hide_header X-Powered-By;
+
+    # Mesmo motivo: definidos aqui e nunca redefinidos nas locations.
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    # Substitui (não acrescenta) para o cliente não forjar o IP.
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 60s;
+    proxy_read_timeout 60s;
+
+    limit_req_status 429;
+
+    location = /api/health {
+        access_log off;
+        proxy_pass http://issoimporta_web;
+    }
+
+    location = /api/sessoes {
+        limit_req zone=issoimporta_login burst=5 nodelay;
+        proxy_pass http://issoimporta_web;
+    }
+
+    location ^~ /api/senha/ {
+        limit_req zone=issoimporta_login burst=5 nodelay;
+        proxy_pass http://issoimporta_web;
+    }
+
+    location ~ ^/api/(empresas|instituicoes)/?$ {
+        limit_req zone=issoimporta_cadastro burst=3 nodelay;
+        proxy_pass http://issoimporta_web;
+    }
+
+    location /api/ {
+        limit_req zone=issoimporta_api burst=40 nodelay;
+        proxy_pass http://issoimporta_web;
+    }
+
+    location / {
+        proxy_pass http://issoimporta_web;
+    }
+}

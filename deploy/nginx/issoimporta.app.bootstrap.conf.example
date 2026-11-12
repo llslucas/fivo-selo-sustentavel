@@ -1,0 +1,32 @@
+# nginx do HOST — fase 1 (antes de existir o certificado).
+#
+# Serve só o desafio do Let's Encrypt (o resto responde 503), para emitir o
+# certificado sem expor a app em HTTP puro. Depois troque pelo
+# issoimporta.app.conf.example (fase 2). Passo a passo em docs/deploy.md.
+#
+#   sudo mkdir -p /var/www/certbot
+#   sudo cp issoimporta.app.bootstrap.conf.example /etc/nginx/sites-available/issoimporta.app.conf
+#   sudo ln -s /etc/nginx/sites-available/issoimporta.app.conf /etc/nginx/sites-enabled/
+#   sudo nginx -t && sudo systemctl reload nginx
+#   sudo certbot certonly --webroot -w /var/www/certbot \
+#     -d issoimporta.app -d www.issoimporta.app
+#
+# A renovação automática do certbot usa o mesmo webroot, que a fase 2
+# continua servindo na porta 80.
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name issoimporta.app www.issoimporta.app;
+
+    server_tokens off;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type text/plain;
+    }
+
+    location / {
+        return 503;
+    }
+}

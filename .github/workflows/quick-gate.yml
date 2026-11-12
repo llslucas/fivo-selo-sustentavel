@@ -2,10 +2,15 @@ name: Quick gate
 
 on:
   pull_request:
+  # Reaproveitado pelo deploy.yml antes de gerar as imagens.
+  workflow_call:
+
+permissions:
+  contents: read
 
 concurrency:
-  group: quick-gate-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: quick-gate-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   api:

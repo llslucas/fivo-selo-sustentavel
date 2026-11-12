@@ -1,0 +1,5 @@
+# Scripts e configs que rodam no Linux (runner e servidor) sempre em LF.
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.conf.example text eol=lf

@@ -1,0 +1,108 @@
+# Stack de produção (issoimporta.app). Usa as imagens publicadas no GHCR
+# pelo workflow .github/workflows/deploy.yml; não faz build no servidor.
+#
+# Fica no servidor em $DEPLOY_DIR junto com o .env (gerado pelo workflow a
+# partir dos secrets do GitHub, chmod 600). Nada aqui contém segredo.
+#
+# Portas: só o web publica, e só em 127.0.0.1 (o nginx do host faz o HTTPS).
+# Postgres e API ficam na rede interna, sem conflito com 5432/5433 do host.
+
+name: issoimporta
+
+x-api-env: &api-env
+  DATABASE_URL: postgresql://${POSTGRES_USER:-fivo}:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-fivo}?schema=public
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fivo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-fivo}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+
+  migrate:
+    image: ${API_IMAGE:?defina API_IMAGE}
+    command: ['npx', 'prisma', 'migrate', 'deploy']
+    environment:
+      <<: *api-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+    logging: *logging
+
+  api:
+    image: ${API_IMAGE:?defina API_IMAGE}
+    restart: unless-stopped
+    environment:
+      <<: *api-env
+      WEB_URL: ${WEB_URL:?defina WEB_URL}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?defina ADMIN_EMAIL}
+      ADMIN_SENHA: ${ADMIN_SENHA:?defina ADMIN_SENHA}
+      ADMIN_NOME: ${ADMIN_NOME:-Administrador Fivo}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+      SMTP_HOST: ${SMTP_HOST:?defina SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_SENHA: ${SMTP_SENHA:-}
+      EMAIL_REMETENTE: ${EMAIL_REMETENTE:?defina EMAIL_REMETENTE}
+    volumes:
+      - storage:/data/storage
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 6
+    logging: *logging
+
+  web:
+    image: ${WEB_IMAGE:?defina WEB_IMAGE}
+    restart: unless-stopped
+    ports:
+      # Só loopback: quem expõe para a internet é o nginx do host.
+      - '127.0.0.1:${WEB_PORT:-3101}:3001'
+    depends_on:
+      api:
+        condition: service_healthy
+    # Passa pelo proxy /api/* do Next: valida web + API + banco de uma vez.
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 6
+    logging: *logging
+
+volumes:
+  postgres-data:
+  storage:
